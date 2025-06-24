@@ -367,14 +367,40 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               placeholder="Type a message..."
               className="pr-12 bg-slate-700 border-slate-600 focus:border-cyan-500"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400"
-            >
-              <Smile className="h-4 w-4" />
-            </Button>
+            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400"
+                >
+                  <Smile className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4 bg-slate-800 border-slate-700" align="end">
+                <div className="space-y-3">
+                  <h3 className="font-medium text-slate-200">Popular Emojis</h3>
+                  <div className="grid grid-cols-8 gap-2">
+                    {popularEmojis.map((emoji, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleEmojiSelect(emoji)}
+                        className="text-xl hover:bg-slate-700 rounded p-2 transition-colors"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pt-2 border-t border-slate-700">
+                    <p className="text-xs text-slate-400">
+                      Tip: You can also type emojis directly or copy-paste them!
+                    </p>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           <Button 
             type="submit"
