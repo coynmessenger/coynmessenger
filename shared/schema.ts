@@ -44,8 +44,10 @@ export const escrows = pgTable("escrows", {
   conversationId: integer("conversation_id").notNull(),
   initiatorId: integer("initiator_id").notNull(),
   participantId: integer("participant_id").notNull(),
-  currency: text("currency").notNull(),
-  requiredAmount: decimal("required_amount", { precision: 18, scale: 8 }).notNull(),
+  initiatorCurrency: text("initiator_currency").notNull(),
+  participantCurrency: text("participant_currency").notNull(),
+  initiatorRequiredAmount: decimal("initiator_required_amount", { precision: 18, scale: 8 }).notNull(),
+  participantRequiredAmount: decimal("participant_required_amount", { precision: 18, scale: 8 }).notNull(),
   initiatorAmount: decimal("initiator_amount", { precision: 18, scale: 8 }).default("0"),
   participantAmount: decimal("participant_amount", { precision: 18, scale: 8 }).default("0"),
   status: text("status").notNull().default("pending"), // pending, funded, released, cancelled

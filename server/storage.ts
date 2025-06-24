@@ -219,11 +219,12 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     // Check if both parties have funded the required amount
-    const requiredAmount = parseFloat(escrow.requiredAmount);
-    const initiatorAmount = parseFloat(isInitiator ? amount : escrow.initiatorAmount);
-    const participantAmount = parseFloat(isParticipant ? amount : escrow.participantAmount);
+    const initiatorRequired = parseFloat(escrow.initiatorRequiredAmount);
+    const participantRequired = parseFloat(escrow.participantRequiredAmount);
+    const initiatorAmount = parseFloat(isInitiator ? amount : escrow.initiatorAmount || "0");
+    const participantAmount = parseFloat(isParticipant ? amount : escrow.participantAmount || "0");
 
-    if (initiatorAmount >= requiredAmount && participantAmount >= requiredAmount) {
+    if (initiatorAmount >= initiatorRequired && participantAmount >= participantRequired) {
       // Automatically release funds when both parties have contributed
       await this.releaseEscrow(escrowId);
     }
@@ -244,13 +245,14 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(escrows.id, escrowId));
 
-    // Release funds back to participants (in a real system, this would involve actual blockchain transactions)
-    const totalAmount = parseFloat(escrow.initiatorAmount) + parseFloat(escrow.participantAmount);
-    
-    // Return half to each participant
-    const halfAmount = (totalAmount / 2).toString();
-    await this.updateWalletBalance(escrow.initiatorId, escrow.currency, halfAmount);
-    await this.updateWalletBalance(escrow.participantId, escrow.currency, halfAmount);
+    // Release funds to the opposite party (trade completion)
+    // Initiator gets participant's currency, participant gets initiator's currency
+    if (escrow.initiatorAmount && parseFloat(escrow.initiatorAmount) > 0) {
+      await this.updateWalletBalance(escrow.participantId, escrow.initiatorCurrency, escrow.initiatorAmount);
+    }
+    if (escrow.participantAmount && parseFloat(escrow.participantAmount) > 0) {
+      await this.updateWalletBalance(escrow.initiatorId, escrow.participantCurrency, escrow.participantAmount);
+    }
 
     return true;
   }
@@ -263,11 +265,11 @@ export class DatabaseStorage implements IStorage {
     if (escrow.initiatorId !== userId) return false;
 
     // Return funds to original owners
-    if (parseFloat(escrow.initiatorAmount) > 0) {
-      await this.updateWalletBalance(escrow.initiatorId, escrow.currency, escrow.initiatorAmount);
+    if (escrow.initiatorAmount && parseFloat(escrow.initiatorAmount) > 0) {
+      await this.updateWalletBalance(escrow.initiatorId, escrow.initiatorCurrency, escrow.initiatorAmount);
     }
-    if (parseFloat(escrow.participantAmount) > 0) {
-      await this.updateWalletBalance(escrow.participantId, escrow.currency, escrow.participantAmount);
+    if (escrow.participantAmount && parseFloat(escrow.participantAmount) > 0) {
+      await this.updateWalletBalance(escrow.participantId, escrow.participantCurrency, escrow.participantAmount);
     }
 
     // Update status

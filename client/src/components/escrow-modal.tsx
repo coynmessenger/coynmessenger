@@ -22,8 +22,10 @@ interface EscrowModalProps {
 
 export default function EscrowModal({ isOpen, onClose, conversationId, otherUser }: EscrowModalProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [currency, setCurrency] = useState("COYN");
-  const [amount, setAmount] = useState("");
+  const [initiatorCurrency, setInitiatorCurrency] = useState("COYN");
+  const [participantCurrency, setParticipantCurrency] = useState("BTC");
+  const [initiatorAmount, setInitiatorAmount] = useState("");
+  const [participantAmount, setParticipantAmount] = useState("");
   const [description, setDescription] = useState("");
   const [fundingAmount, setFundingAmount] = useState("");
   const [selectedEscrow, setSelectedEscrow] = useState<number | null>(null);
@@ -48,7 +50,8 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
       setShowCreateForm(false);
-      setAmount("");
+      setInitiatorAmount("");
+      setParticipantAmount("");
       setDescription("");
       toast({
         title: "Escrow created",
@@ -110,13 +113,23 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
   const handleCreateEscrow = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !currency) return;
+    if (!initiatorAmount || !participantAmount || !initiatorCurrency || !participantCurrency) return;
+    if (initiatorCurrency === participantCurrency) {
+      toast({
+        title: "Invalid currencies",
+        description: "Both parties must use different currencies for the trade.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     createEscrowMutation.mutate({
       conversationId,
       participantId: otherUser.id,
-      currency,
-      requiredAmount: amount,
+      initiatorCurrency,
+      participantCurrency,
+      initiatorRequiredAmount: initiatorAmount,
+      participantRequiredAmount: participantAmount,
       description,
     });
   };
@@ -171,17 +184,17 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
           {showCreateForm && (
             <Card className="bg-slate-700 border-slate-600">
               <CardHeader>
-                <CardTitle className="text-lg">Create Escrow Agreement</CardTitle>
+                <CardTitle className="text-lg">Create Trade Escrow</CardTitle>
                 <p className="text-sm text-slate-400">
-                  Both you and {otherUser.displayName} will need to deposit the specified amount
+                  Set up a trade where you and {otherUser.displayName} exchange different currencies
                 </p>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreateEscrow} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="currency">Currency</Label>
-                      <Select value={currency} onValueChange={setCurrency}>
+                    <div className="space-y-2">
+                      <Label className="text-cyan-400">Your Offer</Label>
+                      <Select value={initiatorCurrency} onValueChange={setInitiatorCurrency}>
                         <SelectTrigger className="bg-slate-800 border-slate-600">
                           <SelectValue />
                         </SelectTrigger>
@@ -193,16 +206,36 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="amount">Required Amount (each party)</Label>
                       <Input
-                        id="amount"
                         type="number"
                         step="0.0001"
-                        placeholder="0.0000"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="Amount you'll deposit"
+                        value={initiatorAmount}
+                        onChange={(e) => setInitiatorAmount(e.target.value)}
+                        className="bg-slate-800 border-slate-600"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-purple-400">{otherUser.displayName}'s Offer</Label>
+                      <Select value={participantCurrency} onValueChange={setParticipantCurrency}>
+                        <SelectTrigger className="bg-slate-800 border-slate-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          {balances.map((balance) => (
+                            <SelectItem key={balance.currency} value={balance.currency}>
+                              {balance.currency}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        placeholder="Amount they'll deposit"
+                        value={participantAmount}
+                        onChange={(e) => setParticipantAmount(e.target.value)}
                         className="bg-slate-800 border-slate-600"
                         required
                       />
@@ -254,7 +287,9 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-medium">{formatAmount(escrow.requiredAmount)} {escrow.currency}</span>
+                          <span className="font-medium text-cyan-400">{formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}</span>
+                          <span className="text-slate-400">↔</span>
+                          <span className="font-medium text-purple-400">{formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}</span>
                           {getStatusBadge(escrow.status)}
                         </div>
                         {escrow.description && (
@@ -270,20 +305,20 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <div>
                         <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                           <div>
-                            <span className="text-slate-400">Your contribution:</span>
+                            <span className="text-slate-400">Your {escrow.initiatorCurrency}:</span>
                             <div className="font-mono text-cyan-400">
-                              {formatAmount(escrow.initiatorAmount)} / {formatAmount(escrow.requiredAmount)}
+                              {formatAmount(escrow.initiatorAmount)} / {formatAmount(escrow.initiatorRequiredAmount)}
                             </div>
                           </div>
                           <div>
-                            <span className="text-slate-400">{otherUser.displayName}'s contribution:</span>
-                            <div className="font-mono text-cyan-400">
-                              {formatAmount(escrow.participantAmount)} / {formatAmount(escrow.requiredAmount)}
+                            <span className="text-slate-400">{otherUser.displayName}'s {escrow.participantCurrency}:</span>
+                            <div className="font-mono text-purple-400">
+                              {formatAmount(escrow.participantAmount)} / {formatAmount(escrow.participantRequiredAmount)}
                             </div>
                           </div>
                         </div>
 
-                        {parseFloat(escrow.initiatorAmount || "0") < parseFloat(escrow.requiredAmount) && (
+                        {parseFloat(escrow.initiatorAmount || "0") < parseFloat(escrow.initiatorRequiredAmount) && (
                           <div className="flex space-x-2 mb-2">
                             <Input
                               type="number"
