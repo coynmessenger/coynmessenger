@@ -87,6 +87,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Fixed TypeScript errors in storage layer and improved chat spacing/scrolling behavior
 - June 24, 2025: Added COYN logo branding to wallet modal with gradient styling and glow effects
 - June 24, 2025: Replaced all gradient logo placeholders with authentic COYN token logo throughout application
+- June 24, 2025: Fixed empty space error above profile pictures in chat and removed "Token" from COYN branding
 
 ## User Preferences
 

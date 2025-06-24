@@ -203,10 +203,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 bg-slate-900">
-        <div className="space-y-4 min-h-full">
-          {messages.map((msg) => (
-            <div key={msg.id}>
+      <div className="flex-1 overflow-y-auto bg-slate-900">
+        <div className="px-4 pt-4 pb-2">
+          {messages.map((msg, index) => (
+            <div key={msg.id} className={index > 0 ? "mt-4" : ""}>
               {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with delete option
