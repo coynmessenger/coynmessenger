@@ -174,8 +174,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 onClick={() => setShowEscrowModal(true)}
                 className="text-slate-300 hover:text-slate-100 hover:bg-slate-700"
               >
-                <Shield className="h-4 w-4 mr-2" />
-                Manage Escrow
+                🛡️ Manage Escrow
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

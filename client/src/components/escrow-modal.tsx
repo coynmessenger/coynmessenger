@@ -54,14 +54,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
       setParticipantAmount("");
       setDescription("");
       toast({
-        title: "Escrow created",
-        description: "Escrow agreement has been created successfully.",
+        title: "🎉 Escrow created",
+        description: "Escrow agreement has been created successfully! 🚀",
       });
     },
     onError: () => {
       toast({
-        title: "Failed to create escrow",
-        description: "Please try again.",
+        title: "❌ Failed to create escrow",
+        description: "Please try again. 🔄",
         variant: "destructive",
       });
     },
@@ -77,14 +77,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
       setFundingAmount("");
       setSelectedEscrow(null);
       toast({
-        title: "Funds added",
-        description: "Your funds have been added to the escrow.",
+        title: "💰 Funds added",
+        description: "Your funds have been added to the escrow! 📈",
       });
     },
     onError: () => {
       toast({
-        title: "Failed to add funds",
-        description: "Please try again.",
+        title: "❌ Failed to add funds",
+        description: "Please try again. 💸",
         variant: "destructive",
       });
     },
@@ -98,14 +98,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       toast({
-        title: "Escrow cancelled",
-        description: "Escrow has been cancelled and funds returned.",
+        title: "🚫 Escrow cancelled",
+        description: "Escrow has been cancelled and funds returned. 💸",
       });
     },
     onError: () => {
       toast({
-        title: "Failed to cancel escrow",
-        description: "Please try again.",
+        title: "❌ Failed to cancel escrow",
+        description: "Please try again. 🔄",
         variant: "destructive",
       });
     },
@@ -116,8 +116,8 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     if (!initiatorAmount || !participantAmount || !initiatorCurrency || !participantCurrency) return;
     if (initiatorCurrency === participantCurrency) {
       toast({
-        title: "Invalid currencies",
-        description: "Both parties must use different currencies for the trade.",
+        title: "⚠️ Invalid currencies",
+        description: "Both parties must use different currencies for the trade! 🔄",
         variant: "destructive",
       });
       return;
@@ -142,13 +142,13 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">⏳ Pending</Badge>;
       case "funded":
-        return <Badge variant="secondary" className="bg-blue-500/20 text-blue-400"><DollarSign className="h-3 w-3 mr-1" />Funded</Badge>;
+        return <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">💰 Funded</Badge>;
       case "released":
-        return <Badge variant="secondary" className="bg-green-500/20 text-green-400"><CheckCircle className="h-3 w-3 mr-1" />Released</Badge>;
+        return <Badge variant="secondary" className="bg-green-500/20 text-green-400">✅ Released</Badge>;
       case "cancelled":
-        return <Badge variant="secondary" className="bg-red-500/20 text-red-400"><XCircle className="h-3 w-3 mr-1" />Cancelled</Badge>;
+        return <Badge variant="secondary" className="bg-red-500/20 text-red-400">❌ Cancelled</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -163,8 +163,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
       <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center">
-            <Shield className="h-5 w-5 mr-2 text-cyan-400" />
-            Escrow Manager
+            🛡️ Escrow Manager
           </DialogTitle>
         </DialogHeader>
 
@@ -175,8 +174,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
               onClick={() => setShowCreateForm(true)}
               className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Escrow
+              ➕ Create New Escrow
             </Button>
           )}
 
@@ -184,16 +182,16 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
           {showCreateForm && (
             <Card className="bg-slate-700 border-slate-600">
               <CardHeader>
-                <CardTitle className="text-lg">Create Trade Escrow</CardTitle>
+                <CardTitle className="text-lg">🔄 Create Trade Escrow</CardTitle>
                 <p className="text-sm text-slate-400">
-                  Set up a trade where you and {otherUser.displayName} exchange different currencies
+                  Set up a trade where you and {otherUser.displayName} exchange different currencies 💱
                 </p>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreateEscrow} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-cyan-400">Your Offer</Label>
+                      <Label className="text-cyan-400">💎 Your Offer</Label>
                       <Select value={initiatorCurrency} onValueChange={setInitiatorCurrency}>
                         <SelectTrigger className="bg-slate-800 border-slate-600">
                           <SelectValue />
@@ -209,7 +207,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <Input
                         type="number"
                         step="0.0001"
-                        placeholder="Amount you'll deposit"
+                        placeholder="Amount you'll deposit 💎"
                         value={initiatorAmount}
                         onChange={(e) => setInitiatorAmount(e.target.value)}
                         className="bg-slate-800 border-slate-600"
@@ -217,7 +215,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-purple-400">{otherUser.displayName}'s Offer</Label>
+                      <Label className="text-purple-400">🎯 {otherUser.displayName}'s Offer</Label>
                       <Select value={participantCurrency} onValueChange={setParticipantCurrency}>
                         <SelectTrigger className="bg-slate-800 border-slate-600">
                           <SelectValue />
@@ -233,7 +231,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <Input
                         type="number"
                         step="0.0001"
-                        placeholder="Amount they'll deposit"
+                        placeholder="Amount they'll deposit 🎯"
                         value={participantAmount}
                         onChange={(e) => setParticipantAmount(e.target.value)}
                         className="bg-slate-800 border-slate-600"
@@ -242,10 +240,10 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="description">Description (optional)</Label>
+                    <Label htmlFor="description">📝 Description (optional)</Label>
                     <Textarea
                       id="description"
-                      placeholder="What is this escrow for?"
+                      placeholder="What is this escrow for? 💭"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="bg-slate-800 border-slate-600"
@@ -258,7 +256,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900"
                       disabled={createEscrowMutation.isPending}
                     >
-                      {createEscrowMutation.isPending ? "Creating..." : "Create Escrow"}
+                      {createEscrowMutation.isPending ? "Creating... ⏳" : "Create Escrow 🚀"}
                     </Button>
                     <Button
                       type="button"
@@ -275,10 +273,10 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
           {/* Existing Escrows */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-slate-300">Active Escrows</h3>
+            <h3 className="font-semibold text-slate-300">📋 Active Escrows</h3>
             {escrows.length === 0 ? (
               <p className="text-slate-400 text-sm text-center py-4">
-                No escrow agreements found
+                No escrow agreements found 🕳️
               </p>
             ) : (
               escrows.map((escrow) => (
@@ -288,7 +286,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <div>
                         <div className="flex items-center space-x-2 mb-1">
                           <span className="font-medium text-cyan-400">{formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}</span>
-                          <span className="text-slate-400">↔</span>
+                          <span className="text-slate-400">🔄</span>
                           <span className="font-medium text-purple-400">{formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}</span>
                           {getStatusBadge(escrow.status)}
                         </div>
@@ -305,13 +303,13 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <div>
                         <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                           <div>
-                            <span className="text-slate-400">Your {escrow.initiatorCurrency}:</span>
+                            <span className="text-slate-400">💎 Your {escrow.initiatorCurrency}:</span>
                             <div className="font-mono text-cyan-400">
                               {formatAmount(escrow.initiatorAmount)} / {formatAmount(escrow.initiatorRequiredAmount)}
                             </div>
                           </div>
                           <div>
-                            <span className="text-slate-400">{otherUser.displayName}'s {escrow.participantCurrency}:</span>
+                            <span className="text-slate-400">🎯 {otherUser.displayName}'s {escrow.participantCurrency}:</span>
                             <div className="font-mono text-purple-400">
                               {formatAmount(escrow.participantAmount)} / {formatAmount(escrow.participantRequiredAmount)}
                             </div>
@@ -323,7 +321,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                             <Input
                               type="number"
                               step="0.0001"
-                              placeholder="Amount to add"
+                              placeholder="Amount to add 💰"
                               value={selectedEscrow === escrow.id ? fundingAmount : ""}
                               onChange={(e) => {
                                 setSelectedEscrow(escrow.id);
@@ -337,7 +335,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                               size="sm"
                               className="bg-cyan-500 hover:bg-cyan-400 text-slate-900"
                             >
-                              Add Funds
+                              💰 Add Funds
                             </Button>
                           </div>
                         )}
@@ -349,14 +347,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                           disabled={cancelEscrowMutation.isPending}
                           className="w-full"
                         >
-                          Cancel Escrow
+                          🚫 Cancel Escrow
                         </Button>
                       </div>
                     )}
 
                     {escrow.status === "released" && escrow.releasedAt && (
                       <p className="text-sm text-green-400">
-                        Released on {new Date(escrow.releasedAt).toLocaleDateString()}
+                        🎉 Released on {new Date(escrow.releasedAt).toLocaleDateString()}
                       </p>
                     )}
                   </CardContent>
