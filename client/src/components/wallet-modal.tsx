@@ -201,7 +201,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                           {balance.currency === "BTC" ? "Bitcoin" : 
                            balance.currency === "ETH" ? "Ethereum" :
                            balance.currency === "USDT" ? "Tether" :
-                           balance.currency === "COYN" ? "COYN Token" : balance.currency}
+                           balance.currency === "COYN" ? "COYN" : balance.currency}
                         </div>
                       </div>
                     </div>
