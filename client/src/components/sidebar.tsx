@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Search, Plus, Wallet } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 interface SidebarProps {
   user?: User;
@@ -47,9 +48,11 @@ export default function Sidebar({
         {/* Logo Header */}
         <div className="p-6 border-b border-slate-700 hidden lg:block">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 coyn-gradient rounded-xl flex items-center justify-center coyn-glow">
-              <span className="text-slate-900 font-bold text-lg">C</span>
-            </div>
+            <img 
+              src={coynLogoPath} 
+              alt="COYN Logo" 
+              className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+            />
             <div>
               <h1 className="text-xl font-bold">COYN</h1>
               <p className="text-xs text-slate-400">Messenger</p>

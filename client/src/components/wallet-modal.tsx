@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { WalletBalance, User } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check } from "lucide-react";
 import QRCode from "qrcode";
+import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -152,9 +153,11 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
       <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center space-x-3 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-slate-900 font-bold text-lg drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-              C
-            </div>
+            <img 
+              src={coynLogoPath} 
+              alt="COYN Logo" 
+              className="w-8 h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+            />
             <DialogTitle className="text-xl font-bold">COYN Wallet</DialogTitle>
           </div>
         </DialogHeader>
@@ -179,9 +182,17 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 ${icon.color} rounded-full flex items-center justify-center ${icon.isCoyn ? 'drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]' : ''}`}>
-                        <span className={`text-sm font-bold ${icon.isCoyn ? 'text-slate-900' : 'text-white'}`}>{icon.symbol}</span>
-                      </div>
+                      {icon.isCoyn ? (
+                        <img 
+                          src={coynLogoPath} 
+                          alt="COYN" 
+                          className="w-8 h-8 drop-shadow-[0_0_10px_rgba(255,193,7,0.4)]"
+                        />
+                      ) : (
+                        <div className={`w-8 h-8 ${icon.color} rounded-full flex items-center justify-center`}>
+                          <span className="text-sm font-bold text-white">{icon.symbol}</span>
+                        </div>
+                      )}
                       <div>
                         <div className="font-medium">
                           {formatBalance(balance.balance, balance.currency)} {balance.currency}
@@ -229,11 +240,19 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 return (
                   <SelectItem key={balance.currency} value={balance.currency}>
                     <div className="flex items-center space-x-2">
-                      <div className={`w-4 h-4 ${icon.color} rounded-full flex items-center justify-center ${icon.isCoyn ? 'drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]' : ''}`}>
-                        <span className={`text-xs font-bold ${icon.isCoyn ? 'text-slate-900' : 'text-white'}`}>
-                          {icon.symbol}
-                        </span>
-                      </div>
+                      {icon.isCoyn ? (
+                        <img 
+                          src={coynLogoPath} 
+                          alt="COYN" 
+                          className="w-4 h-4 drop-shadow-[0_0_8px_rgba(255,193,7,0.3)]"
+                        />
+                      ) : (
+                        <div className={`w-4 h-4 ${icon.color} rounded-full flex items-center justify-center`}>
+                          <span className="text-xs font-bold text-white">
+                            {icon.symbol}
+                          </span>
+                        </div>
+                      )}
                       <span>{balance.currency}</span>
                     </div>
                   </SelectItem>

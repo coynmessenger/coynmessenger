@@ -203,14 +203,14 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 bg-slate-900">
-        <div className="space-y-6 min-h-full">
+      <div className="flex-1 overflow-y-auto px-4 py-4 bg-slate-900">
+        <div className="space-y-4 min-h-full">
           {messages.map((msg) => (
-            <div key={msg.id} className="w-full">
+            <div key={msg.id}>
               {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with delete option
-                  <div className="flex justify-end items-start group mb-4">
+                  <div className="flex justify-end items-start group">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -241,7 +241,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   </div>
                 ) : (
                   // Received message
-                  <div className="flex items-start space-x-3 mb-4">
+                  <div className="flex items-start space-x-3">
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
@@ -256,7 +256,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 )
               ) : msg.messageType === "crypto" ? (
                 // Crypto transaction message
-                <div className="flex justify-center group mb-4">
+                <div className="flex justify-center group">
                   {msg.senderId === 5 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -303,7 +303,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               ) : null}
             </div>
           ))}
-          <div ref={messagesEndRef} className="h-4" />
+          <div ref={messagesEndRef} className="h-2" />
         </div>
       </div>
 
