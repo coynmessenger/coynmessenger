@@ -119,6 +119,14 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       content: message,
       messageType: "text",
     });
+
+    setMessage("");
+    setShowEmojiPicker(false);
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
   };
 
   const handleSendCrypto = (e: React.FormEvent) => {

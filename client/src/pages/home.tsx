@@ -53,15 +53,20 @@ export default function HomePage() {
       <div className="max-w-4xl w-full space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-cyan-500 rounded-xl flex items-center justify-center">
-              <MessageCircle className="h-7 w-7 text-slate-900" />
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="text-2xl font-bold text-slate-900">C</div>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                <MessageCircle className="h-3 w-3 text-slate-900" />
+              </div>
             </div>
-            <h1 className="text-4xl font-bold text-white">COYN Messenger</h1>
+            <div>
+              <h1 className="text-5xl font-bold text-white tracking-tight">COYN</h1>
+              <h2 className="text-2xl font-light text-cyan-400">Messenger</h2>
+            </div>
           </div>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            The future of crypto communication. Connect your wallet to start trading and messaging securely.
-          </p>
         </div>
 
         {/* Features Grid */}
