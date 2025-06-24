@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
@@ -24,9 +25,19 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [showEscrowModal, setShowEscrowModal] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Popular emojis for quick access
+  const popularEmojis = [
+    "😀", "😂", "😍", "😎", "😊", "😔", "😮", "😤",
+    "👍", "👎", "👏", "🙏", "💪", "✌️", "🤝", "👋",
+    "❤️", "💙", "💚", "💛", "🧡", "💜", "🖤", "🤍",
+    "🔥", "💎", "⚡", "⭐", "🌟", "💯", "🎉", "🚀",
+    "💰", "💸", "🪙", "📈", "📉", "💳", "🏦", "🎯"
+  ];
 
   const { data: messages = [] } = useQuery<(Message & { sender: User })[]>({
     queryKey: ["/api/conversations", conversation.id, "messages"],
