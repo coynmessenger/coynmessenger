@@ -1,14 +1,24 @@
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import type { WalletBalance } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { WalletBalance, User } from "@shared/schema";
+import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check } from "lucide-react";
+import QRCode from "qrcode";
 
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface QRModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currency: string;
+  walletAddress: string;
 }
 
 const currencyIcons: { [key: string]: { color: string; symbol: string } } = {
@@ -18,9 +28,103 @@ const currencyIcons: { [key: string]: { color: string; symbol: string } } = {
   COYN: { color: "bg-cyan-500", symbol: "C" },
 };
 
+function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps) {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && walletAddress) {
+      QRCode.toDataURL(walletAddress, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#0f172a', // slate-900
+          light: '#ffffff'
+        }
+      })
+      .then(url => setQrCodeDataUrl(url))
+      .catch(err => console.error('QR Code generation error:', err));
+    }
+  }, [isOpen, walletAddress]);
+
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(walletAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy address:', err);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-center">
+            Receive {currency}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center space-y-4">
+          {qrCodeDataUrl && (
+            <div className="bg-white p-4 rounded-xl">
+              <img 
+                src={qrCodeDataUrl} 
+                alt={`${currency} wallet QR code`}
+                className="w-48 h-48"
+              />
+            </div>
+          )}
+          
+          <div className="text-center">
+            <p className="text-sm text-slate-400 mb-2">Your {currency} Address</p>
+            <div className="bg-slate-700 rounded-lg p-3 mb-3">
+              <p className="text-xs font-mono break-all text-slate-200">
+                {walletAddress}
+              </p>
+            </div>
+            
+            <Button
+              onClick={handleCopyAddress}
+              variant="secondary"
+              className="w-full"
+              disabled={copied}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Address
+                </>
+              )}
+            </Button>
+          </div>
+          
+          <p className="text-xs text-slate-400 text-center">
+            Scan this QR code or copy the address to receive {currency}
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  
   const { data: balances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances"],
+    enabled: isOpen,
+  });
+
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user"],
     enabled: isOpen,
   });
 
@@ -105,18 +209,56 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           })}
         </div>
 
+        {/* Currency Selection for Receive */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Select Currency to Receive
+          </label>
+          <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+            <SelectTrigger className="bg-slate-700 border-slate-600">
+              <SelectValue placeholder="Select currency" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              {balances.map((balance) => (
+                <SelectItem key={balance.currency} value={balance.currency}>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 ${currencyIcons[balance.currency]?.color || 'bg-gray-500'} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">
+                        {currencyIcons[balance.currency]?.symbol || '?'}
+                      </span>
+                    </div>
+                    <span>{balance.currency}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex space-x-3 mt-6">
           <Button className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900">
             <Send className="h-4 w-4 mr-2" />
             Send
           </Button>
-          <Button variant="secondary" className="flex-1">
+          <Button 
+            variant="secondary" 
+            className="flex-1"
+            onClick={() => setShowQRCode(true)}
+          >
             <QrCode className="h-4 w-4 mr-2" />
             Receive
           </Button>
         </div>
       </DialogContent>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRCode}
+        onClose={() => setShowQRCode(false)}
+        currency={selectedCurrency}
+        walletAddress={user?.walletAddress || ""}
+      />
     </Dialog>
   );
 }
