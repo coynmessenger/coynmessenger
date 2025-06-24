@@ -206,33 +206,35 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with delete option
-                  <div className="flex justify-end items-start group">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2 mt-2"
-                        >
-                          <MoreVertical className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                        <DropdownMenuItem
-                          onClick={() => deleteMessageMutation.mutate(msg.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950"
-                          disabled={deleteMessageMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Message
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md relative">
-                      <p className="text-sm font-medium break-words">{msg.content}</p>
-                      <span className="text-xs text-slate-700 mt-1 block">
-                        {formatTimestamp(msg.timestamp)}
-                      </span>
+                  <div className="flex justify-end group">
+                    <div className="relative">
+                      <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md">
+                        <p className="text-sm font-medium break-words">{msg.content}</p>
+                        <span className="text-xs text-slate-700 mt-1 block">
+                          {formatTimestamp(msg.timestamp)}
+                        </span>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute -top-1 -left-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 hover:bg-slate-700 rounded-full shadow-md"
+                          >
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                          <DropdownMenuItem
+                            onClick={() => deleteMessageMutation.mutate(msg.id)}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                            disabled={deleteMessageMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Message
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 ) : (
@@ -253,31 +255,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               ) : msg.messageType === "crypto" ? (
                 // Crypto transaction message
                 <div className="flex justify-center group">
-                  {msg.senderId === 5 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
-                        >
-                          <MoreVertical className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                        <DropdownMenuItem
-                          onClick={() => deleteMessageMutation.mutate(msg.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950"
-                          disabled={deleteMessageMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Transaction
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                  <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
-                    <CardContent className="p-4">
+                  <div className="relative">
+                    <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
+                      <CardContent className="p-4">
                       <div className="flex items-center justify-center space-x-2 mb-2">
                         <Coins className="h-4 w-4 text-cyan-400" />
                         <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
@@ -295,6 +275,30 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                       </div>
                     </CardContent>
                   </Card>
+                  {msg.senderId === 5 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 hover:bg-slate-700 rounded-full shadow-md"
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                        <DropdownMenuItem
+                          onClick={() => deleteMessageMutation.mutate(msg.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                          disabled={deleteMessageMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Transaction
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  </div>
                 </div>
               ) : null}
             </div>
