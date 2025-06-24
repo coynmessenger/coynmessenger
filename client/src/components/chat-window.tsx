@@ -204,9 +204,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto bg-slate-900">
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-4 pt-2">
           {messages.map((msg, index) => (
-            <div key={msg.id} className={index > 0 ? "mt-4" : ""}>
+            <div key={msg.id} className={`${index > 0 ? 'mt-3' : ''}`}>
               {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with delete option
@@ -303,7 +303,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               ) : null}
             </div>
           ))}
-          <div ref={messagesEndRef} className="h-2" />
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       </div>
 
