@@ -90,6 +90,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Fixed empty space error above profile pictures in chat and removed "Token" from COYN branding
 - June 24, 2025: Eliminated empty space at top of chat messages for cleaner interface
 - June 24, 2025: Restored + button for crypto functionality while maintaining improved chat spacing
+- June 24, 2025: Fixed inaccessible layer in header by removing non-functional Phone button
 
 ## User Preferences
 

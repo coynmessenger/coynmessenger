@@ -173,9 +173,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="text-cyan-400 hover:bg-slate-700">
-            <Phone className="h-4 w-4" />
-          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
