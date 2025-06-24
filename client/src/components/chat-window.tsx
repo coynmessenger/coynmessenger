@@ -361,15 +361,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       {/* Message Input */}
       <div className="border-t border-slate-700 bg-slate-800 p-4">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-slate-400 hover:bg-slate-700"
-            onClick={() => setShowCryptoSend(!showCryptoSend)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
           <div className="flex-1 relative">
             <Input
               value={message}
