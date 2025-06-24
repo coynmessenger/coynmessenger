@@ -8,6 +8,7 @@ import WalletModal from "@/components/wallet-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home } from "lucide-react";
+import coynLogoPath from "@assets/COYN-symbol-square_1750807133450.png";
 
 export default function MessengerPage() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(1);
@@ -31,6 +32,11 @@ export default function MessengerPage() {
       {/* Top Header with Return to Home */}
       <div className="bg-slate-800 border-b border-slate-700 p-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
+          <img 
+            src={coynLogoPath} 
+            alt="COYN Logo" 
+            className="w-8 h-8"
+          />
           <div className="text-xl font-bold text-cyan-400">COYN Messenger</div>
         </div>
         <Button
@@ -93,8 +99,12 @@ export default function MessengerPage() {
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-slate-400">
-              <div className="w-16 h-16 coyn-gradient rounded-full flex items-center justify-center mx-auto mb-4 coyn-glow">
-                <span className="text-slate-900 font-bold text-2xl">C</span>
+              <div className="mx-auto mb-4">
+                <img 
+                  src={coynLogoPath} 
+                  alt="COYN Logo" 
+                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                />
               </div>
               <h2 className="text-xl font-semibold mb-2">Welcome to COYN Messenger</h2>
               <p>Select a conversation to start messaging</p>

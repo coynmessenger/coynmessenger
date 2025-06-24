@@ -54,6 +54,14 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex flex-col items-center justify-center mb-8">
+            {/* COYN Logo */}
+            <div className="relative mb-6">
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-24 h-24 drop-shadow-[0_0_30px_rgba(255,193,7,0.6)]"
+              />
+            </div>
             <div className="relative mb-4">
               {/* Glowing effect background */}
               <div className="absolute inset-0 text-6xl font-bold tracking-[0.2em] text-cyan-400/30 blur-sm">
