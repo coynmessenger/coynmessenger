@@ -197,13 +197,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               >
                 🛡️ Manage Escrow
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setLocation("/")}
-                className="text-slate-300 hover:text-slate-100 hover:bg-slate-700"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Return to Home
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
