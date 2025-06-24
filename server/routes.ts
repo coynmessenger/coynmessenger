@@ -122,6 +122,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete message
+  app.delete("/api/messages/:id", async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      if (isNaN(messageId)) {
+        return res.status(400).json({ message: "Invalid message ID" });
+      }
+
+      const deleted = await storage.deleteMessage(messageId, 5); // Current user
+      if (!deleted) {
+        return res.status(404).json({ message: "Message not found or unauthorized" });
+      }
+
+      res.json({ message: "Message deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

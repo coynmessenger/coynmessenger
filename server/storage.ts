@@ -23,6 +23,7 @@ export interface IStorage {
   getMessage(id: number): Promise<Message | undefined>;
   getConversationMessages(conversationId: number): Promise<(Message & { sender: User })[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  deleteMessage(messageId: number, userId: number): Promise<boolean>;
 
   // Wallet
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
@@ -255,6 +256,16 @@ export class MemStorage implements IStorage {
       balance.balance = newBalance;
       this.walletBalances.set(balance.id, balance);
     }
+  }
+
+  async deleteMessage(messageId: number, userId: number): Promise<boolean> {
+    const message = this.messages.get(messageId);
+    if (!message || message.senderId !== userId) {
+      return false; // Can only delete own messages
+    }
+    
+    this.messages.delete(messageId);
+    return true;
   }
 }
 

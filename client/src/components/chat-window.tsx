@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -70,6 +71,27 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     onError: () => {
       toast({
         title: "Failed to send crypto",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      return apiRequest("DELETE", `/api/messages/${messageId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Message deleted",
+        description: "Your message has been deleted.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to delete message",
         description: "Please try again.",
         variant: "destructive",
       });
@@ -151,8 +173,29 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           <div key={msg.id}>
             {msg.messageType === "text" ? (
               msg.senderId === 5 ? (
-                // Sent message (current user)
-                <div className="flex justify-end">
+                // Sent message (current user) - with delete option
+                <div className="flex justify-end items-start group">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2 mt-2"
+                      >
+                        <MoreVertical className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                      <DropdownMenuItem
+                        onClick={() => deleteMessageMutation.mutate(msg.id)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                        disabled={deleteMessageMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Message
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md relative message-bubble-sent">
                     <p className="text-sm font-medium">{msg.content}</p>
                     <span className="text-xs text-slate-700 mt-1 block">
@@ -177,7 +220,30 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               )
             ) : msg.messageType === "crypto" ? (
               // Crypto transaction message
-              <div className="flex justify-center">
+              <div className="flex justify-center group">
+                {msg.senderId === 5 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                      >
+                        <MoreVertical className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                      <DropdownMenuItem
+                        onClick={() => deleteMessageMutation.mutate(msg.id)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                        disabled={deleteMessageMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Transaction
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-center space-x-2 mb-2">
