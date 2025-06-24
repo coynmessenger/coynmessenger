@@ -5,6 +5,8 @@ import {
   type Message, type InsertMessage,
   type WalletBalance, type InsertWalletBalance
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, or, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -29,6 +31,152 @@ export interface IStorage {
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
   createWalletBalance(balance: InsertWalletBalance): Promise<WalletBalance>;
   updateWalletBalance(userId: number, currency: string, newBalance: string): Promise<void>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getConversation(id: number): Promise<Conversation | undefined> {
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conversation || undefined;
+  }
+
+  async getConversationByParticipants(user1Id: number, user2Id: number): Promise<Conversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          and(eq(conversations.participant1Id, user1Id), eq(conversations.participant2Id, user2Id)),
+          and(eq(conversations.participant1Id, user2Id), eq(conversations.participant2Id, user1Id))
+        )
+      );
+    return conversation || undefined;
+  }
+
+  async getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]> {
+    const userConversations = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt));
+
+    const results = [];
+    for (const conv of userConversations) {
+      const otherUserId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+      const [otherUser] = await db.select().from(users).where(eq(users.id, otherUserId));
+      
+      const [lastMessage] = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.conversationId, conv.id))
+        .orderBy(desc(messages.timestamp))
+        .limit(1);
+
+      results.push({ ...conv, otherUser, lastMessage });
+    }
+
+    return results;
+  }
+
+  async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
+    const [conversation] = await db
+      .insert(conversations)
+      .values(insertConversation)
+      .returning();
+    return conversation;
+  }
+
+  async getMessage(id: number): Promise<Message | undefined> {
+    const [message] = await db.select().from(messages).where(eq(messages.id, id));
+    return message || undefined;
+  }
+
+  async getConversationMessages(conversationId: number): Promise<(Message & { sender: User })[]> {
+    const messageResults = await db
+      .select({
+        message: messages,
+        sender: users
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(messages.timestamp);
+
+    return messageResults.map(result => ({
+      ...result.message,
+      sender: result.sender
+    }));
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(insertMessage)
+      .returning();
+
+    // Update conversation lastMessageAt
+    await db
+      .update(conversations)
+      .set({ lastMessageAt: message.timestamp })
+      .where(eq(conversations.id, insertMessage.conversationId));
+
+    return message;
+  }
+
+  async deleteMessage(messageId: number, userId: number): Promise<boolean> {
+    const [message] = await db.select().from(messages).where(eq(messages.id, messageId));
+    if (!message || message.senderId !== userId) {
+      return false;
+    }
+    
+    await db.delete(messages).where(eq(messages.id, messageId));
+    return true;
+  }
+
+  async getUserWalletBalances(userId: number): Promise<WalletBalance[]> {
+    return await db.select().from(walletBalances).where(eq(walletBalances.userId, userId));
+  }
+
+  async createWalletBalance(insertBalance: InsertWalletBalance): Promise<WalletBalance> {
+    const [balance] = await db
+      .insert(walletBalances)
+      .values(insertBalance)
+      .returning();
+    return balance;
+  }
+
+  async updateWalletBalance(userId: number, currency: string, newBalance: string): Promise<void> {
+    await db
+      .update(walletBalances)
+      .set({ balance: newBalance })
+      .where(and(eq(walletBalances.userId, userId), eq(walletBalances.currency, currency)));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -269,4 +417,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
