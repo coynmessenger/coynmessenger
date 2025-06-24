@@ -71,19 +71,19 @@ export default function MessengerPage() {
           </div>
         </nav>
 
-      {/* Sidebar */}
-      <Sidebar
-        user={user}
-        conversations={conversations}
-        selectedConversation={selectedConversation}
-        onSelectConversation={setSelectedConversation}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onOpenWallet={() => setIsWalletOpen(true)}
-      />
+        {/* Sidebar */}
+        <Sidebar
+          user={user}
+          conversations={conversations}
+          selectedConversation={selectedConversation}
+          onSelectConversation={setSelectedConversation}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onOpenWallet={() => setIsWalletOpen(true)}
+        />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col pt-16 lg:pt-0">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col pt-16 lg:pt-0">
         {selectedConversation && currentConversation ? (
           <ChatWindow
             conversation={currentConversation}
@@ -101,24 +101,24 @@ export default function MessengerPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
 
-        {/* Modals */}
-        <WalletModal isOpen={isWalletOpen} onClose={() => setIsWalletOpen(false)} />
-        <VideoCallModal
-          isOpen={isVideoCallOpen}
-          onClose={() => setIsVideoCallOpen(false)}
-          otherUser={currentConversation?.otherUser}
+      {/* Modals */}
+      <WalletModal isOpen={isWalletOpen} onClose={() => setIsWalletOpen(false)} />
+      <VideoCallModal
+        isOpen={isVideoCallOpen}
+        onClose={() => setIsVideoCallOpen(false)}
+        otherUser={currentConversation?.otherUser}
+      />
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
         />
-
-        {/* Sidebar Overlay */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-      </div>
+      )}
     </div>
   );
 }
