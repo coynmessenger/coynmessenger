@@ -203,106 +203,108 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div key={msg.id}>
-            {msg.messageType === "text" ? (
-              msg.senderId === 5 ? (
-                // Sent message (current user) - with delete option
-                <div className="flex justify-end items-start group">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2 mt-2"
-                      >
-                        <MoreVertical className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                      <DropdownMenuItem
-                        onClick={() => deleteMessageMutation.mutate(msg.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-950"
-                        disabled={deleteMessageMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Message
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md relative message-bubble-sent">
-                    <p className="text-sm font-medium">{msg.content}</p>
-                    <span className="text-xs text-slate-700 mt-1 block">
-                      {formatTimestamp(msg.timestamp)}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                // Received message
-                <div className="flex items-start space-x-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={msg.sender.profilePicture || ""} />
-                    <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="bg-slate-700 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md">
-                    <p className="text-sm">{msg.content}</p>
-                    <span className="text-xs text-slate-400 mt-1 block">
-                      {formatTimestamp(msg.timestamp)}
-                    </span>
-                  </div>
-                </div>
-              )
-            ) : msg.messageType === "crypto" ? (
-              // Crypto transaction message
-              <div className="flex justify-center group">
-                {msg.senderId === 5 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
-                      >
-                        <MoreVertical className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                      <DropdownMenuItem
-                        onClick={() => deleteMessageMutation.mutate(msg.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-950"
-                        disabled={deleteMessageMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Transaction
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-center space-x-2 mb-2">
-                      <Coins className="h-4 w-4 text-cyan-400" />
-                      <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-cyan-400">
-                        {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
-                      </div>
-                      <div className="text-xs text-slate-400">
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="space-y-6 min-h-full">
+          {messages.map((msg) => (
+            <div key={msg.id} className="w-full">
+              {msg.messageType === "text" ? (
+                msg.senderId === 5 ? (
+                  // Sent message (current user) - with delete option
+                  <div className="flex justify-end items-start group mb-4">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2 mt-2"
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                        <DropdownMenuItem
+                          onClick={() => deleteMessageMutation.mutate(msg.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                          disabled={deleteMessageMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Message
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md relative">
+                      <p className="text-sm font-medium break-words">{msg.content}</p>
+                      <span className="text-xs text-slate-700 mt-1 block">
                         {formatTimestamp(msg.timestamp)}
-                      </div>
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : null}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+                  </div>
+                ) : (
+                  // Received message
+                  <div className="flex items-start space-x-3 mb-4">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={msg.sender.profilePicture || ""} />
+                      <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="bg-slate-700 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md">
+                      <p className="text-sm break-words">{msg.content}</p>
+                      <span className="text-xs text-slate-400 mt-1 block">
+                        {formatTimestamp(msg.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                )
+              ) : msg.messageType === "crypto" ? (
+                // Crypto transaction message
+                <div className="flex justify-center group mb-4">
+                  {msg.senderId === 5 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                        <DropdownMenuItem
+                          onClick={() => deleteMessageMutation.mutate(msg.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                          disabled={deleteMessageMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Transaction
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <Coins className="h-4 w-4 text-cyan-400" />
+                        <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-cyan-400">
+                          {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                        </div>
+                        <div className="text-xs text-slate-400 break-all">
+                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {formatTimestamp(msg.timestamp)}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
+            </div>
+          ))}
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
       </div>
 
       {/* Crypto Send Panel */}

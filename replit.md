@@ -84,6 +84,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging
 - June 24, 2025: Created home page with wallet connection flow - button shows "Wallet Connected" after connection
+- June 24, 2025: Fixed TypeScript errors in storage layer and improved chat spacing/scrolling behavior
 
 ## User Preferences
 
