@@ -407,6 +407,8 @@ export class MemStorage implements IStorage {
       ...insertUser,
       id: this.currentUserId++,
       lastSeen: new Date(),
+      profilePicture: insertUser.profilePicture ?? null,
+      isOnline: insertUser.isOnline ?? null,
     };
     this.users.set(user.id, user);
     return user;
@@ -430,14 +432,14 @@ export class MemStorage implements IStorage {
   async getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]> {
     const userConversations = Array.from(this.conversations.values())
       .filter(conv => conv.participant1Id === userId || conv.participant2Id === userId)
-      .sort((a, b) => b.lastMessageAt.getTime() - a.lastMessageAt.getTime());
+      .sort((a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0));
 
     return userConversations.map(conv => {
       const otherUserId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
       const otherUser = this.users.get(otherUserId)!;
       const lastMessage = Array.from(this.messages.values())
         .filter(msg => msg.conversationId === conv.id)
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+        .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0))[0];
 
       return { ...conv, otherUser, lastMessage };
     });
@@ -460,7 +462,7 @@ export class MemStorage implements IStorage {
   async getConversationMessages(conversationId: number): Promise<(Message & { sender: User })[]> {
     return Array.from(this.messages.values())
       .filter(msg => msg.conversationId === conversationId)
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+      .sort((a, b) => (a.timestamp?.getTime() || 0) - (b.timestamp?.getTime() || 0))
       .map(msg => ({
         ...msg,
         sender: this.users.get(msg.senderId)!,
@@ -472,6 +474,10 @@ export class MemStorage implements IStorage {
       ...insertMessage,
       id: this.currentMessageId++,
       timestamp: new Date(),
+      content: insertMessage.content ?? null,
+      cryptoAmount: insertMessage.cryptoAmount ?? null,
+      cryptoCurrency: insertMessage.cryptoCurrency ?? null,
+      messageType: insertMessage.messageType || "text",
     };
     this.messages.set(message.id, message);
 
@@ -494,6 +500,8 @@ export class MemStorage implements IStorage {
     const balance: WalletBalance = {
       ...insertBalance,
       id: this.currentWalletBalanceId++,
+      usdValue: insertBalance.usdValue ?? null,
+      changePercent: insertBalance.changePercent ?? null,
     };
     this.walletBalances.set(balance.id, balance);
     return balance;
