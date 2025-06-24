@@ -219,7 +219,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute -top-1 -left-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 hover:bg-slate-700 rounded-full shadow-md"
+                            className="absolute -top-1 -left-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 rounded-full"
                           >
                             <MoreVertical className="h-3 w-3" />
                           </Button>
@@ -281,7 +281,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 hover:bg-slate-700 rounded-full shadow-md"
+                          className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 rounded-full"
                         >
                           <MoreVertical className="h-3 w-3" />
                         </Button>

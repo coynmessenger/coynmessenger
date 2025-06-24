@@ -15,6 +15,8 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenWallet: () => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 export default function Sidebar({
@@ -25,6 +27,8 @@ export default function Sidebar({
   isOpen,
   onClose,
   onOpenWallet,
+  searchQuery = "",
+  onSearchChange,
 }: SidebarProps) {
   const formatLastMessage = (message?: Message) => {
     if (!message) return "";
@@ -91,6 +95,8 @@ export default function Sidebar({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
             <Input
               placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
               className="pl-10 bg-slate-700 border-slate-600 focus:border-cyan-500"
             />
           </div>

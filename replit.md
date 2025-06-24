@@ -93,6 +93,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Fixed inaccessible layer in header by removing non-functional Phone button
 - June 24, 2025: Fixed hover bar positioning with proper absolute positioning and improved visual styling
 - June 24, 2025: Removed COYN title text from mobile navigation hover bar for cleaner interface
+- June 24, 2025: Implemented functional search for conversations in both mobile and desktop interfaces
+- June 24, 2025: Made hover bars fully transparent with subtle hover effects for cleaner appearance
 
 ## User Preferences
 
