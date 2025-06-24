@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -29,6 +30,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Popular emojis for quick access
   const popularEmojis = [
@@ -194,6 +196,13 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 className="text-slate-300 hover:text-slate-100 hover:bg-slate-700"
               >
                 🛡️ Manage Escrow
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setLocation("/")}
+                className="text-slate-300 hover:text-slate-100 hover:bg-slate-700"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Return to Home
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
