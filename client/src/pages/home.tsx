@@ -53,18 +53,26 @@ export default function HomePage() {
       <div className="max-w-4xl w-full space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-4 mb-6">
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <div className="text-2xl font-bold text-slate-900">C</div>
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className="relative mb-4">
+              {/* Glowing effect background */}
+              <div className="absolute inset-0 text-6xl font-bold tracking-[0.2em] text-cyan-400/30 blur-sm">
+                COYN
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-3 w-3 text-slate-900" />
-              </div>
+              {/* Main neon text */}
+              <h1 className="relative text-6xl font-bold tracking-[0.2em] text-cyan-400 drop-shadow-[0_0_30px_rgba(34,211,238,0.8)]">
+                COYN
+              </h1>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold text-white tracking-tight">COYN</h1>
-              <h2 className="text-2xl font-light text-cyan-400">Messenger</h2>
+            <div className="relative">
+              {/* Glowing effect background for Messenger */}
+              <div className="absolute inset-0 text-2xl font-light text-cyan-300/30 blur-sm">
+                Messenger
+              </div>
+              {/* Main Messenger text */}
+              <h2 className="relative text-2xl font-light text-cyan-300 drop-shadow-[0_0_20px_rgba(103,232,249,0.6)]">
+                Messenger
+              </h2>
             </div>
           </div>
         </div>
