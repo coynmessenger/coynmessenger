@@ -1,9 +1,10 @@
 import { 
-  users, conversations, messages, walletBalances,
+  users, conversations, messages, walletBalances, escrows,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
-  type WalletBalance, type InsertWalletBalance
+  type WalletBalance, type InsertWalletBalance,
+  type Escrow, type InsertEscrow
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc } from "drizzle-orm";
@@ -31,6 +32,13 @@ export interface IStorage {
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
   createWalletBalance(balance: InsertWalletBalance): Promise<WalletBalance>;
   updateWalletBalance(userId: number, currency: string, newBalance: string): Promise<void>;
+
+  // Escrow
+  getConversationEscrows(conversationId: number): Promise<Escrow[]>;
+  createEscrow(escrow: InsertEscrow): Promise<Escrow>;
+  addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null>;
+  releaseEscrow(escrowId: number): Promise<boolean>;
+  cancelEscrow(escrowId: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -176,6 +184,99 @@ export class DatabaseStorage implements IStorage {
       .update(walletBalances)
       .set({ balance: newBalance })
       .where(and(eq(walletBalances.userId, userId), eq(walletBalances.currency, currency)));
+  }
+
+  async getConversationEscrows(conversationId: number): Promise<Escrow[]> {
+    return await db.select().from(escrows).where(eq(escrows.conversationId, conversationId));
+  }
+
+  async createEscrow(insertEscrow: InsertEscrow): Promise<Escrow> {
+    const [escrow] = await db
+      .insert(escrows)
+      .values(insertEscrow)
+      .returning();
+    return escrow;
+  }
+
+  async addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null> {
+    const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
+    if (!escrow) return null;
+
+    const isInitiator = escrow.initiatorId === userId;
+    const isParticipant = escrow.participantId === userId;
+    
+    if (!isInitiator && !isParticipant) return null;
+
+    // Update the appropriate amount field
+    const updateData = isInitiator 
+      ? { initiatorAmount: amount }
+      : { participantAmount: amount };
+
+    const [updatedEscrow] = await db
+      .update(escrows)
+      .set(updateData)
+      .where(eq(escrows.id, escrowId))
+      .returning();
+
+    // Check if both parties have funded the required amount
+    const requiredAmount = parseFloat(escrow.requiredAmount);
+    const initiatorAmount = parseFloat(isInitiator ? amount : escrow.initiatorAmount);
+    const participantAmount = parseFloat(isParticipant ? amount : escrow.participantAmount);
+
+    if (initiatorAmount >= requiredAmount && participantAmount >= requiredAmount) {
+      // Automatically release funds when both parties have contributed
+      await this.releaseEscrow(escrowId);
+    }
+
+    return updatedEscrow;
+  }
+
+  async releaseEscrow(escrowId: number): Promise<boolean> {
+    const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
+    if (!escrow || escrow.status !== "pending") return false;
+
+    // Update escrow status to released
+    await db
+      .update(escrows)
+      .set({ 
+        status: "released",
+        releasedAt: new Date()
+      })
+      .where(eq(escrows.id, escrowId));
+
+    // Release funds back to participants (in a real system, this would involve actual blockchain transactions)
+    const totalAmount = parseFloat(escrow.initiatorAmount) + parseFloat(escrow.participantAmount);
+    
+    // Return half to each participant
+    const halfAmount = (totalAmount / 2).toString();
+    await this.updateWalletBalance(escrow.initiatorId, escrow.currency, halfAmount);
+    await this.updateWalletBalance(escrow.participantId, escrow.currency, halfAmount);
+
+    return true;
+  }
+
+  async cancelEscrow(escrowId: number, userId: number): Promise<boolean> {
+    const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
+    if (!escrow || escrow.status !== "pending") return false;
+
+    // Only initiator can cancel
+    if (escrow.initiatorId !== userId) return false;
+
+    // Return funds to original owners
+    if (parseFloat(escrow.initiatorAmount) > 0) {
+      await this.updateWalletBalance(escrow.initiatorId, escrow.currency, escrow.initiatorAmount);
+    }
+    if (parseFloat(escrow.participantAmount) > 0) {
+      await this.updateWalletBalance(escrow.participantId, escrow.currency, escrow.participantAmount);
+    }
+
+    // Update status
+    await db
+      .update(escrows)
+      .set({ status: "cancelled" })
+      .where(eq(escrows.id, escrowId));
+
+    return true;
   }
 }
 
@@ -414,6 +515,27 @@ export class MemStorage implements IStorage {
     
     this.messages.delete(messageId);
     return true;
+  }
+
+  async getConversationEscrows(conversationId: number): Promise<Escrow[]> {
+    // MemStorage doesn't implement escrow functionality
+    return [];
+  }
+
+  async createEscrow(insertEscrow: InsertEscrow): Promise<Escrow> {
+    throw new Error("Escrow functionality requires database storage");
+  }
+
+  async addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null> {
+    return null;
+  }
+
+  async releaseEscrow(escrowId: number): Promise<boolean> {
+    return false;
+  }
+
+  async cancelEscrow(escrowId: number, userId: number): Promise<boolean> {
+    return false;
   }
 }
 

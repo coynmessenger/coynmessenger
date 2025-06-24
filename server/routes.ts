@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMessageSchema } from "@shared/schema";
+import { insertMessageSchema, insertEscrowSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -138,6 +138,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Message deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
+  // Get conversation escrows
+  app.get("/api/conversations/:id/escrows", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+
+      const escrows = await storage.getConversationEscrows(conversationId);
+      res.json(escrows);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get escrows" });
+    }
+  });
+
+  // Create escrow
+  app.post("/api/escrows", async (req, res) => {
+    try {
+      const escrowData = insertEscrowSchema.parse({
+        ...req.body,
+        initiatorId: 5, // Current user
+      });
+
+      const escrow = await storage.createEscrow(escrowData);
+      res.json(escrow);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid escrow data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create escrow" });
+    }
+  });
+
+  // Add funds to escrow
+  app.post("/api/escrows/:id/fund", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      const { amount } = req.body;
+
+      if (isNaN(escrowId) || !amount) {
+        return res.status(400).json({ message: "Invalid escrow ID or amount" });
+      }
+
+      const escrow = await storage.addFundsToEscrow(escrowId, 5, amount); // Current user
+      if (!escrow) {
+        return res.status(404).json({ message: "Escrow not found or unauthorized" });
+      }
+
+      res.json(escrow);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add funds to escrow" });
+    }
+  });
+
+  // Release escrow
+  app.post("/api/escrows/:id/release", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const released = await storage.releaseEscrow(escrowId);
+      if (!released) {
+        return res.status(404).json({ message: "Escrow not found or already processed" });
+      }
+
+      res.json({ message: "Escrow released successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to release escrow" });
+    }
+  });
+
+  // Cancel escrow
+  app.post("/api/escrows/:id/cancel", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const cancelled = await storage.cancelEscrow(escrowId, 5); // Current user
+      if (!cancelled) {
+        return res.status(404).json({ message: "Escrow not found or unauthorized" });
+      }
+
+      res.json({ message: "Escrow cancelled successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to cancel escrow" });
     }
   });
 

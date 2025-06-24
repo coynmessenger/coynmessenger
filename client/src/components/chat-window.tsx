@@ -8,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import EscrowModal from "@/components/escrow-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2 } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -22,6 +23,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
+  const [showEscrowModal, setShowEscrowModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -161,9 +163,22 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           >
             <Video className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:bg-slate-700">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:bg-slate-700">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+              <DropdownMenuItem
+                onClick={() => setShowEscrowModal(true)}
+                className="text-slate-300 hover:text-slate-100 hover:bg-slate-700"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Manage Escrow
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -361,6 +376,14 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           </Button>
         </form>
       </div>
+
+      {/* Escrow Modal */}
+      <EscrowModal
+        isOpen={showEscrowModal}
+        onClose={() => setShowEscrowModal(false)}
+        conversationId={conversation.id}
+        otherUser={conversation.otherUser}
+      />
     </>
   );
 }

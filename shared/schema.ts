@@ -39,6 +39,21 @@ export const walletBalances = pgTable("wallet_balances", {
   changePercent: decimal("change_percent", { precision: 5, scale: 2 }),
 });
 
+export const escrows = pgTable("escrows", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  initiatorId: integer("initiator_id").notNull(),
+  participantId: integer("participant_id").notNull(),
+  currency: text("currency").notNull(),
+  requiredAmount: decimal("required_amount", { precision: 18, scale: 8 }).notNull(),
+  initiatorAmount: decimal("initiator_amount", { precision: 18, scale: 8 }).default("0"),
+  participantAmount: decimal("participant_amount", { precision: 18, scale: 8 }).default("0"),
+  status: text("status").notNull().default("pending"), // pending, funded, released, cancelled
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  releasedAt: timestamp("released_at"),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   lastSeen: true,
@@ -58,6 +73,12 @@ export const insertWalletBalanceSchema = createInsertSchema(walletBalances).omit
   id: true,
 });
 
+export const insertEscrowSchema = createInsertSchema(escrows).omit({
+  id: true,
+  createdAt: true,
+  releasedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Conversation = typeof conversations.$inferSelect;
@@ -66,3 +87,5 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type WalletBalance = typeof walletBalances.$inferSelect;
 export type InsertWalletBalance = z.infer<typeof insertWalletBalanceSchema>;
+export type Escrow = typeof escrows.$inferSelect;
+export type InsertEscrow = z.infer<typeof insertEscrowSchema>;
