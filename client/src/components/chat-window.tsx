@@ -1,0 +1,300 @@
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import type { User, Conversation, Message } from "@shared/schema";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+interface ChatWindowProps {
+  conversation: Conversation & { otherUser: User };
+  onOpenVideoCall: () => void;
+  onToggleSidebar: () => void;
+}
+
+export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSidebar }: ChatWindowProps) {
+  const [message, setMessage] = useState("");
+  const [showCryptoSend, setShowCryptoSend] = useState(false);
+  const [cryptoAmount, setCryptoAmount] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: messages = [] } = useQuery<(Message & { sender: User })[]>({
+    queryKey: ["/api/conversations", conversation.id, "messages"],
+    queryFn: async () => {
+      const res = await fetch(`/api/conversations/${conversation.id}/messages`);
+      if (!res.ok) throw new Error("Failed to fetch messages");
+      return res.json();
+    },
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: { content: string; messageType: string }) => {
+      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, messageData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setMessage("");
+    },
+    onError: () => {
+      toast({
+        title: "Failed to send message",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendCryptoMutation = useMutation({
+    mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string }) => {
+      return apiRequest("POST", "/api/wallet/send", cryptoData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      setCryptoAmount("");
+      setShowCryptoSend(false);
+      toast({
+        title: "Crypto sent successfully",
+        description: `${cryptoAmount} COYN sent to ${conversation.otherUser.displayName}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to send crypto",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+
+    sendMessageMutation.mutate({
+      content: message,
+      messageType: "text",
+    });
+  };
+
+  const handleSendCrypto = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cryptoAmount || parseFloat(cryptoAmount) <= 0) return;
+
+    sendCryptoMutation.mutate({
+      toUserId: conversation.otherUser.id,
+      currency: "COYN",
+      amount: cryptoAmount,
+    });
+  };
+
+  const formatTimestamp = (date: Date) => {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  return (
+    <>
+      {/* Chat Header */}
+      <div className="bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden text-slate-400 mr-2"
+            onClick={onToggleSidebar}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={conversation.otherUser.profilePicture || ""} />
+            <AvatarFallback>{conversation.otherUser.displayName.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="font-semibold">{conversation.otherUser.displayName}</h2>
+            <p className="text-xs text-slate-400">{conversation.otherUser.walletAddress}</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon" className="text-cyan-400 hover:bg-slate-700">
+            <Phone className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-cyan-400 hover:bg-slate-700"
+            onClick={onOpenVideoCall}
+          >
+            <Video className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-slate-400 hover:bg-slate-700">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((msg) => (
+          <div key={msg.id}>
+            {msg.messageType === "text" ? (
+              msg.senderId === 5 ? (
+                // Sent message (current user)
+                <div className="flex justify-end">
+                  <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md relative message-bubble-sent">
+                    <p className="text-sm font-medium">{msg.content}</p>
+                    <span className="text-xs text-slate-700 mt-1 block">
+                      {formatTimestamp(msg.timestamp)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                // Received message
+                <div className="flex items-start space-x-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={msg.sender.profilePicture || ""} />
+                    <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="bg-slate-700 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md">
+                    <p className="text-sm">{msg.content}</p>
+                    <span className="text-xs text-slate-400 mt-1 block">
+                      {formatTimestamp(msg.timestamp)}
+                    </span>
+                  </div>
+                </div>
+              )
+            ) : msg.messageType === "crypto" ? (
+              // Crypto transaction message
+              <div className="flex justify-center">
+                <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <Coins className="h-4 w-4 text-cyan-400" />
+                      <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-cyan-400">
+                        {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {formatTimestamp(msg.timestamp)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Crypto Send Panel */}
+      {showCryptoSend && (
+        <div className="border-t border-slate-700 bg-slate-800 p-4">
+          <Card className="bg-gradient-to-r from-cyan-600/10 to-cyan-500/10 border-cyan-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-cyan-400 flex items-center">
+                  <Send className="h-4 w-4 mr-2" />
+                  Send COYN
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-slate-400 hover:text-slate-300"
+                  onClick={() => setShowCryptoSend(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <form onSubmit={handleSendCrypto} className="space-y-3">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Amount</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00 COYN"
+                    value={cryptoAmount}
+                    onChange={(e) => setCryptoAmount(e.target.value)}
+                    className="bg-slate-700 border-slate-600 focus:border-cyan-500"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    type="submit"
+                    className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+                    disabled={sendCryptoMutation.isPending}
+                  >
+                    {sendCryptoMutation.isPending ? "Sending..." : "Send COYN"}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="secondary" 
+                    onClick={() => setShowCryptoSend(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Message Input */}
+      <div className="border-t border-slate-700 bg-slate-800 p-4">
+        <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-slate-400 hover:bg-slate-700"
+            onClick={() => setShowCryptoSend(!showCryptoSend)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 relative">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="pr-12 bg-slate-700 border-slate-600 focus:border-cyan-500"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400"
+            >
+              <Smile className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button 
+            type="submit"
+            size="icon"
+            className="bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+            disabled={sendMessageMutation.isPending || !message.trim()}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
+      </div>
+    </>
+  );
+}

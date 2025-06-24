@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(210, 40%, 98%);
+  --foreground: hsl(222.2, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222.2, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222.2, 84%, 4.9%);
+  --border: hsl(214.3, 31.8%, 91.4%);
+  --input: hsl(214.3, 31.8%, 91.4%);
+  --primary: hsl(221.2, 83.2%, 53.3%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222.2, 84%, 4.9%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(221.2, 83.2%, 53.3%);
+  --radius: 0.5rem;
+  
+  /* COYN specific colors */
+  --coyn-50: hsl(187, 100%, 96%);
+  --coyn-100: hsl(185, 100%, 91%);
+  --coyn-200: hsl(186, 100%, 84%);
+  --coyn-300: hsl(187, 96%, 70%);
+  --coyn-400: hsl(188, 86%, 53%);
+  --coyn-500: hsl(181, 100%, 41%);
+  --coyn-600: hsl(188, 91%, 36%);
+  --coyn-700: hsl(189, 85%, 29%);
+  --coyn-800: hsl(189, 84%, 24%);
+  --coyn-900: hsl(192, 69%, 20%);
+}
+
+.dark {
+  --background: hsl(222.2, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217.2, 32.6%, 17.5%);
+  --muted-foreground: hsl(215, 20.2%, 65.1%);
+  --popover: hsl(222.2, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(222.2, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217.2, 32.6%, 17.5%);
+  --input: hsl(217.2, 32.6%, 17.5%);
+  --primary: hsl(210, 40%, 98%);
+  --primary-foreground: hsl(222.2, 84%, 4.9%);
+  --secondary: hsl(217.2, 32.6%, 17.5%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(217.2, 32.6%, 17.5%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(212.7, 26.8%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Dark theme by default for COYN Messenger */
+  body {
+    @apply dark;
+    background: hsl(215, 28%, 17%); /* slate-800 equivalent */
+    color: hsl(210, 40%, 98%);
+  }
+}
+
+@layer components {
+  .coyn-gradient {
+    background: linear-gradient(135deg, var(--coyn-500), var(--coyn-400));
+  }
+  
+  .coyn-glow {
+    box-shadow: 0 0 20px hsla(181, 100%, 41%, 0.3);
+  }
+  
+  .message-bubble-sent::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -8px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-top-color: var(--coyn-500);
+    border-bottom: 0;
+    margin-left: -8px;
+    margin-bottom: -8px;
+  }
+  
+  .chat-item-active {
+    background: hsl(215, 25%, 27%); /* slate-700 */
+    border-color: var(--coyn-500);
+  }
+}
+
+@layer utilities {
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

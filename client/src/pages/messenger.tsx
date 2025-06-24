@@ -1,0 +1,101 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Sidebar from "@/components/sidebar";
+import ChatWindow from "@/components/chat-window";
+import WalletModal from "@/components/wallet-modal";
+import VideoCallModal from "@/components/video-call-modal";
+import type { User, Conversation, Message } from "@shared/schema";
+
+export default function MessengerPage() {
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(1);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user"],
+  });
+
+  const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
+    queryKey: ["/api/conversations"],
+  });
+
+  const currentConversation = conversations.find(c => c.id === selectedConversation);
+
+  return (
+    <div className="flex h-screen bg-slate-900 text-slate-50">
+      {/* Mobile Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700 z-50 lg:hidden">
+        <div className="flex items-center justify-between p-4">
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="text-cyan-500"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 coyn-gradient rounded-lg flex items-center justify-center coyn-glow">
+              <span className="text-slate-900 font-bold text-sm">C</span>
+            </div>
+            <span className="text-lg font-semibold">COYN</span>
+          </div>
+          <button className="text-slate-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      {/* Sidebar */}
+      <Sidebar
+        user={user}
+        conversations={conversations}
+        selectedConversation={selectedConversation}
+        onSelectConversation={setSelectedConversation}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onOpenWallet={() => setIsWalletOpen(true)}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col pt-16 lg:pt-0">
+        {selectedConversation && currentConversation ? (
+          <ChatWindow
+            conversation={currentConversation}
+            onOpenVideoCall={() => setIsVideoCallOpen(true)}
+            onToggleSidebar={() => setIsSidebarOpen(true)}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center text-slate-400">
+              <div className="w-16 h-16 coyn-gradient rounded-full flex items-center justify-center mx-auto mb-4 coyn-glow">
+                <span className="text-slate-900 font-bold text-2xl">C</span>
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Welcome to COYN Messenger</h2>
+              <p>Select a conversation to start messaging</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      <WalletModal isOpen={isWalletOpen} onClose={() => setIsWalletOpen(false)} />
+      <VideoCallModal
+        isOpen={isVideoCallOpen}
+        onClose={() => setIsVideoCallOpen(false)}
+        otherUser={currentConversation?.otherUser}
+      />
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
