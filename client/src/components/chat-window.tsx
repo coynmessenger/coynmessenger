@@ -151,7 +151,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   }, [messages]);
 
   return (
-    <>
+    <div className="flex flex-col h-full bg-slate-900">
       {/* Chat Header */}
       <div className="bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -203,7 +203,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 bg-slate-900">
         <div className="space-y-6 min-h-full">
           {messages.map((msg) => (
             <div key={msg.id} className="w-full">
@@ -423,6 +423,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         conversationId={conversation.id}
         otherUser={conversation.otherUser}
       />
-    </>
+    </div>
   );
 }

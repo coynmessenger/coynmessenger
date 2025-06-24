@@ -89,7 +89,7 @@ export default function MessengerPage() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col pt-16 lg:pt-0">
+        <div className="flex-1 flex flex-col pt-16 lg:pt-0 bg-slate-900">
         {selectedConversation && currentConversation ? (
           <ChatWindow
             conversation={currentConversation}
@@ -97,7 +97,7 @@ export default function MessengerPage() {
             onToggleSidebar={() => setIsSidebarOpen(true)}
           />
         ) : (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center bg-slate-900">
             <div className="text-center text-slate-400">
               <div className="mx-auto mb-4">
                 <img 

@@ -21,11 +21,11 @@ interface QRModalProps {
   walletAddress: string;
 }
 
-const currencyIcons: { [key: string]: { color: string; symbol: string } } = {
+const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
   BTC: { color: "bg-orange-500", symbol: "₿" },
   ETH: { color: "bg-blue-500", symbol: "Ξ" },
   USDT: { color: "bg-green-500", symbol: "₮" },
-  COYN: { color: "bg-cyan-500", symbol: "C" },
+  COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
 };
 
 function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps) {
@@ -151,7 +151,12 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Wallet</DialogTitle>
+          <div className="flex items-center justify-center space-x-3 mb-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-slate-900 font-bold text-lg drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+              C
+            </div>
+            <DialogTitle className="text-xl font-bold">COYN Wallet</DialogTitle>
+          </div>
         </DialogHeader>
 
         {/* Balance Section */}
@@ -174,8 +179,8 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 ${icon.color} rounded-full flex items-center justify-center`}>
-                        <span className="text-white text-sm font-bold">{icon.symbol}</span>
+                      <div className={`w-8 h-8 ${icon.color} rounded-full flex items-center justify-center ${icon.isCoyn ? 'drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]' : ''}`}>
+                        <span className={`text-sm font-bold ${icon.isCoyn ? 'text-slate-900' : 'text-white'}`}>{icon.symbol}</span>
                       </div>
                       <div>
                         <div className="font-medium">
@@ -219,18 +224,21 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-700">
-              {balances.map((balance) => (
-                <SelectItem key={balance.currency} value={balance.currency}>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 ${currencyIcons[balance.currency]?.color || 'bg-gray-500'} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">
-                        {currencyIcons[balance.currency]?.symbol || '?'}
-                      </span>
+              {balances.map((balance) => {
+                const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
+                return (
+                  <SelectItem key={balance.currency} value={balance.currency}>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-4 h-4 ${icon.color} rounded-full flex items-center justify-center ${icon.isCoyn ? 'drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]' : ''}`}>
+                        <span className={`text-xs font-bold ${icon.isCoyn ? 'text-slate-900' : 'text-white'}`}>
+                          {icon.symbol}
+                        </span>
+                      </div>
+                      <span>{balance.currency}</span>
                     </div>
-                    <span>{balance.currency}</span>
-                  </div>
-                </SelectItem>
-              ))}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
