@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  /* Light theme - Consumer-friendly white/orange design */
+  /* Light theme - WhatsApp-style green/white design */
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(222, 13%, 11%);
   --muted: hsl(210, 40%, 98%);
-  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --muted-foreground: hsl(220, 8.9%, 46.1%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(222, 13%, 11%);
   --card: hsl(0, 0%, 100%);
   --card-foreground: hsl(222, 13%, 11%);
-  --border: hsl(214.3, 31.8%, 91.4%);
-  --input: hsl(214.3, 31.8%, 91.4%);
-  --primary: hsl(20.5, 90.2%, 48.2%);
+  --border: hsl(220, 13%, 91%);
+  --input: hsl(220, 13%, 95%);
+  --primary: hsl(142, 70%, 45%);
   --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(210, 40%, 96%);
   --secondary-foreground: hsl(222.2, 84%, 4.9%);
@@ -22,21 +22,19 @@
   --accent-foreground: hsl(222.2, 84%, 4.9%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(20.5, 90.2%, 48.2%);
+  --ring: hsl(142, 70%, 45%);
   --radius: 0.5rem;
   
-  /* Warm orange palette for consumer appeal */
-  --orange-25: hsl(33, 100%, 99%);
-  --orange-50: hsl(33, 100%, 96%);
-  --orange-100: hsl(34, 100%, 92%);
-  --orange-200: hsl(32, 98%, 83%);
-  --orange-300: hsl(31, 97%, 72%);
-  --orange-400: hsl(27, 96%, 61%);
-  --orange-500: hsl(20.5, 90.2%, 48.2%);
-  --orange-600: hsl(16, 84%, 40%);
-  --orange-700: hsl(15, 79%, 32%);
-  --orange-800: hsl(15, 75%, 28%);
-  --orange-900: hsl(15, 70%, 24%);
+  /* WhatsApp-style green palette */
+  --whatsapp-bg: hsl(210, 25%, 98%);
+  --whatsapp-chat: hsl(219, 23%, 95%);
+  --whatsapp-sent: hsl(142, 70%, 45%);
+  --whatsapp-received: hsl(0, 0%, 100%);
+  --whatsapp-border: hsl(220, 13%, 91%);
+  --whatsapp-text: hsl(222, 13%, 11%);
+  --whatsapp-muted: hsl(220, 8.9%, 46.1%);
+  --whatsapp-input: hsl(220, 13%, 95%);
+  --whatsapp-hover: hsl(220, 13%, 91%);
 }
 
 .dark {

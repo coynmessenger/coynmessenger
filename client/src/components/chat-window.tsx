@@ -200,7 +200,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto bg-slate-900 px-4">
+      <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-background px-4">
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
@@ -208,9 +208,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   // Sent message (current user) - with delete option
                   <div className="flex justify-end group">
                     <div className="relative">
-                      <div className="bg-cyan-500 text-slate-900 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md">
+                      <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md shadow-sm">
                         <p className="text-sm font-medium break-words">{msg.content}</p>
-                        <span className="text-xs text-slate-700 mt-1 block">
+                        <span className="text-xs text-primary-foreground/80 mt-1 block">
                           {formatTimestamp(msg.timestamp)}
                         </span>
                       </div>
@@ -244,9 +244,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="bg-slate-700 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md">
-                      <p className="text-sm break-words">{msg.content}</p>
-                      <span className="text-xs text-slate-400 mt-1 block">
+                    <div className="bg-white dark:bg-muted rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md shadow-sm border border-border/50">
+                      <p className="text-sm break-words text-foreground">{msg.content}</p>
+                      <span className="text-xs text-muted-foreground mt-1 block">
                         {formatTimestamp(msg.timestamp)}
                       </span>
                     </div>
