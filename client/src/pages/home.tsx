@@ -112,37 +112,33 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex flex-col items-center justify-center mb-8">
-            {/* Coynful Logo */}
-            <div className="relative mb-8">
+            {/* COYN Logo */}
+            <div className="relative mb-6">
               <img 
-                src={coynfulLogoPath} 
-                alt="Coynful Logo" 
-                className="h-20 w-auto object-contain drop-shadow-[0_0_20px_rgba(255,165,0,0.4)] dark:drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-24 h-24 drop-shadow-[0_0_30px_rgba(255,193,7,0.6)]"
               />
             </div>
-            
-            {/* COYN and Messenger aligned */}
-            <div className="relative flex flex-col items-center">
-              <div className="relative mb-2">
-                {/* Glowing effect background */}
-                <div className="absolute inset-0 text-5xl font-bold text-black/30 dark:text-cyan-400/30 blur-sm">
-                  COYN
-                </div>
-                {/* Main COYN text */}
-                <h1 className="relative text-5xl font-bold text-black dark:text-cyan-400 drop-shadow-[0_0_30px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_30px_rgba(34,211,238,0.8)]">
-                  COYN
-                </h1>
+            <div className="relative mb-4">
+              {/* Glowing effect background */}
+              <div className="absolute inset-0 text-6xl font-bold tracking-[0.2em] text-black/30 dark:text-cyan-400/30 blur-sm">
+                COYN
               </div>
-              <div className="relative">
-                {/* Glowing effect background for Messenger */}
-                <div className="absolute inset-0 text-2xl font-light text-black/30 dark:text-cyan-300/30 blur-sm">
-                  Messenger
-                </div>
-                {/* Main Messenger text - aligned with COYN */}
-                <h2 className="relative text-2xl font-light text-black dark:text-cyan-300 drop-shadow-[0_0_20px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_0_20px_rgba(103,232,249,0.6)]">
-                  Messenger
-                </h2>
+              {/* Main neon text */}
+              <h1 className="relative text-6xl font-bold tracking-[0.2em] text-black dark:text-cyan-400 drop-shadow-[0_0_30px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_30px_rgba(34,211,238,0.8)]">
+                COYN
+              </h1>
+            </div>
+            <div className="relative">
+              {/* Glowing effect background for Messenger */}
+              <div className="absolute inset-0 text-2xl font-light text-black/30 dark:text-cyan-300/30 blur-sm">
+                Messenger
               </div>
+              {/* Main Messenger text */}
+              <h2 className="relative text-2xl font-light text-black dark:text-cyan-300 drop-shadow-[0_0_20px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_0_20px_rgba(103,232,249,0.6)]">
+                Messenger
+              </h2>
             </div>
           </div>
         </div>

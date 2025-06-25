@@ -130,7 +130,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Completed light theme integration for escrow manager with improved UI, sorting, and enhanced functionality
 - June 25, 2025: Added floating back to top button in chat with smooth scrolling and orange theme styling
 - June 25, 2025: Redesigned COYN logo with sleek modern styling - reduced size, added glow effects, improved gradients, and enhanced visual hierarchy
-- June 25, 2025: Integrated new Coynful logo and improved text alignment - COYN and Messenger now perfectly aligned with centered layout
+- June 25, 2025: Reverted to original logo design and added "Powered by Coynful" attribution at bottom of homepage
 
 ## User Preferences
 
