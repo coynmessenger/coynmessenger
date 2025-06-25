@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -24,9 +24,14 @@ import {
   Users,
   Check,
   Copy,
-  ArrowUp
+  ArrowUp,
+  Settings,
+  Wallet
 } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
+import WalletHover from "@/components/wallet-hover";
+import SettingsModal from "@/components/settings-modal";
 
 interface AmazonProduct {
   ASIN: string;
@@ -795,9 +800,21 @@ export default function ProductPage() {
         onClose={() => setShowShareModal(false)}
       />
       
+      <SettingsModal 
+        isOpen={showSettingsModal} 
+        onClose={() => setShowSettingsModal(false)} 
+        showShipping={true}
+      />
+      
       <ShoppingCartComponent 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
+      />
+
+      <WalletHover
+        isVisible={showWalletHover}
+        onClose={() => setShowWalletHover(false)}
+        anchorRef={walletButtonRef}
       />
     </div>
   );

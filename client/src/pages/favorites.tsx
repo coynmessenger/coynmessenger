@@ -23,6 +23,10 @@ export default function FavoritesPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showCart, setShowCart] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [showWalletHover, setShowWalletHover] = useState(false);
+  const walletButtonRef = useRef<HTMLButtonElement>(null);
 
   const { data: favorites = [], isLoading } = useQuery<Favorite[]>({
     queryKey: ['/api/favorites'],
@@ -223,6 +227,17 @@ export default function FavoritesPage() {
           </>
         )}
       </div>
+
+      <ShoppingCartComponent 
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+      />
+
+      <WalletHover
+        isVisible={showWalletHover}
+        onClose={() => setShowWalletHover(false)}
+        anchorRef={walletButtonRef}
+      />
     </div>
   );
 }
