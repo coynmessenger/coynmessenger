@@ -929,6 +929,30 @@ export default function MarketplacePage() {
           </Card>
         </div>
       </div>
+
+      {/* Shopping Cart Modal */}
+      <ShoppingCartComponent 
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+      />
+
+      {/* Wallet Hover Component */}
+      <WalletHover
+        isVisible={showWalletHover}
+        onClose={() => setShowWalletHover(false)}
+        anchorRef={walletButtonRef}
+      />
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-50 rounded-full w-12 h-12 shadow-lg bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+          size="icon"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </Button>
+      )}
     </div>
   );
 }

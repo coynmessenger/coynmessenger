@@ -1,13 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Home, Star, Trash2, ShoppingCart } from "lucide-react";
+import { Heart, Home, Star, Trash2, ShoppingCart, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import ShoppingCartComponent, { addToCart } from "@/components/shopping-cart";
+import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 
 interface Favorite {
@@ -30,6 +30,20 @@ export default function FavoritesPage() {
   const [cartCount, setCartCount] = useState(0);
   const [showWalletHover, setShowWalletHover] = useState(false);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setCartCount(getCartCount());
+    
+    const handleCartUpdate = (event: CustomEvent) => {
+      setCartCount(event.detail.count);
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+    };
+  }, []);
 
   const { data: favorites = [], isLoading } = useQuery<Favorite[]>({
     queryKey: ['/api/favorites'],
@@ -101,14 +115,32 @@ export default function FavoritesPage() {
               </Button>
               <Heart className="h-6 w-6 text-red-500 fill-current" />
             </div>
-            <Button
-              onClick={handleGoToMarketplace}
-              variant="ghost"
-              size="icon"
-              className="hover:bg-accent"
-            >
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                ref={walletButtonRef}
+                onClick={() => setShowWalletHover(!showWalletHover)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent relative"
+              >
+                <Wallet className="h-5 w-5" />
+              </Button>
+              
+              <Button
+                onClick={() => setShowCart(true)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent relative"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 dark:bg-cyan-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -209,7 +241,14 @@ export default function FavoritesPage() {
 
                       <Button
                         onClick={() => {
-                          const newCount = addToCart(favorite);
+                          const cartItem = {
+                            ASIN: favorite.productId,
+                            title: favorite.productTitle,
+                            price: favorite.productPrice,
+                            imageUrl: favorite.productImage,
+                            currency: 'USD'
+                          };
+                          const newCount = addToCart(cartItem);
                           setCartCount(newCount);
                           toast({
                             title: "Added to Cart",
