@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp, Heart } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import SettingsModal from "@/components/settings-modal";
+import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
+import WalletHover from "@/components/wallet-hover";
 
 interface AmazonProduct {
   ASIN: string;
@@ -373,7 +375,15 @@ export default function MarketplacePage() {
               >
                 <Heart className="h-5 w-5" />
               </Button>
-              <img src={coynLogoPath} alt="COYN" className="w-8 h-8" />
+              <Button
+                ref={walletButtonRef}
+                onClick={() => setShowWalletHover(!showWalletHover)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent relative"
+              >
+                <Wallet className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
+              </Button>
             </div>
             <div className="flex items-center gap-2">
               <Button
