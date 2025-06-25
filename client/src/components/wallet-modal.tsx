@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import type { WalletBalance, User } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft } from "lucide-react";
+import type { WalletBalance, User, Escrow } from "@shared/schema";
+import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import { apiRequest } from "@/lib/queryClient";
@@ -384,6 +384,144 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
   );
 }
 
+function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClose: () => void; escrows: Escrow[] }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const releaseEscrowMutation = useMutation({
+    mutationFn: async (escrowId: number) => {
+      return await apiRequest(`/api/escrows/${escrowId}/release`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/escrows"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({
+        title: "Escrow Released",
+        description: "Funds have been released successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Release Failed",
+        description: "Failed to release escrow. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelEscrowMutation = useMutation({
+    mutationFn: async (escrowId: number) => {
+      return await apiRequest(`/api/escrows/${escrowId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/escrows"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({
+        title: "Escrow Cancelled",
+        description: "Escrow has been cancelled and funds returned",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Cancel Failed",
+        description: "Failed to cancel escrow. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20";
+      case "completed": return "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20";
+      case "cancelled": return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20";
+      default: return "text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20";
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-black dark:text-white flex items-center">
+            <Shield className="h-5 w-5 mr-2" />
+            Escrow Management
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto space-y-3">
+          {escrows.length === 0 ? (
+            <div className="text-center py-8">
+              <Shield className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600 dark:text-slate-400">No active escrows</p>
+            </div>
+          ) : (
+            escrows.map((escrow) => (
+              <div key={escrow.id} className="border border-gray-200 dark:border-slate-600 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="font-medium text-black dark:text-white">
+                      {escrow.participant1Amount} {escrow.participant1Currency}
+                    </span>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(escrow.status)}`}>
+                    {escrow.status}
+                  </span>
+                </div>
+
+                {escrow.description && (
+                  <p className="text-sm text-gray-600 dark:text-slate-400">
+                    {escrow.description}
+                  </p>
+                )}
+
+                <div className="text-xs text-gray-500 dark:text-slate-500">
+                  Created: {new Date(escrow.createdAt).toLocaleDateString()}
+                </div>
+
+                {escrow.status === "pending" && (
+                  <div className="flex space-x-2 pt-2">
+                    <Button
+                      size="sm"
+                      onClick={() => releaseEscrowMutation.mutate(escrow.id)}
+                      disabled={releaseEscrowMutation.isPending}
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs"
+                    >
+                      {releaseEscrowMutation.isPending ? "Releasing..." : "Release"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => cancelEscrowMutation.mutate(escrow.id)}
+                      disabled={cancelEscrowMutation.isPending}
+                      className="flex-1 border-red-300 text-red-600 hover:bg-red-50 text-xs"
+                    >
+                      {cancelEscrowMutation.isPending ? "Cancelling..." : "Cancel"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="flex justify-end pt-4 flex-shrink-0">
+          <Button onClick={onClose} variant="outline" className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200">
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -473,6 +611,7 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [showEscrowList, setShowEscrowList] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
   
   const { data: balances = [] } = useQuery<WalletBalance[]>({
@@ -482,6 +621,11 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
+    enabled: isOpen,
+  });
+
+  const { data: userEscrows = [] } = useQuery<Escrow[]>({
+    queryKey: ["/api/user/escrows"],
     enabled: isOpen,
   });
 
@@ -618,10 +762,54 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </Select>
         </div>
 
+        {/* Escrow Section */}
+        {userEscrows.length > 0 && (
+          <div className="mt-4 flex-shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-black dark:text-white">Active Escrows</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowEscrowList(true)}
+                className="text-orange-600 dark:text-cyan-400 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
+              >
+                View All
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {userEscrows.slice(0, 2).map((escrow) => (
+                <div key={escrow.id} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm font-medium text-black dark:text-white">
+                        {escrow.participant1Amount} {escrow.participant1Currency}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {escrow.status === "pending" && <Clock className="h-3 w-3 text-yellow-500" />}
+                      {escrow.status === "completed" && <CheckCircle className="h-3 w-3 text-green-500" />}
+                      {escrow.status === "cancelled" && <AlertCircle className="h-3 w-3 text-red-500" />}
+                      <span className="text-xs text-gray-600 dark:text-slate-400 capitalize">
+                        {escrow.status}
+                      </span>
+                    </div>
+                  </div>
+                  {escrow.description && (
+                    <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 truncate">
+                      {escrow.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="flex space-x-3 mt-6 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 mt-6 flex-shrink-0">
           <Button 
-            className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white"
+            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white"
             onClick={() => setShowSendModal(true)}
           >
             <Send className="h-4 w-4 mr-2" />
@@ -629,12 +817,22 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </Button>
           <Button 
             variant="outline"
-            className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+            className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
             onClick={() => setShowQRCode(true)}
           >
             <QrCode className="h-4 w-4 mr-2" />
             Receive
           </Button>
+          {userEscrows.length > 0 && (
+            <Button 
+              variant="outline"
+              className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 col-span-2"
+              onClick={() => setShowEscrowList(true)}
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Manage Escrows ({userEscrows.length})
+            </Button>
+          )}
         </div>
       </DialogContent>
 
@@ -643,6 +841,13 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         isOpen={showSendModal}
         onClose={() => setShowSendModal(false)}
         balances={balances}
+      />
+
+      {/* Escrow List Modal */}
+      <EscrowListModal
+        isOpen={showEscrowList}
+        onClose={() => setShowEscrowList(false)}
+        escrows={userEscrows}
       />
 
       {/* QR Code Modal */}
