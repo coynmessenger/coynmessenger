@@ -89,7 +89,7 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
             <Button
               onClick={handleCopyAddress}
               variant="secondary"
-              className="w-full"
+              className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-slate-600 dark:hover:bg-slate-700 text-black dark:text-white"
               disabled={copied}
             >
               {copied ? (
@@ -106,7 +106,7 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
             </Button>
           </div>
           
-          <p className="text-xs text-slate-400 text-center">
+          <p className="text-xs text-gray-600 dark:text-slate-400 text-center">
             Scan this QR code or copy the address to receive {currency}
           </p>
         </div>
@@ -227,18 +227,18 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
         {/* Currency Selection for Receive */}
         <div className="mt-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
             Select Currency to Receive
           </label>
           <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-            <SelectTrigger className="bg-slate-700 border-slate-600">
+            <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white">
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
               {balances.map((balance) => {
                 const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
                 return (
-                  <SelectItem key={balance.currency} value={balance.currency}>
+                  <SelectItem key={balance.currency} value={balance.currency} className="text-black dark:text-white">
                     <div className="flex items-center space-x-2">
                       {icon.isCoyn ? (
                         <img 
