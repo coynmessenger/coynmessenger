@@ -223,7 +223,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto bg-white dark:bg-background px-4">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto bg-white dark:bg-background px-4 relative"
+      >
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
@@ -327,6 +330,17 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </div>
           ))}
         <div ref={messagesEndRef} className="h-4" />
+
+        {/* Back to Top Button */}
+        {showBackToTop && (
+          <Button
+            onClick={scrollToTop}
+            className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110"
+            size="sm"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       {/* Crypto Send Panel */}
