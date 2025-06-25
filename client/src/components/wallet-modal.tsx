@@ -689,28 +689,28 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-sm sm:max-w-md max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col p-4 sm:p-6 m-2 sm:m-4">
-        <DialogHeader className="pb-2 sm:pb-4">
-          <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-1 sm:mb-2">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-xs sm:max-w-md max-h-[90vh] sm:max-h-[80vh] overflow-hidden flex flex-col p-3 sm:p-6 m-1 sm:m-4">
+        <DialogHeader className="pb-1 sm:pb-4">
+          <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-0 sm:mb-2">
             <img 
               src={coynLogoPath} 
               alt="COYN Logo" 
-              className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+              className="w-5 h-5 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
             />
-            <DialogTitle className="text-lg sm:text-xl font-bold">COYN Wallet</DialogTitle>
+            <DialogTitle className="text-base sm:text-xl font-bold">COYN Wallet</DialogTitle>
           </div>
         </DialogHeader>
 
         {/* Balance Section */}
-        <div className="text-center mb-4 sm:mb-6 flex-shrink-0">
-          <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-1 sm:mb-2">
+        <div className="text-center mb-3 sm:mb-6 flex-shrink-0">
+          <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-1 sm:mb-2">
             {formatUSD(totalBalance.toString())}
           </div>
           <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">Total Balance</div>
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:-mr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+        <div className="space-y-1.5 sm:space-y-3 flex-1 overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:-mr-2 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
             const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
             const changePercent = parseFloat(balance.changePercent || "0");
@@ -718,41 +718,41 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
             return (
               <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600">
-                <CardContent className="p-3">
+                <CardContent className="p-2 sm:p-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       {icon.isCoyn ? (
                         <img 
                           src={coynLogoPath} 
                           alt="COYN" 
-                          className="w-8 h-8 drop-shadow-[0_0_10px_rgba(255,193,7,0.4)]"
+                          className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-[0_0_10px_rgba(255,193,7,0.4)]"
                         />
                       ) : (
-                        <div className={`w-8 h-8 ${icon.color} rounded-full flex items-center justify-center`}>
-                          <span className="text-sm font-bold text-white">{icon.symbol}</span>
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 ${icon.color} rounded-full flex items-center justify-center`}>
+                          <span className="text-xs sm:text-sm font-bold text-white">{icon.symbol}</span>
                         </div>
                       )}
                       <div>
-                        <div className="font-medium text-black dark:text-white">
+                        <div className="font-medium text-black dark:text-white text-sm sm:text-base">
                           {formatBalance(balance.balance, balance.currency)} {balance.currency}
                         </div>
                         <div className="text-xs text-gray-600 dark:text-slate-400 capitalize">
                           {balance.currency === "BTC" ? "Bitcoin" : 
-                           balance.currency === "ETH" ? "Ethereum" :
+                           balance.currency === "BNB" ? "BNB" :
                            balance.currency === "USDT" ? "Tether" :
                            balance.currency === "COYN" ? "COYN" : balance.currency}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`font-medium ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                      <div className={`font-medium text-sm sm:text-base ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                         {formatUSD(balance.usdValue || "0")}
                       </div>
                       <div className={`text-xs flex items-center justify-end ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         {isPositive ? (
-                          <TrendingUp className="h-3 w-3 mr-1" />
+                          <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                         ) : (
-                          <TrendingDown className="h-3 w-3 mr-1" />
+                          <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                         )}
                         {Math.abs(changePercent).toFixed(1)}%
                       </div>
@@ -765,12 +765,12 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </div>
 
         {/* Currency Selection for Receive */}
-        <div className="mt-4 flex-shrink-0">
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+        <div className="mt-2 sm:mt-4 flex-shrink-0">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2">
             Select Currency to Receive
           </label>
           <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-            <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white">
+            <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white h-8 sm:h-10 text-sm">
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
