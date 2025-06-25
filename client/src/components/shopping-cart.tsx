@@ -98,7 +98,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('shoppingCart');
+    const savedCart = localStorage.getItem('shopping-cart');
     if (savedCart) {
       try {
         setCartItems(JSON.parse(savedCart));
@@ -110,7 +110,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('shoppingCart', JSON.stringify(cartItems));
+    localStorage.setItem('shopping-cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
   const updateQuantity = (id: string, change: number) => {
@@ -719,7 +719,7 @@ export const addToCart = (product: {
 }) => {
   try {
     console.log('Adding to cart:', product);
-    const cartItems = JSON.parse(localStorage.getItem('shoppingCart') || '[]') as CartItem[];
+    const cartItems = JSON.parse(localStorage.getItem('shopping-cart') || '[]') as CartItem[];
     
     const existingItem = cartItems.find(item => item.id === product.ASIN);
     
@@ -739,7 +739,7 @@ export const addToCart = (product: {
       console.log('Added new item:', newItem);
     }
     
-    localStorage.setItem('shoppingCart', JSON.stringify(cartItems));
+    localStorage.setItem('shopping-cart', JSON.stringify(cartItems));
     const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
     console.log('Cart updated, total items:', totalItems);
     
@@ -755,6 +755,6 @@ export const addToCart = (product: {
 
 // Export function to get cart count
 export const getCartCount = (): number => {
-  const cartItems = JSON.parse(localStorage.getItem('shoppingCart') || '[]') as CartItem[];
+  const cartItems = JSON.parse(localStorage.getItem('shopping-cart') || '[]') as CartItem[];
   return cartItems.reduce((total, item) => total + item.quantity, 0);
 };
