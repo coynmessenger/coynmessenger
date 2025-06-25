@@ -141,13 +141,33 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="walletAddress" className="text-foreground">COYN Address</Label>
-                <Input
-                  id="walletAddress"
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  className="bg-input border-border text-foreground font-mono text-sm"
-                  placeholder="0x..."
-                />
+                <div className="relative group">
+                  <Input
+                    id="walletAddress"
+                    value={data?.walletAddress || ""}
+                    readOnly
+                    className="bg-muted border-border text-foreground font-mono text-sm cursor-default pr-10"
+                    placeholder="No wallet address"
+                  />
+                  {data?.walletAddress && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCopyAddress}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted-foreground/10"
+                    >
+                      {copiedAddress ? (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Wallet address cannot be changed. Hover to copy the full address.
+                </p>
               </div>
               <Button
                 onClick={handleSaveProfile}
