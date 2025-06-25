@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Search, Plus, Wallet, UserPlus, Settings } from "lucide-react";
+import { Search, Wallet, UserPlus, Settings } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import AddContactModal from "./add-contact-modal";
@@ -171,13 +171,7 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* Bottom Actions */}
-        <div className="p-4 border-t border-slate-700 flex-shrink-0">
-          <Button className="w-full coyn-gradient hover:opacity-90 text-slate-900 coyn-glow">
-            <Plus className="h-4 w-4 mr-2" />
-            New Chat
-          </Button>
-        </div>
+
       </div>
       {/* Overlay for mobile */}
       {isOpen && (

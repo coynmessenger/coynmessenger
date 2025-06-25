@@ -104,6 +104,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Modified wallet connection to allow proceeding even when API fails for better user experience
 - June 25, 2025: Fixed header/hover bar overlapping issues in messenger with proper responsive layout separation
 - June 25, 2025: Fixed sidebar scroll functionality on mobile by adding proper flex layout and scroll containment
+- June 25, 2025: Removed "New Chat" button from sidebar for cleaner interface
 
 ## User Preferences
 
