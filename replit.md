@@ -134,6 +134,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Updated to Binance Smart Chain (BSC) - replaced ETH with BNB throughout application for better transaction costs and speed
 - June 25, 2025: Fixed settings modal wallet address display - now shows full address with copy functionality, removed edit capability for security
 - June 25, 2025: Added quick crypto sending options in chat - users can send BTC, BNB, USDT, or COYN directly from the + menu
+- June 25, 2025: Implemented functional back to top button in chat - appears when scrolled down 100px, smooth scroll to top functionality
 - June 25, 2025: Fixed profile settings - wallet address is now read-only with copy functionality, displays full address without truncation
 
 ## User Preferences
