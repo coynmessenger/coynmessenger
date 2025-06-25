@@ -121,6 +121,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Changed homepage turquoise colors to black lettering in light theme while maintaining glow effects for dark theme
 - June 25, 2025: Updated chat message input box to white background with black text and gray borders for light theme consistency
 - June 25, 2025: Fixed profile update API endpoint - added PATCH route and corrected HTTP method in settings modal
+- June 25, 2025: Integrated chat header into sidebar and removed separate header from chat window for cleaner layout
 
 ## User Preferences
 
