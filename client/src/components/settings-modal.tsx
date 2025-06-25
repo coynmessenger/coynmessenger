@@ -171,7 +171,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     switch (theme) {
       case "light": return <Sun className="h-4 w-4" />;
       case "dark": return <Moon className="h-4 w-4" />;
-      default: return <Monitor className="h-4 w-4" />;
+      default: return <Sun className="h-4 w-4" />;
     }
   };
 
@@ -436,12 +436,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                       <div className="flex items-center">
                         <Moon className="h-4 w-4 mr-2" />
                         Dark
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="system" className="text-foreground">
-                      <div className="flex items-center">
-                        <Monitor className="h-4 w-4 mr-2" />
-                        System
                       </div>
                     </SelectItem>
                   </SelectContent>

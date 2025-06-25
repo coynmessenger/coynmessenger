@@ -28,12 +28,12 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
     () => {
-      const stored = localStorage.getItem(storageKey) as Theme;
-      // Convert system theme to light if it exists
-      if (stored === "system") {
+      const stored = localStorage.getItem(storageKey);
+      // Convert system theme to light if it exists, or handle any invalid themes
+      if (stored === "system" || !stored || (stored !== "light" && stored !== "dark")) {
         return "light";
       }
-      return stored || defaultTheme;
+      return stored as Theme;
     }
   );
 
