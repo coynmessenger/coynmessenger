@@ -135,7 +135,6 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Fixed settings modal wallet address display - now shows full address with copy functionality, removed edit capability for security
 - June 25, 2025: Added quick crypto sending options in chat - users can send BTC, BNB, USDT, or COYN directly from the + menu
 - June 25, 2025: Fixed profile settings - wallet address is now read-only with copy functionality, displays full address without truncation
-- June 25, 2025: Removed back to top button from chat interface per user request
 
 ## User Preferences
 

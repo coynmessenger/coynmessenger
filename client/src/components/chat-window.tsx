@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -33,8 +33,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-
-
 
   // Popular emojis for quick access
   const popularEmojis = [
@@ -154,7 +152,26 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
 
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
+      setShowBackToTop(isScrolledUp);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    messagesContainerRef.current?.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -206,7 +223,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto bg-white dark:bg-background px-4">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto bg-white dark:bg-background px-4 relative"
+      >
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
@@ -310,9 +330,18 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </div>
           ))}
         <div ref={messagesEndRef} className="h-4" />
+
+        {/* Back to Top Button */}
+        {showBackToTop && (
+          <Button
+            onClick={scrollToTop}
+            className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110"
+            size="sm"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </Button>
+        )}
       </div>
-
-
 
       {/* Crypto Send Panel */}
       {showCryptoSend && (
