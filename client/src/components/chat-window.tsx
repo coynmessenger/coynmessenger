@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -34,8 +34,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Debug: Log the showBackToTop state
-  console.log("showBackToTop:", showBackToTop);
+
 
   // Popular emojis for quick access
   const popularEmojis = [
@@ -155,44 +154,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) {
-      console.log("No messages container ref found");
-      return;
-    }
 
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      console.log("Scroll data:", { scrollTop, scrollHeight, clientHeight });
-      
-      // Show button when user has scrolled up from the bottom by more than 200px
-      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-      const shouldShow = distanceFromBottom > 200;
-      console.log("Distance from bottom:", distanceFromBottom, "Should show:", shouldShow);
-      setShowBackToTop(shouldShow);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    console.log("Scroll listener added to container");
-    
-    // Initial check
-    handleScroll();
-    
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [messages]);
-
-  const scrollToTop = () => {
-    console.log("Attempting to scroll to top");
-    const container = messagesContainerRef.current;
-    if (container) {
-      // Force scroll to top immediately, then smooth scroll
-      container.scrollTop = 0;
-      console.log("Scrolled to top, new scrollTop:", container.scrollTop);
-    } else {
-      console.log("No container to scroll");
-    }
-  };
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -244,10 +206,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div 
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto bg-white dark:bg-background px-4 relative"
-      >
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-background px-4">
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
@@ -353,15 +312,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* Back to Top Button - Always visible for testing */}
-      <Button
-        onClick={scrollToTop}
-        className="fixed bottom-32 right-4 z-[9999] w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 flex items-center justify-center"
-        size="sm"
-        style={{ opacity: showBackToTop ? 1 : 0.3 }}
-      >
-        <ArrowUp className="h-5 w-5" />
-      </Button>
+
 
       {/* Crypto Send Panel */}
       {showCryptoSend && (
