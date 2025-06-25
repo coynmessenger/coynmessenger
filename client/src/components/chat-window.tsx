@@ -157,9 +157,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     if (!container) return;
 
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
-      setShowBackToTop(isScrolledUp);
+      const { scrollTop } = container;
+      // Show button when scrolled down more than 200px from top
+      setShowBackToTop(scrollTop > 200);
     };
 
     container.addEventListener('scroll', handleScroll);
@@ -335,7 +335,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         {showBackToTop && (
           <Button
             onClick={scrollToTop}
-            className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110"
+            className="absolute bottom-20 right-4 z-50 w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 animate-in fade-in slide-in-from-bottom-2"
             size="sm"
           >
             <ArrowUp className="h-5 w-5" />
