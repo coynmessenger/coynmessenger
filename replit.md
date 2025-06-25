@@ -137,6 +137,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Fixed profile settings - wallet address is now read-only with copy functionality, displays full address without truncation
 - June 25, 2025: Added subtle micro-interactions for crypto send buttons - hover scale effects, icon rotations, text translations, and smooth animations
 - June 25, 2025: Updated escrow manager to match light theme - white backgrounds, black text, orange accents, and proper light/dark theme consistency
+- June 25, 2025: Applied consistent light theme colors across all modals - add contact, profile edit, video call, with white backgrounds and orange accents
 
 ## User Preferences
 
