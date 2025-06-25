@@ -105,25 +105,35 @@ export default function Sidebar({
         </div>
 
         {/* Search and Add Contact */}
-        <div className="p-4 space-y-3">
+        <div className="px-1 sm:px-4 pb-1 sm:pb-3 space-y-1 sm:space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg"
+              className="pl-8 sm:pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg h-7 sm:h-auto text-xs sm:text-sm"
             />
           </div>
-
+          <div className="flex justify-center sm:justify-start">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddContactOpen(true)}
+              className="border-border text-foreground hover:bg-muted h-7 sm:h-8 text-xs px-2 sm:px-3"
+            >
+              <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              Add Contact
+            </Button>
+          </div>
         </div>
 
-        {/* Chat List */}
+        {/* Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">
           {conversations.map((conversation) => (
-            <div key={conversation.id} className="px-4 pb-2">
+            <div key={conversation.id} className="px-1 sm:px-4 pb-0.5 sm:pb-2">
               <div
-                className={`rounded-xl p-4 cursor-pointer transition-colors border ${
+                className={`rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors border ${
                   selectedConversation === conversation.id
                     ? 'bg-gray-100 dark:chat-item-active border-gray-300 dark:border-cyan-500'
                     : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
@@ -133,28 +143,28 @@ export default function Sidebar({
                   onClose();
                 }}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="relative">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-8 w-8 sm:h-12 sm:w-12">
                       <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-xs sm:text-sm">
                         {conversation.otherUser.displayName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     {conversation.otherUser.isOnline && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-4 sm:h-4 bg-green-500 rounded-full border-1 sm:border-2 border-white dark:border-slate-800" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-sm truncate">
+                      <h3 className="font-semibold text-xs sm:text-sm truncate text-black dark:text-foreground">
                         {conversation.otherUser.displayName}
                       </h3>
                       <span className="text-xs text-slate-400">
                         {conversation.lastMessage && formatTimestamp(conversation.lastMessage.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400 truncate">
+                    <p className="text-xs sm:text-sm text-slate-400 truncate">
                       {formatLastMessage(conversation.lastMessage)}
                     </p>
                   </div>
