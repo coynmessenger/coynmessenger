@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Search, Wallet, UserPlus, Settings } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import AddContactModal from "./add-contact-modal";
 import SettingsModal from "./settings-modal";
 

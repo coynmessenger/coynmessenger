@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User, Escrow } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
-import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import { apiRequest } from "@/lib/queryClient";
 
 interface WalletModalProps {
@@ -145,7 +145,7 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-lg w-[90vw] sm:w-[85vw] max-h-[90vh] overflow-y-auto p-5 sm:p-6 m-5 sm:m-6">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-lg w-[80vw] sm:w-[75vw] max-h-[85vh] overflow-y-auto p-6 sm:p-8 m-10 sm:m-12">
         <DialogHeader>
           <div className="flex items-center space-x-2">
             {step !== "form" && (
@@ -447,7 +447,7 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-5 sm:p-6 m-5 sm:m-6">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[80vw] sm:w-[75vw] max-w-md max-h-[85vh] overflow-hidden flex flex-col p-6 sm:p-8 m-10 sm:m-12">
         <DialogHeader className="pb-4 border-b border-gray-200 dark:border-slate-600">
           <DialogTitle className="text-xl font-bold text-black dark:text-white flex items-center">
             <Shield className="h-5 w-5 mr-2 text-orange-600 dark:text-cyan-400" />
@@ -592,7 +592,7 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-sm max-h-[90vh] overflow-y-auto p-5 sm:p-6 m-5 sm:m-6">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[80vw] sm:w-[75vw] max-w-sm max-h-[85vh] overflow-y-auto p-6 sm:p-8 m-10 sm:m-12">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">
             Receive {currency}
@@ -689,7 +689,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-5 sm:p-6 m-5 sm:m-6">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[80vw] sm:w-[75vw] max-w-md max-h-[85vh] overflow-hidden flex flex-col p-6 sm:p-8 m-10 sm:m-12">
         <DialogHeader className="pb-1 sm:pb-4">
           <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-0 sm:mb-2">
             <img 
