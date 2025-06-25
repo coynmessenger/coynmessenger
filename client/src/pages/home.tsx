@@ -15,8 +15,13 @@ export default function HomePage() {
   const [, setLocation] = useLocation();
   const [walletAddress, setWalletAddress] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectedUser, setConnectedUser] = useState<User | null>(null);
+  const [isConnected, setIsConnected] = useState(() => {
+    return localStorage.getItem('walletConnected') === 'true';
+  });
+  const [connectedUser, setConnectedUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('connectedUser');
+    return stored ? JSON.parse(stored) : null;
+  });
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
@@ -161,7 +166,7 @@ export default function HomePage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            {!isConnected ? (
+            {!isConnected || !connectedUser ? (
               <form onSubmit={handleConnectWallet} className="space-y-4">
                 {/* Wallet Address Input */}
                 <div className="space-y-2">
@@ -232,18 +237,32 @@ export default function HomePage() {
                 )}
               </form>
             ) : (
-              <div className="text-center space-y-4">
+              <div className="text-center space-y-6">
                 <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
                   <Check className="h-8 w-8 text-green-500" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to COYN Network</h3>
-                  <p className="text-foreground mb-2">Welcome, {connectedUser?.displayName}!</p>
-                  <p className="text-xs text-muted-foreground font-mono break-all px-4">
+                  <p className="text-black dark:text-foreground mb-2">Welcome, {connectedUser?.displayName}!</p>
+                  <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
+                  <div className="space-y-3 mt-6">
+                    <Button
+                      onClick={() => setLocation("/messenger")}
+                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg"
+                    >
+                      Open Messenger
+                    </Button>
+                    <Button
+                      onClick={handleSignOut}
+                      variant="outline"
+                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg"
+                    >
+                      Sign Out
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-muted-foreground text-sm">Launching messenger...</p>
               </div>
             )}
 
