@@ -353,16 +353,15 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* Back to Top Button - Fixed positioning outside messages container */}
-      {showBackToTop && (
-        <Button
-          onClick={scrollToTop}
-          className="fixed bottom-32 right-4 z-[9999] w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 flex items-center justify-center"
-          size="sm"
-        >
-          <ArrowUp className="h-5 w-5" />
-        </Button>
-      )}
+      {/* Back to Top Button - Always visible for testing */}
+      <Button
+        onClick={scrollToTop}
+        className="fixed bottom-32 right-4 z-[9999] w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 flex items-center justify-center"
+        size="sm"
+        style={{ opacity: showBackToTop ? 1 : 0.3 }}
+      >
+        <ArrowUp className="h-5 w-5" />
+      </Button>
 
       {/* Crypto Send Panel */}
       {showCryptoSend && (
