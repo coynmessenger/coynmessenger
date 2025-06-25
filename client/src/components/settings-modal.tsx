@@ -177,7 +177,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
                 </div>
                 <Select value={theme} onValueChange={setTheme}>
-                  <SelectTrigger className="w-32 bg-slate-600 border-slate-500">
+                  <SelectTrigger className="w-32 bg-input border-border">
                     <SelectValue>
                       <div className="flex items-center">
                         {getThemeIcon()}
@@ -185,8 +185,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    <SelectItem value="light" className="text-slate-100">
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="light" className="text-foreground">
                       <div className="flex items-center">
                         <Sun className="h-4 w-4 mr-2" />
                         Light
