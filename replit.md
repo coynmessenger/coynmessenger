@@ -155,6 +155,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Made shipping information conditional - only appears in marketplace settings, not messenger settings
 - June 25, 2025: Updated marketplace header to display just "Marketplace" in Google Product Sans font, removed COYN branding
 - June 25, 2025: Simplified buy button text from "Buy with Crypto" to "Buy" for cleaner interface
+- June 25, 2025: Updated messenger header to use Google Product Sans font for consistency
+- June 25, 2025: Added multiple product images with slide/scroll carousel functionality - includes navigation arrows, dot indicators, and image counter for enhanced product viewing
 
 ## User Preferences
 

@@ -6,6 +6,7 @@ interface AmazonProduct {
   price: string;
   currency: string;
   imageUrl: string;
+  images?: string[];
   productUrl: string;
   rating: number;
   reviewCount: number;
@@ -162,6 +163,12 @@ class AmazonAPI {
         price: '49.99',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg',
+          'https://m.media-amazon.com/images/I/71dJp+8zuhL._AC_SL1000_.jpg',
+          'https://m.media-amazon.com/images/I/71Hk3c9HsqL._AC_SL1000_.jpg',
+          'https://m.media-amazon.com/images/I/61-FBUq7MpL._AC_SL1000_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B08N5WRWNW',
         rating: 4.7,
         reviewCount: 45231,
@@ -175,6 +182,12 @@ class AmazonAPI {
         price: '249.00',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61f1YfTkTtL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61PquuGLIaL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61mjCa1RQKL._AC_SL1500_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B087CQR456',
         rating: 4.8,
         reviewCount: 12456,
@@ -188,6 +201,12 @@ class AmazonAPI {
         price: '279.99',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/61MWOGeVCJL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61MWOGeVCJL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/81R5qNfzPdL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71XHJ7vW8uL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71vKPYLIBqL._AC_SL1500_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B08GGGHLZD',
         rating: 4.4,
         reviewCount: 8234,

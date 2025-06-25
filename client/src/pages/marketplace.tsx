@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import SettingsModal from "@/components/settings-modal";
 
@@ -20,6 +20,7 @@ interface AmazonProduct {
   price: string;
   currency: string;
   imageUrl: string;
+  images?: string[];
   productUrl: string;
   rating: number;
   reviewCount: number;
@@ -151,6 +152,7 @@ export default function MarketplacePage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [imageIndexes, setImageIndexes] = useState<Map<string, number>>(new Map());
 
   // Fetch Amazon products with debounced search
   const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
@@ -312,6 +314,22 @@ export default function MarketplacePage() {
       newExpanded.add(itemKey);
     }
     setExpandedProducts(newExpanded);
+  };
+
+  const nextImage = (productKey: string, totalImages: number) => {
+    const current = imageIndexes.get(productKey) || 0;
+    const next = (current + 1) % totalImages;
+    setImageIndexes(new Map(imageIndexes.set(productKey, next)));
+  };
+
+  const prevImage = (productKey: string, totalImages: number) => {
+    const current = imageIndexes.get(productKey) || 0;
+    const prev = current === 0 ? totalImages - 1 : current - 1;
+    setImageIndexes(new Map(imageIndexes.set(productKey, prev)));
+  };
+
+  const goToImage = (productKey: string, index: number) => {
+    setImageIndexes(new Map(imageIndexes.set(productKey, index)));
   };
 
   return (
@@ -490,6 +508,8 @@ export default function MarketplacePage() {
               const itemKey = isAmazonProduct ? item.ASIN : item.id;
               const seller = isAmazonProduct ? 'Amazon' : item.seller;
               const imageUrl = isAmazonProduct ? item.imageUrl : item.image;
+              const images = isAmazonProduct && item.images ? item.images : [imageUrl];
+              const currentImageIndex = imageIndexes.get(itemKey) || 0;
               
               return (
                 <Card key={itemKey} className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow cursor-pointer">
@@ -512,71 +532,106 @@ export default function MarketplacePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer">
-                            <img 
-                              src={imageUrl || 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=No+Image'} 
-                              alt={item.title}
-                              className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                    {/* Product Image Carousel */}
+                    <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden group">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <img
+                              src={images[currentImageIndex]}
+                              alt={`${item.title} - Image ${currentImageIndex + 1}`}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-help"
                               loading="lazy"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                if (!target.src.includes('placeholder')) {
-                                  target.src = 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=Image+Unavailable';
+                                target.style.display = 'none';
+                                const parent = target.parentElement?.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `
+                                    <div class="flex items-center justify-center h-full text-muted-foreground">
+                                      <div class="text-center">
+                                        <div class="w-16 h-16 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
+                                          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                          </svg>
+                                        </div>
+                                        <p class="text-sm">Image not available</p>
+                                      </div>
+                                    </div>
+                                  `;
                                 }
                               }}
-                              onLoad={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.opacity = '1';
-                              }}
-                              style={{ opacity: '0', transition: 'opacity 0.3s ease-in-out' }}
                             />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent 
-                          side="right" 
-                          className="max-w-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-lg"
-                        >
-                          <div className="p-3 space-y-2">
-                            <h4 className="font-semibold text-sm text-foreground line-clamp-2">
-                              {item.title}
-                            </h4>
-                            {item.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-3">
-                                {item.description}
-                              </p>
-                            )}
-                            <div className="flex items-center space-x-2 text-xs">
-                              <div className="flex items-center space-x-1">
-                                <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                                <span className="font-medium">{item.rating}/5</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-xs">
+                            <div className="space-y-2">
+                              <p className="font-medium">{item.title}</p>
+                              <p className="text-sm text-muted-foreground">{item.description || 'Premium quality product available for crypto purchase.'}</p>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
+                                  <span className="text-sm">{item.rating}</span>
+                                </div>
+                                {isAmazonProduct && item.reviewCount > 0 && (
+                                  <span className="text-sm text-muted-foreground">({item.reviewCount} reviews)</span>
+                                )}
                               </div>
-                              {isAmazonProduct && item.reviewCount > 0 && (
-                                <span className="text-muted-foreground">
-                                  {item.reviewCount} reviews
-                                </span>
-                              )}
                             </div>
-                            {isAmazonProduct && item.brand && (
-                              <div className="text-xs">
-                                <span className="text-muted-foreground">Brand: </span>
-                                <span className="font-medium text-foreground">{item.brand}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center justify-between pt-1 border-t border-gray-200 dark:border-slate-600">
-                              <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                                ${item.price}
-                              </span>
-                              <Badge variant="secondary" className="text-xs">
-                                {item.category}
-                              </Badge>
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      {/* Navigation Arrows - Only show if multiple images */}
+                      {images.length > 1 && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              prevImage(itemKey, images.length);
+                            }}
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              nextImage(itemKey, images.length);
+                            }}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Image Indicators - Only show if multiple images */}
+                      {images.length > 1 && (
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          {images.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                goToImage(itemKey, index);
+                              }}
+                              className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                                index === currentImageIndex
+                                  ? 'bg-white'
+                                  : 'bg-white/50 hover:bg-white/75'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Image Counter - Only show if multiple images */}
+                      {images.length > 1 && (
+                        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          {currentImageIndex + 1}/{images.length}
+                        </div>
+                      )}
+                    </div>
                     
                     {/* Expandable Description Section */}
                     <div className="space-y-2">
