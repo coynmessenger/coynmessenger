@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
 import HomePage from "@/pages/home";
 import MessengerPage from "@/pages/messenger";
+import MarketplacePage from "@/pages/marketplace";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -13,6 +14,7 @@ function Router() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/messenger" component={MessengerPage} />
+      <Route path="/marketplace" component={MarketplacePage} />
       <Route component={NotFound} />
     </Switch>
   );
