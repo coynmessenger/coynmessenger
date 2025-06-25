@@ -166,6 +166,24 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
+      setShowBackToTop(isScrolledUp);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const scrollToTop = () => {
     messagesContainerRef.current?.scrollTo({
       top: 0,
