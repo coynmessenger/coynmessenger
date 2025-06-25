@@ -46,7 +46,9 @@ export default function MessengerPage() {
               alt="COYN Logo" 
               className="w-8 h-8"
             />
-            <div className="text-xl font-bold text-primary">COYN Messenger</div>
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+              Messenger
+            </h1>
           </div>
           <Button
             onClick={() => setLocation("/")}
