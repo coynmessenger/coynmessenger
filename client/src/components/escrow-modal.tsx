@@ -29,6 +29,8 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
   const [description, setDescription] = useState("");
   const [fundingAmount, setFundingAmount] = useState("");
   const [selectedEscrow, setSelectedEscrow] = useState<number | null>(null);
+  const [createStep, setCreateStep] = useState<"form" | "review" | "confirm">("form");
+  const [fundStep, setFundStep] = useState<"amount" | "review" | "confirm">("amount");
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -74,15 +76,13 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
-      setFundingAmount("");
-      setSelectedEscrow(null);
+      resetFundForm();
       
       toast({
         title: "Funds Added Successfully",
         description: `Your ${variables.amount} has been added to the escrow. Waiting for ${otherUser.displayName} to fund their portion.`,
       });
       
-      // Notify about waiting for other party
       setTimeout(() => {
         toast({
           title: "Waiting for Counter-Party",
@@ -91,6 +91,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
       }, 2000);
     },
     onError: () => {
+      setFundStep("review");
       toast({
         title: "Failed to add funds",
         description: "Please try again.",
@@ -145,7 +146,20 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
   const handleFundEscrow = (escrowId: number) => {
     if (!fundingAmount) return;
-    fundEscrowMutation.mutate({ escrowId, amount: fundingAmount });
+    
+    if (fundStep === "amount") {
+      setFundStep("review");
+    } else if (fundStep === "review") {
+      setFundStep("confirm");
+    } else {
+      fundEscrowMutation.mutate({ escrowId, amount: fundingAmount });
+    }
+  };
+
+  const resetFundForm = () => {
+    setFundStep("amount");
+    setFundingAmount("");
+    setSelectedEscrow(null);
   };
 
   const getStatusBadge = (status: string) => {
