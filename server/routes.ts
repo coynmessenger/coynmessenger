@@ -2,9 +2,21 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMessageSchema, insertEscrowSchema, insertUserSchema } from "@shared/schema";
+import { initializeDatabase } from "./db";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize database connection
+  const dbConnected = await initializeDatabase();
+  if (!dbConnected) {
+    console.warn('Database connection failed, some features may not work');
+  }
+
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", database: dbConnected });
+  });
+
   // Get current user (hardcoded as user ID 5 for demo)
   app.get("/api/user", async (req, res) => {
     try {
