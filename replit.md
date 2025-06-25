@@ -165,6 +165,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Optimized sidebar to focus on contacts - removed padding between conversations, added contact separators, compact header/footer, better space utilization for chat list
 - June 25, 2025: Streamlined sidebar layout - moved add contact to icon-only button inline with search bar to maximize space for conversations
 - June 25, 2025: Added comprehensive messaging features - reply functionality with message threading, share messages between conversations, message selection with visual feedback, and foundation for group chat creation
+- June 25, 2025: Added profile image upload functionality - users can now upload and change their profile pictures through settings with file validation, size limits, and proper storage management
 
 ## User Preferences
 
