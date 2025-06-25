@@ -55,7 +55,7 @@ export default function Sidebar({
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         {/* Logo Header */}
-        <div className="p-6 border-b border-border hidden lg:block bg-orange-50 dark:bg-card">
+        <div className="p-6 border-b border-border hidden lg:block bg-white dark:bg-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img 
@@ -172,7 +172,7 @@ export default function Sidebar({
         </div>
 
         {/* Mobile Settings - only visible on mobile */}
-        <div className="lg:hidden p-4 border-t border-border bg-orange-50 dark:bg-card">
+        <div className="lg:hidden p-4 border-t border-border bg-white dark:bg-card">
           <div className="flex gap-2">
             <Button 
               onClick={onOpenWallet}
