@@ -1,13 +1,16 @@
 import { 
-  users, conversations, messages, walletBalances, escrows,
+  users, conversations, messages, walletBalances, escrows, timeProducts, productInteractions, productDesires,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
   type WalletBalance, type InsertWalletBalance,
-  type Escrow, type InsertEscrow
+  type Escrow, type InsertEscrow,
+  type TimeProduct, type InsertTimeProduct,
+  type ProductInteraction, type InsertProductInteraction,
+  type ProductDesire, type InsertProductDesire
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc } from "drizzle-orm";
+import { eq, and, or, desc, lte, gt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -42,6 +45,20 @@ export interface IStorage {
   addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null>;
   releaseEscrow(escrowId: number): Promise<boolean>;
   cancelEscrow(escrowId: number, userId: number): Promise<boolean>;
+
+  // Time Products
+  getActiveTimeProducts(): Promise<TimeProduct[]>;
+  getTimeProduct(id: number): Promise<TimeProduct | undefined>;
+  createTimeProduct(product: InsertTimeProduct): Promise<TimeProduct>;
+  updateProductPrice(id: number, newPrice: string, multiplier: string): Promise<void>;
+  manifestProduct(id: number): Promise<void>;
+  vanishProduct(id: number): Promise<void>;
+  
+  // Product Interactions
+  recordInteraction(interaction: InsertProductInteraction): Promise<ProductInteraction>;
+  getUserInteractions(userId: number): Promise<ProductInteraction[]>;
+  getProductDesires(productId: number): Promise<ProductDesire[]>;
+  createProductDesire(desire: InsertProductDesire): Promise<ProductDesire>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -308,6 +325,118 @@ export class DatabaseStorage implements IStorage {
 
     return true;
   }
+
+  // Time Products implementation
+  async getActiveTimeProducts(): Promise<TimeProduct[]> {
+    const now = new Date();
+    const result = await db
+      .select()
+      .from(timeProducts)
+      .where(
+        and(
+          eq(timeProducts.isActive, true),
+          lte(timeProducts.manifestTime, now),
+          gt(timeProducts.vanishTime, now),
+          gt(timeProducts.currentQuantity, 0)
+        )
+      )
+      .orderBy(desc(timeProducts.manifestTime));
+    
+    return result;
+  }
+
+  async getTimeProduct(id: number): Promise<TimeProduct | undefined> {
+    const result = await db
+      .select()
+      .from(timeProducts)
+      .where(eq(timeProducts.id, id))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async createTimeProduct(insertProduct: InsertTimeProduct): Promise<TimeProduct> {
+    const result = await db
+      .insert(timeProducts)
+      .values(insertProduct)
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateProductPrice(id: number, newPrice: string, multiplier: string): Promise<void> {
+    await db
+      .update(timeProducts)
+      .set({ 
+        basePrice: newPrice,
+        priceMultiplier: multiplier,
+        updatedAt: new Date()
+      })
+      .where(eq(timeProducts.id, id));
+  }
+
+  async manifestProduct(id: number): Promise<void> {
+    await db
+      .update(timeProducts)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(eq(timeProducts.id, id));
+  }
+
+  async vanishProduct(id: number): Promise<void> {
+    await db
+      .update(timeProducts)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(timeProducts.id, id));
+  }
+
+  async recordInteraction(insertInteraction: InsertProductInteraction): Promise<ProductInteraction> {
+    const result = await db
+      .insert(productInteractions)
+      .values(insertInteraction)
+      .returning();
+    
+    return result[0];
+  }
+
+  async getUserInteractions(userId: number): Promise<ProductInteraction[]> {
+    const result = await db
+      .select()
+      .from(productInteractions)
+      .where(eq(productInteractions.userId, userId))
+      .orderBy(desc(productInteractions.timestamp));
+    
+    return result;
+  }
+
+  async getProductDesires(productId: number): Promise<ProductDesire[]> {
+    const result = await db
+      .select()
+      .from(productDesires)
+      .where(eq(productDesires.productId, productId))
+      .orderBy(desc(productDesires.desireStrength));
+    
+    return result;
+  }
+
+  async createProductDesire(insertDesire: InsertProductDesire): Promise<ProductDesire> {
+    const result = await db
+      .insert(productDesires)
+      .values(insertDesire)
+      .returning();
+    
+    return result[0];
+  }
+
+  async getMessagesByIds(messageIds: number[]): Promise<Message[]> {
+    if (messageIds.length === 0) return [];
+    
+    const result = await db
+      .select()
+      .from(messages)
+      .where(or(...messageIds.map(id => eq(messages.id, id))));
+    
+    return result;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -326,7 +455,7 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Create users
+    // Create users with all required fields
     const chris: User = {
       id: 1,
       username: "chris",
@@ -335,6 +464,14 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      phoneNumber: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const jane: User = {
@@ -345,6 +482,14 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1494790108755-2616b332c2bd?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      phoneNumber: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const gstax: User = {
@@ -355,6 +500,14 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: false,
       lastSeen: new Date(Date.now() - 3600000), // 1 hour ago
+      fullName: null,
+      phoneNumber: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const daniel: User = {
@@ -365,6 +518,14 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      phoneNumber: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const currentUser: User = {
@@ -375,6 +536,14 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      phoneNumber: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     [chris, jane, gstax, daniel, currentUser].forEach(user => {
@@ -450,6 +619,14 @@ export class MemStorage implements IStorage {
       lastSeen: new Date(),
       profilePicture: insertUser.profilePicture ?? null,
       isOnline: insertUser.isOnline ?? null,
+      fullName: insertUser.fullName ?? null,
+      phoneNumber: insertUser.phoneNumber ?? null,
+      addressLine1: insertUser.addressLine1 ?? null,
+      addressLine2: insertUser.addressLine2 ?? null,
+      city: insertUser.city ?? null,
+      state: insertUser.state ?? null,
+      zipCode: insertUser.zipCode ?? null,
+      country: insertUser.country ?? null,
     };
     this.users.set(user.id, user);
     return user;
@@ -590,6 +767,109 @@ export class MemStorage implements IStorage {
 
   async cancelEscrow(escrowId: number, userId: number): Promise<boolean> {
     return false;
+  }
+
+  async getActiveTimeProducts(): Promise<TimeProduct[]> {
+    return Array.from(this.timeProducts.values()).filter(p => 
+      p.isActive && 
+      new Date(p.manifestTime) <= new Date() &&
+      new Date(p.vanishTime) > new Date() &&
+      p.currentQuantity > 0
+    );
+  }
+
+  async getTimeProduct(id: number): Promise<TimeProduct | undefined> {
+    return this.timeProducts.get(id);
+  }
+
+  async createTimeProduct(insertProduct: InsertTimeProduct): Promise<TimeProduct> {
+    const product: TimeProduct = {
+      id: this.currentTimeProductId++,
+      ...insertProduct,
+      currency: insertProduct.currency || "COYN",
+      imageUrl: insertProduct.imageUrl || null,
+      creatorId: insertProduct.creatorId || null,
+      volatilityFactor: insertProduct.volatilityFactor || "1.0",
+      priceMultiplier: insertProduct.priceMultiplier || "1.0",
+      maxQuantity: insertProduct.maxQuantity || 1,
+      currentQuantity: insertProduct.currentQuantity || 1,
+      accessLevel: insertProduct.accessLevel || "public",
+      isActive: insertProduct.isActive ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.timeProducts.set(product.id, product);
+    return product;
+  }
+
+  async updateProductPrice(id: number, newPrice: string, multiplier: string): Promise<void> {
+    const product = this.timeProducts.get(id);
+    if (product) {
+      product.basePrice = newPrice;
+      product.priceMultiplier = multiplier;
+      product.updatedAt = new Date();
+    }
+  }
+
+  async manifestProduct(id: number): Promise<void> {
+    const product = this.timeProducts.get(id);
+    if (product) {
+      product.isActive = true;
+      product.updatedAt = new Date();
+    }
+  }
+
+  async vanishProduct(id: number): Promise<void> {
+    const product = this.timeProducts.get(id);
+    if (product) {
+      product.isActive = false;
+      product.updatedAt = new Date();
+    }
+  }
+
+  async recordInteraction(insertInteraction: InsertProductInteraction): Promise<ProductInteraction> {
+    const interaction: ProductInteraction = {
+      id: this.currentInteractionId++,
+      ...insertInteraction,
+      userId: insertInteraction.userId || null,
+      productId: insertInteraction.productId || null,
+      cryptoReward: insertInteraction.cryptoReward || null,
+      timestamp: new Date()
+    };
+    this.productInteractions.set(interaction.id, interaction);
+    return interaction;
+  }
+
+  async getUserInteractions(userId: number): Promise<ProductInteraction[]> {
+    return Array.from(this.productInteractions.values())
+      .filter(i => i.userId === userId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  async getProductDesires(productId: number): Promise<ProductDesire[]> {
+    return Array.from(this.productDesires.values())
+      .filter(d => d.productId === productId)
+      .sort((a, b) => b.desireStrength - a.desireStrength);
+  }
+
+  async createProductDesire(insertDesire: InsertProductDesire): Promise<ProductDesire> {
+    const desire: ProductDesire = {
+      id: this.currentDesireId++,
+      ...insertDesire,
+      userId: insertDesire.userId || null,
+      productId: insertDesire.productId || null,
+      desireStrength: insertDesire.desireStrength || 1,
+      cryptoStaked: insertDesire.cryptoStaked || null,
+      createdAt: new Date()
+    };
+    this.productDesires.set(desire.id, desire);
+    return desire;
+  }
+
+  async getMessagesByIds(messageIds: number[]): Promise<Message[]> {
+    return messageIds
+      .map(id => this.messages.get(id))
+      .filter((msg): msg is Message => msg !== undefined);
   }
 }
 

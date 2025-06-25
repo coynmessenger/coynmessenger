@@ -68,6 +68,52 @@ export const escrows = pgTable("escrows", {
   releasedAt: timestamp("released_at"),
 });
 
+export const timeProducts = pgTable("time_products", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  basePrice: decimal("base_price", { precision: 18, scale: 8 }).notNull(),
+  currency: text("currency").notNull().default("COYN"),
+  imageUrl: text("image_url"),
+  category: text("category").notNull(),
+  creatorId: integer("creator_id").references(() => users.id),
+  
+  // Time-based mechanics
+  manifestTime: timestamp("manifest_time").notNull(),
+  vanishTime: timestamp("vanish_time").notNull(),
+  isActive: boolean("is_active").default(true),
+  
+  // Dynamic pricing
+  volatilityFactor: decimal("volatility_factor", { precision: 4, scale: 2 }).default("1.0"),
+  priceMultiplier: decimal("price_multiplier", { precision: 4, scale: 2 }).default("1.0"),
+  
+  // Rarity and access
+  maxQuantity: integer("max_quantity").default(1),
+  currentQuantity: integer("current_quantity").default(1),
+  accessLevel: text("access_level").default("public"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const productInteractions = pgTable("product_interactions", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => timeProducts.id),
+  userId: integer("user_id").references(() => users.id),
+  interactionType: text("interaction_type").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+  cryptoReward: decimal("crypto_reward", { precision: 18, scale: 8 }),
+});
+
+export const productDesires = pgTable("product_desires", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => timeProducts.id),
+  userId: integer("user_id").references(() => users.id),
+  desireStrength: integer("desire_strength").default(1),
+  cryptoStaked: decimal("crypto_staked", { precision: 18, scale: 8 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   lastSeen: true,
@@ -93,6 +139,22 @@ export const insertEscrowSchema = createInsertSchema(escrows).omit({
   releasedAt: true,
 });
 
+export const insertTimeProductSchema = createInsertSchema(timeProducts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProductInteractionSchema = createInsertSchema(productInteractions).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertProductDesireSchema = createInsertSchema(productDesires).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Conversation = typeof conversations.$inferSelect;
@@ -103,3 +165,9 @@ export type WalletBalance = typeof walletBalances.$inferSelect;
 export type InsertWalletBalance = z.infer<typeof insertWalletBalanceSchema>;
 export type Escrow = typeof escrows.$inferSelect;
 export type InsertEscrow = z.infer<typeof insertEscrowSchema>;
+export type TimeProduct = typeof timeProducts.$inferSelect;
+export type InsertTimeProduct = z.infer<typeof insertTimeProductSchema>;
+export type ProductInteraction = typeof productInteractions.$inferSelect;
+export type InsertProductInteraction = z.infer<typeof insertProductInteractionSchema>;
+export type ProductDesire = typeof productDesires.$inferSelect;
+export type InsertProductDesire = z.infer<typeof insertProductDesireSchema>;

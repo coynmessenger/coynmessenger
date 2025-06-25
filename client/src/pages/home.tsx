@@ -245,6 +245,13 @@ export default function HomePage() {
                       Explore Marketplace
                     </Button>
                     <Button
+                      onClick={() => setLocation("/time-marketplace")}
+                      variant="outline"
+                      className="w-full border-purple-500 text-purple-500 hover:bg-purple-500 hover:text-white font-semibold rounded-lg"
+                    >
+                      ⏰ Time Marketplace (NEW)
+                    </Button>
+                    <Button
                       onClick={handleSignOut}
                       variant="outline"
                       className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg"
