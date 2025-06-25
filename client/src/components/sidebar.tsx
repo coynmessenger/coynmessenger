@@ -132,8 +132,8 @@ export default function Sidebar({
               <div
                 className={`rounded-xl p-4 cursor-pointer transition-colors border ${
                   selectedConversation === conversation.id
-                    ? 'chat-item-active border-cyan-500'
-                    : 'bg-slate-700/50 hover:bg-slate-600 border-transparent hover:border-slate-500'
+                    ? 'bg-gray-100 dark:chat-item-active border-gray-300 dark:border-cyan-500'
+                    : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
                 }`}
                 onClick={() => {
                   onSelectConversation(conversation.id);

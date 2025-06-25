@@ -117,6 +117,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Updated header and footer areas from dark to light orange backgrounds for consistent light theme appearance
 - June 25, 2025: Made contacts lighter in sidebar, changed all header/footer areas to white, and implemented strict black and white theme for homepage
 - June 25, 2025: Updated wallet section to use white/gray color scheme in light theme for cleaner appearance
+- June 25, 2025: Made conversation items lighter with white backgrounds and black text, updated mobile header to white theme
 
 ## User Preferences
 
