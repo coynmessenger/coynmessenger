@@ -163,6 +163,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Redesigned chat interface to WhatsApp-style layout - green message bubbles, date separators, subtle background pattern, rounded input with attachment icons, orange/cyan theme integration
 - June 25, 2025: Redesigned chat header to match WhatsApp style - compact orange header with smaller avatar, tighter spacing, clean typography, and improved button layout
 - June 25, 2025: Optimized sidebar to focus on contacts - removed padding between conversations, added contact separators, compact header/footer, better space utilization for chat list
+- June 25, 2025: Streamlined sidebar layout - moved add contact to icon-only button inline with search bar to maximize space for conversations
 
 ## User Preferences
 
