@@ -186,11 +186,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     console.log("Attempting to scroll to top");
     const container = messagesContainerRef.current;
     if (container) {
-      container.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-      console.log("Scroll command sent");
+      // Force scroll to top immediately, then smooth scroll
+      container.scrollTop = 0;
+      console.log("Scrolled to top, new scrollTop:", container.scrollTop);
     } else {
       console.log("No container to scroll");
     }
@@ -353,16 +351,18 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </div>
           ))}
         <div ref={messagesEndRef} className="h-4" />
+      </div>
 
-        {/* Back to Top Button - Always visible for debugging */}
+      {/* Back to Top Button - Fixed positioning outside messages container */}
+      {showBackToTop && (
         <Button
           onClick={scrollToTop}
-          className={`absolute bottom-20 right-4 z-50 w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 ${showBackToTop ? 'opacity-100' : 'opacity-30'}`}
+          className="fixed bottom-32 right-4 z-[9999] w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110 flex items-center justify-center"
           size="sm"
         >
           <ArrowUp className="h-5 w-5" />
         </Button>
-      </div>
+      )}
 
       {/* Crypto Send Panel */}
       {showCryptoSend && (
