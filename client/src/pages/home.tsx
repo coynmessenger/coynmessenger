@@ -44,11 +44,8 @@ export default function HomePage() {
   };
 
   const isValidCoynAddress = (address: string) => {
-    // BNB network addresses are similar to Ethereum but use "bnb" prefix or standard 0x format
-    // Support both BNB Smart Chain (0x format) and BNB Chain (bnb format)
-    const bnbPattern = /^bnb[a-z0-9]{39}$/i;
-    const bscPattern = /^0x[a-fA-F0-9]{40}$/;
-    return bnbPattern.test(address) || bscPattern.test(address);
+    // COYN addresses use standard 0x format (BSC/Ethereum-compatible)
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
 
   const features = [
@@ -131,7 +128,7 @@ export default function HomePage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-white mb-2">Connect to COYN Network</CardTitle>
             <p className="text-slate-400">
-              Enter your BNB network COYN address to join the decentralized messenger
+              Enter your COYN address to join the decentralized messenger
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -140,14 +137,14 @@ export default function HomePage() {
                 {/* Wallet Address Input */}
                 <div className="space-y-2">
                   <Label htmlFor="walletAddress" className="text-slate-300">
-                    COYN Address (BNB Network) *
+                    COYN Address *
                   </Label>
                   <div className="relative">
                     <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
                     <Input
                       id="walletAddress"
                       type="text"
-                      placeholder="bnb1abc...xyz or 0x1234...abcd"
+                      placeholder="0x1234...abcd"
                       value={walletAddress}
                       onChange={(e) => setWalletAddress(e.target.value)}
                       className="pl-10 bg-slate-700 border-slate-600 focus:border-cyan-500 text-white"
@@ -155,10 +152,10 @@ export default function HomePage() {
                     />
                   </div>
                   {walletAddress && !isValidCoynAddress(walletAddress) && (
-                    <p className="text-red-400 text-xs">Please enter a valid BNB network address</p>
+                    <p className="text-red-400 text-xs">Please enter a valid COYN address (0x format)</p>
                   )}
                   <p className="text-xs text-slate-400">
-                    Enter your BNB network COYN address (bnb... or 0x...)
+                    Enter your COYN wallet address (0x format)
                   </p>
                 </div>
 

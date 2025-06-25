@@ -100,6 +100,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Implemented Web 3.0 wallet connection on homepage with wallet address input and validation
 - June 25, 2025: Changed homepage wallet connection from Ethereum to COYN addresses for ecosystem alignment
 - June 25, 2025: Updated COYN address validation to support BNB network format (bnb... and 0x... addresses)
+- June 25, 2025: Simplified COYN address validation to use standard 0x format only for consistency
 
 ## User Preferences
 
