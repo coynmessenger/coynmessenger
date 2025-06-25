@@ -36,7 +36,7 @@ interface QRModalProps {
 
 const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
   BTC: { color: "bg-orange-500", symbol: "₿" },
-  ETH: { color: "bg-blue-500", symbol: "Ξ" },
+  BNB: { color: "bg-yellow-500", symbol: "B" },
   USDT: { color: "bg-green-500", symbol: "₮" },
   COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
 };
