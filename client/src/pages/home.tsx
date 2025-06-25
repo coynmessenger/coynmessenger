@@ -40,6 +40,10 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
+      // Store connection state in localStorage
+      localStorage.setItem('walletConnected', 'true');
+      localStorage.setItem('connectedUser', JSON.stringify(user));
+      
       setConnectedUser(user);
       setIsConnected(true);
       setTimeout(() => setLocation("/messenger"), 1500);
@@ -54,6 +58,18 @@ export default function HomePage() {
       walletAddress: walletAddress.trim(),
       displayName: displayName.trim() || undefined,
     });
+  };
+
+  const handleSignOut = () => {
+    // Clear localStorage
+    localStorage.removeItem('walletConnected');
+    localStorage.removeItem('connectedUser');
+    
+    // Reset state
+    setIsConnected(false);
+    setConnectedUser(null);
+    setWalletAddress('');
+    setDisplayName('');
   };
 
   const isValidCoynAddress = (address: string) => {
