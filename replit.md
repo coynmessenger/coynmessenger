@@ -98,6 +98,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Added user management features - add contacts by wallet address and edit user profiles
 - June 24, 2025: Updated database schema to support voice messages with transcription fields
 - June 24, 2025: Implemented Web 3.0 wallet connection on homepage with wallet address input and validation
+- June 25, 2025: Changed homepage wallet connection from Ethereum to COYN addresses for ecosystem alignment
 
 ## User Preferences
 

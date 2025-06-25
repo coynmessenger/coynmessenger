@@ -35,7 +35,7 @@ export default function HomePage() {
 
   const handleConnectWallet = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!walletAddress.trim() || !isValidEthereumAddress(walletAddress)) return;
+    if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
     
     connectWalletMutation.mutate({
       walletAddress: walletAddress.trim(),
@@ -43,8 +43,9 @@ export default function HomePage() {
     });
   };
 
-  const isValidEthereumAddress = (address: string) => {
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  const isValidCoynAddress = (address: string) => {
+    // COYN addresses can be various formats - more flexible validation
+    return address.length >= 26 && address.length <= 62 && /^[a-zA-Z0-9]+$/.test(address);
   };
 
   const features = [
@@ -125,9 +126,9 @@ export default function HomePage() {
         {/* Main CTA Card */}
         <Card className="bg-slate-800/70 border-slate-700 backdrop-blur-xl max-w-lg mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-white mb-2">Connect to Web 3.0</CardTitle>
+            <CardTitle className="text-2xl text-white mb-2">Connect to COYN Network</CardTitle>
             <p className="text-slate-400">
-              Enter your wallet address to join the decentralized messenger
+              Enter your COYN address to join the decentralized messenger
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -136,23 +137,26 @@ export default function HomePage() {
                 {/* Wallet Address Input */}
                 <div className="space-y-2">
                   <Label htmlFor="walletAddress" className="text-slate-300">
-                    Wallet Address *
+                    COYN Address *
                   </Label>
                   <div className="relative">
                     <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
                     <Input
                       id="walletAddress"
                       type="text"
-                      placeholder="0x1234...abcd"
+                      placeholder="COYN1a2b3c4d5e6f7g8h9i0j..."
                       value={walletAddress}
                       onChange={(e) => setWalletAddress(e.target.value)}
                       className="pl-10 bg-slate-700 border-slate-600 focus:border-cyan-500 text-white"
                       required
                     />
                   </div>
-                  {walletAddress && !isValidEthereumAddress(walletAddress) && (
-                    <p className="text-red-400 text-xs">Please enter a valid Ethereum address</p>
+                  {walletAddress && !isValidCoynAddress(walletAddress) && (
+                    <p className="text-red-400 text-xs">Please enter a valid COYN address</p>
                   )}
+                  <p className="text-xs text-slate-400">
+                    Enter your COYN wallet address to connect
+                  </p>
                 </div>
 
                 {/* Display Name Input */}
@@ -169,24 +173,24 @@ export default function HomePage() {
                     className="bg-slate-700 border-slate-600 focus:border-cyan-500 text-white"
                   />
                   <p className="text-xs text-slate-400">
-                    Leave empty to use wallet address as display name
+                    Leave empty to use COYN address as display name
                   </p>
                 </div>
 
                 {/* Connect Button */}
                 <Button
                   type="submit"
-                  disabled={connectWalletMutation.isPending || !walletAddress.trim() || !isValidEthereumAddress(walletAddress)}
+                  disabled={connectWalletMutation.isPending || !walletAddress.trim() || !isValidCoynAddress(walletAddress)}
                   className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold py-3 text-lg"
                 >
                   {connectWalletMutation.isPending ? (
                     <>
                       <div className="animate-spin w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full mr-2" />
-                      Connecting to Web 3.0...
+                      Connecting to COYN...
                     </>
                   ) : (
                     <>
-                      Connect to Web 3.0
+                      Connect to COYN Network
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
@@ -204,7 +208,7 @@ export default function HomePage() {
                   <Check className="h-8 w-8 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-400 mb-2">Connected to Web 3.0</h3>
+                  <h3 className="text-xl font-bold text-green-400 mb-2">Connected to COYN Network</h3>
                   <p className="text-slate-300 mb-2">Welcome, {connectedUser?.displayName}!</p>
                   <p className="text-xs text-slate-500 font-mono break-all px-4">
                     {connectedUser?.walletAddress}
