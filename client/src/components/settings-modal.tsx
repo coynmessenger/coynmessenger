@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button as ToggleButton } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface SettingsModalProps {
@@ -25,9 +26,12 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [displayName, setDisplayName] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoConnect, setAutoConnect] = useState(true);
   const [messagePreview, setMessagePreview] = useState(true);
@@ -48,10 +52,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
   // Update local state when user data changes
   React.useEffect(() => {
-    if (user) {
+    if (user && isOpen) {
       setDisplayName(user.displayName || "");
       setWalletAddress(user.walletAddress || "");
-      // Set mailing address fields
+      setProfilePicture(user.profilePicture || "");
       setFullName(user.fullName || "");
       setPhoneNumber(user.phoneNumber || "");
       setAddressLine1(user.addressLine1 || "");
@@ -61,80 +65,104 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setZipCode(user.zipCode || "");
       setCountry(user.country || "");
     }
-  }, [user]);
+  }, [user, isOpen]);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: { 
-      displayName?: string; 
-      walletAddress?: string;
-      fullName?: string;
-      phoneNumber?: string;
-      addressLine1?: string;
-      addressLine2?: string;
-      city?: string;
-      state?: string;
-      zipCode?: string;
-      country?: string;
-    }) => {
-      if (!user) throw new Error("No user data");
-      console.log("Sending update request:", updates);
-      const response = await apiRequest(`/api/users/${user.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(updates),
-        headers: { "Content-Type": "application/json" },
-      });
-      console.log("Update response:", response);
-      return response;
+  const updateUserMutation = useMutation({
+    mutationFn: async (userData: any) => {
+      return apiRequest("PATCH", "/api/user", userData);
     },
-    onSuccess: (data) => {
-      console.log("Update successful:", data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been saved successfully.",
+        title: "Settings updated",
+        description: "Your profile has been updated successfully."
       });
+    },
+    onError: () => {
+      toast({
+        title: "Update failed",
+        description: "Failed to update your profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("profileImage", file);
+      return apiRequest("POST", "/api/user/upload-avatar", formData);
+    },
+    onSuccess: (response: { profilePicture: string }) => {
+      setProfilePicture(response.profilePicture);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been uploaded successfully.",
+      });
+      setUploadingImage(false);
     },
     onError: (error) => {
-      console.error("Update error:", error);
+      console.error("Upload error:", error);
       toast({
-        title: "Update Failed",
-        description: "Failed to update profile. Please try again.",
+        title: "Upload failed",
+        description: "Failed to upload profile picture. Please try again.",
         variant: "destructive",
       });
+      setUploadingImage(false);
     },
   });
 
-  const handleSaveProfile = () => {
-    if (!user) {
+  const handleSave = () => {
+    const updateData: any = {
+      displayName,
+      profilePicture,
+    };
+
+    if (showShipping) {
+      updateData.fullName = fullName;
+      updateData.phoneNumber = phoneNumber;
+      updateData.addressLine1 = addressLine1;
+      updateData.addressLine2 = addressLine2;
+      updateData.city = city;
+      updateData.state = state;
+      updateData.zipCode = zipCode;
+      updateData.country = country;
+    }
+
+    updateUserMutation.mutate(updateData);
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
       toast({
-        title: "Error",
-        description: "User data not available. Please refresh and try again.",
+        title: "Invalid file type",
+        description: "Please select an image file.",
         variant: "destructive",
       });
       return;
     }
 
-    const updates: any = {};
-    if (displayName.trim() !== user.displayName) updates.displayName = displayName.trim();
-    if (fullName.trim() !== (user.fullName || "")) updates.fullName = fullName.trim();
-    if (phoneNumber.trim() !== (user.phoneNumber || "")) updates.phoneNumber = phoneNumber.trim();
-    if (addressLine1.trim() !== (user.addressLine1 || "")) updates.addressLine1 = addressLine1.trim();
-    if (addressLine2.trim() !== (user.addressLine2 || "")) updates.addressLine2 = addressLine2.trim();
-    if (city.trim() !== (user.city || "")) updates.city = city.trim();
-    if (state.trim() !== (user.state || "")) updates.state = state.trim();
-    if (zipCode.trim() !== (user.zipCode || "")) updates.zipCode = zipCode.trim();
-    if (country.trim() !== (user.country || "")) updates.country = country.trim();
-    
-    if (Object.keys(updates).length > 0) {
-      console.log("Profile updates to send:", updates);
-      updateProfileMutation.mutate(updates);
-    } else {
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "No Changes",
-        description: "No changes detected to save.",
+        title: "File too large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
       });
+      return;
     }
+
+    setUploadingImage(true);
+    uploadImageMutation.mutate(file);
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const getThemeIcon = () => {
@@ -171,6 +199,54 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Profile Picture Section */}
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={profilePicture} />
+                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-lg">
+                      {user?.displayName?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    onClick={triggerImageUpload}
+                    disabled={uploadingImage}
+                    variant="outline"
+                    size="sm"
+                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 bg-white dark:bg-slate-800 border-2 border-background"
+                  >
+                    {uploadingImage ? (
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+                    ) : (
+                      <Camera className="h-3 w-3" />
+                    )}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-black dark:text-foreground">{user?.displayName || 'User'}</h3>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.username}</p>
+                  <Button
+                    onClick={triggerImageUpload}
+                    disabled={uploadingImage}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploadingImage ? "Uploading..." : "Change Picture"}
+                  </Button>
+                </div>
+              </div>
+              
+              <Separator />
+              
               {/* Basic Profile */}
               <div className="space-y-4">
                 <h4 className="text-md font-medium text-foreground">Basic Information</h4>
@@ -312,11 +388,11 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               )}
 
               <Button
-                onClick={handleSaveProfile}
-                disabled={updateProfileMutation.isPending}
+                onClick={handleSave}
+                disabled={updateUserMutation.isPending}
                 className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
               >
-                {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </CardContent>
           </Card>
@@ -389,14 +465,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   <Label className="text-foreground">Push Notifications</Label>
                   <p className="text-sm text-muted-foreground">Receive notifications for new messages</p>
                 </div>
-                <ToggleButton
-                  variant={notifications ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setNotifications(!notifications)}
-                  className={notifications ? "bg-primary hover:bg-primary/90" : "border-border"}
-                >
-                  {notifications ? "On" : "Off"}
-                </ToggleButton>
+                <Switch
+                  checked={notifications}
+                  onCheckedChange={setNotifications}
+                />
               </div>
               <Separator className="bg-slate-600" />
               <div className="flex items-center justify-between">
