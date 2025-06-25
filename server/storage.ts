@@ -1,10 +1,11 @@
 import { 
-  users, conversations, messages, walletBalances, escrows,
+  users, conversations, messages, walletBalances, escrows, favorites,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
   type WalletBalance, type InsertWalletBalance,
-  type Escrow, type InsertEscrow
+  type Escrow, type InsertEscrow,
+  type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc } from "drizzle-orm";
@@ -42,6 +43,12 @@ export interface IStorage {
   addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null>;
   releaseEscrow(escrowId: number): Promise<boolean>;
   cancelEscrow(escrowId: number, userId: number): Promise<boolean>;
+
+  // Favorites
+  getUserFavorites(userId: number): Promise<Favorite[]>;
+  addToFavorites(favorite: InsertFavorite): Promise<Favorite>;
+  removeFromFavorites(userId: number, productId: string): Promise<boolean>;
+  isFavorite(userId: number, productId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {

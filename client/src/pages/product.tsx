@@ -270,8 +270,66 @@ export default function ProductPage() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [productASIN]);
 
+  // Update favorite status when data changes  
+  useEffect(() => {
+    if (favoriteStatus) {
+      setIsFavorite(favoriteStatus.isFavorite);
+    }
+  }, [favoriteStatus]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleFavorite = async () => {
+    if (!product) return;
+
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites/${product.ASIN}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          setIsFavorite(false);
+          toast({
+            title: "Removed from favorites",
+            description: "Product has been removed from your wishlist",
+          });
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            productId: product.ASIN,
+            productTitle: product.title,
+            productPrice: `${product.price} ${product.currency}`,
+            productImage: product.imageUrl,
+            productCategory: product.category,
+            productRating: product.rating,
+          }),
+        });
+        
+        if (response.ok) {
+          setIsFavorite(true);
+          toast({
+            title: "Added to favorites",
+            description: "Product has been added to your wishlist",
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update favorites",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!match || !product) {
@@ -296,24 +354,31 @@ export default function ProductPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Button
-              onClick={() => setLocation('/marketplace')}
-              variant="ghost"
-              className="text-muted-foreground hover:text-primary"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Marketplace
-            </Button>
-            <div className="flex items-center space-x-2">
-              <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-8 h-8"
-              />
-              <span className="text-lg font-medium text-primary">Marketplace</span>
+            <div className="flex items-center space-x-3">
+              <Button
+                onClick={() => setLocation('/marketplace')}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                onClick={() => setLocation('/favorites')}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent"
+              >
+                <Heart className="h-5 w-5" />
+              </Button>
             </div>
+            <img 
+              src={coynLogoPath} 
+              alt="COYN Logo" 
+              className="w-8 h-8"
+            />
           </div>
         </div>
       </div>

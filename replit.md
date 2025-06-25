@@ -178,6 +178,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Created comprehensive product page system with detailed product views, image carousels, suggested products, purchase flow, and chat sharing functionality
 - June 25, 2025: Enhanced product pages with horizontal scrolling suggested products and NFT rewards system featuring Bronze, Silver, Gold, and Diamond tiers based on purchase value
 - June 25, 2025: Added automatic scroll to top functionality for product and marketplace pages to ensure users always start at the top when navigating
+- June 25, 2025: Created comprehensive favorites/wishlist system - users can heart products, view favorites page, manage wishlist with full CRUD operations and database persistence
+- June 25, 2025: Simplified all page headers to be more user-friendly with icon-only navigation, reduced padding, and cleaner minimal design
 
 ## User Preferences
 

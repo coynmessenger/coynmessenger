@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, real, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -68,6 +68,20 @@ export const escrows = pgTable("escrows", {
   releasedAt: timestamp("released_at"),
 });
 
+export const favorites = pgTable("favorites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  productId: text("product_id").notNull(), // Amazon ASIN
+  productTitle: text("product_title").notNull(),
+  productPrice: text("product_price").notNull(),
+  productImage: text("product_image").notNull(),
+  productCategory: text("product_category").notNull(),
+  productRating: real("product_rating").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  uniqueUserProduct: unique().on(table.userId, table.productId),
+}));
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   lastSeen: true,
@@ -93,6 +107,11 @@ export const insertEscrowSchema = createInsertSchema(escrows).omit({
   releasedAt: true,
 });
 
+export const insertFavoriteSchema = createInsertSchema(favorites).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Conversation = typeof conversations.$inferSelect;
@@ -103,3 +122,5 @@ export type WalletBalance = typeof walletBalances.$inferSelect;
 export type InsertWalletBalance = z.infer<typeof insertWalletBalanceSchema>;
 export type Escrow = typeof escrows.$inferSelect;
 export type InsertEscrow = z.infer<typeof insertEscrowSchema>;
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;

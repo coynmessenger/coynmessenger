@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp, Heart } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import SettingsModal from "@/components/settings-modal";
 
