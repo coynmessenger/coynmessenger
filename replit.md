@@ -171,6 +171,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Removed auto-redirect after wallet connection - users now stay on homepage and manually choose messenger or marketplace destination
 - June 25, 2025: Optimized wallet modal for mobile devices - responsive spacing, smaller text/icons on mobile, reduced padding, touch-friendly button sizes
 - June 25, 2025: Made contact list much tighter for mobile - reduced avatar sizes, minimal padding, compact spacing, smaller text while maintaining touch targets
+- June 25, 2025: Removed add contact button from sidebar to maximize space for contact list on both mobile and desktop
 
 ## User Preferences
 

@@ -104,8 +104,8 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Search and Add Contact */}
-        <div className="px-1 sm:px-4 pb-1 sm:pb-3 space-y-1 sm:space-y-3">
+        {/* Search */}
+        <div className="px-1 sm:px-4 pb-1 sm:pb-2">
           <div className="relative">
             <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
             <Input
@@ -114,17 +114,6 @@ export default function Sidebar({
               onChange={(e) => onSearchChange?.(e.target.value)}
               className="pl-8 sm:pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg h-7 sm:h-auto text-xs sm:text-sm"
             />
-          </div>
-          <div className="flex justify-center sm:justify-start">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddContactOpen(true)}
-              className="border-border text-foreground hover:bg-muted h-7 sm:h-8 text-xs px-2 sm:px-3"
-            >
-              <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              Add Contact
-            </Button>
           </div>
         </div>
 
