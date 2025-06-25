@@ -142,13 +142,25 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">⏳ Pending</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400">
+          <Clock className="h-3 w-3 mr-1" />
+          Pending
+        </Badge>;
       case "funded":
-        return <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">💰 Funded</Badge>;
+        return <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
+          <DollarSign className="h-3 w-3 mr-1" />
+          Funded
+        </Badge>;
       case "released":
-        return <Badge variant="secondary" className="bg-green-500/20 text-green-400">✅ Released</Badge>;
+        return <Badge variant="secondary" className="bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Released
+        </Badge>;
       case "cancelled":
-        return <Badge variant="secondary" className="bg-red-500/20 text-red-400">❌ Cancelled</Badge>;
+        return <Badge variant="secondary" className="bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+          <XCircle className="h-3 w-3 mr-1" />
+          Cancelled
+        </Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -160,10 +172,11 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center">
-            🛡️ Escrow Manager
+          <DialogTitle className="text-orange-500 dark:text-cyan-400 text-xl font-bold flex items-center">
+            <Shield className="h-6 w-6 mr-2" />
+            Escrow Manager
           </DialogTitle>
         </DialogHeader>
 
@@ -172,9 +185,10 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
           {!showCreateForm && (
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+              className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white"
             >
-              ➕ Create New Escrow
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Escrow
             </Button>
           )}
 

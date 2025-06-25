@@ -138,6 +138,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Added subtle micro-interactions for crypto send buttons - hover scale effects, icon rotations, text translations, and smooth animations
 - June 25, 2025: Updated escrow manager to match light theme - white backgrounds, black text, orange accents, and proper light/dark theme consistency
 - June 25, 2025: Applied consistent light theme colors across all modals - add contact, profile edit, video call, with white backgrounds and orange accents
+- June 25, 2025: Fixed escrow manager completely - removed all emojis, applied proper light theme with white backgrounds and orange accents, improved functionality and status badges
 
 ## User Preferences
 
