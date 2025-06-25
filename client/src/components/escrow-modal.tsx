@@ -71,20 +71,29 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     mutationFn: async ({ escrowId, amount }: { escrowId: number; amount: string }) => {
       return apiRequest("POST", `/api/escrows/${escrowId}/fund`, { amount });
     },
-    onSuccess: () => {
+    onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       setFundingAmount("");
       setSelectedEscrow(null);
+      
       toast({
-        title: "💰 Funds added",
-        description: "Your funds have been added to the escrow! 📈",
+        title: "Funds Added Successfully",
+        description: `Your ${variables.amount} has been added to the escrow. Waiting for ${otherUser.displayName} to fund their portion.`,
       });
+      
+      // Notify about waiting for other party
+      setTimeout(() => {
+        toast({
+          title: "Waiting for Counter-Party",
+          description: `${otherUser.displayName} will be notified to fund their portion of the escrow.`,
+        });
+      }, 2000);
     },
     onError: () => {
       toast({
-        title: "❌ Failed to add funds",
-        description: "Please try again. 💸",
+        title: "Failed to add funds",
+        description: "Please try again.",
         variant: "destructive",
       });
     },
