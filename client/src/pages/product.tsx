@@ -236,6 +236,7 @@ export default function ProductPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const { toast } = useToast();
 
   // Get product ASIN from URL params
   const productASIN = params?.asin;
@@ -246,6 +247,11 @@ export default function ProductPage() {
 
   const { data: cryptoRates = { BTC: 100000, BNB: 600, USDT: 1, COYN: 0.5 } } = useQuery<CryptoRates>({
     queryKey: ["/api/crypto/rates"],
+  });
+
+  const { data: favoriteStatus } = useQuery({
+    queryKey: ['/api/favorites/status', productASIN],
+    enabled: !!productASIN,
   });
 
   // Find the current product
@@ -272,8 +278,8 @@ export default function ProductPage() {
 
   // Update favorite status when data changes  
   useEffect(() => {
-    if (favoriteStatus) {
-      setIsFavorite(favoriteStatus.isFavorite);
+    if (favoriteStatus && typeof favoriteStatus === 'object' && favoriteStatus !== null && 'isFavorite' in favoriteStatus) {
+      setIsWishlisted(Boolean((favoriteStatus as any).isFavorite));
     }
   }, [favoriteStatus]);
 
@@ -285,14 +291,14 @@ export default function ProductPage() {
     if (!product) return;
 
     try {
-      if (isFavorite) {
+      if (isWishlisted) {
         // Remove from favorites
         const response = await fetch(`/api/favorites/${product.ASIN}`, {
           method: 'DELETE',
         });
         
         if (response.ok) {
-          setIsFavorite(false);
+          setIsWishlisted(false);
           toast({
             title: "Removed from favorites",
             description: "Product has been removed from your wishlist",
@@ -316,7 +322,7 @@ export default function ProductPage() {
         });
         
         if (response.ok) {
-          setIsFavorite(true);
+          setIsWishlisted(true);
           toast({
             title: "Added to favorites",
             description: "Product has been added to your wishlist",
@@ -332,7 +338,7 @@ export default function ProductPage() {
     }
   };
 
-  if (!match || !product) {
+  if (!productASIN || !product) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">

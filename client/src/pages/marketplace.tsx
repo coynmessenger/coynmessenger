@@ -352,38 +352,37 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Simplified Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-10 h-10"
-              />
-              <h1 className="text-2xl font-normal text-orange-500 dark:text-cyan-400" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-                Marketplace
-              </h1>
-            </div>
-            <div className="flex items-center space-x-2">
               <Button
-                onClick={() => setShowSettingsModal(true)}
+                onClick={() => setLocation('/')}
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-cyan-400"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-              <Button
-                onClick={() => setLocation("/")}
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-cyan-400"
+                className="hover:bg-accent"
               >
                 <Home className="h-5 w-5" />
               </Button>
+              <Button
+                onClick={() => setLocation('/favorites')}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent"
+              >
+                <Heart className="h-5 w-5" />
+              </Button>
+              <img src={coynLogoPath} alt="COYN" className="w-8 h-8" />
             </div>
+            <Button
+              onClick={() => setShowSettingsModal(true)}
+              variant="ghost"
+              size="icon"
+              className="hover:bg-accent"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
