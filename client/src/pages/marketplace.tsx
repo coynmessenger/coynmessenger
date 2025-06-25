@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import SettingsModal from "@/components/settings-modal";
 
 interface AmazonProduct {
   ASIN: string;
@@ -147,6 +148,7 @@ export default function MarketplacePage() {
   const [sortBy, setSortBy] = useState("featured");
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Fetch Amazon products with debounced search
   const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
@@ -316,14 +318,24 @@ export default function MarketplacePage() {
                 COYN Marketplace
               </h1>
             </div>
-            <Button
-              onClick={() => setLocation("/")}
-              variant="ghost"
-              size="icon"
-              className="text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-cyan-400"
-            >
-              <Home className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={() => setShowSettingsModal(true)}
+                variant="ghost"
+                size="icon"
+                className="text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-cyan-400"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+              <Button
+                onClick={() => setLocation("/")}
+                variant="ghost"
+                size="icon"
+                className="text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-cyan-400"
+              >
+                <Home className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -607,6 +619,12 @@ export default function MarketplacePage() {
           isOpen={showPurchaseModal}
           onClose={() => setShowPurchaseModal(false)}
           cryptoRates={cryptoRates}
+        />
+
+        {/* Settings Modal */}
+        <SettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
         />
 
         {/* Statistics */}
