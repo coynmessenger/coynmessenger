@@ -273,16 +273,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
 
-      const updates = insertUserSchema.partial().parse(req.body);
+      console.log("Update request for user:", userId, "with data:", req.body);
+
+      // Create a partial update schema that allows any subset of user fields
+      const updateSchema = insertUserSchema.partial();
+      const updates = updateSchema.parse(req.body);
+      
+      console.log("Parsed updates:", updates);
+      
       const user = await storage.updateUser(userId, updates);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       
+      console.log("Updated user:", user);
       res.json(user);
     } catch (error) {
       console.error("Error updating user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid user data", 
+          errors: error.errors 
+        });
+      }
       res.status(500).json({ message: "Failed to update user" });
     }
   });

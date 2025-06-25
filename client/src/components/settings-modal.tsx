@@ -37,28 +37,34 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   // Update local state when user data changes
   React.useEffect(() => {
     if (user) {
-      setDisplayName(user.displayName);
-      setWalletAddress(user.walletAddress);
+      setDisplayName(user.displayName || "");
+      setWalletAddress(user.walletAddress || "");
     }
   }, [user]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: { displayName?: string; walletAddress?: string }) => {
       if (!user) throw new Error("No user data");
-      return apiRequest(`/api/users/${user.id}`, {
+      console.log("Sending update request:", updates);
+      const response = await apiRequest(`/api/users/${user.id}`, {
         method: "PUT",
         body: JSON.stringify(updates),
         headers: { "Content-Type": "application/json" },
       });
+      console.log("Update response:", response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Update successful:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
         title: "Profile Updated",
         description: "Your profile has been saved successfully.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Update error:", error);
       toast({
         title: "Update Failed",
         description: "Failed to update profile. Please try again.",
@@ -68,12 +74,27 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   });
 
   const handleSaveProfile = () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User data not available. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const updates: any = {};
-    if (displayName !== user?.displayName) updates.displayName = displayName;
-    if (walletAddress !== user?.walletAddress) updates.walletAddress = walletAddress;
+    if (displayName.trim() !== user.displayName) updates.displayName = displayName.trim();
+    if (walletAddress.trim() !== user.walletAddress) updates.walletAddress = walletAddress.trim();
     
     if (Object.keys(updates).length > 0) {
+      console.log("Profile updates to send:", updates);
       updateProfileMutation.mutate(updates);
+    } else {
+      toast({
+        title: "No Changes",
+        description: "No changes detected to save.",
+      });
     }
   };
 
