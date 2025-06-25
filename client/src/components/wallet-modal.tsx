@@ -448,42 +448,58 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="pb-4 border-b border-gray-200 dark:border-slate-600">
           <DialogTitle className="text-xl font-bold text-black dark:text-white flex items-center">
-            <Shield className="h-5 w-5 mr-2" />
+            <Shield className="h-5 w-5 mr-2 text-orange-600 dark:text-cyan-400" />
             Escrow Management
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-3">
           {escrows.length === 0 ? (
-            <div className="text-center py-8">
-              <Shield className="h-12 w-12 text-gray-400 dark:text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-700 dark:text-slate-400">No active escrows</p>
+            <div className="text-center py-12">
+              <div className="bg-gray-100 dark:bg-slate-700 rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center mb-4">
+                <Shield className="h-8 w-8 text-gray-400 dark:text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-black dark:text-white mb-2">No Escrows Found</h3>
+              <p className="text-gray-600 dark:text-slate-400">You don't have any escrow transactions yet.</p>
+              <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">Create secure transactions from the wallet send feature.</p>
             </div>
           ) : (
             escrows.map((escrow) => (
-              <div key={escrow.id} className="bg-white dark:border-slate-600 border border-gray-200 dark:bg-slate-700 rounded-lg p-4 space-y-3 shadow-sm">
+              <div key={escrow.id} className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="h-4 w-4 text-orange-600 dark:text-blue-400" />
-                    <span className="font-medium text-black dark:text-white">
-                      {escrow.participant1Amount} {escrow.participant1Currency}
-                    </span>
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-orange-100 dark:bg-blue-900/30 rounded-full">
+                      <Shield className="h-4 w-4 text-orange-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-black dark:text-white">
+                        {escrow.participant1Amount} {escrow.participant1Currency}
+                      </span>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">
+                        Escrow #{escrow.id}
+                      </p>
+                    </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(escrow.status)}`}>
-                    {escrow.status}
+                    {escrow.status.charAt(0).toUpperCase() + escrow.status.slice(1)}
                   </span>
                 </div>
 
                 {escrow.description && (
-                  <p className="text-sm text-gray-600 dark:text-slate-400">
-                    {escrow.description}
-                  </p>
+                  <div className="bg-gray-50 dark:bg-slate-600 rounded-md p-2 mt-2">
+                    <p className="text-sm text-gray-700 dark:text-slate-300">
+                      "{escrow.description}"
+                    </p>
+                  </div>
                 )}
 
-                <div className="text-xs text-gray-600 dark:text-slate-500">
-                  Created: {new Date(escrow.createdAt).toLocaleDateString()}
+                <div className="flex items-center justify-between text-xs text-gray-600 dark:text-slate-500">
+                  <span>Created: {new Date(escrow.createdAt).toLocaleDateString()}</span>
+                  {escrow.releasedAt && (
+                    <span>Released: {new Date(escrow.releasedAt).toLocaleDateString()}</span>
+                  )}
                 </div>
 
                 {escrow.status === "pending" && (
@@ -492,18 +508,38 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
                       size="sm"
                       onClick={() => releaseEscrowMutation.mutate(escrow.id)}
                       disabled={releaseEscrowMutation.isPending}
-                      className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white text-xs"
+                      className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white text-xs font-medium"
                     >
-                      {releaseEscrowMutation.isPending ? "Releasing..." : "Release"}
+                      {releaseEscrowMutation.isPending ? (
+                        <>
+                          <Clock className="h-3 w-3 mr-1 animate-spin" />
+                          Releasing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Release Funds
+                        </>
+                      )}
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => cancelEscrowMutation.mutate(escrow.id)}
                       disabled={cancelEscrowMutation.isPending}
-                      className="flex-1 border-red-400 dark:border-red-300 text-red-700 dark:text-red-600 hover:bg-red-100 dark:hover:bg-red-50 text-xs"
+                      className="flex-1 border-red-400 dark:border-red-300 text-red-700 dark:text-red-600 hover:bg-red-100 dark:hover:bg-red-50 text-xs font-medium"
                     >
-                      {cancelEscrowMutation.isPending ? "Cancelling..." : "Cancel"}
+                      {cancelEscrowMutation.isPending ? (
+                        <>
+                          <Clock className="h-3 w-3 mr-1 animate-spin" />
+                          Cancelling...
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Cancel
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}
@@ -512,7 +548,10 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
           )}
         </div>
 
-        <div className="flex justify-end pt-4 flex-shrink-0 border-t border-gray-200 dark:border-slate-600">
+        <div className="flex justify-between items-center pt-4 flex-shrink-0 border-t border-gray-200 dark:border-slate-600">
+          <div className="text-sm text-gray-600 dark:text-slate-400">
+            {escrows.length} {escrows.length === 1 ? 'escrow' : 'escrows'} total
+          </div>
           <Button onClick={onClose} variant="outline" className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700">
             Close
           </Button>

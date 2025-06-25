@@ -127,6 +127,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Added comprehensive send functionality to wallet with multi-step transaction flow and confirmation
 - June 25, 2025: Integrated escrow functionality into wallet send feature with secure transaction options and detailed confirmation flow
 - June 25, 2025: Enhanced wallet-escrow integration with active escrow display, management interface, and release/cancel functionality
+- June 25, 2025: Completed light theme integration for escrow manager with improved UI, sorting, and enhanced functionality
 
 ## User Preferences
 
