@@ -633,7 +633,7 @@ export default function ProductPage() {
                 size="lg"
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                Add to Cart
+                Cart
               </Button>
             </div>
 
