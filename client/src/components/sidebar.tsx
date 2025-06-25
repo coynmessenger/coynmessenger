@@ -171,6 +171,26 @@ export default function Sidebar({
           ))}
         </div>
 
+        {/* Mobile Settings - only visible on mobile */}
+        <div className="lg:hidden p-4 border-t border-slate-700">
+          <div className="flex gap-2">
+            <Button 
+              onClick={onOpenWallet}
+              className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold"
+            >
+              <Wallet className="h-4 w-4 mr-2" />
+              Wallet
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsSettingsOpen(true)}
+              className="text-slate-400 hover:text-cyan-400 border-slate-600 hover:border-cyan-500"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
       </div>
       {/* Overlay for mobile */}

@@ -106,6 +106,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Fixed sidebar scroll functionality on mobile by adding proper flex layout and scroll containment
 - June 25, 2025: Removed "New Chat" button from sidebar for cleaner interface
 - June 25, 2025: Created comprehensive settings modal with profile, appearance, notifications, privacy, and about sections
+- June 25, 2025: Added settings button to both desktop sidebar header and mobile actions section for better accessibility
 
 ## User Preferences
 
