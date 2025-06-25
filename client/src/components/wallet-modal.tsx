@@ -1,18 +1,28 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check } from "lucide-react";
+import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft } from "lucide-react";
 import QRCode from "qrcode";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import { apiRequest } from "@/lib/queryClient";
 
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface SendModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  balances: WalletBalance[];
 }
 
 interface QRModalProps {
@@ -28,6 +38,257 @@ const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: 
   USDT: { color: "bg-green-500", symbol: "₮" },
   COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
 };
+
+function SendModal({ isOpen, onClose, balances }: SendModalProps) {
+  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [amount, setAmount] = useState("");
+  const [step, setStep] = useState<"form" | "confirm" | "success">("form");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const selectedBalance = balances.find(b => b.currency === selectedCurrency);
+  const availableBalance = parseFloat(selectedBalance?.balance || "0");
+  const sendAmount = parseFloat(amount || "0");
+
+  const sendMutation = useMutation({
+    mutationFn: async (data: { currency: string; amount: string; recipientAddress: string }) => {
+      // In a real app, this would call your send transaction API
+      // For now, we'll simulate a successful send
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return { txId: `tx_${Date.now()}`, ...data };
+    },
+    onSuccess: () => {
+      setStep("success");
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({
+        title: "Transaction Sent",
+        description: `Successfully sent ${amount} ${selectedCurrency}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Transaction Failed",
+        description: "Failed to send transaction. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSend = () => {
+    if (!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance) {
+      toast({
+        title: "Invalid Input",
+        description: "Please check recipient address and amount",
+        variant: "destructive",
+      });
+      return;
+    }
+    setStep("confirm");
+  };
+
+  const handleConfirm = () => {
+    sendMutation.mutate({
+      currency: selectedCurrency,
+      amount,
+      recipientAddress,
+    });
+  };
+
+  const handleClose = () => {
+    setStep("form");
+    setRecipientAddress("");
+    setAmount("");
+    onClose();
+  };
+
+  const formatBalance = (balance: string, currency: string) => {
+    const num = parseFloat(balance);
+    if (currency === "USDT") return num.toFixed(2);
+    if (currency === "BTC") return num.toFixed(8);
+    if (currency === "ETH") return num.toFixed(6);
+    return num.toFixed(3);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
+        <DialogHeader>
+          <div className="flex items-center space-x-2">
+            {step !== "form" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => step === "confirm" ? setStep("form") : handleClose()}
+                className="p-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <DialogTitle className="text-xl font-bold text-black dark:text-white">
+              {step === "form" ? "Send Crypto" : step === "confirm" ? "Confirm Transaction" : "Transaction Sent"}
+            </DialogTitle>
+          </div>
+        </DialogHeader>
+
+        {step === "form" && (
+          <div className="space-y-4">
+            {/* Currency Selection */}
+            <div className="space-y-2">
+              <Label className="text-black dark:text-white">Currency</Label>
+              <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+                  {balances.map((balance) => {
+                    const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
+                    return (
+                      <SelectItem key={balance.currency} value={balance.currency} className="text-black dark:text-white">
+                        <div className="flex items-center space-x-2">
+                          {icon.isCoyn ? (
+                            <img src={coynLogoPath} alt="COYN" className="w-4 h-4" />
+                          ) : (
+                            <div className={`w-4 h-4 ${icon.color} rounded-full flex items-center justify-center`}>
+                              <span className="text-xs font-bold text-white">{icon.symbol}</span>
+                            </div>
+                          )}
+                          <span>{balance.currency}</span>
+                          <span className="text-gray-500 dark:text-slate-400 text-sm">
+                            {formatBalance(balance.balance, balance.currency)}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              {selectedBalance && (
+                <p className="text-sm text-gray-600 dark:text-slate-400">
+                  Available: {formatBalance(selectedBalance.balance, selectedCurrency)} {selectedCurrency}
+                </p>
+              )}
+            </div>
+
+            {/* Recipient Address */}
+            <div className="space-y-2">
+              <Label className="text-black dark:text-white">Recipient Address</Label>
+              <Input
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                placeholder="Enter wallet address"
+                className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white"
+              />
+            </div>
+
+            {/* Amount */}
+            <div className="space-y-2">
+              <Label className="text-black dark:text-white">Amount</Label>
+              <div className="flex space-x-2">
+                <Input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => setAmount(selectedBalance?.balance || "0")}
+                  className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200"
+                >
+                  Max
+                </Button>
+              </div>
+              {sendAmount > availableBalance && (
+                <p className="text-red-500 text-sm">Insufficient balance</p>
+              )}
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <Button
+                onClick={handleClose}
+                variant="outline"
+                className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSend}
+                disabled={!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "confirm" && (
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-slate-400">Currency:</span>
+                <span className="font-medium text-black dark:text-white">{selectedCurrency}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-slate-400">Amount:</span>
+                <span className="font-medium text-black dark:text-white">{amount} {selectedCurrency}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-slate-400">To:</span>
+                <span className="font-mono text-sm text-black dark:text-white break-all">
+                  {recipientAddress.slice(0, 8)}...{recipientAddress.slice(-8)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-slate-400">Network Fee:</span>
+                <span className="font-medium text-black dark:text-white">0.001 {selectedCurrency}</span>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <Button
+                onClick={() => setStep("form")}
+                variant="outline"
+                className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                disabled={sendMutation.isPending}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+              >
+                {sendMutation.isPending ? "Sending..." : "Confirm Send"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "success" && (
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
+              <Check className="h-8 w-8 text-green-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Transaction Sent!</h3>
+              <p className="text-gray-600 dark:text-slate-400">
+                Successfully sent {amount} {selectedCurrency}
+              </p>
+            </div>
+            <Button
+              onClick={handleClose}
+              className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+            >
+              Done
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
@@ -117,6 +378,7 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
 
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
   
   const { data: balances = [] } = useQuery<WalletBalance[]>({
@@ -265,21 +527,29 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         {/* Action Buttons */}
         <div className="flex space-x-3 mt-6 flex-shrink-0">
           <Button 
-            className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
+            className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white"
+            onClick={() => setShowSendModal(true)}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Send
+          </Button>
+          <Button 
+            variant="outline"
+            className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
             onClick={() => setShowQRCode(true)}
           >
             <QrCode className="h-4 w-4 mr-2" />
             Receive
           </Button>
-          <Button 
-            variant="outline" 
-            className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
-            onClick={onClose}
-          >
-            Close
-          </Button>
         </div>
       </DialogContent>
+
+      {/* Send Modal */}
+      <SendModal
+        isOpen={showSendModal}
+        onClose={() => setShowSendModal(false)}
+        balances={balances}
+      />
 
       {/* QR Code Modal */}
       <QRCodeModal

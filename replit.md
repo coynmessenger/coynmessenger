@@ -124,6 +124,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Integrated chat header into sidebar and removed separate header from chat window for cleaner layout
 - June 25, 2025: Added wallet sign out functionality to homepage with persistent connection state stored in localStorage
 - June 25, 2025: Updated wallet modal to use consistent light theme colors - white backgrounds, black text, orange accents throughout
+- June 25, 2025: Added comprehensive send functionality to wallet with multi-step transaction flow and confirmation
 
 ## User Preferences
 
