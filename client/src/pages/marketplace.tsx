@@ -253,13 +253,17 @@ export default function MarketplacePage() {
 
   const allItems = [...amazonProducts, ...legacyItems];
   
-  // Filter out items without images and apply search/category filters
+  // Filter items and apply search/category filters
   const filteredItems = allItems.filter(item => {
     const isAmazonProduct = 'ASIN' in item;
     
-    // Check if item has a valid image
-    const hasImage = isAmazonProduct ? item.imageUrl && item.imageUrl.trim() !== '' : item.image && item.image.trim() !== '';
-    if (!hasImage) return false;
+    // Only filter out items that explicitly have no image URL at all
+    const hasValidImageUrl = isAmazonProduct ? 
+      item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('placeholder') : 
+      item.image && item.image.trim() !== '' && !item.image.includes('placeholder');
+    
+    // Allow items with valid image URLs or Amazon products (they have fallback handling)
+    if (!hasValidImageUrl && !isAmazonProduct) return false;
     
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -484,7 +488,7 @@ export default function MarketplacePage() {
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <CardTitle className="text-lg font-semibold text-foreground line-clamp-1">
+                        <CardTitle className="text-base font-semibold text-foreground line-clamp-2 leading-tight">
                           {item.title}
                         </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -492,7 +496,7 @@ export default function MarketplacePage() {
                         </p>
                       </div>
                       {(isAmazonProduct || item.featured) && (
-                        <Badge className="bg-orange-500 text-white ml-2">
+                        <Badge className="bg-orange-500 text-white ml-2 shrink-0">
                           <Star className="h-3 w-3 mr-1" />
                           {isAmazonProduct ? 'Amazon' : 'Featured'}
                         </Badge>
@@ -502,13 +506,21 @@ export default function MarketplacePage() {
                   <CardContent className="space-y-4">
                     <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                       <img 
-                        src={imageUrl || 'https://via.placeholder.com/400x300?text=No+Image'} 
+                        src={imageUrl || 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=No+Image'} 
                         alt={item.title}
-                        className="w-full h-full object-contain hover:object-cover transition-all duration-300"
+                        className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Available';
+                          if (!target.src.includes('placeholder')) {
+                            target.src = 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=Image+Unavailable';
+                          }
                         }}
+                        onLoad={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.opacity = '1';
+                        }}
+                        style={{ opacity: '0', transition: 'opacity 0.3s ease-in-out' }}
                       />
                     </div>
                     

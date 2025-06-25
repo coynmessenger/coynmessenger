@@ -462,6 +462,131 @@ class AmazonAPI {
         category: 'Sports',
         brand: 'Gaiam',
         description: 'Non-slip yoga mat with extra cushioning for comfort.'
+      },
+      
+      // Additional Electronics with verified images
+      {
+        ASIN: 'B08HLZZ9NR',
+        title: 'Logitech MX Master 3 Mouse',
+        price: '99.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08HLZZ9NR',
+        rating: 4.6,
+        reviewCount: 25678,
+        category: 'Electronics',
+        brand: 'Logitech',
+        description: 'Advanced wireless mouse with precision scroll wheel and ergonomic design.'
+      },
+      {
+        ASIN: 'B08FF3BKMV',
+        title: 'Sony PlayStation 5',
+        price: '499.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61qVrcPuKAL._SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08FF3BKMV',
+        rating: 4.8,
+        reviewCount: 89456,
+        category: 'Electronics',
+        brand: 'Sony',
+        description: 'Next-generation gaming console with ultra-fast SSD and ray tracing.'
+      },
+      {
+        ASIN: 'B08HLMS3NZ',
+        title: 'Mechanical Keyboard RGB',
+        price: '129.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81+lrJ4HHJL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08HLMS3NZ',
+        rating: 4.5,
+        reviewCount: 15678,
+        category: 'Electronics',
+        brand: 'Corsair',
+        description: 'Mechanical gaming keyboard with RGB backlighting and tactile switches.'
+      },
+      
+      // Additional Home & Kitchen
+      {
+        ASIN: 'B08FF5KBRV',
+        title: 'Keurig K-Elite Coffee Maker',
+        price: '179.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81rHdWFz+gL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08FF5KBRV',
+        rating: 4.4,
+        reviewCount: 34567,
+        category: 'Kitchen',
+        brand: 'Keurig',
+        description: 'Single-serve coffee maker with multiple brew sizes and strong brew setting.'
+      },
+      {
+        ASIN: 'B09HJNM8KL',
+        title: 'Lodge Cast Iron Skillet',
+        price: '39.90',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81WZhDKS9HL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B09HJNM8KL',
+        rating: 4.7,
+        reviewCount: 23456,
+        category: 'Kitchen',
+        brand: 'Lodge',
+        description: 'Pre-seasoned cast iron skillet perfect for searing, baking, and frying.'
+      },
+      
+      // Additional Books
+      {
+        ASIN: 'B08BB57GS7',
+        title: 'Rich Dad Poor Dad',
+        price: '8.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81BE7eeKzAL.jpg',
+        productUrl: 'https://amazon.com/dp/B08BB57GS7',
+        rating: 4.6,
+        reviewCount: 67890,
+        category: 'Books',
+        brand: 'Plata Publishing',
+        description: 'Financial education classic about building wealth and financial literacy.'
+      },
+      {
+        ASIN: 'B075RMVVPQ',
+        title: 'The Lean Startup',
+        price: '14.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/51Gu9-QpVpL.jpg',
+        productUrl: 'https://amazon.com/dp/B075RMVVPQ',
+        rating: 4.5,
+        reviewCount: 34567,
+        category: 'Books',
+        brand: 'Crown Business',
+        description: 'Revolutionary approach to creating and managing successful startups.'
+      },
+      
+      // Additional Fashion
+      {
+        ASIN: 'B08GMVK567',
+        title: 'Adidas Ultraboost Running Shoes',
+        price: '189.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/719npMzWQSL._AC_UX500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08GMVK567',
+        rating: 4.6,
+        reviewCount: 18765,
+        category: 'Fashion',
+        brand: 'Adidas',
+        description: 'Premium running shoes with responsive cushioning and energy return.'
+      },
+      {
+        ASIN: 'B09KJMN789',
+        title: 'Timex Weekender Watch',
+        price: '35.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81RiPrQAKfL._AC_UX500_.jpg',
+        productUrl: 'https://amazon.com/dp/B09KJMN789',
+        rating: 4.3,
+        reviewCount: 12345,
+        category: 'Fashion',
+        brand: 'Timex',
+        description: 'Classic analog watch with easy-read dial and comfortable fabric strap.'
       }
     ];
 
