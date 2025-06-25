@@ -120,11 +120,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Profile Settings */}
           <Card className="bg-card border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-slate-100 flex items-center">
+              <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2" />
                 Profile
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-600 dark:text-slate-400">
                 Update your personal information
               </CardDescription>
             </CardHeader>
@@ -213,11 +213,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Notifications Settings */}
           <Card className="bg-card border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-slate-100 flex items-center">
+              <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Bell className="h-4 w-4 mr-2" />
                 Notifications
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-600 dark:text-slate-400">
                 Control how you receive notifications
               </CardDescription>
             </CardHeader>
@@ -257,11 +257,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Privacy & Security */}
           <Card className="bg-slate-700/50 border-slate-600">
             <CardHeader>
-              <CardTitle className="text-slate-100 flex items-center">
+              <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Shield className="h-4 w-4 mr-2" />
                 Privacy & Security
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-600 dark:text-slate-400">
                 Manage your privacy and security preferences
               </CardDescription>
             </CardHeader>
@@ -296,7 +296,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* About */}
           <Card className="bg-slate-700/50 border-slate-600">
             <CardHeader>
-              <CardTitle className="text-slate-100 flex items-center">
+              <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Info className="h-4 w-4 mr-2" />
                 About
               </CardTitle>
