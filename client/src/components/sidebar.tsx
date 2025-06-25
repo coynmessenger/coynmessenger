@@ -175,6 +175,15 @@ export default function Sidebar({
               Wallet
             </Button>
             <Button
+              onClick={() => setIsAddContactOpen(true)}
+              variant="outline"
+              size="icon"
+              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
+              title="Add Contact"
+            >
+              <UserPlus className="h-4 w-4" />
+            </Button>
+            <Button
               variant="outline"
               size="icon"
               onClick={() => setIsSettingsOpen(true)}
