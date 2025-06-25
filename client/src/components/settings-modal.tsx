@@ -118,7 +118,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
         <div className="space-y-6">
           {/* Profile Settings */}
-          <Card className="bg-slate-700/50 border-slate-600">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-slate-100 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2" />
@@ -211,7 +211,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </Card>
 
           {/* Notifications Settings */}
-          <Card className="bg-slate-700/50 border-slate-600">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-slate-100 flex items-center">
                 <Bell className="h-4 w-4 mr-2" />

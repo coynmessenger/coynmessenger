@@ -86,19 +86,19 @@ export default function Sidebar({
 
         {/* Wallet Quick View */}
         <div 
-          className="p-4 bg-gradient-to-r from-card to-muted m-4 rounded-xl border border-border cursor-pointer hover:border-primary transition-colors"
+          className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-card dark:to-muted m-4 rounded-xl border border-orange-200 dark:border-border cursor-pointer hover:border-primary transition-all duration-200 shadow-sm"
           onClick={onOpenWallet}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Total Balance</span>
+            <span className="text-sm text-orange-700 dark:text-muted-foreground font-medium">Total Balance</span>
             <Wallet className="h-4 w-4 text-primary" />
           </div>
           <div className="text-2xl font-bold text-primary">$12,220.75</div>
           <div className="flex space-x-2 mt-3">
-            <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
               Send
             </Button>
-            <Button size="sm" variant="secondary" className="flex-1">
+            <Button size="sm" variant="secondary" className="flex-1 bg-orange-100 dark:bg-secondary text-orange-800 dark:text-secondary-foreground hover:bg-orange-200 dark:hover:bg-secondary/80">
               Receive
             </Button>
           </div>
@@ -107,17 +107,17 @@ export default function Sidebar({
         {/* Search and Add Contact */}
         <div className="p-4 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-600 dark:text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="pl-10 bg-input border-border focus:border-primary"
+              className="pl-10 bg-orange-50 dark:bg-input border-orange-200 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20"
             />
           </div>
           <Button
             onClick={() => setIsAddContactOpen(true)}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             size="sm"
           >
             <UserPlus className="h-4 w-4 mr-2" />
