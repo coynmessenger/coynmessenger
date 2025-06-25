@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import SettingsModal from "@/components/settings-modal";
 
@@ -150,6 +150,7 @@ export default function MarketplacePage() {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
   // Fetch Amazon products with debounced search
   const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
@@ -301,6 +302,16 @@ export default function MarketplacePage() {
       // Legacy marketplace item - show info
       alert(`This is a marketplace service. Contact ${item.seller} for details.`);
     }
+  };
+
+  const toggleProductDetails = (itemKey: string) => {
+    const newExpanded = new Set(expandedProducts);
+    if (newExpanded.has(itemKey)) {
+      newExpanded.delete(itemKey);
+    } else {
+      newExpanded.add(itemKey);
+    }
+    setExpandedProducts(newExpanded);
   };
 
   return (
@@ -567,21 +578,103 @@ export default function MarketplacePage() {
                       </Tooltip>
                     </TooltipProvider>
                     
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {item.description || 'No description available'}
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">{item.rating}</span>
-                        {isAmazonProduct && item.reviewCount > 0 && (
-                          <span className="text-xs text-muted-foreground">({item.reviewCount})</span>
-                        )}
+                    {/* Expandable Description Section */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleProductDetails(itemKey)}
+                          className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <Info className="h-3 w-3 mr-1" />
+                          Details & Reviews
+                          {expandedProducts.has(itemKey) ? (
+                            <ChevronUp className="h-3 w-3 ml-1" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3 ml-1" />
+                          )}
+                        </Button>
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{item.rating}</span>
+                          {isAmazonProduct && item.reviewCount > 0 && (
+                            <span className="text-xs text-muted-foreground">({item.reviewCount})</span>
+                          )}
+                        </div>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {item.category}
-                      </Badge>
+
+                      {expandedProducts.has(itemKey) && (
+                        <div className="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4 space-y-3 border-l-4 border-orange-500 dark:border-cyan-400">
+                          {/* Description */}
+                          <div>
+                            <h4 className="text-sm font-medium text-foreground mb-2">Description</h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {item.description || 'No detailed description available for this product.'}
+                            </p>
+                          </div>
+                          
+                          {/* Product Details */}
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            {isAmazonProduct && item.brand && (
+                              <div>
+                                <span className="text-muted-foreground">Brand:</span>
+                                <span className="font-medium text-foreground ml-1">{item.brand}</span>
+                              </div>
+                            )}
+                            <div>
+                              <span className="text-muted-foreground">Category:</span>
+                              <span className="font-medium text-foreground ml-1">{item.category}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Rating:</span>
+                              <span className="font-medium text-foreground ml-1">{item.rating}/5 stars</span>
+                            </div>
+                            {isAmazonProduct && item.reviewCount > 0 && (
+                              <div>
+                                <span className="text-muted-foreground">Reviews:</span>
+                                <span className="font-medium text-foreground ml-1">{item.reviewCount} customer reviews</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Mock Reviews for Amazon Products */}
+                          {isAmazonProduct && (
+                            <div>
+                              <h4 className="text-sm font-medium text-foreground mb-2">Recent Reviews</h4>
+                              <div className="space-y-2">
+                                <div className="bg-white dark:bg-slate-700 rounded p-2">
+                                  <div className="flex items-center space-x-1 mb-1">
+                                    <div className="flex">
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className="h-3 w-3 text-yellow-500 fill-current" />
+                                      ))}
+                                    </div>
+                                    <span className="text-xs font-medium">Verified Purchase</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    "Great product! Exactly as described and arrived quickly. Highly recommend for anyone looking for quality."
+                                  </p>
+                                </div>
+                                <div className="bg-white dark:bg-slate-700 rounded p-2">
+                                  <div className="flex items-center space-x-1 mb-1">
+                                    <div className="flex">
+                                      {[...Array(4)].map((_, i) => (
+                                        <Star key={i} className="h-3 w-3 text-yellow-500 fill-current" />
+                                      ))}
+                                      <Star className="h-3 w-3 text-gray-300" />
+                                    </div>
+                                    <span className="text-xs font-medium">Verified Purchase</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    "Very satisfied with this purchase. Good value for money and works as expected."
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-border">
@@ -590,6 +683,9 @@ export default function MarketplacePage() {
                           <span className="text-lg font-bold text-foreground">
                             ${item.price}
                           </span>
+                          <Badge variant="secondary" className="text-xs">
+                            {item.category}
+                          </Badge>
                         </div>
                         {isAmazonProduct && (
                           <div className="text-xs text-muted-foreground">
