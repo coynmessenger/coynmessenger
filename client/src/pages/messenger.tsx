@@ -44,9 +44,9 @@ export default function MessengerPage() {
             <img 
               src={coynLogoPath} 
               alt="COYN Logo" 
-              className="w-8 h-8"
+              className="w-10 h-10"
             />
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+            <h1 className="text-2xl font-normal text-orange-500 dark:text-cyan-400" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
           </div>
