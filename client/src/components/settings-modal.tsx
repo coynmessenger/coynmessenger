@@ -476,14 +476,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   <Label className="text-foreground">Message Preview</Label>
                   <p className="text-sm text-muted-foreground">Show message content in notifications</p>
                 </div>
-                <ToggleButton
-                  variant={messagePreview ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setMessagePreview(!messagePreview)}
-                  className={messagePreview ? "bg-primary hover:bg-primary/90" : "border-border"}
-                >
-                  {messagePreview ? "On" : "Off"}
-                </ToggleButton>
+                <Switch
+                  checked={messagePreview}
+                  onCheckedChange={setMessagePreview}
+                />
               </div>
             </CardContent>
           </Card>
@@ -505,14 +501,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   <Label className="text-foreground">Auto-connect Wallet</Label>
                   <p className="text-sm text-muted-foreground">Automatically connect to COYN network</p>
                 </div>
-                <ToggleButton
-                  variant={autoConnect ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setAutoConnect(!autoConnect)}
-                  className={autoConnect ? "bg-primary hover:bg-primary/90" : "border-border"}
-                >
-                  {autoConnect ? "On" : "Off"}
-                </ToggleButton>
+                <Switch
+                  checked={autoConnect}
+                  onCheckedChange={setAutoConnect}
+                />
               </div>
               <Separator className="bg-slate-600" />
               <div className="space-y-2">
