@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -73,19 +73,49 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
 
   // Load cart from localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem('shopping-cart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Error loading cart:', error);
+    const loadCart = () => {
+      const savedCart = localStorage.getItem('shopping-cart');
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          setCartItems(parsedCart);
+        } catch (error) {
+          console.error('Error loading cart:', error);
+          setCartItems([]);
+        }
+      }
+    };
+    loadCart();
+  }, []);
+
+  // Refresh cart when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const savedCart = localStorage.getItem('shopping-cart');
+      console.log('Loading cart on dialog open:', savedCart);
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          console.log('Parsed cart items:', parsedCart);
+          setCartItems(parsedCart);
+        } catch (error) {
+          console.error('Error loading cart:', error);
+          setCartItems([]);
+        }
+      } else {
+        console.log('No saved cart found');
+        setCartItems([]);
       }
     }
-  }, []);
+  }, [isOpen]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('shopping-cart', JSON.stringify(cartItems));
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('cartUpdated', { 
+      detail: { count: cartItems.reduce((total, item) => total + item.quantity, 0) }
+    }));
   }, [cartItems]);
 
   // Pre-populate address when moving to review step
@@ -195,6 +225,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
     
     // Clear cart and close
     setCartItems([]);
+    localStorage.removeItem('shopping-cart');
     setCurrentStep('cart');
     onClose();
   };
@@ -257,11 +288,13 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
     </div>
   );
 
-  const renderCartStep = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
-      </div>
+  const renderCartStep = () => {
+    console.log('Rendering cart step with items:', cartItems);
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
+        </div>
       
       {cartItems.length === 0 ? (
         <div className="text-center py-8">
@@ -352,7 +385,8 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
         </>
       )}
     </div>
-  );
+    );
+  };
 
   const renderReviewStep = () => (
     <div className="space-y-6">
@@ -647,6 +681,11 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
               {currentStep === 'review' && 'Review Your Order'}
               {currentStep === 'finalize' && 'Finalize Purchase'}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {currentStep === 'cart' && 'Manage items in your shopping cart and proceed to checkout'}
+              {currentStep === 'review' && 'Review your order details and shipping information before finalizing'}
+              {currentStep === 'finalize' && 'Complete your purchase with cryptocurrency payment'}
+            </DialogDescription>
           </DialogHeader>
           
           {renderProgressBar()}
