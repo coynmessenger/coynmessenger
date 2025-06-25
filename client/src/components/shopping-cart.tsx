@@ -122,7 +122,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background border-border">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCartIcon className="h-5 w-5" />
               Shopping Cart ({cartItems.length})
             </DialogTitle>
           </DialogHeader>
@@ -130,7 +130,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
           <div className="space-y-4">
             {cartItems.length === 0 ? (
               <div className="text-center py-8">
-                <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <ShoppingCartIcon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">Your cart is empty</h3>
                 <p className="text-muted-foreground">Add some items from the marketplace to get started</p>
               </div>

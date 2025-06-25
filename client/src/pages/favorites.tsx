@@ -200,23 +200,21 @@ export default function FavoritesPage() {
                         </Badge>
                       </div>
 
-                      <div className="flex space-x-2 pt-2">
-                        <Button
-                          onClick={() => handleViewProduct(favorite.productId)}
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 border-border hover:bg-accent"
-                        >
-                          View Product
-                        </Button>
-                        <Button
-                          onClick={() => handleViewProduct(favorite.productId)}
-                          size="sm"
-                          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                          Buy Now
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={() => {
+                          const newCount = addToCart(favorite);
+                          setCartCount(newCount);
+                          toast({
+                            title: "Added to Cart",
+                            description: `${favorite.productTitle} has been added to your cart`
+                          });
+                        }}
+                        size="sm"
+                        className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
