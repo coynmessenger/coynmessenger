@@ -185,6 +185,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Implemented comprehensive finalize purchase functionality with 3-step checkout process: address confirmation, order review, and payment verification - includes shipping address validation, tax calculation, express shipping options, order notes, terms agreement, and detailed order summary with secure cryptocurrency payment flow
 - June 25, 2025: Fixed cart window closing functionality - added proper handleClose function that resets modal states, updated Dialog onOpenChange handler, and ensured Cancel button properly closes cart across all pages
 - June 25, 2025: Updated COYN logo throughout application with new golden coin design - replaced all logo imports with updated image file across homepage, marketplace, messenger sidebar, and wallet modal
+- June 25, 2025: Fixed wallet modal sizing and responsiveness - optimized dimensions with w-[95vw] max-w-md max-h-[95vh], improved button layouts, enhanced mobile experience with proper scaling across all screen sizes
 
 ## User Preferences
 

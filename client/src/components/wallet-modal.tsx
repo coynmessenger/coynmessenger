@@ -145,7 +145,7 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center space-x-2">
             {step !== "form" && (
@@ -592,7 +592,7 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-sm">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[95vw] max-w-sm max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">
             Receive {currency}
@@ -689,7 +689,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-xs sm:max-w-md max-h-[90vh] sm:max-h-[80vh] overflow-hidden flex flex-col p-3 sm:p-6 m-1 sm:m-4">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[95vw] max-w-md max-h-[95vh] overflow-hidden flex flex-col p-4 sm:p-6">
         <DialogHeader className="pb-1 sm:pb-4">
           <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-0 sm:mb-2">
             <img 
@@ -846,29 +846,29 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 mt-6 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-6 flex-shrink-0">
           <Button 
-            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white"
+            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4"
             onClick={() => setShowSendModal(true)}
           >
-            <Send className="h-4 w-4 mr-2" />
+            <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Send
           </Button>
           <Button 
             variant="outline"
-            className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+            className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4"
             onClick={() => setShowQRCode(true)}
           >
-            <QrCode className="h-4 w-4 mr-2" />
+            <QrCode className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Receive
           </Button>
           {userEscrows.length > 0 && (
             <Button 
               variant="outline"
-              className="border-orange-300 dark:border-blue-600 text-orange-700 dark:text-blue-300 hover:bg-orange-50 dark:hover:bg-blue-900/20 col-span-2"
+              className="border-orange-300 dark:border-blue-600 text-orange-700 dark:text-blue-300 hover:bg-orange-50 dark:hover:bg-blue-900/20 col-span-2 h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4"
               onClick={() => setShowEscrowList(true)}
             >
-              <Shield className="h-4 w-4 mr-2" />
+              <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Manage Escrows ({userEscrows.length})
             </Button>
           )}
