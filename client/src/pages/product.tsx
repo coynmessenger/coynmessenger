@@ -274,7 +274,15 @@ export default function ProductPage() {
   // Always scroll to top when product page loads or product changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
+    setCartCount(getCartCount());
   }, [productASIN]);
+
+  // Update cart count when cart modal closes
+  useEffect(() => {
+    if (!showCart) {
+      setCartCount(getCartCount());
+    }
+  }, [showCart]);
 
   // Update favorite status when data changes  
   useEffect(() => {
@@ -785,6 +793,11 @@ export default function ProductPage() {
         product={product}
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
+      />
+      
+      <ShoppingCartComponent 
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
       />
     </div>
   );

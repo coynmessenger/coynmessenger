@@ -375,14 +375,31 @@ export default function MarketplacePage() {
               </Button>
               <img src={coynLogoPath} alt="COYN" className="w-8 h-8" />
             </div>
-            <Button
-              onClick={() => setShowSettingsModal(true)}
-              variant="ghost"
-              size="icon"
-              className="hover:bg-accent"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowCart(true)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent relative"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <Badge 
+                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-orange-500 dark:bg-cyan-500 text-white text-xs"
+                  >
+                    {cartCount}
+                  </Badge>
+                )}
+              </Button>
+              <Button
+                onClick={() => setShowSettingsModal(true)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
