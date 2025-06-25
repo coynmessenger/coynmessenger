@@ -196,14 +196,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       {/* Chat Header */}
       <div className="bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden text-slate-400 mr-2"
-            onClick={onToggleSidebar}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <Avatar className="h-10 w-10">
             <AvatarImage src={conversation.otherUser.profilePicture || ""} />
             <AvatarFallback className="bg-muted text-foreground">{conversation.otherUser.displayName.charAt(0)}</AvatarFallback>
