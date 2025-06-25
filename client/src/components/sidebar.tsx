@@ -84,21 +84,21 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Wallet Quick View */}
+        {/* Wallet Quick View - Compact */}
         <div 
-          className="p-4 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted m-4 rounded-xl border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm"
+          className="p-3 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted mx-3 mb-2 rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm"
           onClick={onOpenWallet}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600 dark:text-muted-foreground font-medium">Total Balance</span>
-            <Wallet className="h-4 w-4 text-gray-700 dark:text-primary" />
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Balance</span>
+            <Wallet className="h-3.5 w-3.5 text-gray-700 dark:text-primary" />
           </div>
-          <div className="text-2xl font-bold text-black dark:text-primary">$12,220.75</div>
-          <div className="flex space-x-2 mt-3">
-            <Button size="sm" className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm">
+          <div className="text-lg font-bold text-black dark:text-primary mb-2">$12,220.75</div>
+          <div className="flex space-x-1.5">
+            <Button size="sm" className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm text-xs py-1.5 h-7">
               Send
             </Button>
-            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80">
+            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80 text-xs py-1.5 h-7">
               Receive
             </Button>
           </div>
