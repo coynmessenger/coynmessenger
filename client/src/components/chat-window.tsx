@@ -165,32 +165,32 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           </Button>
           <Avatar className="h-10 w-10">
             <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-            <AvatarFallback>{conversation.otherUser.displayName.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-foreground">{conversation.otherUser.displayName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="font-semibold">{conversation.otherUser.displayName}</h2>
-            <p className="text-xs text-slate-400">{conversation.otherUser.walletAddress}</p>
+            <h2 className="font-semibold text-foreground">{conversation.otherUser.displayName}</h2>
+            <p className="text-xs text-muted-foreground">{conversation.otherUser.walletAddress}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-cyan-400 hover:bg-slate-700"
+            className="text-primary hover:bg-muted"
             onClick={onOpenVideoCall}
           >
             <Video className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:bg-slate-700">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+            <DropdownMenuContent align="end" className="bg-card border-border">
               <DropdownMenuItem
                 onClick={() => setShowEscrowModal(true)}
-                className="text-slate-300 hover:text-slate-100 hover:bg-slate-700"
+                className="text-foreground hover:text-foreground hover:bg-muted"
               >
                 🛡️ Manage Escrow
               </DropdownMenuItem>

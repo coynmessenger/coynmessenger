@@ -3,38 +3,39 @@
 @tailwind utilities;
 
 :root {
+  /* Light theme - White/Orange color scheme */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(222.2, 84%, 4.9%);
-  --muted: hsl(210, 40%, 96%);
-  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222.2, 84%, 4.9%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222.2, 84%, 4.9%);
-  --border: hsl(214.3, 31.8%, 91.4%);
-  --input: hsl(214.3, 31.8%, 91.4%);
-  --primary: hsl(181, 100%, 41%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(210, 40%, 96%);
-  --secondary-foreground: hsl(222.2, 84%, 4.9%);
-  --accent: hsl(210, 40%, 96%);
-  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(24.6, 95%, 53.1%);
+  --primary-foreground: hsl(60, 9.1%, 97.8%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
   --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(181, 100%, 41%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(24.6, 95%, 53.1%);
   --radius: 0.5rem;
   
-  /* COYN specific colors */
-  --coyn-50: hsl(187, 100%, 96%);
-  --coyn-100: hsl(185, 100%, 91%);
-  --coyn-200: hsl(186, 100%, 84%);
-  --coyn-300: hsl(187, 96%, 70%);
-  --coyn-400: hsl(188, 86%, 53%);
-  --coyn-500: hsl(181, 100%, 41%);
-  --coyn-600: hsl(188, 91%, 36%);
-  --coyn-700: hsl(189, 85%, 29%);
-  --coyn-800: hsl(189, 84%, 24%);
-  --coyn-900: hsl(192, 69%, 20%);
+  /* Orange accent colors */
+  --orange-50: hsl(33, 100%, 96%);
+  --orange-100: hsl(34, 100%, 92%);
+  --orange-200: hsl(32, 98%, 83%);
+  --orange-300: hsl(31, 97%, 72%);
+  --orange-400: hsl(27, 96%, 61%);
+  --orange-500: hsl(24.6, 95%, 53.1%);
+  --orange-600: hsl(20.5, 90.2%, 48.2%);
+  --orange-700: hsl(17.5, 88.2%, 40.6%);
+  --orange-800: hsl(15, 79.1%, 33.7%);
+  --orange-900: hsl(15, 75%, 28%);
 }
 
 .dark {

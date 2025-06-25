@@ -51,11 +51,11 @@ export default function Sidebar({
 
   return (
     <>
-      <div className={`fixed lg:relative inset-y-0 left-0 w-80 bg-slate-800 border-r border-slate-700 transform transition-transform duration-300 ease-in-out z-40 pt-16 lg:pt-0 flex flex-col ${
+      <div className={`fixed lg:relative inset-y-0 left-0 w-80 bg-card border-r border-border transform transition-transform duration-300 ease-in-out z-40 pt-16 lg:pt-0 flex flex-col ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         {/* Logo Header */}
-        <div className="p-6 border-b border-slate-700 hidden lg:block">
+        <div className="p-6 border-b border-border hidden lg:block">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img 
@@ -64,8 +64,8 @@ export default function Sidebar({
                 className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
               />
               <div>
-                <h1 className="text-xl font-bold">COYN</h1>
-                <p className="text-xs text-slate-400">Messenger</p>
+                <h1 className="text-xl font-bold text-foreground">COYN</h1>
+                <p className="text-xs text-muted-foreground">Messenger</p>
               </div>
             </div>
             <Button
