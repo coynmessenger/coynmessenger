@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface SettingsModalProps {
@@ -23,12 +23,23 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("profile");
   
   const [displayName, setDisplayName] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [notifications, setNotifications] = useState(true);
   const [autoConnect, setAutoConnect] = useState(true);
   const [messagePreview, setMessagePreview] = useState(true);
+  
+  // Mailing address state
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [country, setCountry] = useState("");
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
@@ -39,11 +50,31 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     if (user) {
       setDisplayName(user.displayName || "");
       setWalletAddress(user.walletAddress || "");
+      // Set mailing address fields
+      setFullName(user.fullName || "");
+      setPhoneNumber(user.phoneNumber || "");
+      setAddressLine1(user.addressLine1 || "");
+      setAddressLine2(user.addressLine2 || "");
+      setCity(user.city || "");
+      setState(user.state || "");
+      setZipCode(user.zipCode || "");
+      setCountry(user.country || "");
     }
   }, [user]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (updates: { displayName?: string; walletAddress?: string }) => {
+    mutationFn: async (updates: { 
+      displayName?: string; 
+      walletAddress?: string;
+      fullName?: string;
+      phoneNumber?: string;
+      addressLine1?: string;
+      addressLine2?: string;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+      country?: string;
+    }) => {
       if (!user) throw new Error("No user data");
       console.log("Sending update request:", updates);
       const response = await apiRequest(`/api/users/${user.id}`, {
@@ -85,7 +116,14 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
     const updates: any = {};
     if (displayName.trim() !== user.displayName) updates.displayName = displayName.trim();
-    if (walletAddress.trim() !== user.walletAddress) updates.walletAddress = walletAddress.trim();
+    if (fullName.trim() !== (user.fullName || "")) updates.fullName = fullName.trim();
+    if (phoneNumber.trim() !== (user.phoneNumber || "")) updates.phoneNumber = phoneNumber.trim();
+    if (addressLine1.trim() !== (user.addressLine1 || "")) updates.addressLine1 = addressLine1.trim();
+    if (addressLine2.trim() !== (user.addressLine2 || "")) updates.addressLine2 = addressLine2.trim();
+    if (city.trim() !== (user.city || "")) updates.city = city.trim();
+    if (state.trim() !== (user.state || "")) updates.state = state.trim();
+    if (zipCode.trim() !== (user.zipCode || "")) updates.zipCode = zipCode.trim();
+    if (country.trim() !== (user.country || "")) updates.country = country.trim();
     
     if (Object.keys(updates).length > 0) {
       console.log("Profile updates to send:", updates);
@@ -122,39 +160,157 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <CardHeader>
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2" />
-                Profile
+                Profile & Shipping Information
               </CardTitle>
               <CardDescription className="text-gray-600 dark:text-slate-400">
-                Update your personal information
+                Update your personal information and shipping address for marketplace purchases
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-foreground">Display Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="bg-input border-border text-foreground"
-                  placeholder="Your display name"
-                />
+            <CardContent className="space-y-6">
+              {/* Basic Profile */}
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-foreground">Basic Information</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="displayName" className="text-foreground">Display Name</Label>
+                  <Input
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    placeholder="Your display name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="walletAddress" className="text-foreground">Wallet Address</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="walletAddress"
+                      value={walletAddress}
+                      readOnly
+                      className="bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(walletAddress);
+                        toast({
+                          title: "Copied to clipboard",
+                          description: "Wallet address copied successfully",
+                        });
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 dark:border-slate-600"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Your wallet address cannot be changed for security reasons</p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="walletAddress" className="text-foreground">COYN Address</Label>
-                <Input
-                  id="walletAddress"
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  className="bg-input border-border text-foreground font-mono text-sm"
-                  placeholder="0x..."
-                />
+
+              {/* Mailing Address Section */}
+              <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
+                <h4 className="text-md font-medium text-foreground mb-3">Shipping Address</h4>
+                <p className="text-sm text-muted-foreground mb-4">Add your shipping address for marketplace purchases</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-foreground">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="John Doe"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="address1" className="text-foreground">Address Line 1</Label>
+                    <Input
+                      id="address1"
+                      value={addressLine1}
+                      onChange={(e) => setAddressLine1(e.target.value)}
+                      placeholder="123 Main Street"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="address2" className="text-foreground">Address Line 2 (Optional)</Label>
+                    <Input
+                      id="address2"
+                      value={addressLine2}
+                      onChange={(e) => setAddressLine2(e.target.value)}
+                      placeholder="Apt, Suite, Unit, etc."
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-foreground">City</Label>
+                    <Input
+                      id="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="New York"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="state" className="text-foreground">State/Province</Label>
+                    <Input
+                      id="state"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="NY"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode" className="text-foreground">ZIP/Postal Code</Label>
+                    <Input
+                      id="zipCode"
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                      placeholder="10001"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-foreground">Country</Label>
+                    <Input
+                      id="country"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="United States"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                    />
+                  </div>
+                </div>
               </div>
+
               <Button
                 onClick={handleSaveProfile}
                 disabled={updateProfileMutation.isPending}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
               >
-                {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
+                {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </CardContent>
           </Card>

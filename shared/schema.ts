@@ -10,6 +10,15 @@ export const users = pgTable("users", {
   profilePicture: text("profile_picture"),
   isOnline: boolean("is_online").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
+  // Mailing address fields for marketplace delivery
+  fullName: text("full_name"),
+  phoneNumber: text("phone_number"),
+  addressLine1: text("address_line_1"),
+  addressLine2: text("address_line_2"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  country: text("country"),
 });
 
 export const conversations = pgTable("conversations", {
