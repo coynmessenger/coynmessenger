@@ -376,7 +376,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="pr-12 bg-slate-700 border-slate-600 focus:border-cyan-500"
+              className="pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 focus:border-primary dark:focus:border-cyan-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400"
             />
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
@@ -384,7 +384,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400"
                 >
                   <Smile className="h-4 w-4" />
                 </Button>

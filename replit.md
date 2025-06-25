@@ -119,6 +119,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Updated wallet section to use white/gray color scheme in light theme for cleaner appearance
 - June 25, 2025: Made conversation items lighter with white backgrounds and black text, updated mobile header to white theme
 - June 25, 2025: Changed homepage turquoise colors to black lettering in light theme while maintaining glow effects for dark theme
+- June 25, 2025: Updated chat message input box to white background with black text and gray borders for light theme consistency
 
 ## User Preferences
 
