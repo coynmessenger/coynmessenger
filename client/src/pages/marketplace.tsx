@@ -326,8 +326,8 @@ export default function MarketplacePage() {
                 alt="COYN Logo" 
                 className="w-10 h-10"
               />
-              <h1 className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
-                COYN Marketplace
+              <h1 className="text-2xl font-normal text-orange-500 dark:text-cyan-400" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                Marketplace
               </h1>
             </div>
             <div className="flex items-center space-x-2">
