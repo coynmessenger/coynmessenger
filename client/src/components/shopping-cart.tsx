@@ -710,26 +710,40 @@ export const addToCart = (product: {
   imageUrl?: string;
   currency?: string;
 }) => {
-  const cartItems = JSON.parse(localStorage.getItem('shoppingCart') || '[]') as CartItem[];
-  
-  const existingItem = cartItems.find(item => item.id === product.ASIN);
-  
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cartItems.push({
-      id: product.ASIN,
-      title: product.title,
-      price: product.price,
-      imageUrl: product.imageUrl,
-      quantity: 1,
-      currency: product.currency || 'USD'
-    });
+  try {
+    console.log('Adding to cart:', product);
+    const cartItems = JSON.parse(localStorage.getItem('shoppingCart') || '[]') as CartItem[];
+    
+    const existingItem = cartItems.find(item => item.id === product.ASIN);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+      console.log('Updated existing item quantity:', existingItem.quantity);
+    } else {
+      const newItem = {
+        id: product.ASIN,
+        title: product.title,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        quantity: 1,
+        currency: product.currency || 'USD'
+      };
+      cartItems.push(newItem);
+      console.log('Added new item:', newItem);
+    }
+    
+    localStorage.setItem('shoppingCart', JSON.stringify(cartItems));
+    const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+    console.log('Cart updated, total items:', totalItems);
+    
+    // Dispatch custom event to update cart count across components
+    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: totalItems } }));
+    
+    return totalItems;
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    return 0;
   }
-  
-  localStorage.setItem('shoppingCart', JSON.stringify(cartItems));
-  
-  return cartItems.length;
 };
 
 // Export function to get cart count

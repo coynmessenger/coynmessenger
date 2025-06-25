@@ -294,6 +294,16 @@ export default function ProductPage() {
     }
   }, [showCart]);
 
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = (event: CustomEvent) => {
+      setCartCount(event.detail.count);
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+  }, []);
+
   // Update favorite status when data changes  
   useEffect(() => {
     if (favoriteStatus && typeof favoriteStatus === 'object' && favoriteStatus !== null && 'isFavorite' in favoriteStatus) {

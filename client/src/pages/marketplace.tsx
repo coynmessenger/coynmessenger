@@ -350,6 +350,28 @@ export default function MarketplacePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Initialize cart count on page load
+  useEffect(() => {
+    setCartCount(getCartCount());
+  }, []);
+
+  // Listen for cart updates across components
+  useEffect(() => {
+    const handleCartUpdate = (event: CustomEvent) => {
+      setCartCount(event.detail.count);
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+  }, []);
+
+  // Update cart count when cart modal closes
+  useEffect(() => {
+    if (!showCart) {
+      setCartCount(getCartCount());
+    }
+  }, [showCart]);
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
