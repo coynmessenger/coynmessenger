@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -364,23 +365,7 @@ export default function MarketplacePage() {
             )}
           </div>
 
-          {/* Search Suggestions */}
-          {!searchQuery && (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-muted-foreground mr-2">Popular searches:</span>
-              {['wireless earbuds', 'smart watch', 'laptop', 'coffee maker', 'gaming mouse'].map((suggestion) => (
-                <Button
-                  key={suggestion}
-                  onClick={() => setSearchQuery(suggestion)}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-3 text-xs border-gray-300 dark:border-slate-600 hover:border-orange-500 dark:hover:border-cyan-400"
-                >
-                  {suggestion}
-                </Button>
-              ))}
-            </div>
-          )}
+
 
           {/* Filters and Sort */}
           <div className="flex flex-col md:flex-row gap-4">
@@ -516,25 +501,71 @@ export default function MarketplacePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                      <img 
-                        src={imageUrl || 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=No+Image'} 
-                        alt={item.title}
-                        className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          if (!target.src.includes('placeholder')) {
-                            target.src = 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=Image+Unavailable';
-                          }
-                        }}
-                        onLoad={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.opacity = '1';
-                        }}
-                        style={{ opacity: '0', transition: 'opacity 0.3s ease-in-out' }}
-                      />
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer">
+                            <img 
+                              src={imageUrl || 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=No+Image'} 
+                              alt={item.title}
+                              className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (!target.src.includes('placeholder')) {
+                                  target.src = 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=Image+Unavailable';
+                                }
+                              }}
+                              onLoad={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.opacity = '1';
+                              }}
+                              style={{ opacity: '0', transition: 'opacity 0.3s ease-in-out' }}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          side="right" 
+                          className="max-w-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-lg"
+                        >
+                          <div className="p-3 space-y-2">
+                            <h4 className="font-semibold text-sm text-foreground line-clamp-2">
+                              {item.title}
+                            </h4>
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-3">
+                                {item.description}
+                              </p>
+                            )}
+                            <div className="flex items-center space-x-2 text-xs">
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                                <span className="font-medium">{item.rating}/5</span>
+                              </div>
+                              {isAmazonProduct && item.reviewCount > 0 && (
+                                <span className="text-muted-foreground">
+                                  {item.reviewCount} reviews
+                                </span>
+                              )}
+                            </div>
+                            {isAmazonProduct && item.brand && (
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Brand: </span>
+                                <span className="font-medium text-foreground">{item.brand}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between pt-1 border-t border-gray-200 dark:border-slate-600">
+                              <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                ${item.price}
+                              </span>
+                              <Badge variant="secondary" className="text-xs">
+                                {item.category}
+                              </Badge>
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {item.description || 'No description available'}
