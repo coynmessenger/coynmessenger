@@ -183,6 +183,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Implemented comprehensive shopping cart system with finalize purchase functionality - users can add products, manage quantities, remove items, and complete cryptocurrency purchases with live conversion rates
 - June 25, 2025: Updated all purchase buttons from "Buy with Crypto" to "Add to Cart" for consistent user experience across marketplace and product pages
 - June 25, 2025: Implemented comprehensive finalize purchase functionality with 3-step checkout process: address confirmation, order review, and payment verification - includes shipping address validation, tax calculation, express shipping options, order notes, terms agreement, and detailed order summary with secure cryptocurrency payment flow
+- June 25, 2025: Fixed cart window closing functionality - added proper handleClose function that resets modal states, updated Dialog onOpenChange handler, and ensured Cancel button properly closes cart across all pages
 
 ## User Preferences
 

@@ -252,9 +252,16 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
   const totalUSD = calculateTotal();
 
+  const handleClose = () => {
+    setShowCheckoutModal(false);
+    setCheckoutStep('address');
+    setAgreedToTerms(false);
+    onClose();
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background border-border">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
@@ -670,7 +677,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               
               <Button
                 variant="outline"
-                onClick={() => setShowCheckoutModal(false)}
+                onClick={handleClose}
                 className="flex-1"
               >
                 Cancel
