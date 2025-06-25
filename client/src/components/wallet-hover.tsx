@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Wallet, Copy, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import type { WalletBalance, User } from "@shared/schema";
 
 interface WalletHoverProps {
   isVisible: boolean;
@@ -12,19 +14,30 @@ interface WalletHoverProps {
   anchorRef: React.RefObject<HTMLElement>;
 }
 
-const mockWalletData = {
-  address: "0x742d35Cc6234Aa5732B3C5D7C8F2e58b9",
-  balances: [
-    { currency: "BTC", amount: "0.08542137", usdValue: "8,274.23", icon: "₿" },
-    { currency: "BNB", amount: "12.347", usdValue: "8,437.82", icon: "🔸" },
-    { currency: "USDT", amount: "15,420.50", usdValue: "15,420.50", icon: "₮" },
-    { currency: "COYN", amount: "25,892.18", usdValue: "63,436.84", icon: "🪙" }
-  ]
+const getCurrencyIcon = (currency: string) => {
+  switch (currency) {
+    case "BTC": return "₿";
+    case "BNB": return "🔸";
+    case "USDT": return "₮";
+    case "COYN": return "🪙";
+    default: return "💎";
+  }
 };
 
 export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHoverProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const { toast } = useToast();
+
+  // Fetch real wallet data
+  const { data: balances = [] } = useQuery<WalletBalance[]>({
+    queryKey: ["/api/wallet/balances"],
+    enabled: isVisible,
+  });
+
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user"],
+    enabled: isVisible,
+  });
 
   useEffect(() => {
     if (isVisible && anchorRef.current) {
@@ -52,17 +65,36 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
     }
   }, [isVisible, onClose, anchorRef]);
 
+  const walletAddress = user?.walletAddress || "";
+  
   const copyAddress = () => {
-    navigator.clipboard.writeText(mockWalletData.address);
-    toast({
-      title: "Address Copied",
-      description: "Wallet address copied to clipboard"
-    });
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
+      toast({
+        title: "Address Copied",
+        description: "Wallet address copied to clipboard"
+      });
+    }
   };
 
-  const totalUSD = mockWalletData.balances.reduce((total, balance) => {
-    return total + parseFloat(balance.usdValue.replace(/[,$]/g, ''));
+  const totalUSD = balances.reduce((total, balance) => {
+    return total + parseFloat(balance.usdValue || "0");
   }, 0);
+
+  const formatBalance = (balance: string, currency: string) => {
+    const num = parseFloat(balance);
+    if (currency === "USDT") return num.toFixed(2);
+    if (currency === "BTC") return num.toFixed(8);
+    if (currency === "BNB") return num.toFixed(6);
+    return num.toFixed(3);
+  };
+
+  const formatUSD = (value: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(parseFloat(value || "0"));
+  };
 
   if (!isVisible) return null;
 
@@ -98,7 +130,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
           </div>
           <div className="bg-accent/50 rounded p-2">
             <code className="text-xs text-foreground break-all">
-              {mockWalletData.address}
+              {walletAddress}
             </code>
           </div>
         </div>
@@ -109,7 +141,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
         <div className="text-center space-y-1">
           <p className="text-sm text-muted-foreground">Total Balance</p>
           <p className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
-            ${totalUSD.toLocaleString()}
+            {formatUSD(totalUSD.toString())}
           </p>
         </div>
 
@@ -118,17 +150,17 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
         {/* Individual Balances */}
         <div className="space-y-3">
           <p className="text-sm font-medium text-foreground">Assets</p>
-          {mockWalletData.balances.map((balance) => (
+          {balances.map((balance) => (
             <div key={balance.currency} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">{balance.icon}</span>
+                <span className="text-lg">{getCurrencyIcon(balance.currency)}</span>
                 <div>
                   <p className="font-medium text-foreground">{balance.currency}</p>
-                  <p className="text-xs text-muted-foreground">{balance.amount}</p>
+                  <p className="text-xs text-muted-foreground">{formatBalance(balance.balance, balance.currency)}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-medium text-foreground">${balance.usdValue}</p>
+                <p className="font-medium text-foreground">{formatUSD(balance.usdValue || "0")}</p>
               </div>
             </div>
           ))}
@@ -164,7 +196,9 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
             variant="outline"
             size="sm"
             onClick={() => {
-              window.open(`https://bscscan.com/address/${mockWalletData.address}`, '_blank');
+              if (walletAddress) {
+                window.open(`https://bscscan.com/address/${walletAddress}`, '_blank');
+              }
             }}
           >
             <ExternalLink className="h-3 w-3" />
