@@ -200,7 +200,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-background px-4">
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-background px-4">
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (

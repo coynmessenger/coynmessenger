@@ -113,6 +113,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Enhanced light theme for consumer appeal with improved contrast, warm orange palette, subtle shadows, and better visual hierarchy
 - June 25, 2025: Updated home page and chat area for light theme - white backgrounds with black text for better readability and consumer appeal
 - June 25, 2025: Implemented WhatsApp-style color scheme with green primary colors, clean white message bubbles, and modern rounded interface elements
+- June 25, 2025: Changed primary colors from green to orange and updated dark text to pure black for better contrast and readability
 
 ## User Preferences
 

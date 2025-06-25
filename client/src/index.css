@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 :root {
-  /* Light theme - WhatsApp-style green/white design */
+  /* Light theme - Orange/white design */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(222, 13%, 11%);
+  --foreground: hsl(0, 0%, 0%);
   --muted: hsl(210, 40%, 98%);
-  --muted-foreground: hsl(220, 8.9%, 46.1%);
+  --muted-foreground: hsl(0, 0%, 30%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222, 13%, 11%);
+  --popover-foreground: hsl(0, 0%, 0%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222, 13%, 11%);
+  --card-foreground: hsl(0, 0%, 0%);
   --border: hsl(220, 13%, 91%);
   --input: hsl(220, 13%, 95%);
-  --primary: hsl(142, 70%, 45%);
+  --primary: hsl(24.6, 95%, 53.1%);
   --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(210, 40%, 96%);
-  --secondary-foreground: hsl(222.2, 84%, 4.9%);
+  --secondary-foreground: hsl(0, 0%, 0%);
   --accent: hsl(210, 40%, 96%);
-  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(142, 70%, 45%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(24.6, 95%, 53.1%);
   --radius: 0.5rem;
   
-  /* WhatsApp-style green palette */
-  --whatsapp-bg: hsl(210, 25%, 98%);
-  --whatsapp-chat: hsl(219, 23%, 95%);
-  --whatsapp-sent: hsl(142, 70%, 45%);
-  --whatsapp-received: hsl(0, 0%, 100%);
-  --whatsapp-border: hsl(220, 13%, 91%);
-  --whatsapp-text: hsl(222, 13%, 11%);
-  --whatsapp-muted: hsl(220, 8.9%, 46.1%);
-  --whatsapp-input: hsl(220, 13%, 95%);
-  --whatsapp-hover: hsl(220, 13%, 91%);
+  /* Orange messaging palette */
+  --orange-bg: hsl(210, 25%, 98%);
+  --orange-chat: hsl(219, 23%, 95%);
+  --orange-sent: hsl(24.6, 95%, 53.1%);
+  --orange-received: hsl(0, 0%, 100%);
+  --orange-border: hsl(220, 13%, 91%);
+  --orange-text: hsl(0, 0%, 0%);
+  --orange-muted: hsl(0, 0%, 30%);
+  --orange-input: hsl(220, 13%, 95%);
+  --orange-hover: hsl(220, 13%, 91%);
 }
 
 .dark {
