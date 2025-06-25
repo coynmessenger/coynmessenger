@@ -537,31 +537,29 @@ export default function MarketplacePage() {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <img
-                              src={images[currentImageIndex]}
-                              alt={`${item.title} - Image ${currentImageIndex + 1}`}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-help"
-                              loading="lazy"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                const parent = target.parentElement?.parentElement;
-                                if (parent) {
-                                  parent.innerHTML = `
-                                    <div class="flex items-center justify-center h-full text-muted-foreground">
-                                      <div class="text-center">
-                                        <div class="w-16 h-16 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
-                                          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                          </svg>
-                                        </div>
-                                        <p class="text-sm">Image not available</p>
-                                      </div>
-                                    </div>
-                                  `;
-                                }
-                              }}
-                            />
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-slate-700">
+                              {images[currentImageIndex] ? (
+                                <img
+                                  src={images[currentImageIndex]}
+                                  alt={`${item.title} - Image ${currentImageIndex + 1}`}
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-help"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                              ) : null}
+                              <div className={`${images[currentImageIndex] ? 'hidden' : 'flex'} items-center justify-center h-full text-muted-foreground`}>
+                                <div className="text-center p-4">
+                                  <div className="w-16 h-16 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
+                                    <Package className="w-8 h-8" />
+                                  </div>
+                                  <p className="text-sm font-medium">{item.title}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">Image not available</p>
+                                </div>
+                              </div>
+                            </div>
                           </TooltipTrigger>
                           <TooltipContent side="right" className="max-w-xs">
                             <div className="space-y-2">

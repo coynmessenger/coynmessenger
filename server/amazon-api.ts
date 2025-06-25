@@ -220,6 +220,12 @@ class AmazonAPI {
         price: '399.99',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61+btPaYVNL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61eVIKUU5ML._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71QnHktdBQL._AC_SL1500_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B0BSHF7LKS',
         rating: 4.6,
         reviewCount: 15642,
@@ -233,6 +239,12 @@ class AmazonAPI {
         price: '599.00',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/61NGnpjoTDL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61NGnpjoTDL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71ZOtNdaXCL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71jWx8YkxJL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61yRkPLOQfL._AC_SL1500_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B09JQMJHXY',
         rating: 4.8,
         reviewCount: 23156,
@@ -246,6 +258,12 @@ class AmazonAPI {
         price: '349.99',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71X8dJLnNGL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61J0ZyS-LlL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71YKVeGXmWL._AC_SL1500_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B08N5WRWNZ',
         rating: 4.7,
         reviewCount: 18567,
@@ -259,6 +277,12 @@ class AmazonAPI {
         price: '1199.00',
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/71jG+e7roXL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71jG+e7roXL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71vFKBpKakL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71GWdGSiSzL._AC_SL1500_.jpg'
+        ],
         productUrl: 'https://amazon.com/dp/B087XZQGBW',
         rating: 4.9,
         reviewCount: 12489,
