@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import SettingsModal from "@/components/settings-modal";
 
@@ -153,6 +153,7 @@ export default function MarketplacePage() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [imageIndexes, setImageIndexes] = useState<Map<string, number>>(new Map());
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Fetch Amazon products with debounced search
   const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
@@ -330,6 +331,23 @@ export default function MarketplacePage() {
 
   const goToImage = (productKey: string, index: number) => {
     setImageIndexes(new Map(imageIndexes.set(productKey, index)));
+  };
+
+  // Handle scroll to top functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   return (

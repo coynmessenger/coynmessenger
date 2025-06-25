@@ -158,6 +158,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Updated messenger header to use Google Product Sans font for consistency
 - June 25, 2025: Added multiple product images with slide/scroll carousel functionality - includes navigation arrows, dot indicators, and image counter for enhanced product viewing
 - June 25, 2025: Fixed image carousel implementation with proper error handling - all product information remains visible even when images fail to load, enhanced fallback display with product details
+- June 25, 2025: Added floating scroll to top button in marketplace with smooth scrolling animation and orange/cyan theme styling
 
 ## User Preferences
 
