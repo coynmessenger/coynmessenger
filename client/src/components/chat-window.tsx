@@ -11,8 +11,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
+import ShareModal from "@/components/share-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp, Reply, Share, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -28,6 +29,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [showEscrowModal, setShowEscrowModal] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
+  const [showShareModal, setShowShareModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -477,6 +481,13 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         onClose={() => setShowEscrowModal(false)}
         conversationId={conversation.id}
         otherUser={conversation.otherUser}
+      />
+
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        selectedMessages={selectedMessages}
+        currentConversationId={conversation.id}
       />
     </div>
   );

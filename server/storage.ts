@@ -27,6 +27,7 @@ export interface IStorage {
   // Messages
   getMessage(id: number): Promise<Message | undefined>;
   getConversationMessages(conversationId: number): Promise<(Message & { sender: User })[]>;
+  getMessagesByIds(messageIds: number[]): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   deleteMessage(messageId: number, userId: number): Promise<boolean>;
 
