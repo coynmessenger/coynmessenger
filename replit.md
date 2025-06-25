@@ -132,6 +132,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Redesigned COYN logo with sleek modern styling - reduced size, added glow effects, improved gradients, and enhanced visual hierarchy
 - June 25, 2025: Reverted to original logo design and added "Powered by Coynful" attribution at bottom of homepage
 - June 25, 2025: Updated to Binance Smart Chain (BSC) - replaced ETH with BNB throughout application for better transaction costs and speed
+- June 25, 2025: Fixed profile settings - wallet address is now read-only with copy functionality, displays full address without truncation
 
 ## User Preferences
 
