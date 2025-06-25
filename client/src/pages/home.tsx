@@ -285,6 +285,18 @@ export default function HomePage() {
         <div className="text-center text-muted-foreground text-sm">
           <p>Secure • Decentralized • Private</p>
         </div>
+
+        {/* Powered by Coynful */}
+        <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-opacity">
+            <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
+            <img 
+              src={coynfulLogoPath} 
+              alt="Coynful" 
+              className="h-6 w-auto object-contain"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
