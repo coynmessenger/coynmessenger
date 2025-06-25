@@ -530,7 +530,11 @@ export default function MarketplacePage() {
               const currentImageIndex = imageIndexes.get(itemKey) || 0;
               
               return (
-                <Card key={itemKey} className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow cursor-pointer">
+                <Card 
+                  key={itemKey} 
+                  className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => isAmazonProduct ? setLocation(`/product/${item.ASIN}`) : handleProductClick(item)}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -766,7 +770,10 @@ export default function MarketplacePage() {
                       </div>
                       <Button 
                         size="sm"
-                        onClick={() => handleProductClick(item)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          isAmazonProduct ? handleProductClick(item) : handleProductClick(item);
+                        }}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
