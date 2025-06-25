@@ -150,7 +150,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-center space-x-3 mb-2">
             <img 
@@ -163,15 +163,15 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </DialogHeader>
 
         {/* Balance Section */}
-        <div className="text-center mb-6">
-          <div className="text-3xl font-bold text-cyan-400 mb-2">
+        <div className="text-center mb-6 flex-shrink-0">
+          <div className="text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-2">
             {formatUSD(totalBalance.toString())}
           </div>
-          <div className="text-sm text-slate-400">Total Balance</div>
+          <div className="text-sm text-gray-600 dark:text-slate-400">Total Balance</div>
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-3 max-h-60 overflow-y-auto">
+        <div className="space-y-3 flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
             const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
             const changePercent = parseFloat(balance.changePercent || "0");
@@ -226,7 +226,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </div>
 
         {/* Currency Selection for Receive */}
-        <div className="mt-4">
+        <div className="mt-4 flex-shrink-0">
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
             Select Currency to Receive
           </label>
@@ -263,18 +263,20 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-3 mt-6">
-          <Button className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900">
-            <Send className="h-4 w-4 mr-2" />
-            Send
-          </Button>
+        <div className="flex space-x-3 mt-6 flex-shrink-0">
           <Button 
-            variant="secondary" 
-            className="flex-1"
+            className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
             onClick={() => setShowQRCode(true)}
           >
             <QrCode className="h-4 w-4 mr-2" />
             Receive
+          </Button>
+          <Button 
+            variant="outline" 
+            className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+            onClick={onClose}
+          >
+            Close
           </Button>
         </div>
       </DialogContent>
