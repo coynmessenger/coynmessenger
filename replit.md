@@ -174,6 +174,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Removed add contact button from sidebar to maximize space for contact list on both mobile and desktop
 - June 25, 2025: Enhanced COYN wallet modal for mobile - tighter spacing, smaller padding, compact currency cards, responsive button sizes, optimized scrollbar width
 - June 25, 2025: Removed "system" theme option from appearance settings - simplified to light and dark themes only for both mobile and desktop
+- June 25, 2025: Removed "COYN Messenger" text from homepage header - kept only the COYN logo for cleaner appearance
 
 ## User Preferences
 
