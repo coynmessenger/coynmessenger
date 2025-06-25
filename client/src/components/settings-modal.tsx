@@ -91,9 +91,11 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("profileImage", file);
+      console.log("Uploading file:", file.name, file.size);
       return apiRequest("POST", "/api/user/upload-avatar", formData);
     },
     onSuccess: (response: { profilePicture: string }) => {
+      console.log("Upload successful, response:", response);
       setProfilePicture(response.profilePicture);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
