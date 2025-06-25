@@ -84,23 +84,17 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Wallet Quick View */}
+        {/* Compact Wallet */}
         <div 
-          className="p-4 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted m-4 rounded-xl border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm"
+          className="mx-3 mb-2 p-2 bg-white dark:bg-card/50 rounded-lg border border-gray-200 dark:border-border/50 cursor-pointer hover:bg-gray-50 dark:hover:bg-card/70 transition-colors"
           onClick={onOpenWallet}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600 dark:text-muted-foreground font-medium">Total Balance</span>
-            <Wallet className="h-4 w-4 text-gray-700 dark:text-primary" />
-          </div>
-          <div className="text-2xl font-bold text-black dark:text-primary">$12,220.75</div>
-          <div className="flex space-x-2 mt-3">
-            <Button size="sm" className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm">
-              Send
-            </Button>
-            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80">
-              Receive
-            </Button>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="text-xs text-gray-500 dark:text-muted-foreground">Balance</div>
+              <div className="text-sm font-semibold text-black dark:text-primary">$12,220.75</div>
+            </div>
+            <Wallet className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
           </div>
         </div>
 
@@ -118,78 +112,71 @@ export default function Sidebar({
 
         </div>
 
-        {/* Chat List */}
-        <div className="flex-1 overflow-y-auto">
-          {conversations.map((conversation) => (
-            <div key={conversation.id} className="px-4 pb-2">
+        {/* Contact List */}
+        <div className="flex-1 overflow-y-auto px-3">
+          <div className="space-y-0.5">
+            {conversations.map((conversation) => (
               <div
-                className={`rounded-xl p-4 cursor-pointer transition-colors border ${
+                key={conversation.id}
+                className={`p-2 rounded-lg cursor-pointer transition-colors border ${
                   selectedConversation === conversation.id
-                    ? 'bg-gray-100 dark:chat-item-active border-gray-300 dark:border-cyan-500'
-                    : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
+                    ? 'bg-gray-100 dark:bg-primary/10 border-gray-300 dark:border-primary/30'
+                    : 'bg-white dark:bg-card/30 hover:bg-gray-50 dark:hover:bg-card/50 border-transparent hover:border-gray-200 dark:hover:border-border/50'
                 }`}
                 onClick={() => {
                   onSelectConversation(conversation.id);
                   onClose();
                 }}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
                   <div className="relative">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-xs font-medium">
                         {conversation.otherUser.displayName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     {conversation.otherUser.isOnline && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border border-white dark:border-slate-800" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-sm truncate">
+                      <h3 className="font-medium text-xs truncate text-black dark:text-foreground">
                         {conversation.otherUser.displayName}
                       </h3>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-gray-400 dark:text-muted-foreground shrink-0 ml-1">
                         {conversation.lastMessage && formatTimestamp(conversation.lastMessage.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400 truncate">
+                    <p className="text-xs text-gray-500 dark:text-muted-foreground truncate">
                       {formatLastMessage(conversation.lastMessage)}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Mobile Settings - only visible on mobile */}
-        <div className="lg:hidden p-4 border-t border-border bg-white dark:bg-card">
-          <div className="flex gap-2">
+        {/* Compact Footer */}
+        <div className="p-2 mx-3 border-t border-gray-200 dark:border-border/50">
+          <div className="flex gap-1">
             <Button 
               onClick={onOpenWallet}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              size="sm"
+              className="flex-1 h-7 text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              <Wallet className="h-4 w-4 mr-2" />
+              <Wallet className="h-3 w-3 mr-1" />
               Wallet
             </Button>
             <Button
-              onClick={() => setIsAddContactOpen(true)}
-              variant="outline"
-              size="icon"
-              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
-              title="Add Contact"
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
               onClick={() => setIsSettingsOpen(true)}
-              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-xs border-gray-300 dark:border-border text-muted-foreground hover:text-foreground"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3 w-3" />
             </Button>
           </div>
         </div>
