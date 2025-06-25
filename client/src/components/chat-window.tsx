@@ -150,6 +150,27 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
+      setShowBackToTop(isScrolledUp);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    messagesContainerRef.current?.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
