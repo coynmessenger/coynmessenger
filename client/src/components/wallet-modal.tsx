@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowRight } from "lucide-react";
+import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check } from "lucide-react";
 import QRCode from "qrcode";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
-import { apiRequest } from "@/lib/queryClient";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -24,14 +20,6 @@ interface QRModalProps {
   onClose: () => void;
   currency: string;
   walletAddress: string;
-}
-
-interface SendModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  balances: WalletBalance[];
-  selectedCurrency: string;
-  onCurrencyChange: (currency: string) => void;
 }
 
 const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
@@ -129,7 +117,6 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
 
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const [showQRCode, setShowQRCode] = useState(false);
-  const [showSendModal, setShowSendModal] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
   
   const { data: balances = [] } = useQuery<WalletBalance[]>({
@@ -184,7 +171,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600">
+        <div className="space-y-3 max-h-60 overflow-y-auto">
           {balances.map((balance) => {
             const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
             const changePercent = parseFloat(balance.changePercent || "0");
@@ -291,15 +278,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </Button>
         </div>
       </DialogContent>
-
-      {/* Send Modal */}
-      <SendModal
-        isOpen={showSendModal}
-        onClose={() => setShowSendModal(false)}
-        balances={balances}
-        selectedCurrency={selectedCurrency}
-        onCurrencyChange={setSelectedCurrency}
-      />
 
       {/* QR Code Modal */}
       <QRCodeModal
