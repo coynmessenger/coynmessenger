@@ -103,25 +103,16 @@ export default function Sidebar({
 
         {/* Search and Add Contact */}
         <div className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder=""
-                value={searchQuery}
-                onChange={(e) => onSearchChange?.(e.target.value)}
-                className="pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg h-9"
-              />
-            </div>
-            <Button
-              onClick={() => setIsAddContactOpen(true)}
-              variant="outline"
-              size="sm"
-              className="h-9 px-3 border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary shrink-0"
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              className="pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg"
+            />
           </div>
+
         </div>
 
         {/* Chat List - Compact */}
