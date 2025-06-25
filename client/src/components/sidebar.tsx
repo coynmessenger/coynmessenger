@@ -112,7 +112,7 @@ export default function Sidebar({
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="pl-10 bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg"
+              className="pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg"
             />
           </div>
           <Button
