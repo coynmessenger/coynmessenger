@@ -72,13 +72,13 @@ export default function Sidebar({
               variant="ghost"
               size="icon"
               onClick={() => setIsSettingsOpen(true)}
-              className="text-slate-400 hover:text-cyan-400"
+              className="text-muted-foreground hover:text-primary"
             >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
           {user && (
-            <div className="mt-4 text-xs text-cyan-400 font-mono">
+            <div className="mt-4 text-xs text-primary font-mono">
               {user.walletAddress}
             </div>
           )}
@@ -86,16 +86,16 @@ export default function Sidebar({
 
         {/* Wallet Quick View */}
         <div 
-          className="p-4 bg-gradient-to-r from-slate-800 to-slate-700 m-4 rounded-xl border border-slate-600 cursor-pointer hover:border-cyan-500 transition-colors"
+          className="p-4 bg-gradient-to-r from-card to-muted m-4 rounded-xl border border-border cursor-pointer hover:border-primary transition-colors"
           onClick={onOpenWallet}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Total Balance</span>
-            <Wallet className="h-4 w-4 text-cyan-400" />
+            <span className="text-sm text-muted-foreground">Total Balance</span>
+            <Wallet className="h-4 w-4 text-primary" />
           </div>
-          <div className="text-2xl font-bold text-cyan-400">$12,220.75</div>
+          <div className="text-2xl font-bold text-primary">$12,220.75</div>
           <div className="flex space-x-2 mt-3">
-            <Button size="sm" className="flex-1 bg-cyan-500 text-slate-900 hover:bg-cyan-400">
+            <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
               Send
             </Button>
             <Button size="sm" variant="secondary" className="flex-1">
@@ -107,17 +107,17 @@ export default function Sidebar({
         {/* Search and Add Contact */}
         <div className="p-4 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="pl-10 bg-slate-700 border-slate-600 focus:border-cyan-500"
+              className="pl-10 bg-input border-border focus:border-primary"
             />
           </div>
           <Button
             onClick={() => setIsAddContactOpen(true)}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             size="sm"
           >
             <UserPlus className="h-4 w-4 mr-2" />
@@ -172,11 +172,11 @@ export default function Sidebar({
         </div>
 
         {/* Mobile Settings - only visible on mobile */}
-        <div className="lg:hidden p-4 border-t border-slate-700">
+        <div className="lg:hidden p-4 border-t border-border">
           <div className="flex gap-2">
             <Button 
               onClick={onOpenWallet}
-              className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
               <Wallet className="h-4 w-4 mr-2" />
               Wallet
@@ -185,7 +185,7 @@ export default function Sidebar({
               variant="outline"
               size="icon"
               onClick={() => setIsSettingsOpen(true)}
-              className="text-slate-400 hover:text-cyan-400 border-slate-600 hover:border-cyan-500"
+              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
             >
               <Settings className="h-4 w-4" />
             </Button>

@@ -151,7 +151,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full bg-slate-900">
+    <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
       <div className="bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">

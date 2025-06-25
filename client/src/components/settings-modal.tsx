@@ -87,9 +87,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-100 flex items-center">
+          <DialogTitle className="text-xl font-bold text-foreground flex items-center">
             <UserIcon className="h-5 w-5 mr-2" />
             Settings
           </DialogTitle>
@@ -109,29 +109,29 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-slate-300">Display Name</Label>
+                <Label htmlFor="displayName" className="text-foreground">Display Name</Label>
                 <Input
                   id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="bg-slate-600 border-slate-500 text-slate-100"
+                  className="bg-input border-border text-foreground"
                   placeholder="Your display name"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="walletAddress" className="text-slate-300">COYN Address</Label>
+                <Label htmlFor="walletAddress" className="text-foreground">COYN Address</Label>
                 <Input
                   id="walletAddress"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
-                  className="bg-slate-600 border-slate-500 text-slate-100 font-mono text-sm"
+                  className="bg-input border-border text-foreground font-mono text-sm"
                   placeholder="0x..."
                 />
               </div>
               <Button
                 onClick={handleSaveProfile}
                 disabled={updateProfileMutation.isPending}
-                className="bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
               </Button>
@@ -152,8 +152,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-300">Theme</Label>
-                  <p className="text-sm text-slate-400">Choose your preferred theme</p>
+                  <Label className="text-foreground">Theme</Label>
+                  <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
                 </div>
                 <Select value={theme} onValueChange={setTheme}>
                   <SelectTrigger className="w-32 bg-slate-600 border-slate-500">
@@ -203,14 +203,14 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-300">Push Notifications</Label>
-                  <p className="text-sm text-slate-400">Receive notifications for new messages</p>
+                  <Label className="text-foreground">Push Notifications</Label>
+                  <p className="text-sm text-muted-foreground">Receive notifications for new messages</p>
                 </div>
                 <ToggleButton
                   variant={notifications ? "default" : "outline"}
                   size="sm"
                   onClick={() => setNotifications(!notifications)}
-                  className={notifications ? "bg-cyan-500 hover:bg-cyan-400" : "border-slate-600"}
+                  className={notifications ? "bg-primary hover:bg-primary/90" : "border-border"}
                 >
                   {notifications ? "On" : "Off"}
                 </ToggleButton>
@@ -218,14 +218,14 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <Separator className="bg-slate-600" />
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-300">Message Preview</Label>
-                  <p className="text-sm text-slate-400">Show message content in notifications</p>
+                  <Label className="text-foreground">Message Preview</Label>
+                  <p className="text-sm text-muted-foreground">Show message content in notifications</p>
                 </div>
                 <ToggleButton
                   variant={messagePreview ? "default" : "outline"}
                   size="sm"
                   onClick={() => setMessagePreview(!messagePreview)}
-                  className={messagePreview ? "bg-cyan-500 hover:bg-cyan-400" : "border-slate-600"}
+                  className={messagePreview ? "bg-primary hover:bg-primary/90" : "border-border"}
                 >
                   {messagePreview ? "On" : "Off"}
                 </ToggleButton>
@@ -247,25 +247,25 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-300">Auto-connect Wallet</Label>
-                  <p className="text-sm text-slate-400">Automatically connect to COYN network</p>
+                  <Label className="text-foreground">Auto-connect Wallet</Label>
+                  <p className="text-sm text-muted-foreground">Automatically connect to COYN network</p>
                 </div>
                 <ToggleButton
                   variant={autoConnect ? "default" : "outline"}
                   size="sm"
                   onClick={() => setAutoConnect(!autoConnect)}
-                  className={autoConnect ? "bg-cyan-500 hover:bg-cyan-400" : "border-slate-600"}
+                  className={autoConnect ? "bg-primary hover:bg-primary/90" : "border-border"}
                 >
                   {autoConnect ? "On" : "Off"}
                 </ToggleButton>
               </div>
               <Separator className="bg-slate-600" />
               <div className="space-y-2">
-                <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-slate-600">
+                <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted">
                   <Database className="h-4 w-4 mr-2" />
                   Export Data
                 </Button>
-                <Button variant="outline" className="w-full border-red-600 text-red-400 hover:bg-red-600 hover:text-white">
+                <Button variant="outline" className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
                   Clear All Data
                 </Button>
               </div>
@@ -282,23 +282,23 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Version</span>
-                <span className="text-slate-300">1.0.0</span>
+                <span className="text-muted-foreground">Version</span>
+                <span className="text-foreground">1.0.0</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Network</span>
-                <span className="text-slate-300">COYN Network</span>
+                <span className="text-muted-foreground">Network</span>
+                <span className="text-foreground">COYN Network</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Build</span>
-                <span className="text-slate-300">Production</span>
+                <span className="text-muted-foreground">Build</span>
+                <span className="text-foreground">Production</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button onClick={onClose} variant="outline" className="border-slate-600 text-slate-300">
+          <Button onClick={onClose} variant="outline" className="border-border text-foreground">
             Close
           </Button>
         </div>
