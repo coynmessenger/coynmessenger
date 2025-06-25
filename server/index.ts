@@ -36,6 +36,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static files from uploads directory
+import path from 'path';
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 (async () => {
   try {
     const server = await registerRoutes(app);
