@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMessageSchema, insertEscrowSchema } from "@shared/schema";
+import { insertMessageSchema, insertEscrowSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -230,6 +230,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Escrow cancelled successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to cancel escrow" });
+    }
+  });
+
+  // Find or create user by wallet address
+  app.post("/api/users/find-or-create", async (req, res) => {
+    try {
+      const { walletAddress, displayName } = req.body;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+
+      // Check if user already exists
+      let user = await storage.getUserByWalletAddress(walletAddress);
+      
+      if (!user) {
+        // Create new user
+        const userData = insertUserSchema.parse({
+          username: `user_${Date.now()}`,
+          displayName: displayName || `User ${walletAddress.slice(-6)}`,
+          walletAddress,
+          profilePicture: null,
+          isOnline: true
+        });
+        
+        user = await storage.createUser(userData);
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error finding/creating user:", error);
+      res.status(500).json({ message: "Failed to find or create user" });
+    }
+  });
+
+  // Update user profile
+  app.put("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const updates = insertUserSchema.partial().parse(req.body);
+      const user = await storage.updateUser(userId, updates);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Get all users (for adding contacts)
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error getting users:", error);
+      res.status(500).json({ message: "Failed to get users" });
     }
   });
 

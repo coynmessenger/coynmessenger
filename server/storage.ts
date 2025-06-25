@@ -13,7 +13,9 @@ export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByWalletAddress(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
 
   // Conversations
@@ -49,6 +51,19 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByWalletAddress(walletAddress: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress));
+    return user || undefined;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
     return user || undefined;
   }
 
@@ -369,10 +384,10 @@ export class MemStorage implements IStorage {
 
     // Create messages for Chris conversation
     const chrisMessages = [
-      { id: 1, conversationId: 1, senderId: 1, content: "Hi, how are you?", messageType: "text", cryptoAmount: null, cryptoCurrency: null, timestamp: new Date(Date.now() - 120000) },
-      { id: 2, conversationId: 1, senderId: 5, content: "It's going well!! How are you?", messageType: "text", cryptoAmount: null, cryptoCurrency: null, timestamp: new Date(Date.now() - 60000) },
-      { id: 3, conversationId: 1, senderId: 1, content: "I'm doing great, thanks.", messageType: "text", cryptoAmount: null, cryptoCurrency: null, timestamp: new Date(Date.now() - 30000) },
-      { id: 4, conversationId: 1, senderId: 1, content: "", messageType: "crypto", cryptoAmount: "0.5", cryptoCurrency: "COYN", timestamp: new Date() },
+      { id: 1, conversationId: 1, senderId: 1, content: "Hi, how are you?", messageType: "text", cryptoAmount: null, cryptoCurrency: null, audioFilePath: null, transcription: null, audioDuration: null, timestamp: new Date(Date.now() - 120000) },
+      { id: 2, conversationId: 1, senderId: 5, content: "It's going well!! How are you?", messageType: "text", cryptoAmount: null, cryptoCurrency: null, audioFilePath: null, transcription: null, audioDuration: null, timestamp: new Date(Date.now() - 60000) },
+      { id: 3, conversationId: 1, senderId: 1, content: "I'm doing great, thanks.", messageType: "text", cryptoAmount: null, cryptoCurrency: null, audioFilePath: null, transcription: null, audioDuration: null, timestamp: new Date(Date.now() - 30000) },
+      { id: 4, conversationId: 1, senderId: 1, content: "", messageType: "crypto", cryptoAmount: "0.5", cryptoCurrency: "COYN", audioFilePath: null, transcription: null, audioDuration: null, timestamp: new Date() },
     ];
 
     chrisMessages.forEach(msg => {
@@ -400,6 +415,19 @@ export class MemStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(user => user.username === username);
+  }
+
+  async getUserByWalletAddress(walletAddress: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.walletAddress === walletAddress);
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -477,6 +505,9 @@ export class MemStorage implements IStorage {
       content: insertMessage.content ?? null,
       cryptoAmount: insertMessage.cryptoAmount ?? null,
       cryptoCurrency: insertMessage.cryptoCurrency ?? null,
+      audioFilePath: insertMessage.audioFilePath ?? null,
+      transcription: insertMessage.transcription ?? null,
+      audioDuration: insertMessage.audioDuration ?? null,
       messageType: insertMessage.messageType || "text",
     };
     this.messages.set(message.id, message);

@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Search, Plus, Wallet } from "lucide-react";
+import { Search, Plus, Wallet, UserPlus, Settings } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import AddContactModal from "./add-contact-modal";
+import ProfileModal from "./profile-modal";
 
 interface SidebarProps {
   user?: User;
@@ -30,6 +33,8 @@ export default function Sidebar({
   searchQuery = "",
   onSearchChange,
 }: SidebarProps) {
+  const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const formatLastMessage = (message?: Message) => {
     if (!message) return "";
     
@@ -51,16 +56,26 @@ export default function Sidebar({
       }`}>
         {/* Logo Header */}
         <div className="p-6 border-b border-slate-700 hidden lg:block">
-          <div className="flex items-center space-x-3">
-            <img 
-              src={coynLogoPath} 
-              alt="COYN Logo" 
-              className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
-            />
-            <div>
-              <h1 className="text-xl font-bold">COYN</h1>
-              <p className="text-xs text-slate-400">Messenger</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+              />
+              <div>
+                <h1 className="text-xl font-bold">COYN</h1>
+                <p className="text-xs text-slate-400">Messenger</p>
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsProfileOpen(true)}
+              className="text-slate-400 hover:text-cyan-400"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
           {user && (
             <div className="mt-4 text-xs text-cyan-400 font-mono">
@@ -89,8 +104,8 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Search */}
-        <div className="p-4">
+        {/* Search and Add Contact */}
+        <div className="p-4 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
             <Input
@@ -100,6 +115,14 @@ export default function Sidebar({
               className="pl-10 bg-slate-700 border-slate-600 focus:border-cyan-500"
             />
           </div>
+          <Button
+            onClick={() => setIsAddContactOpen(true)}
+            className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+            size="sm"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Contact
+          </Button>
         </div>
 
         {/* Chat List */}
@@ -156,6 +179,23 @@ export default function Sidebar({
           </Button>
         </div>
       </div>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Modals */}
+      <AddContactModal
+        isOpen={isAddContactOpen}
+        onClose={() => setIsAddContactOpen(false)}
+      />
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
     </>
   );
 }

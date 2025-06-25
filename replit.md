@@ -95,6 +95,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 24, 2025: Removed COYN title text from mobile navigation hover bar for cleaner interface
 - June 24, 2025: Implemented functional search for conversations in both mobile and desktop interfaces
 - June 24, 2025: Made hover bars fully transparent with subtle hover effects for cleaner appearance
+- June 24, 2025: Added user management features - add contacts by wallet address and edit user profiles
+- June 24, 2025: Updated database schema to support voice messages with transcription fields
 
 ## User Preferences
 
