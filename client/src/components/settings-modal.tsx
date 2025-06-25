@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Check } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface SettingsModalProps {
@@ -29,7 +29,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [notifications, setNotifications] = useState(true);
   const [autoConnect, setAutoConnect] = useState(true);
   const [messagePreview, setMessagePreview] = useState(true);
-  const [copiedAddress, setCopiedAddress] = useState(false);
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
@@ -145,12 +144,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <div className="relative group">
                   <Input
                     id="walletAddress"
-                    value={user?.walletAddress || ""}
+                    value={data?.walletAddress || ""}
                     readOnly
                     className="bg-muted border-border text-foreground font-mono text-sm cursor-default pr-10"
                     placeholder="No wallet address"
                   />
-                  {user?.walletAddress && (
+                  {data?.walletAddress && (
                     <Button
                       type="button"
                       variant="ghost"
