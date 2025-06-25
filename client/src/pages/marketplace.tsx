@@ -255,11 +255,12 @@ export default function MarketplacePage() {
   
   // Filter out items without images and apply search/category filters
   const filteredItems = allItems.filter(item => {
+    const isAmazonProduct = 'ASIN' in item;
+    
     // Check if item has a valid image
     const hasImage = isAmazonProduct ? item.imageUrl && item.imageUrl.trim() !== '' : item.image && item.image.trim() !== '';
     if (!hasImage) return false;
     
-    const isAmazonProduct = 'ASIN' in item;
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (isAmazonProduct ? item.brand?.toLowerCase() : item.seller?.toLowerCase())?.includes(searchQuery.toLowerCase());
