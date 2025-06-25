@@ -26,15 +26,17 @@
   --radius: 0.5rem;
   
   /* Orange messaging palette */
-  --orange-bg: hsl(210, 25%, 98%);
-  --orange-chat: hsl(219, 23%, 95%);
-  --orange-sent: hsl(24.6, 95%, 53.1%);
-  --orange-received: hsl(0, 0%, 100%);
-  --orange-border: hsl(220, 13%, 91%);
-  --orange-text: hsl(0, 0%, 0%);
-  --orange-muted: hsl(0, 0%, 30%);
-  --orange-input: hsl(220, 13%, 95%);
-  --orange-hover: hsl(220, 13%, 91%);
+  --orange-25: hsl(33, 100%, 99%);
+  --orange-50: hsl(33, 100%, 96%);
+  --orange-100: hsl(34, 100%, 92%);
+  --orange-200: hsl(32, 98%, 83%);
+  --orange-300: hsl(31, 97%, 72%);
+  --orange-400: hsl(27, 96%, 61%);
+  --orange-500: hsl(24.6, 95%, 53.1%);
+  --orange-600: hsl(20.5, 90.2%, 48.2%);
+  --orange-700: hsl(17.5, 88.2%, 40.6%);
+  --orange-800: hsl(15, 79.1%, 33.7%);
+  --orange-900: hsl(15, 75%, 28%);
 }
 
 .dark {

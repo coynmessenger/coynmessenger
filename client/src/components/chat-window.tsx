@@ -153,7 +153,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
-      <div className="bg-card border-b border-border p-4 flex items-center justify-between">
+      <div className="bg-orange-50 dark:bg-card border-b border-border p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
