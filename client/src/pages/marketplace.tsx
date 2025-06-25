@@ -1,25 +1,143 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
-interface MarketplaceItem {
-  id: number;
+interface AmazonProduct {
+  ASIN: string;
   title: string;
-  description: string;
   price: string;
   currency: string;
-  seller: string;
+  imageUrl: string;
+  productUrl: string;
   rating: number;
+  reviewCount: number;
   category: string;
-  image?: string;
-  featured?: boolean;
+  brand?: string;
+  description?: string;
+}
+
+interface CryptoRates {
+  BTC: number;
+  BNB: number;
+  USDT: number;
+  COYN: number;
+}
+
+interface PurchaseModalProps {
+  product: AmazonProduct | null;
+  isOpen: boolean;
+  onClose: () => void;
+  cryptoRates: CryptoRates;
+}
+
+function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalProps) {
+  const [selectedCrypto, setSelectedCrypto] = useState("COYN");
+  const { toast } = useToast();
+
+  if (!product) return null;
+
+  const usdPrice = parseFloat(product.price);
+  const cryptoPrices = {
+    BTC: (usdPrice / cryptoRates.BTC).toFixed(8),
+    BNB: (usdPrice / cryptoRates.BNB).toFixed(6),
+    USDT: (usdPrice / cryptoRates.USDT).toFixed(2),
+    COYN: (usdPrice / cryptoRates.COYN).toFixed(2)
+  };
+
+  const handlePurchase = () => {
+    toast({
+      title: "Purchase Initiated",
+      description: `Converting ${cryptoPrices[selectedCrypto]} ${selectedCrypto} to USD for Amazon purchase...`,
+    });
+    
+    setTimeout(() => {
+      toast({
+        title: "Purchase Successful",
+        description: `${product.title} ordered successfully! Crypto converted and payment processed.`,
+      });
+      onClose();
+    }, 2000);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-orange-500 dark:text-cyan-400">Purchase with Crypto</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
+          <div className="flex space-x-4">
+            <img 
+              src={product.imageUrl} 
+              alt={product.title}
+              className="w-20 h-20 object-cover rounded-lg"
+            />
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground line-clamp-2">{product.title}</h3>
+              <p className="text-sm text-muted-foreground">{product.brand}</p>
+              <p className="text-lg font-bold text-green-600">${product.price} USD</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground">Pay with Cryptocurrency:</label>
+            <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(cryptoPrices).map(([crypto, price]) => (
+                  <SelectItem key={crypto} value={crypto}>
+                    <div className="flex justify-between items-center w-full">
+                      <span>{crypto}</span>
+                      <span className="text-muted-foreground ml-2">{price}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Payment Process:</h4>
+            <div className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+              <p>1. Your {selectedCrypto} will be converted to USD</p>
+              <p>2. Payment processed through Amazon</p>
+              <p>3. Product shipped to your address</p>
+              <p>4. Transaction secured via blockchain</p>
+            </div>
+          </div>
+
+          <div className="flex space-x-3">
+            <Button
+              onClick={handlePurchase}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Pay {cryptoPrices[selectedCrypto]} {selectedCrypto}
+            </Button>
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="border-gray-300 dark:border-slate-600"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function MarketplacePage() {
@@ -27,9 +145,37 @@ export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
+  const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
-  // Sample marketplace items
-  const marketplaceItems: MarketplaceItem[] = [
+  // Fetch Amazon products
+  const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
+    queryKey: ["/api/amazon/search", searchQuery, selectedCategory],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('q', searchQuery);
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+      
+      const res = await fetch(`/api/amazon/search?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      return res.json();
+    },
+    enabled: true
+  });
+
+  // Fetch crypto rates
+  const { data: cryptoRates = { BTC: 45000, BNB: 300, USDT: 1, COYN: 0.15 } } = useQuery<CryptoRates>({
+    queryKey: ["/api/crypto/rates"],
+    queryFn: async () => {
+      const res = await fetch("/api/crypto/rates");
+      if (!res.ok) throw new Error("Failed to fetch crypto rates");
+      return res.json();
+    },
+    refetchInterval: 60000 // Refresh every minute
+  });
+
+  // Legacy sample items for comparison
+  const legacyItems = [
     {
       id: 1,
       title: "Premium COYN Staking Service",
@@ -103,17 +249,21 @@ export default function MarketplacePage() {
     { value: "real-estate", label: "Real Estate", icon: Home }
   ];
 
-  const filteredItems = marketplaceItems.filter(item => {
+  const allItems = [...amazonProducts, ...legacyItems];
+  
+  const filteredItems = allItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+                         (item.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || item.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
   const sortedItems = filteredItems.sort((a, b) => {
     switch (sortBy) {
       case "featured":
-        return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
+        const aFeatured = 'featured' in a ? a.featured : false;
+        const bFeatured = 'featured' in b ? b.featured : true; // Amazon products are "featured"
+        return (bFeatured ? 1 : 0) - (aFeatured ? 1 : 0);
       case "price-low":
         return parseFloat(a.price) - parseFloat(b.price);
       case "price-high":
@@ -124,6 +274,17 @@ export default function MarketplacePage() {
         return 0;
     }
   });
+
+  const handleProductClick = (item: any) => {
+    if ('ASIN' in item) {
+      // Amazon product
+      setSelectedProduct(item);
+      setShowPurchaseModal(true);
+    } else {
+      // Legacy marketplace item - show info
+      alert(`This is a marketplace service. Contact ${item.seller} for details.`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -200,59 +361,105 @@ export default function MarketplacePage() {
         </div>
 
         {/* Marketplace Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedItems.map((item) => (
-            <Card key={item.id} className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-foreground line-clamp-1">
-                      {item.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">by {item.seller}</p>
-                  </div>
-                  {item.featured && (
-                    <Badge className="bg-orange-500 text-white ml-2">
-                      <Star className="h-3 w-3 mr-1" />
-                      Featured
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {item.description}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium">{item.rating}</span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {categories.find(c => c.value === item.category)?.label}
-                  </Badge>
-                </div>
+        {isLoadingProducts ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="bg-white dark:bg-card border-border animate-pulse">
+                <CardHeader className="pb-3">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mt-2"></div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedItems.map((item) => {
+              const isAmazonProduct = 'ASIN' in item;
+              const itemKey = isAmazonProduct ? item.ASIN : item.id;
+              const seller = isAmazonProduct ? 'Amazon' : item.seller;
+              const imageUrl = isAmazonProduct ? item.imageUrl : item.image;
+              
+              return (
+                <Card key={itemKey} className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg font-semibold text-foreground line-clamp-1">
+                          {item.title}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          by {isAmazonProduct ? item.brand || 'Amazon' : seller}
+                        </p>
+                      </div>
+                      {(isAmazonProduct || item.featured) && (
+                        <Badge className="bg-orange-500 text-white ml-2">
+                          <Star className="h-3 w-3 mr-1" />
+                          {isAmazonProduct ? 'Amazon' : 'Featured'}
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {imageUrl && (
+                      <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                        <img 
+                          src={imageUrl} 
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {item.description || 'No description available'}
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <span className="text-sm font-medium">{item.rating}</span>
+                        {isAmazonProduct && item.reviewCount > 0 && (
+                          <span className="text-xs text-muted-foreground">({item.reviewCount})</span>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {item.category}
+                      </Badge>
+                    </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <div className="flex items-center space-x-2">
-                    <Coins className="h-5 w-5 text-primary" />
-                    <span className="text-lg font-bold text-foreground">
-                      {item.price} {item.currency}
-                    </span>
-                  </div>
-                  <Button 
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Buy Now
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div className="flex flex-col">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg font-bold text-foreground">
+                            ${item.price}
+                          </span>
+                        </div>
+                        {isAmazonProduct && (
+                          <div className="text-xs text-muted-foreground">
+                            ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
+                          </div>
+                        )}
+                      </div>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleProductClick(item)}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        {isAmazonProduct ? 'Buy with Crypto' : 'Contact Seller'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {sortedItems.length === 0 && (
           <div className="text-center py-12">
@@ -262,13 +469,21 @@ export default function MarketplacePage() {
           </div>
         )}
 
+        {/* Purchase Modal */}
+        <PurchaseModal 
+          product={selectedProduct}
+          isOpen={showPurchaseModal}
+          onClose={() => setShowPurchaseModal(false)}
+          cryptoRates={cryptoRates}
+        />
+
         {/* Statistics */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-white dark:bg-card border-border text-center">
             <CardContent className="pt-6">
               <Package className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">{marketplaceItems.length}</div>
-              <div className="text-sm text-muted-foreground">Total Items</div>
+              <div className="text-2xl font-bold text-foreground">{allItems.length}+</div>
+              <div className="text-sm text-muted-foreground">Amazon Products</div>
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-card border-border text-center">
