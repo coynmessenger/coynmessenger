@@ -298,43 +298,28 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 border-b border-orange-200 dark:border-slate-700 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Simplified Header */}
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <img 
-                    src={coynLogoPath} 
-                    alt="COYN Logo" 
-                    className="w-12 h-12 drop-shadow-md"
-                  />
-                  <div className="absolute -inset-1 bg-orange-400/20 dark:bg-cyan-400/20 rounded-full blur-sm -z-10"></div>
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 dark:from-cyan-400 dark:to-cyan-600 bg-clip-text text-transparent">
-                    COYN Marketplace
-                  </h1>
-                  <p className="text-sm text-orange-700 dark:text-cyan-300 font-medium">
-                    Shop Amazon with Cryptocurrency • Powered by COYN
-                  </p>
-                </div>
-              </div>
-            </div>
             <div className="flex items-center space-x-3">
-              <div className="hidden md:flex items-center space-x-2 text-sm text-orange-600 dark:text-cyan-400">
-                <Coins className="h-4 w-4" />
-                <span className="font-medium">Pay with BTC, BNB, USDT, COYN</span>
-              </div>
-              <Button
-                onClick={() => setLocation("/")}
-                className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-md transition-all duration-200 hover:shadow-lg"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Home
-              </Button>
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-10 h-10"
+              />
+              <h1 className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
+                COYN Marketplace
+              </h1>
             </div>
+            <Button
+              onClick={() => setLocation("/")}
+              variant="ghost"
+              size="icon"
+              className="text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-cyan-400"
+            >
+              <Home className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
