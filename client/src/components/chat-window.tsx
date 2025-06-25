@@ -163,24 +163,37 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     }
 
     const handleScroll = () => {
-      const { scrollTop } = container;
-      console.log("Scroll position:", scrollTop);
-      // Show button when scrolled down more than 100px from top
-      const shouldShow = scrollTop > 100;
-      console.log("Should show back to top:", shouldShow);
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      console.log("Scroll data:", { scrollTop, scrollHeight, clientHeight });
+      
+      // Show button when user has scrolled up from the bottom by more than 200px
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      const shouldShow = distanceFromBottom > 200;
+      console.log("Distance from bottom:", distanceFromBottom, "Should show:", shouldShow);
       setShowBackToTop(shouldShow);
     };
 
     container.addEventListener('scroll', handleScroll);
     console.log("Scroll listener added to container");
+    
+    // Initial check
+    handleScroll();
+    
     return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [messages]);
 
   const scrollToTop = () => {
-    messagesContainerRef.current?.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    console.log("Attempting to scroll to top");
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      console.log("Scroll command sent");
+    } else {
+      console.log("No container to scroll");
+    }
   };
 
   return (
