@@ -84,21 +84,24 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Wallet Quick View - Compact */}
+        {/* Wallet Quick View */}
         <div 
-          className="p-2 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted mx-4 mb-2 rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200"
+          className="p-4 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted m-4 rounded-xl border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm"
           onClick={onOpenWallet}
         >
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <Wallet className="h-3 w-3 text-gray-700 dark:text-primary" />
-              <span className="text-xs text-gray-600 dark:text-muted-foreground">Balance</span>
-            </div>
-            <div className="text-sm font-bold text-black dark:text-primary">$12,220.75</div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600 dark:text-muted-foreground font-medium">Total Balance</span>
+            <Wallet className="h-4 w-4 text-gray-700 dark:text-primary" />
           </div>
-          <Button size="sm" className="w-full h-6 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 text-xs">
-            Wallet
-          </Button>
+          <div className="text-2xl font-bold text-black dark:text-primary">$12,220.75</div>
+          <div className="flex space-x-2 mt-3">
+            <Button size="sm" className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm">
+              Send
+            </Button>
+            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80">
+              Receive
+            </Button>
+          </div>
         </div>
 
         {/* Search and Add Contact */}
@@ -115,12 +118,12 @@ export default function Sidebar({
 
         </div>
 
-        {/* Chat List - Compact */}
-        <div className="flex-1 overflow-y-auto px-4">
-          {conversations.map((conversation, index) => (
-            <div key={conversation.id}>
+        {/* Chat List */}
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map((conversation) => (
+            <div key={conversation.id} className="px-4 pb-2">
               <div
-                className={`rounded-lg p-2.5 cursor-pointer transition-colors border ${
+                className={`rounded-xl p-4 cursor-pointer transition-colors border ${
                   selectedConversation === conversation.id
                     ? 'bg-gray-100 dark:chat-item-active border-gray-300 dark:border-cyan-500'
                     : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
@@ -130,16 +133,16 @@ export default function Sidebar({
                   onClose();
                 }}
               >
-                <div className="flex items-center space-x-2.5">
+                <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-12 w-12">
                       <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-                      <AvatarFallback className="text-xs">
+                      <AvatarFallback>
                         {conversation.otherUser.displayName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     {conversation.otherUser.isOnline && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800" />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -151,45 +154,42 @@ export default function Sidebar({
                         {conversation.lastMessage && formatTimestamp(conversation.lastMessage.timestamp)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">
+                    <p className="text-sm text-slate-400 truncate">
                       {formatLastMessage(conversation.lastMessage)}
                     </p>
                   </div>
                 </div>
               </div>
-              {index < conversations.length - 1 && (
-                <div className="border-b border-gray-200 dark:border-slate-600 my-1 mx-2"></div>
-              )}
             </div>
           ))}
         </div>
 
-        {/* Mobile Settings - only visible on mobile - Compact */}
-        <div className="lg:hidden p-2 border-t border-border bg-white dark:bg-card">
+        {/* Mobile Settings - only visible on mobile */}
+        <div className="lg:hidden p-4 border-t border-border bg-white dark:bg-card">
           <div className="flex gap-2">
             <Button 
               onClick={onOpenWallet}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-8 text-xs"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
-              <Wallet className="h-3.5 w-3.5 mr-2" />
+              <Wallet className="h-4 w-4 mr-2" />
               Wallet
             </Button>
             <Button
               onClick={() => setIsAddContactOpen(true)}
               variant="outline"
-              size="sm"
-              className="text-muted-foreground hover:text-primary border-border hover:border-primary h-8 px-2"
+              size="icon"
+              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
               title="Add Contact"
             >
-              <UserPlus className="h-3.5 w-3.5" />
+              <UserPlus className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={() => setIsSettingsOpen(true)}
-              className="text-muted-foreground hover:text-primary border-border hover:border-primary h-8 px-2"
+              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
             >
-              <Settings className="h-3.5 w-3.5" />
+              <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
