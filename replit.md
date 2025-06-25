@@ -40,7 +40,7 @@ The application uses four main tables:
 ### Core Features
 1. **Real-time Messaging**: Text messaging between users
 2. **Crypto Integration**: Send cryptocurrency within messages
-3. **Wallet Management**: View balances for BTC, ETH, USDT, and COYN
+3. **Wallet Management**: View balances for BTC, BNB, USDT, and COYN
 4. **Video Calling**: Mock video call interface
 5. **Responsive Design**: Mobile-first responsive layout
 
@@ -131,6 +131,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Added floating back to top button in chat with smooth scrolling and orange theme styling
 - June 25, 2025: Redesigned COYN logo with sleek modern styling - reduced size, added glow effects, improved gradients, and enhanced visual hierarchy
 - June 25, 2025: Reverted to original logo design and added "Powered by Coynful" attribution at bottom of homepage
+- June 25, 2025: Updated to Binance Smart Chain (BSC) - replaced ETH with BNB throughout application for better transaction costs and speed
 
 ## User Preferences
 
