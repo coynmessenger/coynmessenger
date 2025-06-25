@@ -1,3 +1,4 @@
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Home, Star, Trash2, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import ShoppingCartComponent, { addToCart } from "@/components/shopping-cart";
+import WalletHover from "@/components/wallet-hover";
 
 interface Favorite {
   id: number;

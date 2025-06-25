@@ -241,6 +241,11 @@ export default function ProductPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [showWalletHover, setShowWalletHover] = useState(false);
+  const walletButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
 
   // Get product ASIN from URL params
@@ -398,6 +403,38 @@ export default function ProductPage() {
               alt="COYN Logo" 
               className="w-8 h-8"
             />
+            <div className="flex items-center space-x-1">
+              <Button
+                onClick={() => setShowCart(true)}
+                variant="ghost"
+                size="icon"
+                className="relative hover:bg-accent"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center">
+                    {cartCount}
+                  </Badge>
+                )}
+              </Button>
+              <Button
+                ref={walletButtonRef}
+                onClick={() => setShowWalletHover(!showWalletHover)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent relative"
+              >
+                <Wallet className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
+              </Button>
+              <Button
+                onClick={() => setShowSettingsModal(true)}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
