@@ -383,46 +383,46 @@ export default function MarketplacePage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="container mx-auto px-4 py-3">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <Button
                 onClick={() => setLocation('/')}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent"
+                className="hover:bg-accent h-10 w-10 sm:h-9 sm:w-9"
               >
-                <Home className="h-5 w-5" />
+                <Home className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 onClick={() => setLocation('/favorites')}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent"
+                className="hover:bg-accent h-10 w-10 sm:h-9 sm:w-9"
               >
-                <Heart className="h-5 w-5" />
+                <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 ref={walletButtonRef}
                 onClick={() => setShowWalletHover(!showWalletHover)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent relative"
+                className="hover:bg-accent relative h-10 w-10 sm:h-9 sm:w-9"
               >
-                <Wallet className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
+                <Wallet className="h-5 w-5 sm:h-4 sm:w-4 text-orange-500 dark:text-cyan-400" />
               </Button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 onClick={() => setShowCart(true)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent relative"
+                className="hover:bg-accent relative h-10 w-10 sm:h-9 sm:w-9"
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
                 {cartCount > 0 && (
                   <Badge 
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-orange-500 dark:bg-cyan-500 text-white text-xs"
+                    className="absolute -top-2 -right-2 h-5 w-5 sm:h-4 sm:w-4 rounded-full p-0 flex items-center justify-center bg-orange-500 dark:bg-cyan-500 text-white text-xs sm:text-[10px]"
                   >
                     {cartCount}
                   </Badge>
@@ -432,35 +432,35 @@ export default function MarketplacePage() {
                 onClick={() => setShowSettingsModal(true)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent"
+                className="hover:bg-accent h-10 w-10 sm:h-9 sm:w-9"
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Advanced Search Engine */}
-        <div className="mb-8 space-y-6">
+        <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-6">
           {/* Main Search Bar */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 sm:h-5 sm:w-5" />
             <Input
-              placeholder="Search for products on Amazon... (e.g. 'wireless headphones', 'coffee maker', 'gaming laptop')"
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400"
+              className="pl-10 sm:pl-12 h-11 sm:h-12 text-base sm:text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400"
             />
             {searchQuery && (
               <Button
                 onClick={() => setSearchQuery("")}
                 variant="ghost"
                 size="sm"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-9 w-9 sm:h-8 sm:w-8 p-0"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 sm:h-3 sm:w-3" />
               </Button>
             )}
           </div>
@@ -468,10 +468,10 @@ export default function MarketplacePage() {
 
 
           {/* Filters and Sort */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex gap-2 flex-1">
+          <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
+            <div className="flex gap-2 flex-1 overflow-x-auto">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-40 sm:w-48 h-10 sm:h-9">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>

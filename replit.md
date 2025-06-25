@@ -189,6 +189,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Enhanced mobile wallet readability - improved spacing with w-[90vw] sm:w-[85vw] dimensions, added m-5 sm:m-6 margins, increased padding p-5 sm:p-6 for better side spacing and full readability on mobile devices
 - June 25, 2025: Maximized wallet modal readability - further optimized dimensions to w-[80vw] sm:w-[75vw] with enhanced margins m-10 sm:m-12 and padding p-6 sm:p-8 across all wallet modals (main, send, QR, escrow) for optimal mobile reading experience
 - June 25, 2025: Simplified cart button text - replaced "Add to Cart" with "Cart" across marketplace and product pages while maintaining shopping cart icon for cleaner, more compact button design
+- June 25, 2025: Enhanced mobile sizing intuition - optimized button heights, touch targets, icon sizes, and spacing across marketplace headers, sidebar wallet section, search inputs, and navigation elements for better mobile usability with larger touch-friendly buttons (h-10 w-10 on mobile, h-8 w-8 on desktop)
 
 ## User Preferences
 

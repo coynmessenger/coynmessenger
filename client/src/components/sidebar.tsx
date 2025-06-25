@@ -95,24 +95,24 @@ export default function Sidebar({
           </div>
           <div className="text-base sm:text-lg font-bold text-black dark:text-primary mb-1.5">$12,220.75</div>
           <div className="flex space-x-1">
-            <Button size="sm" onClick={onOpenWallet} className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm text-xs py-1 h-6">
+            <Button size="sm" onClick={onOpenWallet} className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm text-xs py-1 h-8">
               Send
             </Button>
-            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80 text-xs py-1 h-6">
+            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80 text-xs py-1 h-8">
               Receive
             </Button>
           </div>
         </div>
 
         {/* Search */}
-        <div className="px-1 sm:px-4 pb-1 sm:pb-2">
+        <div className="px-2 pb-2">
           <div className="relative">
-            <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="pl-8 sm:pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg h-7 sm:h-auto text-xs sm:text-sm"
+              className="pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg h-10 text-sm"
             />
           </div>
         </div>
