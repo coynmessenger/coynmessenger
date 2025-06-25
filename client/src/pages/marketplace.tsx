@@ -802,17 +802,6 @@ export default function MarketplacePage() {
                       <div className="flex gap-2">
                         <Button 
                           size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            isAmazonProduct ? setLocation(`/product/${item.ASIN}`) : handleProductClick(item);
-                          }}
-                          className="flex-1"
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (isAmazonProduct) {
