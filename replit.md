@@ -169,6 +169,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Fixed sidebar RangeError by adding proper date validation and error handling for timestamp formatting
 - June 25, 2025: Made wallet section more compact - reduced size to create more space for contacts, smaller balance display, compact buttons for better mobile experience
 - June 25, 2025: Removed auto-redirect after wallet connection - users now stay on homepage and manually choose messenger or marketplace destination
+- June 25, 2025: Optimized wallet modal for mobile devices - responsive spacing, smaller text/icons on mobile, reduced padding, touch-friendly button sizes
 
 ## User Preferences
 

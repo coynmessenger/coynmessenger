@@ -689,28 +689,28 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <div className="flex items-center justify-center space-x-3 mb-2">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-sm sm:max-w-md max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col p-4 sm:p-6 m-2 sm:m-4">
+        <DialogHeader className="pb-2 sm:pb-4">
+          <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-1 sm:mb-2">
             <img 
               src={coynLogoPath} 
               alt="COYN Logo" 
-              className="w-8 h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+              className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
             />
-            <DialogTitle className="text-xl font-bold">COYN Wallet</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl font-bold">COYN Wallet</DialogTitle>
           </div>
         </DialogHeader>
 
         {/* Balance Section */}
-        <div className="text-center mb-6 flex-shrink-0">
-          <div className="text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-2">
+        <div className="text-center mb-4 sm:mb-6 flex-shrink-0">
+          <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-1 sm:mb-2">
             {formatUSD(totalBalance.toString())}
           </div>
-          <div className="text-sm text-gray-600 dark:text-slate-400">Total Balance</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">Total Balance</div>
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-3 flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+        <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:-mr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
             const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
             const changePercent = parseFloat(balance.changePercent || "0");
