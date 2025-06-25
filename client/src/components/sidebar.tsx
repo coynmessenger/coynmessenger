@@ -115,14 +115,7 @@ export default function Sidebar({
               className="pl-10 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg"
             />
           </div>
-          <Button
-            onClick={() => setIsAddContactOpen(true)}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm rounded-lg"
-            size="sm"
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add Contact
-          </Button>
+
         </div>
 
         {/* Chat List */}
