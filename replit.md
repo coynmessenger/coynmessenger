@@ -190,6 +190,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Maximized wallet modal readability - further optimized dimensions to w-[80vw] sm:w-[75vw] with enhanced margins m-10 sm:m-12 and padding p-6 sm:p-8 across all wallet modals (main, send, QR, escrow) for optimal mobile reading experience
 - June 25, 2025: Simplified cart button text - replaced "Add to Cart" with "Cart" across marketplace and product pages while maintaining shopping cart icon for cleaner, more compact button design
 - June 25, 2025: Enhanced mobile sizing intuition - optimized button heights, touch targets, icon sizes, and spacing across marketplace headers, sidebar wallet section, search inputs, and navigation elements for better mobile usability with larger touch-friendly buttons (h-10 w-10 on mobile, h-8 w-8 on desktop)
+- June 25, 2025: Implemented Amazon-style checkout system with comprehensive 3-step purchase flow (Cart → Review → Finalize) - replaced all shopping cart components across marketplace, product, and favorites pages with unified checkout experience featuring address management, shipping options, cryptocurrency payment selection, order review, and purchase confirmation
 
 ## User Preferences
 

@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Home, Star, Trash2, ShoppingCart, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
+import AmazonCheckout from "@/components/amazon-checkout";
+import { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 
 interface Favorite {
@@ -270,7 +271,7 @@ export default function FavoritesPage() {
         )}
       </div>
 
-      <ShoppingCartComponent 
+      <AmazonCheckout 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
       />

@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import SettingsModal from "@/components/settings-modal";
-import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
+import AmazonCheckout from "@/components/amazon-checkout";
+import { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 
 interface AmazonProduct {
@@ -930,8 +931,8 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Shopping Cart Modal */}
-      <ShoppingCartComponent 
+      {/* Amazon Checkout Modal */}
+      <AmazonCheckout 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
       />

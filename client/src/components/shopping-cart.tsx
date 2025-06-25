@@ -48,7 +48,7 @@ interface ShippingAddress {
 export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState<'address' | 'review' | 'payment'>('address');
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'review' | 'finalize'>('cart');
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
@@ -71,17 +71,17 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     staleTime: 1000 * 60 * 5,
   });
 
-  // Auto-open checkout when cart opens and has items
+  // Start with cart view when opening
   useEffect(() => {
-    if (isOpen && cartItems.length > 0 && !showCheckoutModal) {
-      setShowCheckoutModal(true);
-      setCheckoutStep('address');
+    if (isOpen) {
+      setCheckoutStep('cart');
+      setShowCheckoutModal(false);
     }
-  }, [isOpen, cartItems.length, showCheckoutModal]);
+  }, [isOpen]);
 
   // Pre-populate address from user data
   useEffect(() => {
-    if (user && showCheckoutModal) {
+    if (user && checkoutStep === 'review') {
       setShippingAddress(prev => ({
         ...prev,
         fullName: (user as any).fullName || (user as any).displayName || '',
@@ -94,7 +94,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         phoneNumber: (user as any).phoneNumber || ''
       }));
     }
-  }, [user, showCheckoutModal]);
+  }, [user, checkoutStep]);
 
   // Load cart from localStorage on mount
   useEffect(() => {

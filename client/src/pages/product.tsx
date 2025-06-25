@@ -29,7 +29,8 @@ import {
   Wallet
 } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
-import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
+import AmazonCheckout from "@/components/amazon-checkout";
+import { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 import SettingsModal from "@/components/settings-modal";
 
@@ -862,7 +863,7 @@ export default function ProductPage() {
         showShipping={true}
       />
       
-      <ShoppingCartComponent 
+      <AmazonCheckout 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
       />
