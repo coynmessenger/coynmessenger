@@ -160,13 +160,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </Card>
 
           {/* Appearance Settings */}
-          <Card className="bg-slate-700/50 border-slate-600">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-slate-100 flex items-center">
+              <CardTitle className="text-foreground flex items-center">
                 <Palette className="h-4 w-4 mr-2" />
                 Appearance
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-muted-foreground">
                 Customize how the app looks and feels
               </CardDescription>
             </CardHeader>
@@ -192,13 +192,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         Light
                       </div>
                     </SelectItem>
-                    <SelectItem value="dark" className="text-slate-100">
+                    <SelectItem value="dark" className="text-foreground">
                       <div className="flex items-center">
                         <Moon className="h-4 w-4 mr-2" />
                         Dark
                       </div>
                     </SelectItem>
-                    <SelectItem value="system" className="text-slate-100">
+                    <SelectItem value="system" className="text-foreground">
                       <div className="flex items-center">
                         <Monitor className="h-4 w-4 mr-2" />
                         System
