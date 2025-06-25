@@ -36,23 +36,23 @@ export default function MessengerPage() {
   );
 
   return (
-    <div className="flex h-screen bg-slate-900 text-slate-50">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-slate-800 border-b border-slate-700 p-3 flex items-center justify-between">
+        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img 
               src={coynLogoPath} 
               alt="COYN Logo" 
               className="w-8 h-8"
             />
-            <div className="text-xl font-bold text-cyan-400">COYN Messenger</div>
+            <div className="text-xl font-bold text-primary">COYN Messenger</div>
           </div>
           <Button
             onClick={() => setLocation("/")}
             variant="ghost"
             size="sm"
-            className="text-slate-300 hover:text-cyan-400 hover:bg-slate-700"
+            className="text-muted-foreground hover:text-primary hover:bg-muted"
           >
             <Home className="h-4 w-4 mr-2" />
             Return to Home
