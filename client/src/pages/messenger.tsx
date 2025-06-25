@@ -36,32 +36,73 @@ export default function MessengerPage() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-slate-50">
-      {/* Top Header with Return to Home */}
-      <div className="bg-slate-800 border-b border-slate-700 p-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <img 
-            src={coynLogoPath} 
-            alt="COYN Logo" 
-            className="w-8 h-8"
-          />
-          <div className="text-xl font-bold text-cyan-400">COYN Messenger</div>
+    <div className="flex h-screen bg-slate-900 text-slate-50">
+      {/* Desktop Header - only visible on large screens */}
+      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
+        <div className="bg-slate-800 border-b border-slate-700 p-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <img 
+              src={coynLogoPath} 
+              alt="COYN Logo" 
+              className="w-8 h-8"
+            />
+            <div className="text-xl font-bold text-cyan-400">COYN Messenger</div>
+          </div>
+          <Button
+            onClick={() => setLocation("/")}
+            variant="ghost"
+            size="sm"
+            className="text-slate-300 hover:text-cyan-400 hover:bg-slate-700"
+          >
+            <Home className="h-4 w-4 mr-2" />
+            Return to Home
+          </Button>
         </div>
-        <Button
-          onClick={() => setLocation("/")}
-          variant="ghost"
-          size="sm"
-          className="text-slate-300 hover:text-cyan-400 hover:bg-slate-700"
-        >
-          <Home className="h-4 w-4 mr-2" />
-          Return to Home
-        </Button>
+
+        {/* Desktop Main Content */}
+        <div className="flex flex-1">
+          <Sidebar
+            user={user}
+            conversations={searchQuery ? filteredConversations : conversations}
+            selectedConversation={selectedConversation}
+            onSelectConversation={setSelectedConversation}
+            isOpen={false}
+            onClose={() => {}}
+            onOpenWallet={() => setIsWalletOpen(true)}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+
+          <div className="flex-1 flex flex-col bg-slate-900">
+            {selectedConversation && currentConversation ? (
+              <ChatWindow
+                conversation={currentConversation}
+                onOpenVideoCall={() => setIsVideoCallOpen(true)}
+                onToggleSidebar={() => {}}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center bg-slate-900">
+                <div className="text-center text-slate-400">
+                  <div className="mx-auto mb-4">
+                    <img 
+                      src={coynLogoPath} 
+                      alt="COYN Logo" 
+                      className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                    />
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2">Welcome to COYN Messenger</h2>
+                  <p>Select a conversation to start messaging</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-1">
+      {/* Mobile Layout */}
+      <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
-        <nav className="fixed top-0 left-0 right-0 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700 z-50 lg:hidden">
+        <nav className="bg-slate-800/95 backdrop-blur-sm border-b border-slate-700 z-50">
           <div className="flex items-center justify-between p-4">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -78,20 +119,30 @@ export default function MessengerPage() {
                 className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
               />
             </div>
-            <button 
-              className="text-slate-400 hover:text-cyan-400 transition-colors"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button 
+                className="text-slate-400 hover:text-cyan-400 transition-colors"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+              <Button
+                onClick={() => setLocation("/")}
+                variant="ghost"
+                size="sm"
+                className="text-slate-300 hover:text-cyan-400 hover:bg-slate-700 p-2"
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </nav>
 
-        {/* Search Bar */}
+        {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="fixed top-16 left-0 right-0 bg-slate-800 border-b border-slate-700 p-4 z-40 lg:hidden">
+          <div className="bg-slate-800 border-b border-slate-700 p-4 z-40">
             <div className="relative">
               <input
                 type="text"
@@ -115,7 +166,32 @@ export default function MessengerPage() {
           </div>
         )}
 
-        {/* Sidebar */}
+        {/* Mobile Main Content */}
+        <div className="flex-1 flex flex-col bg-slate-900">
+          {selectedConversation && currentConversation ? (
+            <ChatWindow
+              conversation={currentConversation}
+              onOpenVideoCall={() => setIsVideoCallOpen(true)}
+              onToggleSidebar={() => setIsSidebarOpen(true)}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-slate-900">
+              <div className="text-center text-slate-400">
+                <div className="mx-auto mb-4">
+                  <img 
+                    src={coynLogoPath} 
+                    alt="COYN Logo" 
+                    className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                  />
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Welcome to COYN Messenger</h2>
+                <p>Select a conversation to start messaging</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Sidebar */}
         <Sidebar
           user={user}
           conversations={searchQuery ? filteredConversations : conversations}
@@ -127,31 +203,6 @@ export default function MessengerPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col pt-16 lg:pt-0 bg-slate-900">
-        {selectedConversation && currentConversation ? (
-          <ChatWindow
-            conversation={currentConversation}
-            onOpenVideoCall={() => setIsVideoCallOpen(true)}
-            onToggleSidebar={() => setIsSidebarOpen(true)}
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-slate-900">
-            <div className="text-center text-slate-400">
-              <div className="mx-auto mb-4">
-                <img 
-                  src={coynLogoPath} 
-                  alt="COYN Logo" 
-                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
-                />
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Welcome to COYN Messenger</h2>
-              <p>Select a conversation to start messaging</p>
-            </div>
-          </div>
-        )}
-        </div>
       </div>
 
       {/* Modals */}
@@ -162,7 +213,7 @@ export default function MessengerPage() {
         otherUser={currentConversation?.otherUser}
       />
 
-      {/* Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"

@@ -102,6 +102,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Updated COYN address validation to support BNB network format (bnb... and 0x... addresses)
 - June 25, 2025: Simplified COYN address validation to use standard 0x format only for consistency
 - June 25, 2025: Modified wallet connection to allow proceeding even when API fails for better user experience
+- June 25, 2025: Fixed header/hover bar overlapping issues in messenger with proper responsive layout separation
 
 ## User Preferences
 
