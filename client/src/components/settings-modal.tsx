@@ -17,9 +17,10 @@ import type { User } from "@shared/schema";
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  showShipping?: boolean;
 }
 
-export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+export default function SettingsModal({ isOpen, onClose, showShipping = false }: SettingsModalProps) {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -160,10 +161,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <CardHeader>
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2" />
-                Profile & Shipping Information
+                {showShipping ? "Profile & Shipping Information" : "Profile Information"}
               </CardTitle>
               <CardDescription className="text-gray-600 dark:text-slate-400">
-                Update your personal information and shipping address for marketplace purchases
+                {showShipping 
+                  ? "Update your personal information and shipping address for marketplace purchases"
+                  : "Update your personal information and preferences"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -209,10 +213,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </div>
               </div>
 
-              {/* Mailing Address Section */}
-              <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
-                <h4 className="text-md font-medium text-foreground mb-3">Shipping Address</h4>
-                <p className="text-sm text-muted-foreground mb-4">Add your shipping address for marketplace purchases</p>
+              {/* Mailing Address Section - Only show on marketplace */}
+              {showShipping && (
+                <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
+                  <h4 className="text-md font-medium text-foreground mb-3">Shipping Address</h4>
+                  <p className="text-sm text-muted-foreground mb-4">Add your shipping address for marketplace purchases</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -303,7 +308,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     />
                   </div>
                 </div>
-              </div>
+                </div>
+              )}
 
               <Button
                 onClick={handleSaveProfile}

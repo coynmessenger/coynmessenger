@@ -656,6 +656,7 @@ export default function MarketplacePage() {
         <SettingsModal
           isOpen={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
+          showShipping={true}
         />
 
         {/* Statistics */}
