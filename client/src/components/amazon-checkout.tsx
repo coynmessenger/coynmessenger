@@ -92,18 +92,15 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   useEffect(() => {
     if (isOpen) {
       const savedCart = localStorage.getItem('shopping-cart');
-      console.log('Loading cart on dialog open:', savedCart);
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart);
-          console.log('Parsed cart items:', parsedCart);
           setCartItems(parsedCart);
         } catch (error) {
           console.error('Error loading cart:', error);
           setCartItems([]);
         }
       } else {
-        console.log('No saved cart found');
         setCartItems([]);
       }
     }
@@ -288,13 +285,11 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
     </div>
   );
 
-  const renderCartStep = () => {
-    console.log('Rendering cart step with items:', cartItems);
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
-        </div>
+  const renderCartStep = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
+      </div>
       
       {cartItems.length === 0 ? (
         <div className="text-center py-8">
@@ -385,8 +380,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
         </>
       )}
     </div>
-    );
-  };
+  );
 
   const renderReviewStep = () => (
     <div className="space-y-6">
