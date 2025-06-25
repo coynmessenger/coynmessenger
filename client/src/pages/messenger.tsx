@@ -37,30 +37,8 @@ export default function MessengerPage() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      {/* Desktop Header - only visible on large screens */}
+      {/* Desktop Layout - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img 
-              src={coynLogoPath} 
-              alt="COYN Logo" 
-              className="w-6 h-6"
-            />
-            <h1 className="text-lg font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-              Messenger
-            </h1>
-          </div>
-          <Button
-            onClick={() => setLocation("/")}
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-primary hover:bg-muted"
-          >
-            <Home className="h-4 w-4 mr-1" />
-            Home
-          </Button>
-        </div>
-
         {/* Desktop Main Content */}
         <div className="flex flex-1">
           <Sidebar
