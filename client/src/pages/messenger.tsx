@@ -218,6 +218,7 @@ export default function MessengerPage() {
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          style={{ touchAction: 'manipulation' }}
         />
       )}
     </div>

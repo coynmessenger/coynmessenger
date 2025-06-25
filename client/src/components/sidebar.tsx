@@ -51,7 +51,7 @@ export default function Sidebar({
 
   return (
     <>
-      <div className={`fixed lg:relative inset-y-0 left-0 w-80 bg-slate-800 border-r border-slate-700 transform transition-transform duration-300 ease-in-out z-40 pt-16 lg:pt-0 ${
+      <div className={`fixed lg:relative inset-y-0 left-0 w-80 bg-slate-800 border-r border-slate-700 transform transition-transform duration-300 ease-in-out z-40 pt-16 lg:pt-0 flex flex-col ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         {/* Logo Header */}
@@ -172,7 +172,7 @@ export default function Sidebar({
         </div>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-700 flex-shrink-0">
           <Button className="w-full coyn-gradient hover:opacity-90 text-slate-900 coyn-glow">
             <Plus className="h-4 w-4 mr-2" />
             New Chat
