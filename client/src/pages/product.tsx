@@ -609,12 +609,21 @@ export default function ProductPage() {
               </div>
 
               <Button
-                onClick={() => setShowPurchaseModal(true)}
+                onClick={() => {
+                  if (product) {
+                    const newCount = addToCart(product);
+                    setCartCount(newCount);
+                    toast({
+                      title: "Added to Cart",
+                      description: `${product.title} has been added to your cart`
+                    });
+                  }
+                }}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3"
                 size="lg"
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                Buy with Crypto
+                Add to Cart
               </Button>
             </div>
 

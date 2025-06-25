@@ -818,7 +818,7 @@ export default function MarketplacePage() {
                           className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
-                          {isAmazonProduct ? 'Add' : 'Contact'}
+                          {isAmazonProduct ? 'Add to Cart' : 'Contact'}
                         </Button>
                       </div>
                     </div>
