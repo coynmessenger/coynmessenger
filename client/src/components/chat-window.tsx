@@ -78,7 +78,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string }) => {
       return apiRequest("POST", "/api/wallet/send", cryptoData);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
@@ -86,7 +86,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       setShowCryptoSend(false);
       toast({
         title: "Crypto sent successfully",
-        description: `${cryptoAmount} COYN sent to ${conversation.otherUser.displayName}`,
+        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
       });
     },
     onError: () => {
@@ -135,6 +135,15 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const handleEmojiSelect = (emoji: string) => {
     setMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
+  };
+
+  const handleQuickSend = (currency: string) => {
+    const amount = "0.01"; // Default quick send amount
+    sendCryptoMutation.mutate({
+      toUserId: conversation.otherUser.id,
+      currency,
+      amount
+    });
   };
 
   const handleSendCrypto = (e: React.FormEvent) => {
@@ -413,15 +422,64 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       {/* Message Input */}
       <div className="border-t border-border bg-white dark:bg-card p-4">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-cyan-400 hover:bg-slate-700"
-            onClick={() => setShowCryptoSend(!showCryptoSend)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-cyan-400 hover:bg-slate-700"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+              <DropdownMenuItem
+                onClick={() => handleQuickSend('BTC')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">₿</span>
+                  </div>
+                  <span>Send BTC</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleQuickSend('BNB')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">⬢</span>
+                  </div>
+                  <span>Send BNB</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleQuickSend('USDT')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">₮</span>
+                  </div>
+                  <span>Send USDT</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleQuickSend('COYN')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">C</span>
+                  </div>
+                  <span>Send COYN</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="flex-1 relative">
             <Input
               value={message}

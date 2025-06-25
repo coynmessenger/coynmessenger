@@ -17,7 +17,7 @@ interface WalletHoverProps {
 const getCurrencyIcon = (currency: string) => {
   switch (currency) {
     case "BTC": return "₿";
-    case "BNB": return "🔸";
+    case "BNB": return "⬢";
     case "USDT": return "₮";
     case "COYN": return "🪙";
     default: return "💎";
