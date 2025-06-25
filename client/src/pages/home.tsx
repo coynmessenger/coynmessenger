@@ -253,7 +253,16 @@ export default function HomePage() {
                       onClick={() => setLocation("/messenger")}
                       className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg"
                     >
+                      <MessageCircle className="mr-2 h-5 w-5" />
                       Open Messenger
+                    </Button>
+                    <Button
+                      onClick={() => setLocation("/marketplace")}
+                      variant="outline"
+                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg"
+                    >
+                      <Globe className="mr-2 h-5 w-5" />
+                      Explore Marketplace
                     </Button>
                     <Button
                       onClick={handleSignOut}
