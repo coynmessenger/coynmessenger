@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 interface AmazonProduct {
@@ -148,19 +148,21 @@ export default function MarketplacePage() {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
-  // Fetch Amazon products
+  // Fetch Amazon products with debounced search
   const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
     queryKey: ["/api/amazon/search", searchQuery, selectedCategory],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchQuery) params.append('q', searchQuery);
+      if (searchQuery.trim()) params.append('q', searchQuery.trim());
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
       
       const res = await fetch(`/api/amazon/search?${params}`);
       if (!res.ok) throw new Error("Failed to fetch products");
       return res.json();
     },
-    enabled: true
+    enabled: searchQuery.length >= 3 || searchQuery.length === 0 || selectedCategory !== 'all',
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false
   });
 
   // Fetch crypto rates
@@ -316,21 +318,52 @@ export default function MarketplacePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search marketplace..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+        {/* Advanced Search Engine */}
+        <div className="mb-8 space-y-6">
+          {/* Main Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <Input
+              placeholder="Search for products on Amazon... (e.g. 'wireless headphones', 'coffee maker', 'gaming laptop')"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 h-12 text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400"
+            />
+            {searchQuery && (
+              <Button
+                onClick={() => setSearchQuery("")}
+                variant="ghost"
+                size="sm"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Search Suggestions */}
+          {!searchQuery && (
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-muted-foreground mr-2">Popular searches:</span>
+              {['wireless earbuds', 'smart watch', 'laptop', 'coffee maker', 'gaming mouse'].map((suggestion) => (
+                <Button
+                  key={suggestion}
+                  onClick={() => setSearchQuery(suggestion)}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-3 text-xs border-gray-300 dark:border-slate-600 hover:border-orange-500 dark:hover:border-cyan-400"
+                >
+                  {suggestion}
+                </Button>
+              ))}
             </div>
-            <div className="flex gap-2">
+          )}
+
+          {/* Filters and Sort */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex gap-2 flex-1">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-48">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -345,19 +378,74 @@ export default function MarketplacePage() {
                   ))}
                 </SelectContent>
               </Select>
+              
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-48">
+                  <TrendingUp className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="featured">Featured Items</SelectItem>
                   <SelectItem value="price-low">Price: Low to High</SelectItem>
                   <SelectItem value="price-high">Price: High to Low</SelectItem>
                   <SelectItem value="rating">Highest Rated</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Search Stats */}
+            <div className="flex items-center text-sm text-muted-foreground">
+              {isLoadingProducts ? (
+                <span>Searching...</span>
+              ) : (
+                <span>{sortedItems.length} products found</span>
+              )}
+            </div>
           </div>
+
+          {/* Active Filters Display */}
+          {(searchQuery || selectedCategory !== 'all') && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Active filters:</span>
+              {searchQuery && (
+                <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
+                  Search: "{searchQuery}"
+                  <Button
+                    onClick={() => setSearchQuery("")}
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-2"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              )}
+              {selectedCategory !== 'all' && (
+                <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                  Category: {categories.find(c => c.value === selectedCategory)?.label}
+                  <Button
+                    onClick={() => setSelectedCategory("all")}
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-2"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              )}
+              <Button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("all");
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Marketplace Grid */}
@@ -461,11 +549,34 @@ export default function MarketplacePage() {
           </div>
         )}
 
-        {sortedItems.length === 0 && (
+        {sortedItems.length === 0 && !isLoadingProducts && (
           <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No items found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No products found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery 
+                ? `No results for "${searchQuery}". Try a different search term.`
+                : "Try searching for a product or adjusting your filters"
+              }
+            </p>
+            {searchQuery && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Suggestions:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {['electronics', 'books', 'home', 'fashion', 'sports'].map((suggestion) => (
+                    <Button
+                      key={suggestion}
+                      onClick={() => setSearchQuery(suggestion)}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                    >
+                      Search "{suggestion}"
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

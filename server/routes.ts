@@ -233,6 +233,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Amazon API routes
+  app.get("/api/amazon/search", async (req, res) => {
+    try {
+      const { q: query = '', category, minPrice, maxPrice } = req.query;
+      const { amazonAPI } = await import('./amazon-api');
+      
+      const products = await amazonAPI.searchProducts(
+        query as string, 
+        category as string, 
+        minPrice ? parseFloat(minPrice as string) : undefined,
+        maxPrice ? parseFloat(maxPrice as string) : undefined
+      );
+      
+      res.json(products);
+    } catch (error) {
+      console.error("Amazon search error:", error);
+      res.status(500).json({ error: "Failed to search Amazon products" });
+    }
+  });
+
+  // Crypto rates API
+  app.get("/api/crypto/rates", async (req, res) => {
+    try {
+      const { amazonAPI } = await import('./amazon-api');
+      const rates = await amazonAPI.getCryptoRates();
+      res.json(rates);
+    } catch (error) {
+      console.error("Crypto rates error:", error);
+      res.status(500).json({ error: "Failed to fetch crypto rates" });
+    }
+  });
+
   // Find or create user by wallet address
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
