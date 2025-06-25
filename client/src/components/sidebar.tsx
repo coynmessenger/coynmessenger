@@ -8,7 +8,7 @@ import { Search, Wallet, UserPlus, Settings } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import AddContactModal from "./add-contact-modal";
-import ProfileModal from "./profile-modal";
+import SettingsModal from "./settings-modal";
 
 interface SidebarProps {
   user?: User;
@@ -34,7 +34,7 @@ export default function Sidebar({
   onSearchChange,
 }: SidebarProps) {
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const formatLastMessage = (message?: Message) => {
     if (!message) return "";
     
@@ -71,7 +71,7 @@ export default function Sidebar({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsProfileOpen(true)}
+              onClick={() => setIsSettingsOpen(true)}
               className="text-slate-400 hover:text-cyan-400"
             >
               <Settings className="h-4 w-4" />
@@ -186,9 +186,9 @@ export default function Sidebar({
         isOpen={isAddContactOpen}
         onClose={() => setIsAddContactOpen(false)}
       />
-      <ProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </>
   );
