@@ -163,7 +163,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
+      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center space-x-3 mb-2">
             <img 
@@ -171,16 +171,16 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               alt="COYN Logo" 
               className="w-8 h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
             />
-            <DialogTitle className="text-xl font-bold text-black dark:text-white">COYN Wallet</DialogTitle>
+            <DialogTitle className="text-xl font-bold">COYN Wallet</DialogTitle>
           </div>
         </DialogHeader>
 
         {/* Balance Section */}
         <div className="text-center mb-6">
-          <div className="text-3xl font-bold text-orange-500 dark:text-cyan-400 mb-2">
+          <div className="text-3xl font-bold text-cyan-400 mb-2">
             {formatUSD(totalBalance.toString())}
           </div>
-          <div className="text-sm text-gray-600 dark:text-slate-400">Total Balance</div>
+          <div className="text-sm text-slate-400">Total Balance</div>
         </div>
 
         {/* Crypto Holdings */}
@@ -277,10 +277,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
         {/* Action Buttons */}
         <div className="flex space-x-3 mt-6">
-          <Button 
-            className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
-            onClick={() => setShowSendModal(true)}
-          >
+          <Button className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900">
             <Send className="h-4 w-4 mr-2" />
             Send
           </Button>
