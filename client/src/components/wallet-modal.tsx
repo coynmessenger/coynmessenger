@@ -150,7 +150,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-md">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center space-x-3 mb-2">
             <img 
@@ -178,7 +178,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             const isPositive = changePercent >= 0;
 
             return (
-              <Card key={balance.id} className="bg-slate-700 border-slate-600">
+              <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -194,10 +194,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                         </div>
                       )}
                       <div>
-                        <div className="font-medium">
+                        <div className="font-medium text-black dark:text-white">
                           {formatBalance(balance.balance, balance.currency)} {balance.currency}
                         </div>
-                        <div className="text-xs text-slate-400 capitalize">
+                        <div className="text-xs text-gray-600 dark:text-slate-400 capitalize">
                           {balance.currency === "BTC" ? "Bitcoin" : 
                            balance.currency === "ETH" ? "Ethereum" :
                            balance.currency === "USDT" ? "Tether" :
@@ -206,7 +206,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                      <div className={`font-medium ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                         {formatUSD(balance.usdValue || "0")}
                       </div>
                       <div className={`text-xs flex items-center justify-end ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
