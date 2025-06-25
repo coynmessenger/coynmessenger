@@ -794,17 +794,39 @@ export default function MarketplacePage() {
                           </div>
                         )}
                       </div>
-                      <Button 
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          isAmazonProduct ? handleProductClick(item) : handleProductClick(item);
-                        }}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {isAmazonProduct ? 'Buy' : 'Contact Seller'}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            isAmazonProduct ? setLocation(`/product/${item.ASIN}`) : handleProductClick(item);
+                          }}
+                          className="flex-1"
+                        >
+                          View
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isAmazonProduct) {
+                              const newCount = addToCart(item);
+                              setCartCount(newCount);
+                              toast({
+                                title: "Added to Cart",
+                                description: `${item.title} has been added to your cart`
+                              });
+                            } else {
+                              handleProductClick(item);
+                            }
+                          }}
+                          className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+                        >
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          {isAmazonProduct ? 'Add to Cart' : 'Contact'}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

@@ -28,7 +28,7 @@ const CRYPTO_RATES = {
   COYN: "2.45"
 } as const;
 
-export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
+export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
