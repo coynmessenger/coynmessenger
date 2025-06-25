@@ -34,6 +34,13 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
   const { toast } = useToast();
 
+  // Auto-open checkout when cart opens and has items
+  useEffect(() => {
+    if (isOpen && cartItems.length > 0 && !showCheckoutModal) {
+      setShowCheckoutModal(true);
+    }
+  }, [isOpen, cartItems.length, showCheckoutModal]);
+
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('shoppingCart');
@@ -122,8 +129,8 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background border-border">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
-              <ShoppingCartIcon className="h-5 w-5" />
-              Shopping Cart ({cartItems.length})
+              <CreditCard className="h-5 w-5" />
+              Finalize Purchase ({cartItems.length} items)
             </DialogTitle>
           </DialogHeader>
 
@@ -204,7 +211,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     size="lg"
                   >
                     <CreditCard className="h-5 w-5 mr-2" />
-                    Finalize Purchase
+                    Complete Purchase
                   </Button>
                 </div>
               </>
