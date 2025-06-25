@@ -153,9 +153,14 @@ export default function MarketplacePage() {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [showWalletHover, setShowWalletHover] = useState(false);
+  const walletButtonRef = useRef<HTMLButtonElement>(null);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [imageIndexes, setImageIndexes] = useState<Map<string, number>>(new Map());
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const { toast } = useToast();
 
   // Fetch Amazon products with debounced search
   const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
