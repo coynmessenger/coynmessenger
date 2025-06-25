@@ -253,9 +253,16 @@ export default function MarketplacePage() {
 
   const allItems = [...amazonProducts, ...legacyItems];
   
+  // Filter out items without images and apply search/category filters
   const filteredItems = allItems.filter(item => {
+    // Check if item has a valid image
+    const hasImage = isAmazonProduct ? item.imageUrl && item.imageUrl.trim() !== '' : item.image && item.image.trim() !== '';
+    if (!hasImage) return false;
+    
+    const isAmazonProduct = 'ASIN' in item;
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (item.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+                         (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (isAmazonProduct ? item.brand?.toLowerCase() : item.seller?.toLowerCase())?.includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || item.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
@@ -290,29 +297,43 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 border-b border-orange-200 dark:border-slate-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-10 h-10"
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-primary">COYN Marketplace</h1>
-                <p className="text-sm text-muted-foreground">Discover, buy, and sell with crypto</p>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <img 
+                    src={coynLogoPath} 
+                    alt="COYN Logo" 
+                    className="w-12 h-12 drop-shadow-md"
+                  />
+                  <div className="absolute -inset-1 bg-orange-400/20 dark:bg-cyan-400/20 rounded-full blur-sm -z-10"></div>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 dark:from-cyan-400 dark:to-cyan-600 bg-clip-text text-transparent">
+                    COYN Marketplace
+                  </h1>
+                  <p className="text-sm text-orange-700 dark:text-cyan-300 font-medium">
+                    Shop Amazon with Cryptocurrency • Powered by COYN
+                  </p>
+                </div>
               </div>
             </div>
-            <Button
-              onClick={() => setLocation("/")}
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
+            <div className="flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-2 text-sm text-orange-600 dark:text-cyan-400">
+                <Coins className="h-4 w-4" />
+                <span className="font-medium">Pay with BTC, BNB, USDT, COYN</span>
+              </div>
+              <Button
+                onClick={() => setLocation("/")}
+                className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-md transition-all duration-200 hover:shadow-lg"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -493,15 +514,17 @@ export default function MarketplacePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {imageUrl && (
-                      <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                        <img 
-                          src={imageUrl} 
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                    <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                      <img 
+                        src={imageUrl || 'https://via.placeholder.com/400x300?text=No+Image'} 
+                        alt={item.title}
+                        className="w-full h-full object-contain hover:object-cover transition-all duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Available';
+                        }}
+                      />
+                    </div>
                     
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {item.description || 'No description available'}

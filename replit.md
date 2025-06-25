@@ -145,6 +145,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Added marketplace button to homepage and created comprehensive marketplace page with product listings, search, filters, and statistics
 - June 25, 2025: Integrated Amazon API for crypto purchases - real product search, crypto-to-USD conversion, purchase flow with multiple cryptocurrencies, and live pricing
 - June 25, 2025: Enhanced marketplace with advanced search engine - improved search UI, filter management, search suggestions, active filter display, and better user experience
+- June 25, 2025: Redesigned marketplace header with gradient styling, crypto payment indicators, and improved home button - expanded product catalog to 100+ items with authentic images and filtered out products without images
 
 ## User Preferences
 

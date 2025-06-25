@@ -155,6 +155,7 @@ class AmazonAPI {
 
   private getMockProducts(query: string): AmazonProduct[] {
     const mockProducts: AmazonProduct[] = [
+      // Electronics
       {
         ASIN: 'B08N5WRWNW',
         title: 'Echo Dot (4th Gen) Smart Speaker with Alexa',
@@ -182,6 +183,112 @@ class AmazonAPI {
         description: 'Wireless earbuds with active noise cancellation and spatial audio.'
       },
       {
+        ASIN: 'B08GGGHLZD',
+        title: 'Samsung Galaxy Watch 4',
+        price: '279.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61MWOGeVCJL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08GGGHLZD',
+        rating: 4.4,
+        reviewCount: 8234,
+        category: 'Electronics',
+        brand: 'Samsung',
+        description: 'Advanced smartwatch with health tracking and GPS.'
+      },
+      {
+        ASIN: 'B0BSHF7LKS',
+        title: 'Sony WH-1000XM5 Wireless Headphones',
+        price: '399.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B0BSHF7LKS',
+        rating: 4.6,
+        reviewCount: 15642,
+        category: 'Electronics',
+        brand: 'Sony',
+        description: 'Industry-leading noise cancellation with exceptional sound quality.'
+      },
+      {
+        ASIN: 'B09JQMJHXY',
+        title: 'iPad Air (5th Generation)',
+        price: '599.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61NGnpjoTDL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B09JQMJHXY',
+        rating: 4.8,
+        reviewCount: 23156,
+        category: 'Electronics',
+        brand: 'Apple',
+        description: 'Powerful tablet with M1 chip and stunning Liquid Retina display.'
+      },
+      {
+        ASIN: 'B08N5WRWNZ',
+        title: 'Nintendo Switch OLED Model',
+        price: '349.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08N5WRWNZ',
+        rating: 4.7,
+        reviewCount: 18567,
+        category: 'Electronics',
+        brand: 'Nintendo',
+        description: 'Gaming console with vibrant 7-inch OLED screen.'
+      },
+      {
+        ASIN: 'B087XZQGBW',
+        title: 'MacBook Air M2',
+        price: '1199.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71jG+e7roXL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B087XZQGBW',
+        rating: 4.9,
+        reviewCount: 12489,
+        category: 'Electronics',
+        brand: 'Apple',
+        description: 'Ultralight laptop with M2 chip and all-day battery life.'
+      },
+      {
+        ASIN: 'B08HLZLZDF',
+        title: 'Ring Video Doorbell',
+        price: '179.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71YLcVFlH8L._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08HLZLZDF',
+        rating: 4.3,
+        reviewCount: 34567,
+        category: 'Electronics',
+        brand: 'Ring',
+        description: 'Smart doorbell with HD video and two-way talk.'
+      },
+      {
+        ASIN: 'B09BG326KG',
+        title: 'iPhone 14 Pro',
+        price: '999.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71ZOtVbpp5L._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B09BG326KG',
+        rating: 4.8,
+        reviewCount: 45123,
+        category: 'Electronics',
+        brand: 'Apple',
+        description: 'Pro camera system with 48MP main camera and A16 Bionic chip.'
+      },
+      {
+        ASIN: 'B08KRV7S22',
+        title: 'Tesla Model S Plaid',
+        price: '89999.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71vK0WVQ4GL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08KRV7S22',
+        rating: 4.9,
+        reviewCount: 567,
+        category: 'Automotive',
+        brand: 'Tesla',
+        description: 'Electric vehicle with ludicrous acceleration and autopilot.'
+      },
+
+      // Home & Kitchen
+      {
         ASIN: 'B09B8WRQNB',
         title: 'YETI Rambler 20 oz Tumbler',
         price: '34.95',
@@ -193,12 +300,181 @@ class AmazonAPI {
         category: 'Kitchen',
         brand: 'YETI',
         description: 'Insulated stainless steel tumbler that keeps drinks cold or hot.'
+      },
+      {
+        ASIN: 'B08FF5YGDQ',
+        title: 'Instant Pot Duo 7-in-1',
+        price: '89.95',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71XQmKjq2HL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08FF5YGDQ',
+        rating: 4.7,
+        reviewCount: 67890,
+        category: 'Kitchen',
+        brand: 'Instant Pot',
+        description: 'Multi-use pressure cooker, slow cooker, rice cooker, and more.'
+      },
+      {
+        ASIN: 'B07GDJJXS5',
+        title: 'Ninja Foodi Personal Blender',
+        price: '69.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81M-VjTwRtL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B07GDJJXS5',
+        rating: 4.6,
+        reviewCount: 23456,
+        category: 'Kitchen',
+        brand: 'Ninja',
+        description: 'Powerful personal blender for smoothies and shakes.'
+      },
+      {
+        ASIN: 'B08GFGH567',
+        title: 'KitchenAid Stand Mixer',
+        price: '349.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81dCdZp+D8L._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08GFGH567',
+        rating: 4.8,
+        reviewCount: 34567,
+        category: 'Kitchen',
+        brand: 'KitchenAid',
+        description: 'Professional-grade stand mixer for all your baking needs.'
+      },
+      {
+        ASIN: 'B09HHQWWRT',
+        title: 'Dyson V15 Detect Vacuum',
+        price: '749.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61qIrYR2CDL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B09HHQWWRT',
+        rating: 4.5,
+        reviewCount: 12345,
+        category: 'Home',
+        brand: 'Dyson',
+        description: 'Cordless vacuum with laser dust detection technology.'
+      },
+
+      // Books
+      {
+        ASIN: 'B0B2S4NHJK',
+        title: 'Atomic Habits by James Clear',
+        price: '13.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UL600_SR600,600_.jpg',
+        productUrl: 'https://amazon.com/dp/B0B2S4NHJK',
+        rating: 4.8,
+        reviewCount: 89123,
+        category: 'Books',
+        brand: 'Avery',
+        description: 'Life-changing guide to building good habits and breaking bad ones.'
+      },
+      {
+        ASIN: 'B075FQMZL9',
+        title: 'The 7 Habits of Highly Effective People',
+        price: '16.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/51Myx8VS-NL._AC_UY600_.jpg',
+        productUrl: 'https://amazon.com/dp/B075FQMZL9',
+        rating: 4.7,
+        reviewCount: 56789,
+        category: 'Books',
+        brand: 'Simon & Schuster',
+        description: 'Timeless principles for personal and professional effectiveness.'
+      },
+      {
+        ASIN: 'B086P2VKPV',
+        title: 'Think and Grow Rich',
+        price: '12.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61y04z8SKEL._AC_UY600_.jpg',
+        productUrl: 'https://amazon.com/dp/B086P2VKPV',
+        rating: 4.6,
+        reviewCount: 34567,
+        category: 'Books',
+        brand: 'Napoleon Hill Foundation',
+        description: 'Classic guide to wealth building and success mindset.'
+      },
+
+      // Fashion
+      {
+        ASIN: 'B08F3J4K5L',
+        title: 'Nike Air Force 1 Sneakers',
+        price: '89.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71KmTk4PthL._AC_UX500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08F3J4K5L',
+        rating: 4.7,
+        reviewCount: 23456,
+        category: 'Fashion',
+        brand: 'Nike',
+        description: 'Classic basketball sneakers with timeless style.'
+      },
+      {
+        ASIN: 'B09HTNB789',
+        title: 'Levi\'s 501 Original Jeans',
+        price: '59.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81ORL3dvVPL._AC_UX466_.jpg',
+        productUrl: 'https://amazon.com/dp/B09HTNB789',
+        rating: 4.5,
+        reviewCount: 18765,
+        category: 'Fashion',
+        brand: 'Levi\'s',
+        description: 'Original straight fit jeans with authentic vintage styling.'
+      },
+      {
+        ASIN: 'B08M9KL567',
+        title: 'Ray-Ban Aviator Sunglasses',
+        price: '149.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/714u35Wb6nL._AC_UX466_.jpg',
+        productUrl: 'https://amazon.com/dp/B08M9KL567',
+        rating: 4.8,
+        reviewCount: 34567,
+        category: 'Fashion',
+        brand: 'Ray-Ban',
+        description: 'Iconic aviator sunglasses with premium UV protection.'
+      },
+
+      // Sports & Outdoors
+      {
+        ASIN: 'B09J5K6L7M',
+        title: 'Hydro Flask Water Bottle',
+        price: '44.95',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61f7FhDVOJL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B09J5K6L7M',
+        rating: 4.7,
+        reviewCount: 23456,
+        category: 'Sports',
+        brand: 'Hydro Flask',
+        description: 'Insulated stainless steel water bottle keeps drinks cold for 24 hours.'
+      },
+      {
+        ASIN: 'B08H7J8K9L',
+        title: 'Yoga Mat Premium',
+        price: '29.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71XBvyUdDUL._AC_SL1500_.jpg',
+        productUrl: 'https://amazon.com/dp/B08H7J8K9L',
+        rating: 4.6,
+        reviewCount: 12345,
+        category: 'Sports',
+        brand: 'Gaiam',
+        description: 'Non-slip yoga mat with extra cushioning for comfort.'
       }
     ];
 
+    // Filter products based on query or return all if no specific query
+    if (!query || query.trim() === '') {
+      return mockProducts;
+    }
+
     return mockProducts.filter(product => 
       product.title.toLowerCase().includes(query.toLowerCase()) ||
-      product.category.toLowerCase().includes(query.toLowerCase())
+      product.category.toLowerCase().includes(query.toLowerCase()) ||
+      product.brand?.toLowerCase().includes(query.toLowerCase()) ||
+      product.description?.toLowerCase().includes(query.toLowerCase())
     );
   }
 
