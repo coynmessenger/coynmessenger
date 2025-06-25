@@ -100,21 +100,21 @@ export default function HomePage() {
             </div>
             <div className="relative mb-4">
               {/* Glowing effect background */}
-              <div className="absolute inset-0 text-6xl font-bold tracking-[0.2em] text-cyan-400/30 blur-sm">
+              <div className="absolute inset-0 text-6xl font-bold tracking-[0.2em] text-black/30 dark:text-cyan-400/30 blur-sm">
                 COYN
               </div>
               {/* Main neon text */}
-              <h1 className="relative text-6xl font-bold tracking-[0.2em] text-cyan-400 drop-shadow-[0_0_30px_rgba(34,211,238,0.8)]">
+              <h1 className="relative text-6xl font-bold tracking-[0.2em] text-black dark:text-cyan-400 drop-shadow-[0_0_30px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_30px_rgba(34,211,238,0.8)]">
                 COYN
               </h1>
             </div>
             <div className="relative">
               {/* Glowing effect background for Messenger */}
-              <div className="absolute inset-0 text-2xl font-light text-cyan-300/30 blur-sm">
+              <div className="absolute inset-0 text-2xl font-light text-black/30 dark:text-cyan-300/30 blur-sm">
                 Messenger
               </div>
               {/* Main Messenger text */}
-              <h2 className="relative text-2xl font-light text-cyan-300 drop-shadow-[0_0_20px_rgba(103,232,249,0.6)]">
+              <h2 className="relative text-2xl font-light text-black dark:text-cyan-300 drop-shadow-[0_0_20px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_0_20px_rgba(103,232,249,0.6)]">
                 Messenger
               </h2>
             </div>
@@ -124,13 +124,13 @@ export default function HomePage() {
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-slate-800/50 border-slate-700 backdrop-blur">
+            <Card key={index} className="bg-white dark:bg-slate-800/50 border-black dark:border-slate-700 backdrop-blur">
               <CardHeader className="pb-3">
-                <feature.icon className="h-8 w-8 text-cyan-400 mb-2" />
-                <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
+                <feature.icon className="h-8 w-8 text-black dark:text-cyan-400 mb-2" />
+                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-400 text-sm">{feature.description}</p>
+                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
