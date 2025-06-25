@@ -4,9 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { insertMessageSchema, insertEscrowSchema, insertUserSchema, insertProductDesireSchema } from "@shared/schema";
-import { amazonAPI } from "./amazon-api";
-import { timeMarketplace } from "./time-marketplace";
+import { insertMessageSchema, insertEscrowSchema, insertUserSchema } from "@shared/schema";
 import { initializeDatabase } from "./db";
 import { z } from "zod";
 
@@ -396,124 +394,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting users:", error);
       res.status(500).json({ message: "Failed to get users" });
-    }
-  });
-
-  // Amazon API routes
-  app.get("/api/amazon/search", async (req, res) => {
-    try {
-      const { q, category, minPrice, maxPrice } = req.query;
-      const products = await amazonAPI.searchProducts(
-        q as string,
-        category as string,
-        minPrice ? parseInt(minPrice as string) : undefined,
-        maxPrice ? parseInt(maxPrice as string) : undefined
-      );
-      res.json(products);
-    } catch (error) {
-      console.error("Amazon search error:", error);
-      res.status(500).json({ error: "Failed to search products" });
-    }
-  });
-
-  app.get("/api/crypto/rates", async (req, res) => {
-    try {
-      const rates = await amazonAPI.getCryptoRates();
-      res.json(rates);
-    } catch (error) {
-      console.error("Crypto rates error:", error);
-      res.status(500).json({ error: "Failed to get crypto rates" });
-    }
-  });
-
-  // Time Marketplace routes
-  app.get("/api/time-products", async (req, res) => {
-    try {
-      const products = await storage.getActiveTimeProducts();
-      
-      // Enhance products with current pricing and time data
-      const enhancedProducts = products.map(product => ({
-        ...product,
-        currentPrice: timeMarketplace.calculateCurrentPrice(product),
-        timeRemaining: timeMarketplace.getTimeRemaining(product),
-        timeRemainingFormatted: timeMarketplace.formatTimeRemaining(
-          timeMarketplace.getTimeRemaining(product)
-        ),
-        urgencyLevel: timeMarketplace.getTimeRemaining(product) < 300000 ? "critical" : 
-                     timeMarketplace.getTimeRemaining(product) < 900000 ? "high" : "normal"
-      }));
-      
-      res.json(enhancedProducts);
-    } catch (error) {
-      console.error("Time products error:", error);
-      res.status(500).json({ error: "Failed to get time products" });
-    }
-  });
-
-  app.get("/api/time-products/:id", async (req, res) => {
-    try {
-      const productId = parseInt(req.params.id);
-      const product = await storage.getTimeProduct(productId);
-      
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-      
-      const desires = await storage.getProductDesires(productId);
-      
-      const enhancedProduct = {
-        ...product,
-        currentPrice: timeMarketplace.calculateCurrentPrice(product),
-        timeRemaining: timeMarketplace.getTimeRemaining(product),
-        timeRemainingFormatted: timeMarketplace.formatTimeRemaining(
-          timeMarketplace.getTimeRemaining(product)
-        ),
-        desires: desires.length,
-        totalDesireStrength: desires.reduce((sum, d) => sum + d.desireStrength, 0)
-      };
-      
-      res.json(enhancedProduct);
-    } catch (error) {
-      console.error("Time product detail error:", error);
-      res.status(500).json({ error: "Failed to get product details" });
-    }
-  });
-
-  app.post("/api/time-products/:id/desire", async (req, res) => {
-    try {
-      const productId = parseInt(req.params.id);
-      const { desireStrength, cryptoStaked } = req.body;
-      const userId = 5; // TODO: Get from session
-      
-      const desire = await storage.createProductDesire({
-        productId,
-        userId,
-        desireStrength: desireStrength || 1,
-        cryptoStaked: cryptoStaked || "0"
-      });
-      
-      // Record interaction for rewards
-      await timeMarketplace.recordUserInteraction(productId, userId, "desire");
-      
-      res.json(desire);
-    } catch (error) {
-      console.error("Product desire error:", error);
-      res.status(500).json({ error: "Failed to record desire" });
-    }
-  });
-
-  app.post("/api/time-products/:id/interact", async (req, res) => {
-    try {
-      const productId = parseInt(req.params.id);
-      const { interactionType } = req.body;
-      const userId = 5; // TODO: Get from session
-      
-      await timeMarketplace.recordUserInteraction(productId, userId, interactionType);
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Product interaction error:", error);
-      res.status(500).json({ error: "Failed to record interaction" });
     }
   });
 
