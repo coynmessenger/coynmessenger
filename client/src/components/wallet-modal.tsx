@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft } from "lucide-react";
@@ -43,6 +45,8 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
+  const [useEscrow, setUseEscrow] = useState(false);
+  const [escrowDescription, setEscrowDescription] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "success">("form");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -52,18 +56,43 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
   const sendAmount = parseFloat(amount || "0");
 
   const sendMutation = useMutation({
-    mutationFn: async (data: { currency: string; amount: string; recipientAddress: string }) => {
-      // In a real app, this would call your send transaction API
-      // For now, we'll simulate a successful send
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return { txId: `tx_${Date.now()}`, ...data };
+    mutationFn: async (data: { 
+      currency: string; 
+      amount: string; 
+      recipientAddress: string; 
+      useEscrow: boolean;
+      escrowDescription?: string;
+    }) => {
+      if (data.useEscrow) {
+        // Create escrow transaction
+        const response = await apiRequest("/api/escrow", {
+          method: "POST",
+          body: JSON.stringify({
+            participant1Currency: data.currency,
+            participant1Amount: data.amount,
+            participant2Currency: data.currency,
+            participant2Amount: data.amount,
+            description: data.escrowDescription || "Wallet transfer",
+            recipientAddress: data.recipientAddress,
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
+        return { ...response, isEscrow: true };
+      } else {
+        // Regular direct transfer
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return { txId: `tx_${Date.now()}`, ...data, isEscrow: false };
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setStep("success");
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
-        title: "Transaction Sent",
-        description: `Successfully sent ${amount} ${selectedCurrency}`,
+        title: data.isEscrow ? "Escrow Created" : "Transaction Sent",
+        description: data.isEscrow 
+          ? `Created escrow for ${amount} ${selectedCurrency}` 
+          : `Successfully sent ${amount} ${selectedCurrency}`,
       });
     },
     onError: (error) => {
@@ -92,6 +121,8 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
       currency: selectedCurrency,
       amount,
       recipientAddress,
+      useEscrow,
+      escrowDescription,
     });
   };
 
@@ -99,6 +130,8 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
     setStep("form");
     setRecipientAddress("");
     setAmount("");
+    setUseEscrow(false);
+    setEscrowDescription("");
     onClose();
   };
 
@@ -205,6 +238,35 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
               )}
             </div>
 
+            {/* Escrow Option */}
+            <div className="space-y-3 border-t border-gray-200 dark:border-slate-600 pt-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="escrow"
+                  checked={useEscrow}
+                  onCheckedChange={(checked) => setUseEscrow(checked as boolean)}
+                />
+                <Label htmlFor="escrow" className="text-black dark:text-white font-medium">
+                  Use Escrow (Secure Transaction)
+                </Label>
+              </div>
+              {useEscrow && (
+                <div className="space-y-2">
+                  <Label className="text-black dark:text-white text-sm">Transaction Description</Label>
+                  <Textarea
+                    value={escrowDescription}
+                    onChange={(e) => setEscrowDescription(e.target.value)}
+                    placeholder="Describe what this transaction is for..."
+                    className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white text-sm"
+                    rows={2}
+                  />
+                  <p className="text-xs text-gray-600 dark:text-slate-400">
+                    Escrow protects both parties. Funds are held securely until both parties confirm the transaction.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex space-x-3 pt-4">
               <Button
                 onClick={handleClose}
@@ -215,10 +277,10 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
               </Button>
               <Button
                 onClick={handleSend}
-                disabled={!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance}
+                disabled={!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance || (useEscrow && !escrowDescription.trim())}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
               >
-                Continue
+                {useEscrow ? "Create Escrow" : "Continue"}
               </Button>
             </div>
           </div>
@@ -227,6 +289,12 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
         {step === "confirm" && (
           <div className="space-y-4">
             <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-slate-400">Type:</span>
+                <span className="font-medium text-black dark:text-white">
+                  {useEscrow ? "Escrow Transaction" : "Direct Transfer"}
+                </span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-slate-400">Currency:</span>
                 <span className="font-medium text-black dark:text-white">{selectedCurrency}</span>
@@ -241,10 +309,25 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
                   {recipientAddress.slice(0, 8)}...{recipientAddress.slice(-8)}
                 </span>
               </div>
+              {useEscrow && escrowDescription && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-slate-400">Description:</span>
+                  <span className="text-sm text-black dark:text-white text-right max-w-48 break-words">
+                    {escrowDescription}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-slate-400">Network Fee:</span>
                 <span className="font-medium text-black dark:text-white">0.001 {selectedCurrency}</span>
               </div>
+              {useEscrow && (
+                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    ⚡ This transaction will be secured by escrow. Funds will be held until both parties confirm completion.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex space-x-3 pt-4">
@@ -260,7 +343,9 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
                 disabled={sendMutation.isPending}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
               >
-                {sendMutation.isPending ? "Sending..." : "Confirm Send"}
+                {sendMutation.isPending 
+                  ? (useEscrow ? "Creating Escrow..." : "Sending...") 
+                  : (useEscrow ? "Create Escrow" : "Confirm Send")}
               </Button>
             </div>
           </div>
@@ -272,10 +357,19 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
               <Check className="h-8 w-8 text-green-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Transaction Sent!</h3>
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
+                {useEscrow ? "Escrow Created!" : "Transaction Sent!"}
+              </h3>
               <p className="text-gray-600 dark:text-slate-400">
-                Successfully sent {amount} {selectedCurrency}
+                {useEscrow 
+                  ? `Created secure escrow for ${amount} ${selectedCurrency}` 
+                  : `Successfully sent ${amount} ${selectedCurrency}`}
               </p>
+              {useEscrow && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                  Funds are held securely until both parties confirm completion
+                </p>
+              )}
             </div>
             <Button
               onClick={handleClose}
