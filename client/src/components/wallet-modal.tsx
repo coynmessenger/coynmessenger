@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User, Escrow } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
-import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { apiRequest } from "@/lib/queryClient";
 
 interface WalletModalProps {

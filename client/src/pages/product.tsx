@@ -28,7 +28,7 @@ import {
   Settings,
   Wallet
 } from "lucide-react";
-import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import ShoppingCartComponent, { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 import SettingsModal from "@/components/settings-modal";
