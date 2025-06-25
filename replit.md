@@ -161,6 +161,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Added floating scroll to top button in marketplace with smooth scrolling animation and orange/cyan theme styling
 - June 25, 2025: Optimized messenger sidebar layout - reduced padding, made elements thinner, smaller avatars and icons, more compact spacing for better contact visibility
 - June 25, 2025: Redesigned chat interface to WhatsApp-style layout - green message bubbles, date separators, subtle background pattern, rounded input with attachment icons, orange/cyan theme integration
+- June 25, 2025: Redesigned chat header to match WhatsApp style - compact orange header with smaller avatar, tighter spacing, clean typography, and improved button layout
 
 ## User Preferences
 
