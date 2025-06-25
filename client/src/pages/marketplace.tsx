@@ -699,7 +699,7 @@ export default function MarketplacePage() {
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
-                        {isAmazonProduct ? 'Buy with Crypto' : 'Contact Seller'}
+                        {isAmazonProduct ? 'Buy' : 'Contact Seller'}
                       </Button>
                     </div>
                   </CardContent>

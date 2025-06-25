@@ -149,6 +149,12 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Simplified marketplace header to clean design with COYN branding and home icon button
 - June 25, 2025: Enhanced image loading with lazy loading, smooth transitions, error handling, and expanded to 25+ verified Amazon products with authentic images
 - June 25, 2025: Added settings button to marketplace header and integrated mailing address functionality for shipping - users can now add full shipping details in settings for marketplace purchases
+- June 25, 2025: Removed popular searches section from marketplace for cleaner interface
+- June 25, 2025: Added comprehensive hover tooltips on product images with descriptions, ratings, and reviews
+- June 25, 2025: Implemented expandable "Details & Reviews" sections with mock customer reviews and product specifications
+- June 25, 2025: Made shipping information conditional - only appears in marketplace settings, not messenger settings
+- June 25, 2025: Updated marketplace header to display just "Marketplace" in Google Product Sans font, removed COYN branding
+- June 25, 2025: Simplified buy button text from "Buy with Crypto" to "Buy" for cleaner interface
 
 ## User Preferences
 
