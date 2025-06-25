@@ -69,12 +69,7 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Dark theme by default for COYN Messenger */
-  body {
-    @apply dark;
-    background: hsl(215, 28%, 17%); /* slate-800 equivalent */
-    color: hsl(210, 40%, 98%);
-  }
+  /* Remove default dark theme - let theme provider handle it */
 }
 
 @layer components {
