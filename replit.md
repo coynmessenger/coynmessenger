@@ -177,6 +177,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Removed "COYN Messenger" text from homepage header - kept only the COYN logo for cleaner appearance
 - June 25, 2025: Created comprehensive product page system with detailed product views, image carousels, suggested products, purchase flow, and chat sharing functionality
 - June 25, 2025: Enhanced product pages with horizontal scrolling suggested products and NFT rewards system featuring Bronze, Silver, Gold, and Diamond tiers based on purchase value
+- June 25, 2025: Added automatic scroll to top functionality for product and marketplace pages to ensure users always start at the top when navigating
 
 ## User Preferences
 

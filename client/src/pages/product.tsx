@@ -265,6 +265,11 @@ export default function ProductPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Always scroll to top when product page loads or product changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [productASIN]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
