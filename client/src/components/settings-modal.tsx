@@ -47,7 +47,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       if (!user) throw new Error("No user data");
       console.log("Sending update request:", updates);
       const response = await apiRequest(`/api/users/${user.id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(updates),
         headers: { "Content-Type": "application/json" },
       });
