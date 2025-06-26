@@ -51,9 +51,9 @@ export default function HomePage() {
           walletAddress,
           displayName
         });
-      } catch (error) {
-        // If wallet address not found, throw error - no new user creation
-        throw new Error("Wallet address not recognized. Please contact administrator to register this wallet address.");
+      } catch (error: any) {
+        // Re-throw the actual error from the server
+        throw new Error(error.message || "Failed to connect wallet");
       }
     },
     onSuccess: (user: User) => {
@@ -303,7 +303,7 @@ export default function HomePage() {
 
                   {connectWalletMutation.error && (
                     <p className="text-red-500 dark:text-red-400 text-sm text-center">
-                      Wallet address not recognized. Please contact administrator to register this wallet address.
+                      {connectWalletMutation.error.message}
                     </p>
                   )}
                 </form>

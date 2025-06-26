@@ -514,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Find existing user by wallet address (no new user creation)
+  // Find or create user by wallet address (with validation)
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
       const { walletAddress, displayName } = req.body;
@@ -523,25 +523,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Wallet address is required" });
       }
 
-      // Only find existing users, do not create new ones
+      // Validate wallet address format (basic validation)
+      const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(walletAddress);
+      if (!isValidAddress) {
+        return res.status(400).json({ 
+          message: "Invalid wallet address format" 
+        });
+      }
+
+      // Check if user already exists
       let user = await storage.getUserByWalletAddress(walletAddress);
       
       if (!user) {
-        // Return error if user doesn't exist - no new user creation
-        return res.status(404).json({ 
-          message: "Wallet address not found. Please contact administrator to register this wallet address." 
+        // Create new user for valid wallet addresses
+        const userData = insertUserSchema.parse({
+          username: `user_${Date.now()}`,
+          displayName: displayName?.trim() || `User ${walletAddress.slice(-6)}`,
+          walletAddress,
+          profilePicture: null,
+          isOnline: true
         });
-      }
-      
-      // Update display name if provided and user exists
-      if (displayName && displayName.trim() !== user.displayName) {
+        
+        user = await storage.createUser(userData);
+      } else if (displayName && displayName.trim() !== user.displayName) {
+        // Update display name if provided and user exists
         user = await storage.updateUser(user.id, { displayName: displayName.trim() });
       }
       
       res.json(user);
     } catch (error) {
-      console.error("Error finding user:", error);
-      res.status(500).json({ message: "Failed to find user" });
+      console.error("Error finding/creating user:", error);
+      res.status(500).json({ message: "Failed to find or create user" });
     }
   });
 
