@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart } from "lucide-react";
+import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
@@ -144,11 +144,6 @@ export default function HomePage() {
 
   const features = [
     {
-      icon: Globe,
-      title: "Web 3.0 Native",
-      description: "Built for the decentralized web with blockchain-verified identities"
-    },
-    {
       icon: Coins,
       title: "Instant Crypto",
       description: "Send BTC, BNB, USDT, and COYN directly in your chats"
@@ -162,6 +157,11 @@ export default function HomePage() {
       icon: MessageCircle,
       title: "Secure Chat",
       description: "Encrypted conversations with wallet-verified contacts"
+    },
+    {
+      icon: ShoppingBag,
+      title: "Crypto Marketplace",
+      description: "Shop Amazon products and pay with cryptocurrency"
     }
   ];
 
