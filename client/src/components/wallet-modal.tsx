@@ -37,7 +37,6 @@ interface QRModalProps {
 }
 
 const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
-  BTC: { color: "bg-orange-500", symbol: "₿" },
   BNB: { color: "bg-yellow-500", symbol: "⬢" },
   USDT: { color: "bg-green-500", symbol: "₮" },
   COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
@@ -53,8 +52,6 @@ const renderCurrencyIcon = (currency: string, size: "sm" | "md" | "lg" = "md") =
   const iconSize = sizeClasses[size];
   
   switch (currency) {
-    case "BTC":
-      return <SiBitcoin className={`${iconSize} text-orange-500`} />;
     case "BNB":
       return <SiBinance className={`${iconSize} text-yellow-500`} />;
     case "COYN":
@@ -70,7 +67,7 @@ const renderCurrencyIcon = (currency: string, size: "sm" | "md" | "lg" = "md") =
 };
 
 function SendModal({ isOpen, onClose, balances }: SendModalProps) {
-  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [selectedCurrency, setSelectedCurrency] = useState("BNB");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [useEscrow, setUseEscrow] = useState(false);
@@ -670,7 +667,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   const [showQRCode, setShowQRCode] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showEscrowList, setShowEscrowList] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [selectedCurrency, setSelectedCurrency] = useState("BNB");
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
 
   // Pre-select currency when modal opens with initial currency

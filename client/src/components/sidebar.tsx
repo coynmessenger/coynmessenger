@@ -60,7 +60,6 @@ export default function Sidebar({
 
   // Currency icons and helper functions
   const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
-    BTC: { color: "bg-orange-500", symbol: "₿" },
     BNB: { color: "bg-yellow-500", symbol: "⬢" },
     USDT: { color: "bg-green-500", symbol: "₮" },
     COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
@@ -75,7 +74,7 @@ export default function Sidebar({
 
     const config = currencyIcons[currency];
     if (!config) {
-      return <div className={`${sizeClasses[size]} ${currencyIcons.BTC.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>?</div>;
+      return <div className={`${sizeClasses[size]} bg-gray-500 rounded-full flex items-center justify-center text-white text-xs font-bold`}>?</div>;
     }
 
     if (config.isCoyn) {
@@ -86,10 +85,6 @@ export default function Sidebar({
           className={`${sizeClasses[size]} drop-shadow-[0_0_8px_rgba(255,193,7,0.3)]`}
         />
       );
-    }
-
-    if (currency === "BTC") {
-      return <SiBitcoin className={`${sizeClasses[size]} text-orange-500`} />;
     }
 
     if (currency === "BNB") {

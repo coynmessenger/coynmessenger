@@ -16,7 +16,6 @@ interface AmazonProduct {
 }
 
 interface CryptoRates {
-  BTC: number;
   BNB: number;
   USDT: number;
   COYN: number;
@@ -649,11 +648,10 @@ class AmazonAPI {
   async getCryptoRates(): Promise<CryptoRates> {
     try {
       // In a real implementation, this would call a crypto price API like CoinGecko
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,binancecoin,tether,coyn&vs_currencies=usd');
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin,tether,coyn&vs_currencies=usd');
       const data = await response.json();
       
       return {
-        BTC: data.bitcoin?.usd || 45000,
         BNB: data.binancecoin?.usd || 300,
         USDT: data.tether?.usd || 1,
         COYN: data.coyn?.usd || 0.15 // Mock COYN price
@@ -662,7 +660,6 @@ class AmazonAPI {
       console.error('[CRYPTO RATES] Failed to fetch rates:', error);
       // Return mock rates
       return {
-        BTC: 45000,
         BNB: 300,
         USDT: 1,
         COYN: 0.15
@@ -672,7 +669,6 @@ class AmazonAPI {
 
   convertUSDToCrypto(usdAmount: number, cryptoRates: CryptoRates): Record<string, number> {
     return {
-      BTC: usdAmount / cryptoRates.BTC,
       BNB: usdAmount / cryptoRates.BNB,
       USDT: usdAmount / cryptoRates.USDT,
       COYN: usdAmount / cryptoRates.COYN
