@@ -3,12 +3,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home } from "lucide-react";
+import { Home, User as UserIcon } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
@@ -140,11 +141,15 @@ export default function MessengerPage() {
                           >
                             <div className="flex items-center space-x-3">
                               <div className="relative">
-                                <img
-                                  src={contact.profilePicture || "/api/placeholder/40/40"}
-                                  alt={contact.displayName}
-                                  className="w-12 h-12 rounded-full object-cover"
-                                />
+                                <Avatar className="w-12 h-12">
+                                  <AvatarImage 
+                                    src={contact.profilePicture || undefined} 
+                                    alt={contact.displayName}
+                                  />
+                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                    <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                  </AvatarFallback>
+                                </Avatar>
                                 {contact.isOnline && (
                                   <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}
@@ -182,11 +187,15 @@ export default function MessengerPage() {
                           >
                             <div className="flex items-center space-x-3">
                               <div className="relative">
-                                <img
-                                  src={conversation.otherUser.profilePicture || "/api/placeholder/40/40"}
-                                  alt={conversation.otherUser.displayName}
-                                  className="w-12 h-12 rounded-full object-cover"
-                                />
+                                <Avatar className="w-12 h-12">
+                                  <AvatarImage 
+                                    src={conversation.otherUser.profilePicture || undefined} 
+                                    alt={conversation.otherUser.displayName}
+                                  />
+                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                    <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                  </AvatarFallback>
+                                </Avatar>
                                 {conversation.otherUser.isOnline && (
                                   <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { Search, Wallet, UserPlus, Settings, Eye, EyeOff, TrendingUp, TrendingDown } from "lucide-react";
+import { Search, Wallet, UserPlus, Settings, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
@@ -287,9 +287,9 @@ export default function Sidebar({
                     <div className="flex items-center space-x-2 sm:space-x-3">
                       <div className="relative">
                         <Avatar className="h-8 w-8 sm:h-12 sm:w-12">
-                          <AvatarImage src={contact.profilePicture || ""} />
-                          <AvatarFallback className="bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium">
-                            {contact.displayName.charAt(0).toUpperCase()}
+                          <AvatarImage src={contact.profilePicture || undefined} />
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                            <UserIcon className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400" />
                           </AvatarFallback>
                         </Avatar>
                         {contact.isOnline && (
