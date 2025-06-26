@@ -535,13 +535,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let user = await storage.getUserByWalletAddress(walletAddress);
       
       if (!user) {
-        // Create new user for valid wallet addresses
+        // Create new user for valid wallet addresses (not setup yet)
         const userData = insertUserSchema.parse({
           username: `user_${Date.now()}`,
           displayName: displayName?.trim() || `User ${walletAddress.slice(-6)}`,
           walletAddress,
           profilePicture: null,
-          isOnline: true
+          isOnline: true,
+          isSetup: false
         });
         
         user = await storage.createUser(userData);

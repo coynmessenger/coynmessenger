@@ -262,6 +262,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Implemented wallet connection safeguards - modified API to prevent new user creation during wallet connections, changed `/api/users/find-or-create` to only find existing users, added proper error handling for unregistered wallet addresses, created separate `/api/admin/users/register` endpoint for controlled user registration, updated frontend error messaging to guide users to contact administrator
 - June 26, 2025: Added clickable profile popup in chat header - created comprehensive UserProfileModal component with user details, wallet address copying, action buttons for call/video/message, online status indicator, made chat header profile area clickable to display detailed user information with clean light theme styling
 - June 26, 2025: Enabled user wallet connections with validation - modified system to allow legitimate wallet address connections while preventing invalid formats, added proper wallet address validation (0x format with 40 hex characters), users can now connect with valid wallet addresses and display names while maintaining security against malformed addresses
+- June 26, 2025: Fixed unwanted user creation in contact list - added isSetup field to user schema, new wallet connections create users with isSetup=false so they don't appear in contact list until properly configured, only setup users (demo users) appear in "Start New Conversation" section, prevents cluttered interface from auto-created wallet users
 
 ## User Preferences
 

@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    return await db.select().from(users).where(eq(users.isSetup, true));
   }
 
   async getConversation(id: number): Promise<Conversation | undefined> {
@@ -720,6 +720,7 @@ export class MemStorage implements IStorage {
       walletAddress: "0x84fa...3501",
       profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
+      isSetup: true,
       lastSeen: new Date(),
       fullName: null,
       addressLine1: null,
@@ -737,6 +738,7 @@ export class MemStorage implements IStorage {
       walletAddress: "0x92ba...4602",
       profilePicture: null,
       isOnline: true,
+      isSetup: true,
       lastSeen: new Date(),
       fullName: null,
       addressLine1: null,
@@ -754,6 +756,7 @@ export class MemStorage implements IStorage {
       walletAddress: "0x73cf...5703",
       profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: false,
+      isSetup: true,
       lastSeen: new Date(Date.now() - 3600000), // 1 hour ago
       fullName: null,
       addressLine1: null,
@@ -771,6 +774,7 @@ export class MemStorage implements IStorage {
       walletAddress: "0x12...0920",
       profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
+      isSetup: true,
       lastSeen: new Date(),
       fullName: null,
       addressLine1: null,
@@ -788,6 +792,7 @@ export class MemStorage implements IStorage {
       walletAddress: "0x51E073...ed3E",
       profilePicture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
+      isSetup: true,
       lastSeen: new Date(),
       fullName: null,
       addressLine1: null,

@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   walletAddress: text("wallet_address").notNull(),
   profilePicture: text("profile_picture"),
   isOnline: boolean("is_online").default(false),
+  isSetup: boolean("is_setup").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
   // Mailing address fields for marketplace delivery
   fullName: text("full_name"),
