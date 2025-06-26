@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
@@ -27,6 +29,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
+  const [selectedCrypto, setSelectedCrypto] = useState<string>("");
+  const [showCryptoModal, setShowCryptoModal] = useState(false);
+  const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
   const [showEscrowModal, setShowEscrowModal] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -84,7 +89,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       setCryptoAmount("");
-      setShowCryptoSend(false);
+      setSelectedCrypto("");
+      setShowCryptoModal(false);
+      setCryptoStep("amount");
       toast({
         title: "Crypto sent successfully",
         description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
@@ -98,6 +105,44 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       });
     },
   });
+
+  // Handle crypto button clicks
+  const handleCryptoClick = (currency: string) => {
+    setSelectedCrypto(currency);
+    setShowCryptoModal(true);
+    setCryptoStep("amount");
+    setCryptoAmount("");
+  };
+
+  // Handle amount confirmation
+  const handleAmountConfirm = () => {
+    if (!cryptoAmount || parseFloat(cryptoAmount) <= 0) {
+      toast({
+        title: "Invalid amount",
+        description: "Please enter a valid amount greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+    setCryptoStep("confirm");
+  };
+
+  // Handle final send confirmation
+  const handleSendConfirm = () => {
+    sendCryptoMutation.mutate({
+      toUserId: conversation.otherUser.id,
+      currency: selectedCrypto,
+      amount: cryptoAmount,
+    });
+  };
+
+  // Reset crypto modal
+  const resetCryptoModal = () => {
+    setShowCryptoModal(false);
+    setCryptoStep("amount");
+    setCryptoAmount("");
+    setSelectedCrypto("");
+  };
 
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId: number) => {
@@ -448,7 +493,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
               <DropdownMenuItem
-                onClick={() => handleQuickSend('BTC')}
+                onClick={() => handleCryptoClick('BTC')}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
@@ -459,7 +504,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleQuickSend('BNB')}
+                onClick={() => handleCryptoClick('BNB')}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
@@ -470,7 +515,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleQuickSend('USDT')}
+                onClick={() => handleCryptoClick('USDT')}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
@@ -481,7 +526,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleQuickSend('COYN')}
+                onClick={() => handleCryptoClick('COYN')}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
@@ -560,6 +605,118 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         selectedMessages={selectedMessages}
         currentConversationId={conversation.id}
       />
+
+      {/* Crypto Send Modal */}
+      <Dialog open={showCryptoModal} onOpenChange={resetCryptoModal}>
+        <DialogContent className="w-[90vw] sm:w-[85vw] max-w-md max-h-[95vh] m-5 sm:m-6 p-5 sm:p-6 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-black dark:text-white text-lg font-semibold">
+              {cryptoStep === "amount" ? `Send ${selectedCrypto}` : `Confirm ${selectedCrypto} Transfer`}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {cryptoStep === "amount" && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="crypto-amount" className="text-black dark:text-white text-sm font-medium">
+                  Amount to send
+                </Label>
+                <div className="mt-1 relative">
+                  <Input
+                    id="crypto-amount"
+                    type="number"
+                    step="0.00001"
+                    placeholder={`0.00000 ${selectedCrypto}`}
+                    value={cryptoAmount}
+                    onChange={(e) => setCryptoAmount(e.target.value)}
+                    className="h-12 text-base bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400"
+                  />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+                      {selectedCrypto}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-slate-400">Recipient:</span>
+                  <span className="text-sm font-medium text-black dark:text-white">
+                    {conversation.otherUser.displayName}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 pt-4">
+                <Button
+                  onClick={handleAmountConfirm}
+                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white font-medium"
+                  disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
+                >
+                  Continue
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={resetCryptoModal}
+                  className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {cryptoStep === "confirm" && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-slate-400">Amount:</span>
+                  <span className="text-lg font-bold text-black dark:text-white">
+                    {cryptoAmount} {selectedCrypto}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-slate-400">Recipient:</span>
+                  <span className="text-sm font-medium text-black dark:text-white">
+                    {conversation.otherUser.displayName}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-slate-400">Wallet Address:</span>
+                  <span className="text-xs font-mono text-black dark:text-white">
+                    {conversation.otherUser.walletAddress.slice(0, 6)}...{conversation.otherUser.walletAddress.slice(-4)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>Important:</strong> This transaction cannot be reversed. Please verify all details before confirming.
+                </p>
+              </div>
+              
+              <div className="flex space-x-3 pt-4">
+                <Button
+                  onClick={handleSendConfirm}
+                  disabled={sendCryptoMutation.isPending}
+                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white font-medium"
+                >
+                  {sendCryptoMutation.isPending ? "Sending..." : `Send ${selectedCrypto}`}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setCryptoStep("amount")}
+                  disabled={sendCryptoMutation.isPending}
+                  className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700"
+                >
+                  Back
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
