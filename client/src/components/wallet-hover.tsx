@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Wallet, Copy, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SiBitcoin, SiBinance } from "react-icons/si";
 import type { WalletBalance, User } from "@shared/schema";
 
 interface WalletHoverProps {
@@ -16,11 +17,22 @@ interface WalletHoverProps {
 
 const getCurrencyIcon = (currency: string) => {
   switch (currency) {
-    case "BTC": return "₿";
-    case "BNB": return "⬢";
-    case "USDT": return "₮";
-    case "COYN": return "🪙";
-    default: return "💎";
+    case "BTC": 
+      return <SiBitcoin className="w-6 h-6 text-orange-500" />;
+    case "BNB": 
+      return <SiBinance className="w-6 h-6 text-yellow-500" />;
+    case "USDT": 
+      return <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+        <span className="text-white text-xs font-bold">₮</span>
+      </div>;
+    case "COYN": 
+      return <div className="w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+        <span className="text-white text-xs font-bold">C</span>
+      </div>;
+    default: 
+      return <div className="w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center">
+        <span className="text-white text-xs">?</span>
+      </div>;
   }
 };
 
@@ -166,7 +178,9 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
           {balances.map((balance) => (
             <div key={balance.currency} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">{getCurrencyIcon(balance.currency)}</span>
+                <div className="flex items-center justify-center">
+                  {getCurrencyIcon(balance.currency)}
+                </div>
                 <div>
                   <p className="font-medium text-foreground">{balance.currency}</p>
                   <p className="text-xs text-muted-foreground">{formatBalance(balance.balance, balance.currency)}</p>
