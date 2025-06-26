@@ -162,7 +162,7 @@ export default function HomePage() {
                       placeholder="0x1234...abcd"
                       value={walletAddress}
                       onChange={(e) => setWalletAddress(e.target.value)}
-                      className="pl-10 bg-input border-border focus:border-primary text-foreground"
+                      className="pl-10 h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground touch-manipulation"
                       required
                     />
                   </div>
@@ -185,7 +185,7 @@ export default function HomePage() {
                     placeholder="Your Name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-input border-border focus:border-primary text-foreground"
+                    className="h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground touch-manipulation"
                   />
                   <p className="text-xs text-muted-foreground">
                     Leave empty to use COYN address as display name
@@ -196,7 +196,7 @@ export default function HomePage() {
                 <Button
                   type="submit"
                   disabled={connectWalletMutation.isPending || !walletAddress.trim() || !isValidCoynAddress(walletAddress)}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 text-lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-4 sm:py-3 text-lg h-14 sm:h-12 touch-manipulation"
                 >
                   {connectWalletMutation.isPending ? (
                     <>
@@ -231,23 +231,23 @@ export default function HomePage() {
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg"
+                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
-                      <MessageCircle className="mr-2 h-5 w-5" />
+                      <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Open Messenger
                     </Button>
                     <Button
                       onClick={() => setLocation("/marketplace")}
                       variant="outline"
-                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg"
+                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
-                      <Globe className="mr-2 h-5 w-5" />
+                      <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
                     <Button
                       onClick={handleSignOut}
                       variant="outline"
-                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg"
+                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       Sign Out
                     </Button>

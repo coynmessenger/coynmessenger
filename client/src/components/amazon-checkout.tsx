@@ -314,28 +314,28 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
                     <h4 className="font-medium text-sm truncate">{item.title}</h4>
                     <p className="text-green-600 font-semibold">{item.price}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-10 w-10 sm:h-8 sm:w-8"
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                     >
-                      <Minus className="h-3 w-3" />
+                      <Minus className="h-4 w-4 sm:h-3 sm:w-3" />
                     </Button>
-                    <span className="w-8 text-center">{item.quantity}</span>
+                    <span className="w-10 sm:w-8 text-center text-sm sm:text-xs">{item.quantity}</span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-10 w-10 sm:h-8 sm:w-8"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-red-500 hover:text-red-700"
+                      className="h-10 w-10 sm:h-8 sm:w-8 text-red-500 hover:text-red-700"
                       onClick={() => removeFromCart(item.id)}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -667,10 +667,10 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-0">
+      <DialogContent className="w-[98vw] sm:w-[95vw] sm:max-w-4xl h-[95vh] sm:max-h-[90vh] overflow-hidden p-0 m-0 sm:m-4">
         <div className="flex flex-col h-full">
-          <DialogHeader className="p-4 sm:p-6 border-b border-border">
-            <DialogTitle className="text-lg sm:text-xl font-bold">
+          <DialogHeader className="p-3 sm:p-6 border-b border-border">
+            <DialogTitle className="text-base sm:text-lg font-bold">
               {currentStep === 'cart' && 'Shopping Cart'}
               {currentStep === 'review' && 'Review Your Order'}
               {currentStep === 'finalize' && 'Finalize Purchase'}
@@ -684,7 +684,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
           
           {renderProgressBar()}
           
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
             {currentStep === 'cart' && renderCartStep()}
             {currentStep === 'review' && renderReviewStep()}
             {currentStep === 'finalize' && renderFinalizeStep()}

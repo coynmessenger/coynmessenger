@@ -485,7 +485,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 focus:border-primary dark:focus:border-cyan-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400"
+              className="pr-12 h-12 sm:h-10 text-base sm:text-sm bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 focus:border-primary dark:focus:border-cyan-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation"
             />
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
@@ -493,9 +493,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-10 w-10 sm:h-8 sm:w-8 touch-manipulation"
                 >
-                  <Smile className="h-4 w-4" />
+                  <Smile className="h-5 w-5 sm:h-4 sm:w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-4 bg-slate-800 border-slate-700" align="end">
@@ -525,10 +525,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           <Button 
             type="submit"
             size="icon"
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+            className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 h-12 w-12 sm:h-10 sm:w-10 touch-manipulation"
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
         </form>
       </div>

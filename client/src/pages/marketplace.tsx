@@ -384,41 +384,41 @@ export default function MarketplacePage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+        <div className="container mx-auto px-4 sm:px-4 py-3 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-3 sm:space-x-3">
               <Button
                 onClick={() => setLocation('/')}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent h-10 w-10 sm:h-9 sm:w-9"
+                className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
-                <Home className="h-5 w-5 sm:h-4 sm:w-4" />
+                <Home className="h-6 w-6 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 onClick={() => setLocation('/favorites')}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent h-10 w-10 sm:h-9 sm:w-9"
+                className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
-                <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
+                <Heart className="h-6 w-6 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 ref={walletButtonRef}
                 onClick={() => setShowWalletHover(!showWalletHover)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent relative h-10 w-10 sm:h-9 sm:w-9"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
-                <Wallet className="h-5 w-5 sm:h-4 sm:w-4 text-orange-500 dark:text-cyan-400" />
+                <Wallet className="h-6 w-6 sm:h-4 sm:w-4 text-orange-500 dark:text-cyan-400" />
               </Button>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-2 sm:gap-2">
               <Button
                 onClick={() => setShowCart(true)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent relative h-10 w-10 sm:h-9 sm:w-9"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
                 <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
                 {cartCount > 0 && (
@@ -433,9 +433,9 @@ export default function MarketplacePage() {
                 onClick={() => setShowSettingsModal(true)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent h-10 w-10 sm:h-9 sm:w-9"
+                className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
-                <Settings className="h-5 w-5 sm:h-4 sm:w-4" />
+                <Settings className="h-6 w-6 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
@@ -452,7 +452,7 @@ export default function MarketplacePage() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 sm:pl-12 h-11 sm:h-12 text-base sm:text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400"
+              className="pl-12 sm:pl-12 h-14 sm:h-12 text-lg sm:text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation"
             />
             {searchQuery && (
               <Button
