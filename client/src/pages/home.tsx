@@ -132,7 +132,7 @@ export default function HomePage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             <p className="text-muted-foreground">
-              Enter your COYN address to join the decentralized messenger
+              Enter your COYN address to connect your COYN Wallet
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
