@@ -320,11 +320,11 @@ export default function MessengerPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
-        <nav className="bg-slate-800/95 backdrop-blur-sm border-b border-slate-700 z-50">
+        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
           <div className="flex items-center justify-between p-4">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-slate-400 hover:text-orange-400 transition-colors"
+              className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -336,13 +336,13 @@ export default function MessengerPage() {
                 alt="COYN Logo" 
                 className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
               />
-              <h1 className="text-xl font-normal text-white" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
             <div className="flex items-center space-x-2">
               <button 
-                className="text-slate-400 hover:text-cyan-400 transition-colors p-2"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,7 +350,7 @@ export default function MessengerPage() {
                 </svg>
               </button>
               <button 
-                className="text-slate-400 hover:text-cyan-400 transition-colors p-2"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
                 onClick={() => setIsWalletOpen(true)}
               >
                 <WalletIcon className="w-5 h-5" />
@@ -359,7 +359,7 @@ export default function MessengerPage() {
                 onClick={() => setLocation("/")}
                 variant="ghost"
                 size="sm"
-                className="text-slate-300 hover:text-cyan-400 hover:bg-slate-700 p-2"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
               >
                 <Home className="h-5 w-5" />
               </Button>
@@ -369,14 +369,14 @@ export default function MessengerPage() {
 
         {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 p-4 z-40">
+          <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 p-4 z-40">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 text-black dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:border-orange-500 dark:focus:border-cyan-500"
+                className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
                 autoFocus
               />
               {searchQuery && (
