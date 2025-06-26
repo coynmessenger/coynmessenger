@@ -19,6 +19,7 @@ import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp, Reply, Share, Users } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
+import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { formatDistanceToNow } from "date-fns";
 
@@ -329,8 +330,8 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           >
             <Avatar className="h-10 w-10">
               <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-              <AvatarFallback className="bg-muted text-foreground font-medium">
-                {conversation.otherUser.displayName.charAt(0).toUpperCase()}
+              <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </AvatarFallback>
             </Avatar>
             <div className="text-left">

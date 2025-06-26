@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, MessageCircle, Phone, Video, Wallet } from "lucide-react";
+import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,8 +47,8 @@ export default function UserProfileModal({
             <div className="relative">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={user.profilePicture || ""} />
-                <AvatarFallback className="text-3xl bg-muted text-foreground font-medium">
-                  {user.displayName.charAt(0).toUpperCase()}
+                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                  <UserAvatarIcon className="w-12 h-12 text-gray-500 dark:text-gray-400" />
                 </AvatarFallback>
               </Avatar>
               {user.isOnline && (

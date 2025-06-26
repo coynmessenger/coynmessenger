@@ -422,11 +422,15 @@ export default function MessengerPage() {
                         >
                           <div className="flex items-center space-x-3">
                             <div className="relative">
-                              <img
-                                src={contact.profilePicture || "/api/placeholder/40/40"}
-                                alt={contact.displayName}
-                                className="w-12 h-12 rounded-full object-cover"
-                              />
+                              <Avatar className="w-12 h-12">
+                                <AvatarImage 
+                                  src={contact.profilePicture || undefined} 
+                                  alt={contact.displayName}
+                                />
+                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                  <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                </AvatarFallback>
+                              </Avatar>
                               {contact.isOnline && (
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                               )}
@@ -466,11 +470,15 @@ export default function MessengerPage() {
                         >
                           <div className="flex items-center space-x-3">
                             <div className="relative">
-                              <img
-                                src={conversation.otherUser.profilePicture || "/api/placeholder/40/40"}
-                                alt={conversation.otherUser.displayName}
-                                className="w-12 h-12 rounded-full object-cover"
-                              />
+                              <Avatar className="w-12 h-12">
+                                <AvatarImage 
+                                  src={conversation.otherUser.profilePicture || undefined} 
+                                  alt={conversation.otherUser.displayName}
+                                />
+                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                  <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                </AvatarFallback>
+                              </Avatar>
                               {conversation.otherUser.isOnline && (
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                               )}
