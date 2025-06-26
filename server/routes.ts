@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
@@ -47,11 +48,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Serve uploaded files statically
-  app.use('/uploads', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-  });
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+    setHeaders: (res) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    }
+  }));
 
   // Health check endpoint
   app.get("/api/health", (req, res) => {
@@ -625,6 +627,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Upload profile picture
+  app.post("/api/user/upload-avatar", upload.single('profileImage'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const userId = 5; // Current user ID (hardcoded for demo)
+      const profilePicture = `/uploads/avatars/${req.file.filename}`;
+      
+      console.log("Uploading avatar for user:", userId, "file:", req.file.filename);
+      
+      // Update user's profile picture in database
+      const user = await storage.updateUser(userId, { profilePicture });
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log("Avatar upload successful:", profilePicture);
+      res.json({ profilePicture });
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      res.status(500).json({ message: "Failed to upload avatar" });
     }
   });
 

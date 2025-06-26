@@ -262,7 +262,17 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       const formData = new FormData();
       formData.append("profileImage", file);
       console.log("Uploading file:", file.name, file.size);
-      return apiRequest("POST", "/api/user/upload-avatar", formData);
+      
+      const response = await fetch("/api/user/upload-avatar", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (response: { profilePicture: string }) => {
       console.log("Upload successful, response:", response);
