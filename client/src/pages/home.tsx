@@ -127,22 +127,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {features.map((feature, index) => (
-            <Card key={index} className="bg-white dark:bg-slate-800/50 border-black dark:border-slate-700 backdrop-blur">
-              <CardHeader className="pb-3">
-                <feature.icon className="h-8 w-8 text-black dark:text-cyan-400 mb-2" />
-                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Main CTA Card */}
+        {/* Main CTA Card - Moved to top */}
         <Card className="bg-card/80 border-border backdrop-blur-xl max-w-lg mx-auto">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect to COYN Network</CardTitle>
@@ -273,6 +258,21 @@ export default function HomePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Features Grid - Moved below CTA */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {features.map((feature, index) => (
+            <Card key={index} className="bg-white dark:bg-slate-800/50 border-black dark:border-slate-700 backdrop-blur">
+              <CardHeader className="pb-3">
+                <feature.icon className="h-8 w-8 text-black dark:text-cyan-400 mb-2" />
+                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         {/* Footer */}
         <div className="text-center text-muted-foreground text-sm">
