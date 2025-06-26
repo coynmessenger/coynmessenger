@@ -340,7 +340,7 @@ export default function MessengerPage() {
                 </svg>
               </button>
               <button 
-                className="text-orange-400 hover:text-orange-300 transition-colors p-2"
+                className="text-slate-400 hover:text-cyan-400 transition-colors p-2"
                 onClick={() => setIsWalletOpen(true)}
               >
                 <WalletIcon className="w-5 h-5" />

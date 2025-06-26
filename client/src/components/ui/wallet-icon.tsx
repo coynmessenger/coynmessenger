@@ -10,46 +10,46 @@ export function WalletIcon({ className = "w-5 h-5" }: WalletIconProps) {
       className={className}
       aria-hidden="true"
     >
-      {/* Wallet body */}
-      <rect
-        x="3"
-        y="6"
-        width="18"
-        height="12"
-        rx="2"
-        ry="2"
-        fill="currentColor"
+      {/* Main wallet shape */}
+      <path
+        d="M4 7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7Z"
+        fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       
-      {/* Wallet flap */}
+      {/* Wallet opening/flap line */}
       <path
-        d="M5 6V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"
-        fill="none"
+        d="M4 10h16"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
       
-      {/* Card slot */}
+      {/* Credit card representation */}
       <rect
-        x="16"
-        y="10"
-        width="4"
-        height="4"
-        rx="1"
+        x="6"
+        y="13"
+        width="6"
+        height="3"
+        rx="0.5"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1"
+        opacity="0.7"
       />
       
-      {/* Card slot circle */}
-      <circle
-        cx="18"
-        cy="12"
-        r="0.5"
+      {/* Card chip */}
+      <rect
+        x="7"
+        y="14"
+        width="1"
+        height="1"
+        rx="0.2"
         fill="currentColor"
+        opacity="0.7"
       />
     </svg>
   );
