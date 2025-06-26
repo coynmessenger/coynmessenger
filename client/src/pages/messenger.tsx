@@ -27,12 +27,7 @@ export default function MessengerPage() {
     queryKey: ["/api/conversations"],
   });
 
-  // Auto-select first conversation on load (WhatsApp-style behavior)
-  useEffect(() => {
-    if (conversations.length > 0 && selectedConversation === null) {
-      setSelectedConversation(conversations[0].id);
-    }
-  }, [conversations, selectedConversation]);
+  // Keep messenger open to contact list view by default
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
