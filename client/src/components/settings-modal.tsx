@@ -265,7 +265,9 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       formData.append("profileImage", file);
       console.log("Uploading file:", file.name, file.size);
       
-      const response = await fetch("/api/user/upload-avatar", {
+      // Include user ID in the upload request
+      const url = connectedUserId ? `/api/user/upload-avatar?userId=${connectedUserId}` : "/api/user/upload-avatar";
+      const response = await fetch(url, {
         method: "POST",
         body: formData,
       });
@@ -298,8 +300,11 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         });
       }
       
-      // Also invalidate to ensure fresh data
+      // Also invalidate to ensure fresh data for both query types
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+      }
       
       toast({
         title: "Profile picture updated",

@@ -637,7 +637,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const userId = 5; // Current user ID (hardcoded for demo)
+      // Get user ID from query parameter or default to session user (5)
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const profilePicture = `/uploads/avatars/${req.file.filename}`;
       
       console.log("Uploading avatar for user:", userId, "file:", req.file.filename);
