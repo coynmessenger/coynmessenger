@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Search, Wallet, UserPlus, Settings } from "lucide-react";
+import { Search, Wallet, UserPlus, Settings, Eye, EyeOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import AddContactModal from "./add-contact-modal";
@@ -35,6 +35,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const formatLastMessage = (message?: Message) => {
     if (!message) return "";
     
@@ -91,9 +92,28 @@ export default function Sidebar({
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Balance</span>
-            <Wallet className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-700 dark:text-primary" />
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsBalanceVisible(!isBalanceVisible);
+                }}
+                className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-slate-600"
+              >
+                {isBalanceVisible ? (
+                  <Eye className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
+                ) : (
+                  <EyeOff className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
+                )}
+              </Button>
+              <Wallet className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-700 dark:text-primary" />
+            </div>
           </div>
-          <div className="text-base sm:text-lg font-bold text-black dark:text-primary mb-1.5">$12,220.75</div>
+          <div className="text-base sm:text-lg font-bold text-black dark:text-primary mb-1.5">
+            {isBalanceVisible ? "$12,220.75" : "••••••"}
+          </div>
         </div>
 
         {/* Search */}
