@@ -32,10 +32,11 @@ export default function QuickEscrowModal({ isOpen, onClose, conversationId, othe
   const createEscrowMutation = useMutation({
     mutationFn: async (escrowData: any) => {
       const response = await apiRequest("POST", "/api/escrows", escrowData);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
         title: "Escrow Created",
         description: `Secure trade created with ${otherUser.displayName}`,
