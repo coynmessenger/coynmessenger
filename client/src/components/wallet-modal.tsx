@@ -27,6 +27,7 @@ interface SendModalProps {
   isOpen: boolean;
   onClose: () => void;
   balances: WalletBalance[];
+  initialCurrency?: string;
 }
 
 interface QRModalProps {
@@ -69,8 +70,8 @@ const renderCurrencyIcon = (currency: string, size: "sm" | "md" | "lg" = "md") =
   }
 };
 
-function SendModal({ isOpen, onClose, balances }: SendModalProps) {
-  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+function SendModal({ isOpen, onClose, balances, initialCurrency }: SendModalProps) {
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency || "BTC");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [useEscrow, setUseEscrow] = useState(false);
@@ -78,6 +79,13 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
   const [step, setStep] = useState<"form" | "confirm" | "success">("form");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Update selected currency when initialCurrency prop changes
+  useEffect(() => {
+    if (initialCurrency && isOpen) {
+      setSelectedCurrency(initialCurrency);
+    }
+  }, [initialCurrency, isOpen]);
 
   const selectedBalance = balances.find(b => b.currency === selectedCurrency);
   const availableBalance = parseFloat(selectedBalance?.balance || "0");
@@ -948,6 +956,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
         isOpen={showSendModal}
         onClose={() => setShowSendModal(false)}
         balances={balances}
+        initialCurrency={selectedCurrency}
       />
 
       {/* Escrow List Modal */}

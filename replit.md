@@ -270,6 +270,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Updated mobile messenger navigation to white theme - changed dark navigation background to white with proper color contrast, updated all button and text colors to be visible on white background, ensures consistent light theme appearance across both light and dark modes
 - June 26, 2025: Removed "User Profile" header text from profile modal - eliminated title text for cleaner, more streamlined profile interface focused on user content
 - June 26, 2025: Added search functionality to desktop messenger sidebar - implemented search bar with search icon, clear button, and consistent styling matching mobile search functionality for desktop users
+- June 26, 2025: Enhanced wallet currency selection flow - selected currency in main wallet modal now carries over to send modal dropdown, improving user experience by pre-selecting the currency user clicked send on
 
 ## User Preferences
 
