@@ -10,6 +10,10 @@ import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, 
 import { apiRequest } from "@/lib/queryClient";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1750818324226.png";
+import metamaskLogo from "@assets/images(1)_1750925157265.png";
+import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1750925157245.png";
+import trustWalletLogo from "@assets/Trust-Wallet-Shield-Logo-Vector-Logo-Vector.svg-_1750925157209.png";
+import coinbaseLogo from "@assets/coinbase-logo_1750925157167.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
@@ -206,18 +210,7 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 212 189" fill="none">
-                          <path d="M40.8 1.3L96.6 46.8L86.4 25.2L40.8 1.3Z" fill="#E17726" stroke="#E17726" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M171.2 1.3L115.4 47.2L125.6 25.2L171.2 1.3Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M17.7 135.2L36.5 168.2L73.8 157.2L17.7 135.2Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M194.3 135.2L138.2 157.2L175.5 168.2L194.3 135.2Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M73.8 157.2L106 184.8L78.5 168.2L73.8 157.2Z" fill="#D5BFB2" stroke="#D5BFB2" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M138.2 157.2L133.5 168.2L106 184.8L138.2 157.2Z" fill="#D5BFB2" stroke="#D5BFB2" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M106 70.8L86.4 25.2L96.6 46.8L106 70.8Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M106 70.8L115.4 47.2L125.6 25.2L106 70.8Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M86.4 25.2L40.8 1.3L17.7 135.2L73.8 157.2L86.4 25.2Z" fill="#F5841F" stroke="#F5841F" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M125.6 25.2L138.2 157.2L194.3 135.2L171.2 1.3L125.6 25.2Z" fill="#F5841F" stroke="#F5841F" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <img src={metamaskLogo} alt="MetaMask" className="w-8 h-8 object-contain" />
                       </div>
                       <span className="text-sm font-medium">MetaMask</span>
                     </Button>
@@ -230,9 +223,7 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 300 185" fill="none">
-                          <path d="M61.439 36.926c48.952-47.888 128.275-47.888 177.227 0l5.886 5.764c2.447 2.394 2.447 6.277 0 8.671l-20.138 19.716c-1.223 1.197-3.206 1.197-4.429 0l-8.102-7.931c-34.121-33.407-89.443-33.407-123.564 0l-8.675 8.493c-1.223 1.197-3.206 1.197-4.429 0L54.98 51.922c-2.447-2.394-2.447-6.277 0-8.671l6.459-6.325zm218.764 40.785l17.921 17.546c2.447 2.394 2.447 6.277 0 8.671L244.798 156.7c-2.447 2.394-6.412 2.394-8.858 0l-37.867-37.068c-.612-.599-1.603-.599-2.215 0l-37.867 37.068c-2.447 2.394-6.412 2.394-8.858 0L95.808 103.964c-2.447-2.394-2.447-6.277 0-8.671l17.921-17.546c2.447-2.394 6.412-2.394 8.858 0l37.867 37.068c.612.599 1.603.599 2.215 0l37.867-37.068c2.447-2.394 6.412-2.394 8.858 0l37.867 37.068c.612.599 1.603.599 2.215 0l37.867-37.068c2.447-2.394 6.412-2.394 8.858 0z" fill="#3B99FC"/>
-                        </svg>
+                        <img src={walletConnectLogo} alt="WalletConnect" className="w-8 h-8 object-contain" />
                       </div>
                       <span className="text-sm font-medium">WalletConnect</span>
                     </Button>
@@ -245,10 +236,7 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 1000 1000" fill="none">
-                          <circle cx="500" cy="500" r="500" fill="#3375BB"/>
-                          <path d="M367 650c0-100 40-150 133-150s133 50 133 150-40 150-133 150-133-50-133-150zm266-300c0-100-40-150-133-150s-133 50-133 150 40 150 133 150 133-50 133-150z" fill="white"/>
-                        </svg>
+                        <img src={trustWalletLogo} alt="Trust Wallet" className="w-8 h-8 object-contain" />
                       </div>
                       <span className="text-sm font-medium">Trust Wallet</span>
                     </Button>
@@ -261,10 +249,7 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 200 200" fill="none">
-                          <circle cx="100" cy="100" r="100" fill="#0052FF"/>
-                          <rect x="50" y="50" width="100" height="100" rx="20" ry="20" fill="white"/>
-                        </svg>
+                        <img src={coinbaseLogo} alt="Coinbase" className="w-8 h-8 object-contain" />
                       </div>
                       <span className="text-sm font-medium">Coinbase</span>
                     </Button>
