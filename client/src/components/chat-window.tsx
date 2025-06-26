@@ -18,6 +18,7 @@ import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp, Reply, Share, Users } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
+import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -527,7 +528,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               >
                 <div className="flex items-center space-x-2">
                   <img 
-                    src="/attached_assets/COYN-symbol-square_1750891892214.png" 
+                    src={coynLogoPath} 
                     alt="COYN" 
                     className="w-4 h-4 rounded-full"
                   />
