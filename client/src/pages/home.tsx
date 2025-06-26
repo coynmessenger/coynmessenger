@@ -355,14 +355,7 @@ export default function HomePage() {
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
-                    <Button
-                      onClick={() => setLocation("/escrow")}
-                      variant="outline"
-                      className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
-                    >
-                      <Shield className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Escrow Dashboard
-                    </Button>
+
                     <Button
                       onClick={handleSignOut}
                       variant="outline"

@@ -9,7 +9,6 @@ import MessengerPage from "@/pages/messenger";
 import MarketplacePage from "@/pages/marketplace";
 import ProductPage from "@/pages/product";
 import FavoritesPage from "@/pages/favorites";
-import EscrowDashboard from "@/pages/escrow-dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,7 +19,6 @@ function Router() {
       <Route path="/marketplace" component={MarketplacePage} />
       <Route path="/product/:asin" component={ProductPage} />
       <Route path="/favorites" component={FavoritesPage} />
-      <Route path="/escrow" component={EscrowDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
