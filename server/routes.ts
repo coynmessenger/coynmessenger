@@ -253,6 +253,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Escrow Analytics - must be first to avoid route conflicts
+  app.get("/api/escrows/analytics", async (req, res) => {
+    try {
+      const userId = 5; // Current user (hardcoded for demo)
+      const escrows = await storage.getUserEscrows(userId);
+      
+      const analytics = {
+        total: escrows.length,
+        pending: escrows.filter(e => e.status === "pending").length,
+        active: escrows.filter(e => ["funded", "confirming"].includes(e.status)).length,
+        completed: escrows.filter(e => e.status === "released").length,
+        disputed: escrows.filter(e => e.status === "disputed").length,
+        cancelled: escrows.filter(e => e.status === "cancelled").length,
+        averageAmount: escrows.length > 0 ? 
+          escrows.reduce((sum, e) => sum + parseFloat(e.initiatorRequiredAmount), 0) / escrows.length : 0,
+        successRate: escrows.length > 0 ? 
+          (escrows.filter(e => e.status === "released").length / escrows.length) * 100 : 0,
+        recentActivity: escrows
+          .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+          .slice(0, 5)
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ message: "Failed to get escrow analytics" });
+    }
+  });
+
   // Create escrow
   app.post("/api/escrows", async (req, res) => {
     try {
@@ -522,35 +551,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Smart dispute error:", error);
       res.status(500).json({ message: "Failed to initiate smart dispute" });
-    }
-  });
-
-  // Get enhanced escrow analytics
-  app.get("/api/escrows/analytics", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const escrows = await storage.getUserEscrows(userId);
-      
-      const analytics = {
-        total: escrows.length,
-        pending: escrows.filter(e => e.status === "pending").length,
-        active: escrows.filter(e => ["funded", "confirming"].includes(e.status)).length,
-        completed: escrows.filter(e => e.status === "released").length,
-        disputed: escrows.filter(e => e.status === "disputed").length,
-        cancelled: escrows.filter(e => e.status === "cancelled").length,
-        averageAmount: escrows.length > 0 ? 
-          escrows.reduce((sum, e) => sum + parseFloat(e.initiatorRequiredAmount), 0) / escrows.length : 0,
-        successRate: escrows.length > 0 ? 
-          (escrows.filter(e => e.status === "released").length / escrows.length) * 100 : 0,
-        recentActivity: escrows
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, 5)
-      };
-
-      res.json(analytics);
-    } catch (error) {
-      console.error("Analytics error:", error);
-      res.status(500).json({ message: "Failed to get escrow analytics" });
     }
   });
 

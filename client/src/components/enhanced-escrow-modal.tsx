@@ -175,12 +175,7 @@ export default function EnhancedEscrowModal({ isOpen, onClose, conversationId }:
       participantCurrency,
       initiatorRequiredAmount: initiatorAmount,
       participantRequiredAmount: participantAmount,
-      description,
-      escrowType,
-      priority,
-      timeoutHours: parseInt(timeoutHours),
-      requiresVerification: escrowType === "enhanced",
-      verificationLevel: priority === "urgent" ? "enhanced" : "standard",
+      description: description || `Enhanced ${escrowType} escrow with ${priority} priority`,
     });
   };
 
