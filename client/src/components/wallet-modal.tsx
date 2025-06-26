@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User, Escrow } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle } from "lucide-react";
-import { SiBinance } from "react-icons/si";
+import { SiBinance, SiBitcoin } from "react-icons/si";
 import QRCode from "qrcode";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import { apiRequest } from "@/lib/queryClient";
@@ -52,6 +52,8 @@ const renderCurrencyIcon = (currency: string, size: "sm" | "md" | "lg" = "md") =
   const iconSize = sizeClasses[size];
   
   switch (currency) {
+    case "BTC":
+      return <SiBitcoin className={`${iconSize} text-orange-500`} />;
     case "BNB":
       return <SiBinance className={`${iconSize} text-yellow-500`} />;
     case "COYN":
