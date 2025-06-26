@@ -10,6 +10,7 @@ import WalletModal from "@/components/wallet-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon } from "lucide-react";
+import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
@@ -147,7 +148,7 @@ export default function MessengerPage() {
                                     alt={contact.displayName}
                                   />
                                   <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                    <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                                   </AvatarFallback>
                                 </Avatar>
                                 {contact.isOnline && (
@@ -193,7 +194,7 @@ export default function MessengerPage() {
                                     alt={conversation.otherUser.displayName}
                                   />
                                   <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                    <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                                   </AvatarFallback>
                                 </Avatar>
                                 {conversation.otherUser.isOnline && (
@@ -255,7 +256,7 @@ export default function MessengerPage() {
                                         alt={contact.displayName}
                                       />
                                       <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                        <UserIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                                       </AvatarFallback>
                                     </Avatar>
                                     {contact.isOnline && (
