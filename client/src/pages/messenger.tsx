@@ -85,17 +85,76 @@ export default function MessengerPage() {
                 onToggleSidebar={() => {}}
               />
             ) : (
-              <div className="flex-1 flex items-center justify-center bg-slate-900">
-                <div className="text-center text-slate-400">
-                  <div className="mx-auto mb-4">
+              <div className="flex-1 flex flex-col bg-background">
+                {/* Header */}
+                <div className="bg-card border-b border-border p-4">
+                  <div className="flex items-center space-x-3">
                     <img 
                       src={coynLogoPath} 
                       alt="COYN Logo" 
-                      className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                      className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                     />
+                    <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                      Conversations
+                    </h1>
                   </div>
-                  <h2 className="text-xl font-semibold mb-2">Welcome to COYN Messenger</h2>
-                  <p>Select a conversation to start messaging</p>
+                </div>
+
+                {/* Conversation List */}
+                <div className="flex-1 overflow-auto">
+                  {filteredConversations.length > 0 ? (
+                    <div className="divide-y divide-border">
+                      {filteredConversations.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          onClick={() => setSelectedConversation(conversation.id)}
+                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <img
+                                src={conversation.otherUser.profilePicture || "/api/placeholder/40/40"}
+                                alt={conversation.otherUser.displayName}
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                              {conversation.otherUser.isOnline && (
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-medium text-foreground truncate">
+                                  {conversation.otherUser.displayName}
+                                </h3>
+                                {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {conversation.lastMessage?.content || "No messages yet"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <div className="mx-auto mb-4">
+                          <img 
+                            src={coynLogoPath} 
+                            alt="COYN Logo" 
+                            className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                          />
+                        </div>
+                        <h2 className="text-xl font-semibold mb-2">No Conversations Yet</h2>
+                        <p>Start a new conversation to begin messaging</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
