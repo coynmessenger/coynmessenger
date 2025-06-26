@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User, Escrow } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { SiBinance } from "react-icons/si";
 import QRCode from "qrcode";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import { apiRequest } from "@/lib/queryClient";
@@ -39,6 +40,30 @@ const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: 
   BNB: { color: "bg-yellow-500", symbol: "⬢" },
   USDT: { color: "bg-green-500", symbol: "₮" },
   COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
+};
+
+const renderCurrencyIcon = (currency: string, size: "sm" | "md" | "lg" = "md") => {
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-5 h-5", 
+    lg: "w-6 h-6"
+  };
+  
+  const iconSize = sizeClasses[size];
+  
+  switch (currency) {
+    case "BNB":
+      return <SiBinance className={`${iconSize} text-yellow-500`} />;
+    case "COYN":
+      return <img src={coynLogoPath} alt="COYN" className={`${iconSize} rounded-full`} />;
+    default:
+      const icon = currencyIcons[currency] || { color: "bg-gray-500", symbol: "?" };
+      return (
+        <div className={`${iconSize} ${icon.color} rounded-full flex items-center justify-center`}>
+          <span className="text-xs font-bold text-white">{icon.symbol}</span>
+        </div>
+      );
+  }
 };
 
 function SendModal({ isOpen, onClose, balances }: SendModalProps) {
@@ -174,26 +199,17 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-                  {balances.map((balance) => {
-                    const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
-                    return (
+                  {balances.map((balance) => (
                       <SelectItem key={balance.currency} value={balance.currency} className="text-black dark:text-white">
                         <div className="flex items-center space-x-2">
-                          {icon.isCoyn ? (
-                            <img src={coynLogoPath} alt="COYN" className="w-4 h-4" />
-                          ) : (
-                            <div className={`w-4 h-4 ${icon.color} rounded-full flex items-center justify-center`}>
-                              <span className="text-xs font-bold text-white">{icon.symbol}</span>
-                            </div>
-                          )}
+                          {renderCurrencyIcon(balance.currency, "sm")}
                           <span>{balance.currency}</span>
                           <span className="text-gray-500 dark:text-slate-400 text-sm">
                             {formatBalance(balance.balance, balance.currency)}
                           </span>
                         </div>
                       </SelectItem>
-                    );
-                  })}
+                    ))}
                 </SelectContent>
               </Select>
               {selectedBalance && (
@@ -712,7 +728,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         {/* Crypto Holdings */}
         <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto pr-2 -mr-2 min-h-0 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
-            const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
             const changePercent = parseFloat(balance.changePercent || "0");
             const isPositive = changePercent >= 0;
 
@@ -721,17 +736,9 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      {icon.isCoyn ? (
-                        <img 
-                          src={coynLogoPath} 
-                          alt="COYN" 
-                          className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-[0_0_10px_rgba(255,193,7,0.4)]"
-                        />
-                      ) : (
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 ${icon.color} rounded-full flex items-center justify-center`}>
-                          <span className="text-sm sm:text-base font-bold text-white">{icon.symbol}</span>
-                        </div>
-                      )}
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                        {renderCurrencyIcon(balance.currency, "lg")}
+                      </div>
                       <div>
                         <div className="font-medium text-black dark:text-white text-base sm:text-lg">
                           {formatBalance(balance.balance, balance.currency)} {balance.currency}
@@ -774,29 +781,14 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-              {balances.map((balance) => {
-                const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
-                return (
+              {balances.map((balance) => (
                   <SelectItem key={balance.currency} value={balance.currency} className="text-black dark:text-white">
                     <div className="flex items-center space-x-2">
-                      {icon.isCoyn ? (
-                        <img 
-                          src={coynLogoPath} 
-                          alt="COYN" 
-                          className="w-4 h-4 drop-shadow-[0_0_8px_rgba(255,193,7,0.3)]"
-                        />
-                      ) : (
-                        <div className={`w-4 h-4 ${icon.color} rounded-full flex items-center justify-center`}>
-                          <span className="text-xs font-bold text-white">
-                            {icon.symbol}
-                          </span>
-                        </div>
-                      )}
+                      {renderCurrencyIcon(balance.currency, "sm")}
                       <span>{balance.currency}</span>
                     </div>
                   </SelectItem>
-                );
-              })}
+                ))}
             </SelectContent>
           </Select>
         </div>
