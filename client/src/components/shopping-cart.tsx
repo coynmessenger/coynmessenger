@@ -769,15 +769,83 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               <div className="space-y-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Wallet className="h-5 w-5 text-orange-500" />
-                  <h3 className="text-lg font-semibold text-foreground">Payment Method</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Finalize Your Order</h3>
                 </div>
 
-                <div className="text-center space-y-2">
-                  <p className="text-muted-foreground">Total Amount</p>
-                  <p className="text-3xl font-bold text-orange-500">
-                    ${calculateTotalWithExtras().toFixed(2)} USD
-                  </p>
-                </div>
+                {/* Complete Order Summary */}
+                <Card className="bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Package className="h-4 w-4" />
+                      Order Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Order Items */}
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-muted-foreground">Items ({cartItems.length}):</p>
+                      {cartItems.map((item) => (
+                        <div key={item.id} className="flex items-center gap-3 py-2 border-b border-border/50 last:border-0">
+                          {item.imageUrl && (
+                            <img src={item.imageUrl} alt={item.title} className="w-10 h-10 object-cover rounded" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm line-clamp-1">{item.title}</p>
+                            <p className="text-xs text-muted-foreground">Qty: {item.quantity} × ${parseFloat(item.price.replace(/[,$]/g, '')).toFixed(2)}</p>
+                          </div>
+                          <p className="font-medium text-sm">${(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity).toFixed(2)}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Separator />
+
+                    {/* Shipping Address */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Shipping to:</p>
+                      <div className="text-sm bg-muted rounded-lg p-3">
+                        <p className="font-medium">{shippingAddress.fullName}</p>
+                        <p>{shippingAddress.addressLine1}</p>
+                        {shippingAddress.addressLine2 && <p>{shippingAddress.addressLine2}</p>}
+                        <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
+                        <p>{shippingAddress.country}</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Cost Breakdown */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span>${calculateTotal().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Shipping {expressShipping ? '(Express)' : '(Standard)'}:</span>
+                        <span>${calculateShippingCost().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Tax:</span>
+                        <span>${calculateTax(calculateTotal()).toFixed(2)}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Order Total:</span>
+                        <span className="text-orange-500">${calculateTotalWithExtras().toFixed(2)} USD</span>
+                      </div>
+                    </div>
+
+                    {orderNotes && (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground mb-1">Order Notes:</p>
+                          <p className="text-sm text-muted-foreground bg-muted rounded p-2">{orderNotes}</p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
 
                 <Separator />
 

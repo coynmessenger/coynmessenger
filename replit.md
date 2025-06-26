@@ -196,6 +196,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Fixed cart sizing and scroll functionality - optimized dialog layout with proper flexbox structure, improved scrolling behavior for cart items, enhanced mobile responsiveness with better touch targets and spacing, fixed summary section positioning for optimal user experience
 - June 26, 2025: Added comprehensive legal compliance - created detailed Terms & Conditions and Privacy Policy as popup modals accessible from homepage footer links, covering cryptocurrency transactions, marketplace usage, data protection, GDPR compliance, and user rights with proper legal documentation
 - June 26, 2025: Fixed heart icon state persistence on product page - heart now stays red after adding to favorites by connecting click handler to proper toggleFavorite API function instead of simple state toggle
+- June 26, 2025: Added comprehensive order summary to finalize payment section - includes detailed item breakdown with images, shipping address display, cost breakdown, and order notes for complete purchase transparency
 
 ## User Preferences
 
