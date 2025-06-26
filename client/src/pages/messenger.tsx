@@ -122,55 +122,9 @@ export default function MessengerPage() {
                   </div>
                 </div>
 
-                {/* Combined Conversation and Contact List */}
+                {/* Contact List First - Main Focus */}
                 <div className="flex-1 overflow-auto">
-                  {/* Existing Conversations */}
-                  {filteredConversations.length > 0 && (
-                    <div>
-                      <div className="p-3 bg-muted/30 border-b border-border">
-                        <h3 className="text-sm font-medium text-muted-foreground">Your Conversations</h3>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {filteredConversations.map((conversation) => (
-                          <div
-                            key={conversation.id}
-                            onClick={() => setSelectedConversation(conversation.id)}
-                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="relative">
-                                <img
-                                  src={conversation.otherUser.profilePicture || "/api/placeholder/40/40"}
-                                  alt={conversation.otherUser.displayName}
-                                  className="w-12 h-12 rounded-full object-cover"
-                                />
-                                {conversation.otherUser.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                  <h3 className="font-medium text-foreground truncate">
-                                    {conversation.otherUser.displayName}
-                                  </h3>
-                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {conversation.lastMessage?.content || "No messages yet"}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Available Contacts to Start New Conversations */}
+                  {/* Available Contacts - Primary Display */}
                   {availableContacts.length > 0 && (
                     <div>
                       <div className="p-3 bg-muted/30 border-b border-border">
@@ -205,6 +159,52 @@ export default function MessengerPage() {
                               {createConversationMutation.isPending && (
                                 <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                               )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Existing Conversations - Secondary Display */}
+                  {filteredConversations.length > 0 && (
+                    <div>
+                      <div className="p-3 bg-muted/30 border-b border-border">
+                        <h3 className="text-sm font-medium text-muted-foreground">Recent Conversations</h3>
+                      </div>
+                      <div className="divide-y divide-border">
+                        {filteredConversations.map((conversation) => (
+                          <div
+                            key={conversation.id}
+                            onClick={() => setSelectedConversation(conversation.id)}
+                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="relative">
+                                <img
+                                  src={conversation.otherUser.profilePicture || "/api/placeholder/40/40"}
+                                  alt={conversation.otherUser.displayName}
+                                  className="w-12 h-12 rounded-full object-cover"
+                                />
+                                {conversation.otherUser.isOnline && (
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-medium text-foreground truncate">
+                                    {conversation.otherUser.displayName}
+                                  </h3>
+                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {conversation.lastMessage?.content || "No messages yet"}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         ))}
