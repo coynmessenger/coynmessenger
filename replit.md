@@ -198,6 +198,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed heart icon state persistence on product page - heart now stays red after adding to favorites by connecting click handler to proper toggleFavorite API function instead of simple state toggle
 - June 26, 2025: Added comprehensive order summary to finalize payment section - includes detailed item breakdown with images, shipping address display, cost breakdown, and order notes for complete purchase transparency
 - June 26, 2025: Updated Terms and Conditions contact email to coynful@gmail.com for customer support and legal inquiries
+- June 26, 2025: Enhanced favorites page with left sidebar wallet overview - added proper currency logos (BTC orange, USDT green, COYN golden, BNB yellow), currency symbols (₿, ₮, C, ⬢), show/hide balance toggle, and restructured layout with wallet on left and favorites grid on right for improved user experience
 
 ## User Preferences
 
