@@ -42,9 +42,22 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
   useEffect(() => {
     if (isVisible && anchorRef.current) {
       const rect = anchorRef.current.getBoundingClientRect();
+      const popupWidth = 320; // w-80 = 320px
+      const viewportWidth = window.innerWidth;
+      
+      // Calculate left position to keep popup in viewport
+      let leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
+      
+      // Adjust if popup would go off-screen
+      if (leftPosition < 8) {
+        leftPosition = 8;
+      } else if (leftPosition + popupWidth > viewportWidth - 8) {
+        leftPosition = viewportWidth - popupWidth - 8;
+      }
+      
       setPosition({
         top: rect.bottom + 8,
-        left: rect.left - 150 // Center the popup relative to button
+        left: leftPosition
       });
     }
   }, [isVisible, anchorRef]);
@@ -101,7 +114,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
   return (
     <div
       id="wallet-hover-popup"
-      className="fixed z-50 bg-background border border-border rounded-lg shadow-xl p-0 w-80"
+      className="fixed z-[60] bg-background border border-border rounded-lg shadow-xl p-0 w-80"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
