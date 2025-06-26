@@ -35,10 +35,15 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: escrows = [] } = useQuery<Escrow[]>({
+  const { data: allEscrows = [] } = useQuery<Escrow[]>({
     queryKey: ["/api/conversations", conversationId, "escrows"],
     enabled: isOpen,
   });
+
+  // Filter for active escrows (excluding canceled and released)
+  const escrows = allEscrows.filter(escrow => 
+    escrow.status !== "canceled" && escrow.status !== "released"
+  );
 
   const { data: balances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances"],
@@ -342,10 +347,17 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
           {/* Existing Escrows */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-black dark:text-slate-300">Active Escrows</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-black dark:text-slate-300">Active Escrows</h3>
+              {escrows.length > 0 && (
+                <span className="bg-orange-100 dark:bg-cyan-900/30 text-orange-600 dark:text-cyan-400 px-2 py-1 rounded-full text-xs font-medium">
+                  {escrows.length}
+                </span>
+              )}
+            </div>
             {escrows.length === 0 ? (
               <p className="text-gray-600 dark:text-slate-400 text-sm text-center py-4">
-                No escrow agreements found
+                No active escrow agreements
               </p>
             ) : (
               escrows.map((escrow) => (
