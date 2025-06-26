@@ -257,6 +257,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const escrow = await storage.createEscrow(escrowData);
+      
+      // Send notification to both parties
+      await storage.sendEscrowNotification(escrow.id);
+      
+      // Create system message in conversation
+      const notificationMessage = {
+        conversationId: escrow.conversationId,
+        senderId: escrow.initiatorId,
+        type: "system" as const,
+        content: `🛡️ Escrow created: ${escrow.initiatorRequiredAmount} ${escrow.initiatorCurrency} ⇄ ${escrow.participantRequiredAmount} ${escrow.participantCurrency}. Both parties must fund the escrow before blockchain confirmation begins.`
+      };
+      
+      await storage.createMessage(notificationMessage);
+      
+      console.log(`[ESCROW] Created escrow ${escrow.id} between users ${escrow.initiatorId} and ${escrow.participantId}`);
       res.json(escrow);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -279,6 +294,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const escrow = await storage.addFundsToEscrow(escrowId, 5, amount); // Current user
       if (!escrow) {
         return res.status(404).json({ message: "Escrow not found or unauthorized" });
+      }
+
+      // Check if both parties have now funded
+      const initiatorFunded = parseFloat(escrow.initiatorAmount || "0");
+      const participantFunded = parseFloat(escrow.participantAmount || "0");
+      const initiatorRequired = parseFloat(escrow.initiatorRequiredAmount);
+      const participantRequired = parseFloat(escrow.participantRequiredAmount);
+
+      if (initiatorFunded >= initiatorRequired && participantFunded >= participantRequired && escrow.status === "funded") {
+        // Create funding complete notification
+        const fundingMessage = {
+          conversationId: escrow.conversationId,
+          senderId: 5,
+          type: "system" as const,
+          content: `✅ Escrow fully funded! Starting blockchain confirmation process (25 confirmations required). Funds will be automatically released when complete.`
+        };
+        
+        await storage.createMessage(fundingMessage);
+        console.log(`[ESCROW] Escrow ${escrowId} fully funded, starting blockchain confirmations`);
       }
 
       res.json(escrow);

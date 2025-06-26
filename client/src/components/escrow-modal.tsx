@@ -183,17 +183,27 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     setSelectedEscrow(null);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, confirmationCount?: number, requiredConfirmations?: number) => {
     switch (status) {
       case "pending":
         return <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400">
           <Clock className="h-3 w-3 mr-1" />
-          Pending
+          Awaiting Funds
+        </Badge>;
+      case "awaiting_funds":
+        return <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+          <DollarSign className="h-3 w-3 mr-1" />
+          Awaiting Funds
         </Badge>;
       case "funded":
         return <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
-          <DollarSign className="h-3 w-3 mr-1" />
+          <Shield className="h-3 w-3 mr-1" />
           Funded
+        </Badge>;
+      case "confirming":
+        return <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400">
+          <Clock className="h-3 w-3 mr-1" />
+          Confirming ({confirmationCount || 0}/{requiredConfirmations || 25})
         </Badge>;
       case "released":
         return <Badge variant="secondary" className="bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400">
@@ -347,7 +357,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                           <span className="font-medium text-cyan-400">{formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}</span>
                           <span className="text-slate-400">🔄</span>
                           <span className="font-medium text-purple-400">{formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}</span>
-                          {getStatusBadge(escrow.status)}
+                          {getStatusBadge(escrow.status, escrow.confirmationCount || 0, escrow.requiredConfirmations || 25)}
                         </div>
                         {escrow.description && (
                           <p className="text-sm text-slate-400">{escrow.description}</p>
@@ -428,6 +438,33 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                             >
                               {releaseEscrowMutation.isPending ? "Releasing..." : "Complete Trade"}
                             </Button>
+                          </div>
+                        )}
+
+                        {escrow.status === "confirming" && (
+                          <div className="mb-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-sm text-purple-700 dark:text-purple-400">
+                                Blockchain Confirmations
+                              </p>
+                              <span className="text-sm font-mono text-purple-600 dark:text-purple-300">
+                                {escrow.confirmationCount || 0}/{escrow.requiredConfirmations || 25}
+                              </span>
+                            </div>
+                            <div className="w-full bg-purple-200 dark:bg-purple-800 rounded-full h-2 mb-2">
+                              <div 
+                                className="bg-purple-600 dark:bg-purple-400 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${((escrow.confirmationCount || 0) / (escrow.requiredConfirmations || 25)) * 100}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-xs text-purple-600 dark:text-purple-400">
+                              Waiting for blockchain confirmations. Funds will be automatically released when complete.
+                            </p>
+                            {escrow.blockchainTxHash && (
+                              <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">
+                                Tx Hash: {escrow.blockchainTxHash.substring(0, 20)}...
+                              </p>
+                            )}
                           </div>
                         )}
 

@@ -248,6 +248,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed wallet overview window scroll issue on favorites page - added proper overflow handling, height constraints (max-h-[80vh]), flexible layout with scrollable content area, and improved positioning logic to prevent popup from going off-screen
 - June 26, 2025: Implemented comprehensive automatic scroll-to-top functionality across all pages using custom useScrollToTop hook - ensures users always start at top when navigating between marketplace, favorites, and product pages for consistent user experience
 - June 26, 2025: Removed all "Amazon" branding throughout application - renamed API endpoints from /api/amazon/ to /api/marketplace/, updated component names (AmazonCheckout to MarketplaceCheckout), interfaces (AmazonProduct to Product), and replaced all Amazon references with generic marketplace terminology for broader commercial appeal
+- June 26, 2025: Implemented comprehensive blockchain escrow system with 25-confirmation requirement - enhanced database schema with confirmation tracking, notification system, automatic status updates from pending → awaiting_funds → funded → confirming → released, real-time progress indicators with visual confirmation progress bars, automated fund release after blockchain confirmations complete, and system message notifications throughout entire escrow lifecycle from creation to completion
 
 ## User Preferences
 

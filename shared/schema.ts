@@ -62,9 +62,14 @@ export const escrows = pgTable("escrows", {
   participantRequiredAmount: decimal("participant_required_amount", { precision: 18, scale: 8 }).notNull(),
   initiatorAmount: decimal("initiator_amount", { precision: 18, scale: 8 }).default("0"),
   participantAmount: decimal("participant_amount", { precision: 18, scale: 8 }).default("0"),
-  status: text("status").notNull().default("pending"), // pending, funded, released, cancelled
+  status: text("status").notNull().default("pending"), // pending, awaiting_funds, funded, confirming, released, cancelled
   description: text("description"),
+  confirmationCount: integer("confirmation_count").default(0),
+  requiredConfirmations: integer("required_confirmations").default(25),
+  blockchainTxHash: text("blockchain_tx_hash"),
+  notificationSent: boolean("notification_sent").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  fundedAt: timestamp("funded_at"),
   releasedAt: timestamp("released_at"),
 });
 

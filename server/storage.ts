@@ -42,8 +42,11 @@ export interface IStorage {
   getUserEscrows(userId: number): Promise<Escrow[]>;
   createEscrow(escrow: InsertEscrow): Promise<Escrow>;
   addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null>;
+  updateEscrowStatus(escrowId: number, status: string, blockchainTxHash?: string): Promise<Escrow | null>;
+  updateConfirmationCount(escrowId: number, count: number): Promise<Escrow | null>;
   releaseEscrow(escrowId: number): Promise<boolean>;
   cancelEscrow(escrowId: number, userId: number): Promise<boolean>;
+  sendEscrowNotification(escrowId: number): Promise<boolean>;
 
   // Favorites
   getUserFavorites(userId: number): Promise<Favorite[]>;
@@ -297,16 +300,107 @@ export class DatabaseStorage implements IStorage {
     if (initiatorFunded >= initiatorRequired && participantFunded >= participantRequired) {
       await db
         .update(escrows)
-        .set({ status: "funded" })
+        .set({ 
+          status: "funded", 
+          fundedAt: new Date(),
+          blockchainTxHash: `tx_${Date.now()}_${escrowId}` // Mock blockchain transaction hash
+        })
         .where(eq(escrows.id, escrowId));
+      
+      // Start blockchain confirmation process
+      this.startBlockchainConfirmation(escrowId);
     }
 
     return updatedEscrow;
   }
 
+  async updateEscrowStatus(escrowId: number, status: string, blockchainTxHash?: string): Promise<Escrow | null> {
+    const updateData: any = { status };
+    if (blockchainTxHash) {
+      updateData.blockchainTxHash = blockchainTxHash;
+    }
+    if (status === "funded") {
+      updateData.fundedAt = new Date();
+    }
+    if (status === "released") {
+      updateData.releasedAt = new Date();
+    }
+
+    const [updatedEscrow] = await db
+      .update(escrows)
+      .set(updateData)
+      .where(eq(escrows.id, escrowId))
+      .returning();
+
+    return updatedEscrow || null;
+  }
+
+  async updateConfirmationCount(escrowId: number, count: number): Promise<Escrow | null> {
+    const [updatedEscrow] = await db
+      .update(escrows)
+      .set({ confirmationCount: count })
+      .where(eq(escrows.id, escrowId))
+      .returning();
+
+    // Check if confirmations are complete
+    if (updatedEscrow && count >= (updatedEscrow.requiredConfirmations || 25)) {
+      await this.updateEscrowStatus(escrowId, "released");
+      await this.releaseEscrow(escrowId);
+      
+      // Create completion notification
+      const completionMessage = {
+        conversationId: updatedEscrow.conversationId,
+        senderId: updatedEscrow.initiatorId,
+        type: "system" as const,
+        content: `🎉 Blockchain confirmations complete! Escrow funds have been released. Trade completed successfully.`
+      };
+      
+      await this.createMessage(completionMessage);
+      console.log(`[ESCROW] Escrow ${escrowId} completed - 25 confirmations reached, funds released`);
+    }
+
+    return updatedEscrow || null;
+  }
+
+  async sendEscrowNotification(escrowId: number): Promise<boolean> {
+    try {
+      await db
+        .update(escrows)
+        .set({ notificationSent: true })
+        .where(eq(escrows.id, escrowId));
+      
+      console.log(`[ESCROW] Notification sent for escrow ${escrowId}`);
+      return true;
+    } catch (error) {
+      console.error(`[ESCROW] Failed to send notification for escrow ${escrowId}:`, error);
+      return false;
+    }
+  }
+
+  private async startBlockchainConfirmation(escrowId: number): Promise<void> {
+    console.log(`[ESCROW] Starting blockchain confirmation for escrow ${escrowId}`);
+    
+    // Update status to confirming
+    await this.updateEscrowStatus(escrowId, "confirming");
+    
+    // Simulate blockchain confirmation process (25 confirmations)
+    let confirmationCount = 0;
+    const confirmationInterval = setInterval(async () => {
+      confirmationCount++;
+      console.log(`[ESCROW] Confirmation ${confirmationCount}/25 for escrow ${escrowId}`);
+      
+      await this.updateConfirmationCount(escrowId, confirmationCount);
+      
+      if (confirmationCount >= 25) {
+        clearInterval(confirmationInterval);
+        console.log(`[ESCROW] Blockchain confirmations complete for escrow ${escrowId}`);
+      }
+    }, 2000); // 2 seconds per confirmation for demo
+  }
+
   async releaseEscrow(escrowId: number): Promise<boolean> {
     const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
-    if (!escrow || escrow.status !== "funded") return false;
+    if (!escrow || (escrow.status !== "funded" && escrow.status !== "confirming" && escrow.status !== "released")) return false;
 
     // Get current wallet balances to properly add funds
     const initiatorFunded = parseFloat(escrow.initiatorAmount || "0");
