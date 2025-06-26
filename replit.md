@@ -224,6 +224,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Removed highlighted yellow "Conversations" section from mobile messenger - eliminated all redundant header elements for completely clean, streamlined interface across both desktop and mobile layouts
 - June 26, 2025: Added "Messenger" header to mobile messenger page - implemented clean header with COYN logo and "Messenger" title using Google Product Sans font, matching marketplace header styling for consistency across application
 - June 26, 2025: Removed highlighted "to Receive" text from COYN wallet - streamlined currency selection label to simply "Select Currency" for cleaner interface
+- June 26, 2025: Moved "Messenger" branding to mobile navigation bar - removed header from main content area and positioned COYN logo with "Messenger" text in top navigation for better mobile UX
 
 ## User Preferences
 

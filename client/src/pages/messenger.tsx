@@ -289,12 +289,15 @@ export default function MessengerPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <img 
                 src={coynLogoPath} 
                 alt="COYN Logo" 
                 className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
               />
+              <h1 className="text-xl font-normal text-white" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+                Messenger
+              </h1>
             </div>
             <div className="flex items-center space-x-2">
               <button 
@@ -362,20 +365,6 @@ export default function MessengerPage() {
             />
           ) : (
             <div className="flex-1 flex flex-col bg-background">
-              {/* Header */}
-              <div className="bg-card border-b border-border p-4">
-                <div className="flex items-center space-x-3">
-                  <img 
-                    src={coynLogoPath} 
-                    alt="COYN Logo" 
-                    className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
-                  />
-                  <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
-                    Messenger
-                  </h1>
-                </div>
-              </div>
-
               {/* Contact List and Conversations */}
               <div className="flex-1 overflow-auto">
                 {/* Available Contacts - Primary Display */}
