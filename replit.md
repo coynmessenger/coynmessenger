@@ -260,6 +260,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed unwanted conversations issue - removed orphaned test users "Trust Wallet User" and "WalletConnect User" from database that were appearing as unwanted conversations in messenger, cleaned up associated conversations and invalid wallet addresses to ensure clean user experience
 - June 26, 2025: Removed additional test user contact - deleted "User 4Fe8e1" from database and cleaned up associated conversation to maintain clean contact list with only legitimate demo users (Chris, Jane, G Stax, Daniel)
 - June 26, 2025: Implemented wallet connection safeguards - modified API to prevent new user creation during wallet connections, changed `/api/users/find-or-create` to only find existing users, added proper error handling for unregistered wallet addresses, created separate `/api/admin/users/register` endpoint for controlled user registration, updated frontend error messaging to guide users to contact administrator
+- June 26, 2025: Added clickable profile popup in chat header - created comprehensive UserProfileModal component with user details, wallet address copying, action buttons for call/video/message, online status indicator, made chat header profile area clickable to display detailed user information with clean light theme styling
 
 ## User Preferences
 

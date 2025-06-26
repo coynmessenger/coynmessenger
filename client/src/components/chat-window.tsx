@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
 import ShareModal from "@/components/share-modal";
+import UserProfileModal from "@/components/user-profile-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp, Reply, Share, Users } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
@@ -41,6 +42,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -270,16 +272,22 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </Button>
           )}
           
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-            <AvatarFallback className="bg-muted text-foreground font-medium">
-              {conversation.otherUser.displayName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="font-semibold text-foreground">{conversation.otherUser.displayName}</h2>
-            <p className="text-xs text-muted-foreground">{conversation.otherUser.walletAddress}</p>
-          </div>
+          <Button
+            variant="ghost"
+            className="p-0 h-auto hover:bg-transparent flex items-center space-x-3"
+            onClick={() => setShowUserProfile(true)}
+          >
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={conversation.otherUser.profilePicture || ""} />
+              <AvatarFallback className="bg-muted text-foreground font-medium">
+                {conversation.otherUser.displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-left">
+              <h2 className="font-semibold text-foreground">{conversation.otherUser.displayName}</h2>
+              <p className="text-xs text-muted-foreground">{conversation.otherUser.walletAddress}</p>
+            </div>
+          </Button>
         </div>
         <div className="flex items-center space-x-2">
           <Button 
@@ -718,6 +726,25 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           )}
         </DialogContent>
       </Dialog>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={showUserProfile}
+        onClose={() => setShowUserProfile(false)}
+        user={conversation.otherUser}
+        onStartCall={() => {
+          setShowUserProfile(false);
+          // Phone call functionality can be added here
+        }}
+        onStartVideoCall={() => {
+          setShowUserProfile(false);
+          onOpenVideoCall();
+        }}
+        onSendMessage={() => {
+          setShowUserProfile(false);
+          // Focus on message input - can be enhanced later
+        }}
+      />
     </div>
   );
 }
