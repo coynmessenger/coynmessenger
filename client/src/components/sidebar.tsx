@@ -21,7 +21,7 @@ interface SidebarProps {
   onSelectConversation: (id: number) => void;
   isOpen: boolean;
   onClose: () => void;
-  onOpenWallet: () => void;
+  onOpenWallet: (currency?: string) => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
 }
@@ -194,7 +194,7 @@ export default function Sidebar({
           {/* Total Balance Header */}
           <div 
             className="p-3 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm mb-2"
-            onClick={onOpenWallet}
+            onClick={() => onOpenWallet()}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Total Portfolio</span>
@@ -230,7 +230,7 @@ export default function Sidebar({
               const portfolioPercent = totalBalance > 0 ? (parseFloat(balance.usdValue || "0") / totalBalance * 100) : 0;
               
               return (
-                <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors cursor-pointer" onClick={onOpenWallet}>
+                <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors cursor-pointer" onClick={() => onOpenWallet(balance.currency)}>
                   <CardContent className="p-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
@@ -323,7 +323,7 @@ export default function Sidebar({
         <div className="lg:hidden p-4 border-t border-border bg-white dark:bg-card">
           <div className="flex gap-2">
             <Button 
-              onClick={onOpenWallet}
+              onClick={() => onOpenWallet()}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
               <Wallet className="h-4 w-4 mr-2" />

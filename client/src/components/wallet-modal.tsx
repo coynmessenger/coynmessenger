@@ -20,6 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialCurrency?: string;
 }
 
 interface SendModalProps {
@@ -665,12 +666,19 @@ function QRCodeModal({ isOpen, onClose, currency, walletAddress }: QRModalProps)
   );
 }
 
-export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
+export default function WalletModal({ isOpen, onClose, initialCurrency }: WalletModalProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showEscrowList, setShowEscrowList] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+
+  // Pre-select currency when modal opens with initial currency
+  useEffect(() => {
+    if (initialCurrency && isOpen) {
+      setSelectedCurrency(initialCurrency);
+    }
+  }, [initialCurrency, isOpen]);
   
   const { data: balances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances"],

@@ -14,6 +14,7 @@ import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 export default function MessengerPage() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -48,6 +49,18 @@ export default function MessengerPage() {
     contact.id !== user?.id && 
     !conversations.some(conv => conv.otherUser.id === contact.id)
   );
+
+  // Handler for opening wallet with optional pre-selected currency
+  const handleOpenWallet = (currency?: string) => {
+    setSelectedWalletCurrency(currency);
+    setIsWalletOpen(true);
+  };
+
+  // Handler for closing wallet and resetting selected currency
+  const handleCloseWallet = () => {
+    setIsWalletOpen(false);
+    setSelectedWalletCurrency(undefined);
+  };
 
   // Keep messenger open to contact list view by default
 
@@ -94,7 +107,7 @@ export default function MessengerPage() {
             onSelectConversation={setSelectedConversation}
             isOpen={false}
             onClose={() => {}}
-            onOpenWallet={() => setIsWalletOpen(true)}
+            onOpenWallet={handleOpenWallet}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -486,14 +499,18 @@ export default function MessengerPage() {
           onSelectConversation={setSelectedConversation}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          onOpenWallet={() => setIsWalletOpen(true)}
+          onOpenWallet={handleOpenWallet}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
       </div>
 
       {/* Modals */}
-      <WalletModal isOpen={isWalletOpen} onClose={() => setIsWalletOpen(false)} />
+      <WalletModal 
+        isOpen={isWalletOpen} 
+        onClose={handleCloseWallet}
+        initialCurrency={selectedWalletCurrency}
+      />
       <VideoCallModal
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
