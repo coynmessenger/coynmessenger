@@ -47,35 +47,35 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-md">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <UserPlus className="h-5 w-5 text-cyan-400" />
+            <UserPlus className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
             <span>Add New Contact</span>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="walletAddress" className="text-slate-300">
+            <Label htmlFor="walletAddress" className="text-gray-700 dark:text-slate-300">
               Wallet Address *
             </Label>
             <div className="relative">
-              <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 h-4 w-4" />
               <Input
                 id="walletAddress"
                 type="text"
                 placeholder="0x1234...abcd"
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
-                className="pl-10 bg-slate-700 border-slate-600 focus:border-cyan-500"
+                className="pl-10 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="displayName" className="text-slate-300">
+            <Label htmlFor="displayName" className="text-gray-700 dark:text-slate-300">
               Display Name (Optional)
             </Label>
             <Input
@@ -84,9 +84,9 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
               placeholder="Friend's Name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="bg-slate-700 border-slate-600 focus:border-cyan-500"
+              className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500"
             />
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-gray-500 dark:text-slate-400">
               If empty, will use wallet address as display name
             </p>
           </div>
@@ -96,14 +96,14 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-slate-600 hover:bg-slate-700"
+              className="flex-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={addContactMutation.isPending || !walletAddress.trim()}
-              className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+              className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
             >
               {addContactMutation.isPending ? "Adding..." : "Add Contact"}
             </Button>

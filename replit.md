@@ -272,6 +272,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Added search functionality to desktop messenger sidebar - implemented search bar with search icon, clear button, and consistent styling matching mobile search functionality for desktop users
 - June 26, 2025: Enhanced wallet currency selection flow - selected currency in main wallet modal now carries over to send modal dropdown, improving user experience by pre-selecting the currency user clicked send on
 - June 26, 2025: Standardized profile image fallbacks across entire application - implemented consistent UserAvatarIcon fallback for missing profile pictures in messenger contact list, conversation list, sidebar, chat header, and user profile modal, ensuring uniform user experience with professional avatar icons on both mobile and desktop
+- June 26, 2025: Updated "Add New Contact" modal to light theme - replaced dark slate backgrounds with white, changed cyan accents to orange, updated all text colors to gray/black, ensuring consistent light theme appearance with white backgrounds, orange primary buttons, and proper contrast throughout modal interface
 
 ## User Preferences
 
