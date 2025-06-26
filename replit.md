@@ -207,6 +207,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Repositioned wallet connection section to top of homepage - moved "Connect to COYN Network" card directly under COYN logo and above features grid for improved user flow and prominent wallet connection access
 - June 26, 2025: Simplified wallet connection title to "Connect Wallet" - changed from "Connect to COYN Network" for cleaner, more concise user interface messaging
 - June 26, 2025: Updated wallet connection description to reference "COYN Wallet" - changed from "COYN network" for consistent terminology throughout the interface
+- June 26, 2025: Removed auto-redirect after wallet connection - users now stay on homepage and manually choose messenger or marketplace destination
 - June 26, 2025: Updated marketplace categories - replaced "All Category" with "Categories" and implemented more suitable category options (Electronics, Home & Garden, Clothing & Fashion, Books & Media, Sports & Outdoors) that better match Amazon product inventory
 - June 26, 2025: Removed "Send" and "Receive" buttons from messenger sidebar wallet section - streamlined wallet area to show only balance information, creating cleaner interface with more space for conversation list
 - June 26, 2025: Added hide and show balance functionality to messenger sidebar - implemented eye/eyeoff toggle button that allows users to hide balance display for privacy, showing dots instead of actual amount when hidden

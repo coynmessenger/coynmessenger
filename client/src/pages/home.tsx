@@ -56,7 +56,6 @@ export default function HomePage() {
       
       setConnectedUser(user);
       setIsConnected(true);
-      setTimeout(() => setLocation("/messenger"), 1500);
     },
   });
 
