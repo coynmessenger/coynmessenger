@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User, Escrow } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import QRCode from "qrcode";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
@@ -670,6 +670,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const [showSendModal, setShowSendModal] = useState(false);
   const [showEscrowList, setShowEscrowList] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   
   const { data: balances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances"],
@@ -709,20 +710,34 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 m-4 sm:m-6">
         <DialogHeader className="pb-2 sm:pb-4 flex-shrink-0">
-          <div className="flex items-center justify-center space-x-3 mb-1 sm:mb-2">
-            <img 
-              src={coynLogoPath} 
-              alt="COYN Logo" 
-              className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
-            />
-            <DialogTitle className="text-lg sm:text-xl font-bold">COYN Wallet</DialogTitle>
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <div className="flex items-center space-x-3">
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+              />
+              <DialogTitle className="text-lg sm:text-xl font-bold">COYN Wallet</DialogTitle>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+              className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600"
+            >
+              {isBalanceVisible ? (
+                <Eye className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
+              ) : (
+                <EyeOff className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
+              )}
+            </Button>
           </div>
         </DialogHeader>
 
         {/* Balance Section */}
         <div className="text-center mb-4 sm:mb-6 flex-shrink-0">
           <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-2">
-            {formatUSD(totalBalance.toString())}
+            {isBalanceVisible ? formatUSD(totalBalance.toString()) : "••••••"}
           </div>
           <div className="text-sm sm:text-base text-gray-600 dark:text-slate-400">Total Balance</div>
         </div>
@@ -743,7 +758,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                       </div>
                       <div>
                         <div className="font-medium text-black dark:text-white text-base sm:text-lg">
-                          {formatBalance(balance.balance, balance.currency)} {balance.currency}
+                          {isBalanceVisible ? `${formatBalance(balance.balance, balance.currency)} ${balance.currency}` : "••••••"}
                         </div>
                         <div className="text-sm text-gray-600 dark:text-slate-400 capitalize">
                           {balance.currency === "BTC" ? "Bitcoin" : 
@@ -755,7 +770,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                     </div>
                     <div className="text-right">
                       <div className={`font-medium text-base sm:text-lg ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-                        {formatUSD(balance.usdValue || "0")}
+                        {isBalanceVisible ? formatUSD(balance.usdValue || "0") : "••••••"}
                       </div>
                       <div className={`text-xs flex items-center justify-end ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         {isPositive ? (
