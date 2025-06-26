@@ -196,75 +196,78 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* MetaMask */}
-                  <Button 
-                    onClick={() => handleWeb3Connect('metamask')}
-                    className="w-full h-14 bg-orange-500 hover:bg-orange-600 text-white font-medium flex items-center justify-between group transition-all duration-200"
-                    disabled={connectWalletMutation.isPending}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                          <path d="M22.05 9.656l-3.478-5.226a1.125 1.125 0 00-.93-.48H6.358a1.125 1.125 0 00-.93.48L1.95 9.656a1.125 1.125 0 00-.2 1.2l3.6 7.2a1.125 1.125 0 001.013.594h10.274a1.125 1.125 0 001.013-.594l3.6-7.2a1.125 1.125 0 00-.2-1.2z" fill="#F6851B"/>
-                          <path d="M8.25 12l3.75-3.75L15.75 12l-3.75 3.75L8.25 12z" fill="#E2761B"/>
+                  {/* 2x2 Grid of Wallet Options */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* MetaMask */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('metamask')}
+                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <svg className="w-8 h-8" viewBox="0 0 256 256" fill="none">
+                          <path d="M250.066 0L140.219 81.279l20.427-47.9z" fill="#E17726"/>
+                          <path d="M6.191 0l109.356 82.024-19.683-48.645z" fill="#E27625"/>
+                          <path d="M205.86 185.445l-31.211 47.751 66.769 18.375 19.155-64.983z" fill="#E27625"/>
+                          <path d="M15.488 186.588l19.155 64.983 66.769-18.375-31.211-47.751z" fill="#E27625"/>
+                          <path d="M96.681 111.691l-17.54 26.17 66.769 2.98-.744-71.847z" fill="#E27625"/>
+                          <path d="M159.578 111.691l-49.23-43.441-.744 72.591 66.769-2.98z" fill="#E27625"/>
+                          <path d="M70.412 233.196l39.893-19.155-34.191-26.914z" fill="#D5BFB2"/>
+                          <path d="M145.953 214.041l39.893 19.155-5.702-46.069z" fill="#D5BFB2"/>
                         </svg>
                       </div>
-                      <span className="text-lg">MetaMask</span>
-                    </div>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                      <span className="text-sm font-medium">MetaMask</span>
+                    </Button>
 
-                  {/* WalletConnect */}
-                  <Button 
-                    onClick={() => handleWeb3Connect('walletconnect')}
-                    className="w-full h-14 bg-blue-500 hover:bg-blue-600 text-white font-medium flex items-center justify-between group transition-all duration-200"
-                    disabled={connectWalletMutation.isPending}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#3B99FC"/>
+                    {/* WalletConnect */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('walletconnect')}
+                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <svg className="w-8 h-8" viewBox="0 0 300 300" fill="none">
+                          <path d="M61.438 36.962c48.912-47.888 128.212-47.888 177.124 0l5.886 5.764c2.446 2.394 2.446 6.277 0 8.671l-20.136 19.716c-1.223 1.197-3.205 1.197-4.428 0l-8.102-7.931c-34.121-33.407-89.444-33.407-123.565 0l-8.675 8.493c-1.223 1.197-3.205 1.197-4.428 0L54.978 51.959c-2.446-2.394-2.446-6.277 0-8.671l6.46-6.326zm218.713 40.785l17.921 17.546c2.446 2.394 2.446 6.277 0 8.671L244.745 156.7c-2.446 2.394-6.411 2.394-8.857 0l-37.867-37.068c-.612-.599-1.603-.599-2.214 0l-37.867 37.068c-2.446 2.394-6.411 2.394-8.857 0L95.756 103.964c-2.446-2.394-2.446-6.277 0-8.671l17.921-17.546c2.446-2.394 6.411-2.394 8.857 0l37.867 37.068c.612.599 1.603.599 2.214 0l37.867-37.068c2.446-2.394 6.411-2.394 8.857 0l37.867 37.068c.612.599 1.603.599 2.214 0l37.867-37.068c2.446-2.394 6.411-2.394 8.857 0z" fill="#3B99FC"/>
                         </svg>
                       </div>
-                      <span className="text-lg">WalletConnect</span>
-                    </div>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                      <span className="text-sm font-medium">WalletConnect</span>
+                    </Button>
 
-                  {/* Trust Wallet */}
-                  <Button 
-                    onClick={() => handleWeb3Connect('trust')}
-                    className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center justify-between group transition-all duration-200"
-                    disabled={connectWalletMutation.isPending}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                          <path d="M12 2l10 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l10-4z" fill="#0500FF"/>
+                    {/* Trust Wallet */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('trust')}
+                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <svg className="w-8 h-8" viewBox="0 0 256 256" fill="none">
+                          <path d="M128 0C93.8 0 66.4 27.4 66.4 61.6v38.4c0 89.6 61.6 163.2 61.6 163.2s61.6-73.6 61.6-163.2V61.6C189.6 27.4 162.2 0 128 0z" fill="#0500FF"/>
+                          <path d="M128 32c17.7 0 32 14.3 32 32v64c0 35.3-32 64-32 64s-32-28.7-32-64V64c0-17.7 14.3-32 32-32z" fill="#FFFFFF"/>
                         </svg>
                       </div>
-                      <span className="text-lg">Trust Wallet</span>
-                    </div>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                      <span className="text-sm font-medium">Trust Wallet</span>
+                    </Button>
 
-                  {/* Coinbase Wallet */}
-                  <Button 
-                    onClick={() => handleWeb3Connect('coinbase')}
-                    className="w-full h-14 bg-blue-700 hover:bg-blue-800 text-white font-medium flex items-center justify-between group transition-all duration-200"
-                    disabled={connectWalletMutation.isPending}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="12" r="10" fill="#0052FF"/>
-                          <rect x="8" y="8" width="8" height="8" rx="2" fill="white"/>
+                    {/* Coinbase Wallet */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('coinbase')}
+                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <svg className="w-8 h-8" viewBox="0 0 256 256" fill="none">
+                          <circle cx="128" cy="128" r="128" fill="#0052FF"/>
+                          <circle cx="128" cy="128" r="64" fill="none" stroke="white" strokeWidth="12"/>
+                          <rect x="104" y="104" width="48" height="48" rx="8" fill="white"/>
                         </svg>
                       </div>
-                      <span className="text-lg">Coinbase Wallet</span>
-                    </div>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                      <span className="text-sm font-medium">Coinbase</span>
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="relative">
