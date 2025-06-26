@@ -711,24 +711,24 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
       <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 m-4 sm:m-6">
         <DialogHeader className="pb-2 sm:pb-4 flex-shrink-0">
           <div className="flex items-center justify-between mb-1 sm:mb-2">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-1">
               <img 
                 src={coynLogoPath} 
                 alt="COYN Logo" 
-                className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+                className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
               />
-              <DialogTitle className="text-lg sm:text-xl font-bold">COYN Wallet</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg font-bold truncate">COYN Wallet</DialogTitle>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsBalanceVisible(!isBalanceVisible)}
-              className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600"
+              className="h-12 w-12 sm:h-10 sm:w-10 p-0 hover:bg-gray-200 dark:hover:bg-slate-600 touch-manipulation rounded-full flex-shrink-0 ml-2"
             >
               {isBalanceVisible ? (
-                <Eye className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
+                <Eye className="h-6 w-6 sm:h-5 sm:w-5 text-gray-600 dark:text-muted-foreground" />
               ) : (
-                <EyeOff className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
+                <EyeOff className="h-6 w-6 sm:h-5 sm:w-5 text-gray-600 dark:text-muted-foreground" />
               )}
             </Button>
           </div>
