@@ -16,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/messenger" component={MessengerPage} />
+      <Route path="/messenger/:conversationId" component={MessengerPage} />
       <Route path="/marketplace" component={MarketplacePage} />
       <Route path="/product/:asin" component={ProductPage} />
       <Route path="/favorites" component={FavoritesPage} />

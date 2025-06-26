@@ -203,6 +203,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Updated messenger wallet modal to use authentic BNB logo - replaced simple symbols with official Binance icon throughout send modal, balance cards, QR selector, and all currency displays for consistent cryptocurrency branding
 - June 26, 2025: Added authentic Bitcoin logo to messenger wallet modal - implemented official BTC icon from react-icons throughout all wallet displays, completing comprehensive cryptocurrency branding with proper logos for all assets (BTC, BNB, USDT, COYN)
 - June 26, 2025: Updated marketplace categories - replaced "All Category" with "Categories" and implemented more suitable category options (Electronics, Home & Garden, Clothing & Fashion, Books & Media, Sports & Outdoors) that better match Amazon product inventory
+- June 26, 2025: Redesigned messenger architecture - transformed sidebar into main messenger page (/messenger) with individual chat pages (/messenger/:id) opening when conversations are clicked, creating intuitive navigation flow and better mobile experience
 
 ## User Preferences
 
