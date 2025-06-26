@@ -46,8 +46,7 @@ export default function Sidebar({
     return message.content || "";
   };
 
-  const formatTimestamp = (date: Date | null) => {
-    if (!date) return "";
+  const formatTimestamp = (date: Date) => {
     return formatDistanceToNow(new Date(date), { addSuffix: false });
   };
 
@@ -163,7 +162,7 @@ export default function Sidebar({
                         {conversation.otherUser.displayName}
                       </h3>
                       <span className="text-xs text-slate-400">
-                        {conversation.lastMessage?.timestamp && formatTimestamp(conversation.lastMessage.timestamp)}
+                        {conversation.lastMessage && formatTimestamp(conversation.lastMessage.timestamp)}
                       </span>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-400 truncate">
