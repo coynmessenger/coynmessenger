@@ -286,96 +286,109 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   );
 
   const renderCartStep = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
+    <div className="flex flex-col h-full">
+      <div className="flex-shrink-0 mb-4">
+        <h3 className="text-lg sm:text-xl font-semibold">Shopping Cart ({cartItems.length} items)</h3>
       </div>
       
       {cartItems.length === 0 ? (
-        <div className="text-center py-8">
-          <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Your cart is empty</p>
-          <Button onClick={onClose} className="mt-4">Continue Shopping</Button>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-8">
+            <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">Your cart is empty</p>
+            <Button onClick={onClose} className="h-12 touch-manipulation">Continue Shopping</Button>
+          </div>
         </div>
       ) : (
         <>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0">
             {cartItems.map((item) => (
-              <Card key={item.id} className="p-4">
-                <div className="flex items-center space-x-4">
+              <Card key={item.id} className="p-3 sm:p-4">
+                <div className="flex items-start space-x-3 sm:space-x-4">
                   {item.imageUrl && (
                     <img 
                       src={item.imageUrl} 
                       alt={item.title}
-                      className="w-16 h-16 object-cover rounded-lg"
+                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
                     />
                   )}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm truncate">{item.title}</h4>
-                    <p className="text-green-600 font-semibold">{item.price}</p>
-                  </div>
-                  <div className="flex items-center space-x-1 sm:space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 sm:h-8 sm:w-8"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    >
-                      <Minus className="h-4 w-4 sm:h-3 sm:w-3" />
-                    </Button>
-                    <span className="w-10 sm:w-8 text-center text-sm sm:text-xs">{item.quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 sm:h-8 sm:w-8"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 sm:h-8 sm:w-8 text-red-500 hover:text-red-700"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <h4 className="font-medium text-sm sm:text-base line-clamp-2">{item.title}</h4>
+                    <p className="text-green-600 font-semibold text-base sm:text-lg">${item.price}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 touch-manipulation"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 touch-manipulation"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 touch-manipulation"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
           
-          <Card className="p-4 bg-gray-50">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>${calculateSubtotal().toFixed(2)}</span>
+          <div className="flex-shrink-0 mt-4 space-y-4">
+            <Card className="p-4 bg-gray-50 dark:bg-gray-800">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Subtotal:</span>
+                  <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Shipping:</span>
+                  <span className="font-medium">${calculateShipping().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Tax:</span>
+                  <span className="font-medium">${calculateTax().toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg sm:text-xl">
+                  <span>Total:</span>
+                  <span className="text-orange-600">${calculateTotal().toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Shipping:</span>
-                <span>${calculateShipping().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax:</span>
-                <span>${calculateTax().toFixed(2)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between font-semibold text-lg">
-                <span>Total:</span>
-                <span>${calculateTotal().toFixed(2)}</span>
-              </div>
+            </Card>
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="w-full sm:w-auto h-12 sm:h-10 touch-manipulation"
+              >
+                Continue Shopping
+              </Button>
+              <Button 
+                onClick={proceedToReview} 
+                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 h-12 sm:h-10 touch-manipulation font-semibold"
+              >
+                Proceed to Review
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
-          </Card>
-          
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onClose}>
-              Continue Shopping
-            </Button>
-            <Button onClick={proceedToReview} className="bg-orange-500 hover:bg-orange-600">
-              Proceed to Review
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
           </div>
         </>
       )}
@@ -667,28 +680,28 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[98vw] sm:w-[95vw] sm:max-w-4xl h-[95vh] sm:max-h-[90vh] overflow-hidden p-0 m-0 sm:m-4">
-        <div className="flex flex-col h-full">
-          <DialogHeader className="p-3 sm:p-6 border-b border-border">
-            <DialogTitle className="text-base sm:text-lg font-bold">
-              {currentStep === 'cart' && 'Shopping Cart'}
-              {currentStep === 'review' && 'Review Your Order'}
-              {currentStep === 'finalize' && 'Finalize Purchase'}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              {currentStep === 'cart' && 'Manage items in your shopping cart and proceed to checkout'}
-              {currentStep === 'review' && 'Review your order details and shipping information before finalizing'}
-              {currentStep === 'finalize' && 'Complete your purchase with cryptocurrency payment'}
-            </DialogDescription>
-          </DialogHeader>
-          
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-0 m-2 sm:m-4 flex flex-col">
+        <DialogHeader className="p-4 sm:p-6 border-b border-border flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-xl font-bold">
+            {currentStep === 'cart' && 'Shopping Cart'}
+            {currentStep === 'review' && 'Review Your Order'}
+            {currentStep === 'finalize' && 'Finalize Purchase'}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {currentStep === 'cart' && 'Manage items in your shopping cart and proceed to checkout'}
+            {currentStep === 'review' && 'Review your order details and shipping information before finalizing'}
+            {currentStep === 'finalize' && 'Complete your purchase with cryptocurrency payment'}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="flex-shrink-0">
           {renderProgressBar()}
-          
-          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
-            {currentStep === 'cart' && renderCartStep()}
-            {currentStep === 'review' && renderReviewStep()}
-            {currentStep === 'finalize' && renderFinalizeStep()}
-          </div>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
+          {currentStep === 'cart' && renderCartStep()}
+          {currentStep === 'review' && renderReviewStep()}
+          {currentStep === 'finalize' && renderFinalizeStep()}
         </div>
       </DialogContent>
     </Dialog>
