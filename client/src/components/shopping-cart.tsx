@@ -969,15 +969,19 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         </DialogContent>
       </Dialog>
 
-      {/* Terms and Privacy Modals */}
-      <TermsModal 
-        isOpen={showTermsModal} 
-        onClose={() => setShowTermsModal(false)} 
-      />
-      <PrivacyModal 
-        isOpen={showPrivacyModal} 
-        onClose={() => setShowPrivacyModal(false)} 
-      />
+      {/* Terms and Privacy Modals with higher z-index */}
+      {showTermsModal && (
+        <TermsModal 
+          isOpen={showTermsModal} 
+          onClose={() => setShowTermsModal(false)} 
+        />
+      )}
+      {showPrivacyModal && (
+        <PrivacyModal 
+          isOpen={showPrivacyModal} 
+          onClose={() => setShowPrivacyModal(false)} 
+        />
+      )}
     </>
   );
 }

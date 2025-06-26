@@ -10,7 +10,7 @@ interface TermsModalProps {
 export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] bg-background border-border" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] bg-background border-border z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-foreground">
             Terms and Conditions
