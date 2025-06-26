@@ -295,49 +295,7 @@ export default function Sidebar({
 
         {/* Contact List and Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">
-          {/* Available Contacts - Primary Display */}
-          {availableContacts.length > 0 && (
-            <div className="mb-2">
-              <div className="px-2 py-1 text-xs font-medium text-muted-foreground bg-muted/30">
-                Start New Conversation
-              </div>
-              {availableContacts.map((contact) => (
-                <div key={`contact-${contact.id}`} className="px-1 sm:px-4 pb-0.5 sm:pb-2">
-                  <div
-                    className="rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors border bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500"
-                    onClick={() => createConversationMutation.mutate(contact.id)}
-                  >
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                      <div className="relative">
-                        <Avatar className="h-8 w-8 sm:h-12 sm:w-12">
-                          <AvatarImage src={contact.profilePicture || undefined} />
-                          <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                            <UserAvatarIcon className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400" />
-                          </AvatarFallback>
-                        </Avatar>
-                        {contact.isOnline && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-black dark:text-white text-sm sm:text-base truncate">
-                            {contact.displayName}
-                          </h3>
-                          {createConversationMutation.isPending && (
-                            <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                          )}
-                        </div>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          @{contact.username}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Removed Start New Conversation section */}
 
 
         </div>
