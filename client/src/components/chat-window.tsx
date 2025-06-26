@@ -16,6 +16,8 @@ import EscrowModal from "@/components/escrow-modal";
 import ShareModal from "@/components/share-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Shield, Home, ArrowUp, Reply, Share, Users } from "lucide-react";
+import { FaBitcoin } from "react-icons/fa";
+import { SiBinance, SiTether } from "react-icons/si";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
@@ -497,9 +499,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">₿</span>
-                  </div>
+                  <FaBitcoin className="w-4 h-4 text-orange-500" />
                   <span>Send BTC</span>
                 </div>
               </DropdownMenuItem>
@@ -508,9 +508,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">⬢</span>
-                  </div>
+                  <SiBinance className="w-4 h-4 text-yellow-500" />
                   <span>Send BNB</span>
                 </div>
               </DropdownMenuItem>
@@ -519,9 +517,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">₮</span>
-                  </div>
+                  <SiTether className="w-4 h-4 text-green-500" />
                   <span>Send USDT</span>
                 </div>
               </DropdownMenuItem>
@@ -530,9 +526,11 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">C</span>
-                  </div>
+                  <img 
+                    src="/attached_assets/COYN-symbol-square_1750891892214.png" 
+                    alt="COYN" 
+                    className="w-4 h-4 rounded-full"
+                  />
                   <span>Send COYN</span>
                 </div>
               </DropdownMenuItem>
