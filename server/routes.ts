@@ -325,6 +325,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send release notification
+  app.post("/api/escrows/:id/notify-release", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      // Send notification message to the conversation
+      const notificationSent = await storage.sendEscrowNotification(escrowId);
+      if (!notificationSent) {
+        return res.status(404).json({ message: "Escrow not found" });
+      }
+
+      res.json({ message: "Release notification sent" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send notification" });
+    }
+  });
+
   // Release escrow
   app.post("/api/escrows/:id/release", async (req, res) => {
     try {

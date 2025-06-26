@@ -364,12 +364,33 @@ export class DatabaseStorage implements IStorage {
 
   async sendEscrowNotification(escrowId: number): Promise<boolean> {
     try {
+      // Get escrow details
+      const [escrow] = await db
+        .select()
+        .from(escrows)
+        .where(eq(escrows.id, escrowId));
+      
+      if (!escrow) {
+        return false;
+      }
+
+      // Create a notification message in the conversation
+      const notificationMessage = {
+        conversationId: escrow.conversationId,
+        senderId: 5, // Current user sending the notification
+        type: "system" as const,
+        content: `🔔 Release Request: User has requested to release the escrow funds (${escrow.initiatorRequiredAmount} ${escrow.initiatorCurrency} ⇄ ${escrow.participantRequiredAmount} ${escrow.participantCurrency}). Please confirm if you're ready to complete the trade.`
+      };
+      
+      await this.createMessage(notificationMessage);
+      
+      // Mark notification as sent
       await db
         .update(escrows)
         .set({ notificationSent: true })
         .where(eq(escrows.id, escrowId));
       
-      console.log(`[ESCROW] Notification sent for escrow ${escrowId}`);
+      console.log(`[ESCROW] Release notification sent for escrow ${escrowId}`);
       return true;
     } catch (error) {
       console.error(`[ESCROW] Failed to send notification for escrow ${escrowId}:`, error);

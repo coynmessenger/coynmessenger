@@ -126,12 +126,33 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     },
   });
 
+  const notifyReleaseMutation = useMutation({
+    mutationFn: async (escrowId: number) => {
+      return apiRequest("POST", `/api/escrows/${escrowId}/notify-release`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
+      toast({
+        title: "Release request sent",
+        description: "Notified the other party to confirm release",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to send notification",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
   const releaseEscrowMutation = useMutation({
     mutationFn: async (escrowId: number) => {
       return apiRequest("POST", `/api/escrows/${escrowId}/release`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       toast({
         title: "Trade completed",
@@ -443,17 +464,28 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
                         {escrow.status === "funded" && (
                           <div className="mb-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                            <p className="text-xs sm:text-sm text-green-700 dark:text-green-400 mb-2">
+                            <p className="text-xs sm:text-sm text-green-700 dark:text-green-400 mb-3">
                               Both parties have funded! Ready to complete trade.
                             </p>
-                            <Button
-                              onClick={() => releaseEscrowMutation.mutate(escrow.id)}
-                              disabled={releaseEscrowMutation.isPending}
-                              size="sm"
-                              className="w-full bg-green-600 hover:bg-green-700 text-white h-9 sm:h-10 text-sm"
-                            >
-                              {releaseEscrowMutation.isPending ? "Releasing..." : "Complete Trade"}
-                            </Button>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Button
+                                onClick={() => notifyReleaseMutation.mutate(escrow.id)}
+                                disabled={notifyReleaseMutation.isPending}
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-green-500 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20 h-9 sm:h-10 text-sm"
+                              >
+                                {notifyReleaseMutation.isPending ? "Sending..." : "🔔 Request Release"}
+                              </Button>
+                              <Button
+                                onClick={() => releaseEscrowMutation.mutate(escrow.id)}
+                                disabled={releaseEscrowMutation.isPending}
+                                size="sm"
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9 sm:h-10 text-sm"
+                              >
+                                {releaseEscrowMutation.isPending ? "Releasing..." : "✅ Confirm Release"}
+                              </Button>
+                            </div>
                           </div>
                         )}
 
