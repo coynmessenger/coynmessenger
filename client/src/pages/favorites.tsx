@@ -145,8 +145,9 @@ export default function FavoritesPage() {
               </Button>
               
               <Link href="/marketplace">
-                <Button variant="ghost" size="icon" className="h-10 w-10">
-                  <Settings className="h-5 w-5" />
+                <Button variant="outline" className="h-10 px-4">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Marketplace
                 </Button>
               </Link>
             </div>
