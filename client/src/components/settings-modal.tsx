@@ -277,10 +277,21 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     onSuccess: (response: { profilePicture: string }) => {
       console.log("Upload successful, response:", response);
       setProfilePicture(response.profilePicture);
+      
+      // Immediately update the user cache with new profile picture
+      queryClient.setQueryData(["/api/user"], (oldData: any) => {
+        if (oldData) {
+          return { ...oldData, profilePicture: response.profilePicture };
+        }
+        return oldData;
+      });
+      
+      // Also invalidate to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       toast({
         title: "Profile picture updated",
-        description: "Your profile picture has been uploaded successfully.",
+        description: "Your profile picture has been uploaded and saved successfully.",
       });
       setUploadingImage(false);
     },
@@ -298,7 +309,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const handleSave = () => {
     const updateData: any = {
       displayName,
-      profilePicture,
+      // Don't include profilePicture here - it's handled immediately on upload
     };
 
     if (showShipping) {
