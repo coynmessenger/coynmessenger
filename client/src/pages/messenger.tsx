@@ -11,6 +11,7 @@ import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
+import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
@@ -339,12 +340,10 @@ export default function MessengerPage() {
                 </svg>
               </button>
               <button 
-                className="text-slate-400 hover:text-cyan-400 transition-colors p-2"
+                className="text-orange-400 hover:text-orange-300 transition-colors p-2"
                 onClick={() => setIsWalletOpen(true)}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
+                <WalletIcon className="w-5 h-5" />
               </button>
               <Button
                 onClick={() => setLocation("/")}
