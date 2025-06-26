@@ -170,8 +170,7 @@ export default function Sidebar({
                 className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
               />
               <div>
-                <h1 className="text-xl font-bold text-foreground">COYN</h1>
-                <p className="text-xs text-muted-foreground">Messenger</p>
+                <h1 className="text-xl font-bold text-foreground">COYN Messenger</h1>
               </div>
             </div>
             <Button
