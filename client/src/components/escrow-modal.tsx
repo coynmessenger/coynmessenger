@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { Escrow, User, WalletBalance } from "@shared/schema";
 import { Shield, Clock, CheckCircle, XCircle, Plus, DollarSign, Zap } from "lucide-react";
 import EnhancedEscrowModal from "./enhanced-escrow-modal";
+import EscrowTradeWorkflow from "./escrow-trade-workflow";
 
 interface EscrowModalProps {
   isOpen: boolean;
@@ -24,6 +25,8 @@ interface EscrowModalProps {
 export default function EscrowModal({ isOpen, onClose, conversationId, otherUser }: EscrowModalProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
+  const [showWorkflowModal, setShowWorkflowModal] = useState(false);
+  const [selectedWorkflowEscrow, setSelectedWorkflowEscrow] = useState<Escrow | null>(null);
   const [initiatorCurrency, setInitiatorCurrency] = useState("COYN");
   const [participantCurrency, setParticipantCurrency] = useState("BTC");
   const [initiatorAmount, setInitiatorAmount] = useState("");
@@ -49,6 +52,11 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
   const { data: balances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances"],
+    enabled: isOpen,
+  });
+
+  const { data: currentUser } = useQuery<User>({
+    queryKey: ["/api/user"],
     enabled: isOpen,
   });
 
@@ -502,6 +510,24 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                           </div>
                         )}
 
+                        {/* Trade Workflow Button - Available for active escrows */}
+                        {(escrow.status === "pending" || escrow.status === "funded" || escrow.status === "confirming") && (
+                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600">
+                            <Button
+                              onClick={() => {
+                                setSelectedWorkflowEscrow(escrow);
+                                setShowWorkflowModal(true);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950"
+                            >
+                              <Zap className="h-4 w-4 mr-2" />
+                              Trade Workflow Guide
+                            </Button>
+                          </div>
+                        )}
+
                         {escrow.status === "confirming" && (
                           <div className="mb-2 p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
@@ -562,6 +588,20 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
         onClose={() => setShowEnhancedModal(false)}
         conversationId={conversationId}
       />
+
+      {/* Escrow Trade Workflow Modal */}
+      {selectedWorkflowEscrow && currentUser && (
+        <EscrowTradeWorkflow
+          isOpen={showWorkflowModal}
+          onClose={() => {
+            setShowWorkflowModal(false);
+            setSelectedWorkflowEscrow(null);
+          }}
+          escrow={selectedWorkflowEscrow}
+          currentUser={currentUser}
+          otherUser={otherUser}
+        />
+      )}
     </Dialog>
   );
 }

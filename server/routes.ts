@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
+import { enhancedEscrowManager } from "./escrow-enhanced";
 import { insertMessageSchema, insertEscrowSchema, insertUserSchema } from "@shared/schema";
 import { initializeDatabase } from "./db";
 import { z } from "zod";
@@ -458,6 +459,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedEscrow);
     } catch (error) {
       res.status(500).json({ message: "Failed to update escrow" });
+    }
+  });
+
+  // Fund escrow
+  app.post("/api/escrows/:id/fund", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const { amount } = req.body;
+      if (!amount || parseFloat(amount) <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const userId = 5; // Current user
+      const result = await enhancedEscrowManager.processEscrowFunding(escrowId, userId, parseFloat(amount));
+      
+      if (result) {
+        res.json(result);
+      } else {
+        res.status(400).json({ message: "Failed to fund escrow" });
+      }
+    } catch (error) {
+      console.error("Fund escrow error:", error);
+      res.status(500).json({ message: "Failed to fund escrow" });
+    }
+  });
+
+  // Release escrow
+  app.post("/api/escrows/:id/release", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const escrow = await storage.getEscrow?.(escrowId);
+      if (!escrow) {
+        return res.status(404).json({ message: "Escrow not found" });
+      }
+
+      if (escrow.status !== "funded") {
+        return res.status(400).json({ message: "Escrow must be funded to release" });
+      }
+
+      const updatedEscrow = await storage.updateEscrow?.(escrowId, { 
+        status: "confirming",
+        confirmationCount: 0,
+        requiredConfirmations: 25
+      });
+      
+      if (updatedEscrow) {
+        // Start blockchain confirmation simulation
+        setTimeout(async () => {
+          try {
+            await storage.updateEscrow?.(escrowId, { 
+              status: "released",
+              confirmationCount: 25,
+              releasedAt: new Date()
+            });
+          } catch (error) {
+            console.error("Auto-release error:", error);
+          }
+        }, 30000); // 30 seconds for demo
+
+        res.json(updatedEscrow);
+      } else {
+        res.status(500).json({ message: "Failed to release escrow" });
+      }
+    } catch (error) {
+      console.error("Release escrow error:", error);
+      res.status(500).json({ message: "Failed to release escrow" });
+    }
+  });
+
+  // Request release notification
+  app.post("/api/escrows/:id/request-release", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const escrow = await storage.getEscrow?.(escrowId);
+      if (!escrow) {
+        return res.status(404).json({ message: "Escrow not found" });
+      }
+
+      // Send notification message to conversation
+      const notificationMessage = `🔔 Release request for escrow trade: ${escrow.initiatorRequiredAmount} ${escrow.initiatorCurrency} ⇄ ${escrow.participantRequiredAmount} ${escrow.participantCurrency}. Please confirm when ready.`;
+      
+      const message = await storage.createMessage({
+        conversationId: escrow.conversationId,
+        senderId: 5, // System message
+        content: notificationMessage,
+        messageType: "text"
+      });
+
+      res.json({ message: "Release request sent", notification: message });
+    } catch (error) {
+      console.error("Request release error:", error);
+      res.status(500).json({ message: "Failed to request release" });
     }
   });
 
