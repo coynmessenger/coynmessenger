@@ -206,27 +206,17 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 318.6 318.6" fill="none">
-                          <path d="M274.1 35.5l-99.5 73.9L193.8 65z" fill="#E2761B" stroke="#E2761B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m44.4 35.5 98.7 74.6-17.5-44.3z" fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m238.3 206.8-25.5 39.1 54.5 15.1 15.7-53.3z" fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m35.9 207.7 15.6 53.3 54.5-15.1-25.5-39.1z" fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m103.6 138.2-15.8 23.9 54.1 2.5-1.8-58.2z" fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m214.9 138.2-36.8-32.3-1.3 58.8 54.1-2.5z" fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m106.1 245.9 32.5-15.8-28.1-21.9z" fill="#D7C1B3" stroke="#D7C1B3" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m179.9 230.1 32.5 15.8-4.4-37.7z" fill="#D7C1B3" stroke="#D7C1B3" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m212.4 245.9-32.5-15.8 2.6 21.2-.3 9.3z" fill="#233447" stroke="#233447" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m106.1 245.9 30.2 14.7-.2-9.3 2.5-21.2z" fill="#233447" stroke="#233447" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m138.8 193.5-27.1-7.9 19.1-8.8z" fill="#CD6116" stroke="#CD6116" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m179.7 193.5 8-16.7 19.2 8.8z" fill="#CD6116" stroke="#CD6116" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M106.1 245.9 110.8 206.8 81.3 207.7z" fill="#E4751F" stroke="#E4751F" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m207.8 206.8 4.6 39.1 25.5-38.2z" fill="#E4751F" stroke="#E4751F" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m230.8 162.1-54.1 2.5 5 23.9 8-16.7 19.2 8.8z" fill="#E4751F" stroke="#E4751F" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m111.7 185.6 19.1-8.8 8 16.7 5-23.9-54.1-2.5z" fill="#E4751F" stroke="#E4751F" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m87.8 162.1 25.3 49.4-0.9-24.6z" fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m206.8 186.9-0.9 24.6 25.3-49.4z" fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m141.8 164.6-5 23.9 6.2 32.3 1.4-42.4z" fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="m176.7 164.6-2.7 13.7 1.2 42.5 6.2-32.3z" fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg className="w-8 h-8" viewBox="0 0 212 189" fill="none">
+                          <path d="M40.8 1.3L96.6 46.8L86.4 25.2L40.8 1.3Z" fill="#E17726" stroke="#E17726" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M171.2 1.3L115.4 47.2L125.6 25.2L171.2 1.3Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M17.7 135.2L36.5 168.2L73.8 157.2L17.7 135.2Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M194.3 135.2L138.2 157.2L175.5 168.2L194.3 135.2Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M73.8 157.2L106 184.8L78.5 168.2L73.8 157.2Z" fill="#D5BFB2" stroke="#D5BFB2" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M138.2 157.2L133.5 168.2L106 184.8L138.2 157.2Z" fill="#D5BFB2" stroke="#D5BFB2" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M106 70.8L86.4 25.2L96.6 46.8L106 70.8Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M106 70.8L115.4 47.2L125.6 25.2L106 70.8Z" fill="#E27625" stroke="#E27625" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M86.4 25.2L40.8 1.3L17.7 135.2L73.8 157.2L86.4 25.2Z" fill="#F5841F" stroke="#F5841F" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M125.6 25.2L138.2 157.2L194.3 135.2L171.2 1.3L125.6 25.2Z" fill="#F5841F" stroke="#F5841F" strokeWidth="0.25" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
                       <span className="text-sm font-medium">MetaMask</span>
@@ -240,15 +230,8 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 512 512" fill="none">
-                          <defs>
-                            <radialGradient id="walletconnect-gradient" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor="#3B99FC"/>
-                              <stop offset="100%" stopColor="#1E3A8A"/>
-                            </radialGradient>
-                          </defs>
-                          <circle cx="256" cy="256" r="256" fill="url(#walletconnect-gradient)"/>
-                          <path d="M169.209 184.531c63.042-61.854 165.197-61.854 228.239 0l7.579 7.434c3.139 3.081 3.139 8.07 0 11.15l-25.922 25.454c-1.569 1.54-4.116 1.54-5.685 0l-10.424-10.232c-43.987-43.166-115.31-43.166-159.297 0l-11.169 10.96c-1.569 1.54-4.116 1.54-5.685 0l-25.922-25.454c-3.139-3.081-3.139-8.07 0-11.15l8.317-8.162zm281.978 52.682l23.073 22.641c3.139 3.081 3.139 8.07 0 11.15l-104.1 102.175c-3.139 3.081-8.232 3.081-11.371 0l-48.815-47.909c-.784-.77-2.059-.77-2.843 0l-48.815 47.909c-3.139 3.081-8.232 3.081-11.371 0l-104.1-102.175c-3.139-3.081-3.139-8.07 0-11.15l23.073-22.641c3.139-3.081 8.232-3.081 11.371 0l48.815 47.909c.784.77 2.059.77 2.843 0l48.815-47.909c3.139-3.081 8.232-3.081 11.371 0l48.815 47.909c.784.77 2.059.77 2.843 0l48.815-47.909c3.139-3.081 8.232-3.081 11.371 0z" fill="white"/>
+                        <svg className="w-8 h-8" viewBox="0 0 300 185" fill="none">
+                          <path d="M61.439 36.926c48.952-47.888 128.275-47.888 177.227 0l5.886 5.764c2.447 2.394 2.447 6.277 0 8.671l-20.138 19.716c-1.223 1.197-3.206 1.197-4.429 0l-8.102-7.931c-34.121-33.407-89.443-33.407-123.564 0l-8.675 8.493c-1.223 1.197-3.206 1.197-4.429 0L54.98 51.922c-2.447-2.394-2.447-6.277 0-8.671l6.459-6.325zm218.764 40.785l17.921 17.546c2.447 2.394 2.447 6.277 0 8.671L244.798 156.7c-2.447 2.394-6.412 2.394-8.858 0l-37.867-37.068c-.612-.599-1.603-.599-2.215 0l-37.867 37.068c-2.447 2.394-6.412 2.394-8.858 0L95.808 103.964c-2.447-2.394-2.447-6.277 0-8.671l17.921-17.546c2.447-2.394 6.412-2.394 8.858 0l37.867 37.068c.612.599 1.603.599 2.215 0l37.867-37.068c2.447-2.394 6.412-2.394 8.858 0l37.867 37.068c.612.599 1.603.599 2.215 0l37.867-37.068c2.447-2.394 6.412-2.394 8.858 0z" fill="#3B99FC"/>
                         </svg>
                       </div>
                       <span className="text-sm font-medium">WalletConnect</span>
@@ -262,12 +245,9 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 1024 1024" fill="none">
-                          <circle cx="512" cy="512" r="512" fill="#3375BB"/>
-                          <path d="M512 68.4c245.1 0 443.6 198.5 443.6 443.6S757.1 955.6 512 955.6 68.4 757.1 68.4 512 266.9 68.4 512 68.4z" fill="#3375BB"/>
-                          <path d="M470.1 638.3c0-1.7.1-3.4.4-5 .8-4.1 3.4-7.5 7.1-9.4l94.8-48.4c24.6-12.6 24.6-32.4 0-45L477.6 482c-3.7-1.9-6.3-5.3-7.1-9.4-.3-1.6-.4-3.3-.4-5v-54.1c0-6.2 2.5-11.8 6.6-15.9s9.7-6.6 15.9-6.6h54.1c1.7 0 3.4.1 5 .4 4.1.8 7.5 3.4 9.4 7.1l48.4 94.8c12.6 24.6 32.4 24.6 45 0l48.4-94.8c1.9-3.7 5.3-6.3 9.4-7.1 1.6-.3 3.3-.4 5-.4h54.1c6.2 0 11.8 2.5 15.9 6.6s6.6 9.7 6.6 15.9v54.1c0 1.7-.1 3.4-.4 5-.8 4.1-3.4 7.5-7.1 9.4L682 530.5c-24.6 12.6-24.6 32.4 0 45l94.8 48.4c3.7 1.9 6.3 5.3 7.1 9.4.3 1.6.4 3.3.4 5v54.1c0 6.2-2.5 11.8-6.6 15.9s-9.7 6.6-15.9 6.6h-54.1c-1.7 0-3.4-.1-5-.4-4.1-.8-7.5-3.4-9.4-7.1L644.9 658c-12.6-24.6-32.4-24.6-45 0l-48.4 94.8c-1.9 3.7-5.3 6.3-9.4 7.1-1.6.3-3.3.4-5 .4h-54.1c-6.2 0-11.8-2.5-15.9-6.6s-6.6-9.7-6.6-15.9v-54.1z" fill="#fff"/>
-                          <path d="M417.9 417.9h188.2v188.2H417.9z" fill="#3375BB"/>
-                          <path d="M470.1 470.1h83.8v83.8h-83.8z" fill="#fff"/>
+                        <svg className="w-8 h-8" viewBox="0 0 1000 1000" fill="none">
+                          <circle cx="500" cy="500" r="500" fill="#3375BB"/>
+                          <path d="M367 650c0-100 40-150 133-150s133 50 133 150-40 150-133 150-133-50-133-150zm266-300c0-100-40-150-133-150s-133 50-133 150 40 150 133 150 133-50 133-150z" fill="white"/>
                         </svg>
                       </div>
                       <span className="text-sm font-medium">Trust Wallet</span>
@@ -281,11 +261,9 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
-                        <svg className="w-8 h-8" viewBox="0 0 1024 1024" fill="none">
-                          <circle cx="512" cy="512" r="512" fill="#0052FF"/>
-                          <path d="M512 192c176.73 0 320 143.27 320 320s-143.27 320-320 320-320-143.27-320-320 143.27-320 320-320zm0 96c-123.71 0-224 100.29-224 224s100.29 224 224 224 224-100.29 224-224-100.29-224-224-224z" fill="#0052FF"/>
-                          <rect x="352" y="352" width="320" height="320" rx="32" fill="white"/>
-                          <path d="M448 448h128v128H448z" fill="#0052FF"/>
+                        <svg className="w-8 h-8" viewBox="0 0 200 200" fill="none">
+                          <circle cx="100" cy="100" r="100" fill="#0052FF"/>
+                          <rect x="50" y="50" width="100" height="100" rx="20" ry="20" fill="white"/>
                         </svg>
                       </div>
                       <span className="text-sm font-medium">Coinbase</span>
