@@ -283,7 +283,7 @@ export class DatabaseStorage implements IStorage {
 
   async releaseEscrow(escrowId: number): Promise<boolean> {
     const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
-    if (!escrow || escrow.status !== "pending") return false;
+    if (!escrow || (escrow.status !== "pending" && escrow.status !== "funded")) return false;
 
     // Update escrow status to released
     await db
@@ -295,12 +295,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(escrows.id, escrowId));
 
     // Release funds to the opposite party (trade completion)
-    // Initiator gets participant's currency, participant gets initiator's currency
-    if (escrow.initiatorAmount && parseFloat(escrow.initiatorAmount) > 0) {
-      await this.updateWalletBalance(escrow.participantId, escrow.initiatorCurrency, escrow.initiatorAmount);
+    // Use required amounts for the trade since actual amounts might be 0 initially
+    if (escrow.initiatorRequiredAmount && parseFloat(escrow.initiatorRequiredAmount) > 0) {
+      await this.updateWalletBalance(escrow.participantId, escrow.initiatorCurrency, escrow.initiatorRequiredAmount);
     }
-    if (escrow.participantAmount && parseFloat(escrow.participantAmount) > 0) {
-      await this.updateWalletBalance(escrow.initiatorId, escrow.participantCurrency, escrow.participantAmount);
+    if (escrow.participantRequiredAmount && parseFloat(escrow.participantRequiredAmount) > 0) {
+      await this.updateWalletBalance(escrow.initiatorId, escrow.participantCurrency, escrow.participantRequiredAmount);
     }
 
     return true;
