@@ -195,6 +195,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 25, 2025: Implemented comprehensive mobile-first optimization - enhanced touch targets (48px minimum), larger input fields (h-12 on mobile), improved spacing and padding, responsive icons, optimized shopping cart controls, marketplace search interface, chat input area, homepage navigation buttons, and sidebar elements for superior mobile usability with touch-manipulation CSS
 - June 25, 2025: Fixed cart sizing and scroll functionality - optimized dialog layout with proper flexbox structure, improved scrolling behavior for cart items, enhanced mobile responsiveness with better touch targets and spacing, fixed summary section positioning for optimal user experience
 - June 26, 2025: Added comprehensive legal compliance - created detailed Terms & Conditions and Privacy Policy as popup modals accessible from homepage footer links, covering cryptocurrency transactions, marketplace usage, data protection, GDPR compliance, and user rights with proper legal documentation
+- June 26, 2025: Fixed heart icon state persistence on product page - heart now stays red after adding to favorites by connecting click handler to proper toggleFavorite API function instead of simple state toggle
 
 ## User Preferences
 

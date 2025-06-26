@@ -550,7 +550,7 @@ export default function ProductPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setIsWishlisted(!isWishlisted)}
+                          onClick={toggleFavorite}
                           className="text-muted-foreground hover:text-red-500"
                         >
                           <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
