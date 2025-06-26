@@ -108,14 +108,35 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       toast({
-        title: "🚫 Escrow cancelled",
-        description: "Escrow has been cancelled and funds returned. 💸",
+        title: "Escrow cancelled",
+        description: "Escrow has been cancelled and funds returned.",
       });
     },
     onError: () => {
       toast({
-        title: "❌ Failed to cancel escrow",
-        description: "Please try again. 🔄",
+        title: "Failed to cancel escrow",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const releaseEscrowMutation = useMutation({
+    mutationFn: async (escrowId: number) => {
+      return apiRequest("POST", `/api/escrows/${escrowId}/release`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "escrows"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({
+        title: "Trade completed",
+        description: "Escrow funds have been distributed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to complete trade",
+        description: "Please try again.",
         variant: "destructive",
       });
     },
@@ -217,23 +238,23 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
           {/* Create Escrow Form */}
           {showCreateForm && (
-            <Card className="bg-slate-700 border-slate-600">
+            <Card className="bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600">
               <CardHeader>
-                <CardTitle className="text-lg">🔄 Create Trade Escrow</CardTitle>
-                <p className="text-sm text-slate-400">
-                  Set up a trade where you and {otherUser.displayName} exchange different currencies 💱
+                <CardTitle className="text-lg text-black dark:text-white">Create Trade Escrow</CardTitle>
+                <p className="text-sm text-gray-600 dark:text-slate-400">
+                  Set up a trade where you and {otherUser.displayName} exchange different currencies
                 </p>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreateEscrow} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-cyan-400">💎 Your Offer</Label>
+                      <Label className="text-orange-500 dark:text-cyan-400">Your Offer</Label>
                       <Select value={initiatorCurrency} onValueChange={setInitiatorCurrency}>
-                        <SelectTrigger className="bg-slate-800 border-slate-600">
+                        <SelectTrigger className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectContent className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-700">
                           {balances.map((balance) => (
                             <SelectItem key={balance.currency} value={balance.currency}>
                               {balance.currency}
@@ -244,20 +265,20 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <Input
                         type="number"
                         step="0.0001"
-                        placeholder="Amount you'll deposit 💎"
+                        placeholder="Amount you'll deposit"
                         value={initiatorAmount}
                         onChange={(e) => setInitiatorAmount(e.target.value)}
-                        className="bg-slate-800 border-slate-600"
+                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-purple-400">🎯 {otherUser.displayName}'s Offer</Label>
+                      <Label className="text-orange-500 dark:text-purple-400">{otherUser.displayName}'s Offer</Label>
                       <Select value={participantCurrency} onValueChange={setParticipantCurrency}>
-                        <SelectTrigger className="bg-slate-800 border-slate-600">
+                        <SelectTrigger className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectContent className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-700">
                           {balances.map((balance) => (
                             <SelectItem key={balance.currency} value={balance.currency}>
                               {balance.currency}
@@ -268,37 +289,38 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       <Input
                         type="number"
                         step="0.0001"
-                        placeholder="Amount they'll deposit 🎯"
+                        placeholder="Amount they'll deposit"
                         value={participantAmount}
                         onChange={(e) => setParticipantAmount(e.target.value)}
-                        className="bg-slate-800 border-slate-600"
+                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
                         required
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="description">📝 Description (optional)</Label>
+                    <Label htmlFor="description" className="text-black dark:text-white">Description (optional)</Label>
                     <Textarea
                       id="description"
-                      placeholder="What is this escrow for? 💭"
+                      placeholder="What is this escrow for?"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="bg-slate-800 border-slate-600"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
                       rows={3}
                     />
                   </div>
                   <div className="flex space-x-2">
                     <Button
                       type="submit"
-                      className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
                       disabled={createEscrowMutation.isPending}
                     >
-                      {createEscrowMutation.isPending ? "Creating... ⏳" : "Create Escrow 🚀"}
+                      {createEscrowMutation.isPending ? "Creating..." : "Create Escrow"}
                     </Button>
                     <Button
                       type="button"
                       variant="secondary"
                       onClick={() => setShowCreateForm(false)}
+                      className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500 text-black dark:text-white"
                     >
                       Cancel
                     </Button>
@@ -310,14 +332,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
           {/* Existing Escrows */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-slate-300">📋 Active Escrows</h3>
+            <h3 className="font-semibold text-black dark:text-slate-300">Active Escrows</h3>
             {escrows.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-4">
-                No escrow agreements found 🕳️
+              <p className="text-gray-600 dark:text-slate-400 text-sm text-center py-4">
+                No escrow agreements found
               </p>
             ) : (
               escrows.map((escrow) => (
-                <Card key={escrow.id} className="bg-slate-700 border-slate-600">
+                <Card key={escrow.id} className="bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div>
