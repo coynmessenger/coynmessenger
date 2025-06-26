@@ -457,12 +457,12 @@ export class MemStorage implements IStorage {
     });
     this.currentMessageId = 5;
 
-    // Create wallet balances for current user
+    // Create wallet balances for current user - 2025 market prices
     const walletBalances = [
-      { id: 1, userId: 5, currency: "BTC", balance: "0.071", usdValue: "7385.25", changePercent: "2.4" },
-      { id: 2, userId: 5, currency: "ETH", balance: "1.423", usdValue: "3675.50", changePercent: "1.8" },
-      { id: 3, userId: 5, currency: "USDT", balance: "720", usdValue: "720", changePercent: "0.0" },
-      { id: 4, userId: 5, currency: "COYN", balance: "8398.823", usdValue: "425.00", changePercent: "5.2" },
+      { id: 1, userId: 5, currency: "BTC", balance: "0.125", usdValue: "12500.00", changePercent: "3.2" },
+      { id: 2, userId: 5, currency: "BNB", balance: "8.5", usdValue: "5100.00", changePercent: "1.8" },
+      { id: 3, userId: 5, currency: "USDT", balance: "2500.00", usdValue: "2500.00", changePercent: "0.0" },
+      { id: 4, userId: 5, currency: "COYN", balance: "1500.00", usdValue: "1275.00", changePercent: "4.7" },
     ];
 
     walletBalances.forEach(balance => {

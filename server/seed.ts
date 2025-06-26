@@ -96,35 +96,35 @@ async function seedDatabase() {
   const insertedMessages = await db.insert(messages).values(seedMessages).returning();
   console.log(`Created ${insertedMessages.length} messages`);
 
-  // Create wallet balances for current user (user ID 5)
+  // Create wallet balances for current user (user ID 5) - 2025 market prices
   const seedBalances = [
     {
       userId: 5,
       currency: "BTC",
-      balance: "0.071",
-      usdValue: "7385.25",
-      changePercent: "2.4",
+      balance: "0.125",
+      usdValue: "12500.00",
+      changePercent: "3.2",
     },
     {
       userId: 5,
-      currency: "ETH",
-      balance: "1.423",
-      usdValue: "3675.50",
+      currency: "BNB",
+      balance: "8.5",
+      usdValue: "5100.00",
       changePercent: "1.8",
     },
     {
       userId: 5,
       currency: "USDT",
-      balance: "720",
-      usdValue: "720",
+      balance: "2500.00",
+      usdValue: "2500.00",
       changePercent: "0.0",
     },
     {
       userId: 5,
       currency: "COYN",
-      balance: "8398.823",
-      usdValue: "425.00",
-      changePercent: "5.2",
+      balance: "1500.00",
+      usdValue: "1275.00",
+      changePercent: "4.7",
     },
   ];
 

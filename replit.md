@@ -227,6 +227,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Moved "Messenger" branding to mobile navigation bar - removed header from main content area and positioned COYN logo with "Messenger" text in top navigation for better mobile UX
 - June 26, 2025: Updated search functionality from "Search conversations" to "Search messages" - changed placeholder text in both mobile messenger interface and share modal for more accurate functionality description
 - June 26, 2025: Enhanced crypto send buttons with authentic cryptocurrency logos - replaced basic colored circles with official Bitcoin, Binance, Tether icons from react-icons and authentic COYN golden coin logo for professional branding consistency
+- June 26, 2025: Updated wallet balances to realistic 2025 cryptocurrency market prices - Bitcoin ~$100k (0.125 BTC = $12,500), BNB ~$600 (8.5 BNB = $5,100), USDT stable $1.00 (2,500 USDT = $2,500), COYN ~$0.85 (1,500 COYN = $1,275) for total portfolio of $21,375
 
 ## User Preferences
 
