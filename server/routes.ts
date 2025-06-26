@@ -282,7 +282,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json(escrow);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes("Insufficient")) {
+        return res.status(400).json({ message: error.message });
+      }
+      console.error("Escrow funding error:", error);
       res.status(500).json({ message: "Failed to add funds to escrow" });
     }
   });

@@ -336,56 +336,90 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       </div>
                     </div>
 
-                    {escrow.status === "pending" && (
+                    {(escrow.status === "pending" || escrow.status === "funded") && (
                       <div>
                         <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
-                          <div>
-                            <span className="text-slate-400">💎 Your {escrow.initiatorCurrency}:</span>
-                            <div className="font-mono text-cyan-400">
+                          <div className="space-y-2">
+                            <span className="text-gray-600 dark:text-slate-400">Your {escrow.initiatorCurrency}:</span>
+                            <div className="font-mono text-orange-600 dark:text-cyan-400">
                               {formatAmount(escrow.initiatorAmount)} / {formatAmount(escrow.initiatorRequiredAmount)}
                             </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-orange-500 dark:bg-cyan-400 h-2 rounded-full transition-all" 
+                                style={{
+                                  width: `${Math.min(100, (parseFloat(escrow.initiatorAmount || "0") / parseFloat(escrow.initiatorRequiredAmount)) * 100)}%`
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-slate-400">🎯 {otherUser.displayName}'s {escrow.participantCurrency}:</span>
-                            <div className="font-mono text-purple-400">
+                          <div className="space-y-2">
+                            <span className="text-gray-600 dark:text-slate-400">{otherUser.displayName}'s {escrow.participantCurrency}:</span>
+                            <div className="font-mono text-orange-600 dark:text-purple-400">
                               {formatAmount(escrow.participantAmount)} / {formatAmount(escrow.participantRequiredAmount)}
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-orange-500 dark:bg-purple-400 h-2 rounded-full transition-all" 
+                                style={{
+                                  width: `${Math.min(100, (parseFloat(escrow.participantAmount || "0") / parseFloat(escrow.participantRequiredAmount)) * 100)}%`
+                                }}
+                              />
                             </div>
                           </div>
                         </div>
 
-                        {parseFloat(escrow.initiatorAmount || "0") < parseFloat(escrow.initiatorRequiredAmount) && (
+                        {escrow.status === "pending" && parseFloat(escrow.initiatorAmount || "0") < parseFloat(escrow.initiatorRequiredAmount) && (
                           <div className="flex space-x-2 mb-2">
                             <Input
                               type="number"
                               step="0.0001"
-                              placeholder="Amount to add 💰"
+                              placeholder={`Add ${escrow.initiatorCurrency} funds`}
                               value={selectedEscrow === escrow.id ? fundingAmount : ""}
                               onChange={(e) => {
                                 setSelectedEscrow(escrow.id);
                                 setFundingAmount(e.target.value);
                               }}
-                              className="bg-slate-800 border-slate-600 text-sm"
+                              className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-sm"
                             />
                             <Button
                               onClick={() => handleFundEscrow(escrow.id)}
                               disabled={!fundingAmount || fundEscrowMutation.isPending}
                               size="sm"
-                              className="bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+                              className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
                             >
-                              💰 Add Funds
+                              Add Funds
                             </Button>
                           </div>
                         )}
 
-                        <Button
-                          onClick={() => cancelEscrowMutation.mutate(escrow.id)}
-                          variant="destructive"
-                          size="sm"
-                          disabled={cancelEscrowMutation.isPending}
-                          className="w-full"
-                        >
-                          🚫 Cancel Escrow
-                        </Button>
+                        {escrow.status === "funded" && (
+                          <div className="mb-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                            <p className="text-sm text-green-700 dark:text-green-400 mb-2">
+                              Both parties have funded! Ready to complete trade.
+                            </p>
+                            <Button
+                              onClick={() => releaseEscrowMutation.mutate(escrow.id)}
+                              disabled={releaseEscrowMutation.isPending}
+                              size="sm"
+                              className="w-full bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              {releaseEscrowMutation.isPending ? "Releasing..." : "Complete Trade"}
+                            </Button>
+                          </div>
+                        )}
+
+                        {escrow.status === "pending" && (
+                          <Button
+                            onClick={() => cancelEscrowMutation.mutate(escrow.id)}
+                            variant="destructive"
+                            size="sm"
+                            disabled={cancelEscrowMutation.isPending}
+                            className="w-full"
+                          >
+                            Cancel Escrow
+                          </Button>
+                        )}
                       </div>
                     )}
 

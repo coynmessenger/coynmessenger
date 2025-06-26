@@ -249,14 +249,35 @@ export class DatabaseStorage implements IStorage {
 
   async addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null> {
     const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
-    if (!escrow) return null;
+    if (!escrow || escrow.status !== "pending") return null;
 
     const isInitiator = escrow.initiatorId === userId;
     const isParticipant = escrow.participantId === userId;
     
     if (!isInitiator && !isParticipant) return null;
 
-    // Update the appropriate amount field
+    // Validate user has sufficient balance
+    const currency = isInitiator ? escrow.initiatorCurrency : escrow.participantCurrency;
+    const requiredAmount = parseFloat(isInitiator ? escrow.initiatorRequiredAmount : escrow.participantRequiredAmount);
+    const fundingAmount = parseFloat(amount);
+    
+    if (fundingAmount < requiredAmount) {
+      throw new Error(`Insufficient amount. Required: ${requiredAmount} ${currency}`);
+    }
+
+    // Get current wallet balance
+    const [balance] = await db.select().from(walletBalances)
+      .where(and(eq(walletBalances.userId, userId), eq(walletBalances.currency, currency)));
+    
+    if (!balance || parseFloat(balance.balance) < fundingAmount) {
+      throw new Error(`Insufficient ${currency} balance`);
+    }
+
+    // Deduct from wallet (lock funds in escrow)
+    const newBalance = (parseFloat(balance.balance) - fundingAmount).toString();
+    await this.updateWalletBalance(userId, currency, newBalance);
+
+    // Update escrow with funded amount
     const updateData = isInitiator 
       ? { initiatorAmount: amount }
       : { participantAmount: amount };
@@ -267,15 +288,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(escrows.id, escrowId))
       .returning();
 
-    // Check if both parties have funded the required amount
+    // Check if both parties have funded - if so, mark as funded
+    const initiatorFunded = parseFloat(updatedEscrow.initiatorAmount || "0");
+    const participantFunded = parseFloat(updatedEscrow.participantAmount || "0");
     const initiatorRequired = parseFloat(escrow.initiatorRequiredAmount);
     const participantRequired = parseFloat(escrow.participantRequiredAmount);
-    const initiatorAmount = parseFloat(isInitiator ? amount : escrow.initiatorAmount || "0");
-    const participantAmount = parseFloat(isParticipant ? amount : escrow.participantAmount || "0");
 
-    if (initiatorAmount >= initiatorRequired && participantAmount >= participantRequired) {
-      // Automatically release funds when both parties have contributed
-      await this.releaseEscrow(escrowId);
+    if (initiatorFunded >= initiatorRequired && participantFunded >= participantRequired) {
+      await db
+        .update(escrows)
+        .set({ status: "funded" })
+        .where(eq(escrows.id, escrowId));
     }
 
     return updatedEscrow;
@@ -283,7 +306,33 @@ export class DatabaseStorage implements IStorage {
 
   async releaseEscrow(escrowId: number): Promise<boolean> {
     const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
-    if (!escrow || (escrow.status !== "pending" && escrow.status !== "funded")) return false;
+    if (!escrow || escrow.status !== "funded") return false;
+
+    // Get current wallet balances to properly add funds
+    const initiatorFunded = parseFloat(escrow.initiatorAmount || "0");
+    const participantFunded = parseFloat(escrow.participantAmount || "0");
+
+    if (initiatorFunded > 0) {
+      // Give initiator's funds to participant
+      const [participantBalance] = await db.select().from(walletBalances)
+        .where(and(eq(walletBalances.userId, escrow.participantId), eq(walletBalances.currency, escrow.initiatorCurrency)));
+      
+      if (participantBalance) {
+        const newBalance = (parseFloat(participantBalance.balance) + initiatorFunded).toString();
+        await this.updateWalletBalance(escrow.participantId, escrow.initiatorCurrency, newBalance);
+      }
+    }
+
+    if (participantFunded > 0) {
+      // Give participant's funds to initiator
+      const [initiatorBalance] = await db.select().from(walletBalances)
+        .where(and(eq(walletBalances.userId, escrow.initiatorId), eq(walletBalances.currency, escrow.participantCurrency)));
+      
+      if (initiatorBalance) {
+        const newBalance = (parseFloat(initiatorBalance.balance) + participantFunded).toString();
+        await this.updateWalletBalance(escrow.initiatorId, escrow.participantCurrency, newBalance);
+      }
+    }
 
     // Update escrow status to released
     await db
@@ -294,31 +343,37 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(escrows.id, escrowId));
 
-    // Release funds to the opposite party (trade completion)
-    // Use required amounts for the trade since actual amounts might be 0 initially
-    if (escrow.initiatorRequiredAmount && parseFloat(escrow.initiatorRequiredAmount) > 0) {
-      await this.updateWalletBalance(escrow.participantId, escrow.initiatorCurrency, escrow.initiatorRequiredAmount);
-    }
-    if (escrow.participantRequiredAmount && parseFloat(escrow.participantRequiredAmount) > 0) {
-      await this.updateWalletBalance(escrow.initiatorId, escrow.participantCurrency, escrow.participantRequiredAmount);
-    }
-
     return true;
   }
 
   async cancelEscrow(escrowId: number, userId: number): Promise<boolean> {
     const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
-    if (!escrow || escrow.status !== "pending") return false;
+    if (!escrow || escrow.status === "released" || escrow.status === "cancelled") return false;
 
     // Only initiator can cancel
     if (escrow.initiatorId !== userId) return false;
 
-    // Return funds to original owners
+    // Return funds to original owners if they have contributed
     if (escrow.initiatorAmount && parseFloat(escrow.initiatorAmount) > 0) {
-      await this.updateWalletBalance(escrow.initiatorId, escrow.initiatorCurrency, escrow.initiatorAmount);
+      const [initiatorBalance] = await db.select().from(walletBalances)
+        .where(and(eq(walletBalances.userId, escrow.initiatorId), eq(walletBalances.currency, escrow.initiatorCurrency)));
+      
+      if (initiatorBalance) {
+        const returnAmount = parseFloat(escrow.initiatorAmount);
+        const newBalance = (parseFloat(initiatorBalance.balance) + returnAmount).toString();
+        await this.updateWalletBalance(escrow.initiatorId, escrow.initiatorCurrency, newBalance);
+      }
     }
+
     if (escrow.participantAmount && parseFloat(escrow.participantAmount) > 0) {
-      await this.updateWalletBalance(escrow.participantId, escrow.participantCurrency, escrow.participantAmount);
+      const [participantBalance] = await db.select().from(walletBalances)
+        .where(and(eq(walletBalances.userId, escrow.participantId), eq(walletBalances.currency, escrow.participantCurrency)));
+      
+      if (participantBalance) {
+        const returnAmount = parseFloat(escrow.participantAmount);
+        const newBalance = (parseFloat(participantBalance.balance) + returnAmount).toString();
+        await this.updateWalletBalance(escrow.participantId, escrow.participantCurrency, newBalance);
+      }
     }
 
     // Update status
