@@ -130,7 +130,7 @@ export default function HomePage() {
         {/* Main CTA Card - Moved to top */}
         <Card className="bg-card/80 border-border backdrop-blur-xl max-w-lg mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-foreground mb-2">Connect to COYN Network</CardTitle>
+            <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             <p className="text-muted-foreground">
               Enter your COYN address to join the decentralized messenger
             </p>
