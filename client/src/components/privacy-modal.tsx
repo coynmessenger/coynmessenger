@@ -9,8 +9,8 @@ interface PrivacyModalProps {
 
 export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] bg-background border-border">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] bg-background border-border" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-foreground">
             Privacy Policy
