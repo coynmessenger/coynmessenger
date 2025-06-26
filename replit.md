@@ -265,6 +265,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed unwanted user creation in contact list - added isSetup field to user schema, new wallet connections create users with isSetup=false so they don't appear in contact list until properly configured, only setup users (demo users) appear in "Start New Conversation" section, prevents cluttered interface from auto-created wallet users
 - June 26, 2025: Fixed search modal light theme and functionality - updated search bar colors to match light theme (white background, black text, orange focus borders), implemented proper search filtering for both conversations and contacts, search now filters by display name, username, and message content with real-time results
 - June 26, 2025: Added desktop back button to chat interface - implemented consistent back button functionality for both desktop and mobile layouts, users can now return to contact list from chat conversations on desktop similar to mobile experience
+- June 26, 2025: Implemented comprehensive search highlighting and auto-scroll functionality - search text now highlights in real-time with yellow background in both sent and received messages, automatically scrolls to first search result, includes search result counter in chat header, adds visual pulse animation for found results, works across both light and dark themes with proper color schemes
 
 ## User Preferences
 

@@ -27,9 +27,10 @@ interface ChatWindowProps {
   onOpenVideoCall: () => void;
   onToggleSidebar: () => void;
   onBack?: () => void;
+  searchQuery?: string;
 }
 
-export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSidebar, onBack }: ChatWindowProps) {
+export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
@@ -43,6 +44,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [searchResultCount, setSearchResultCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -255,6 +257,54 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
     });
   };
 
+  // Function to highlight search text
+  const highlightText = (text: string, searchTerm: string) => {
+    if (!searchTerm || !text) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-300 dark:bg-yellow-600 text-black dark:text-white px-1 rounded-md font-semibold">
+          {part}
+        </mark>
+      ) : part
+    );
+  };
+
+  // Auto-scroll to first search result and update count
+  useEffect(() => {
+    if (searchQuery && searchQuery.length >= 2 && messages?.length) {
+      const searchResults = messages.filter(msg => 
+        msg.content?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      setSearchResultCount(searchResults.length);
+      
+      if (searchResults.length > 0) {
+        // Use setTimeout to ensure DOM is updated after highlighting
+        setTimeout(() => {
+          const firstResultElement = document.querySelector(`[data-message-id="${searchResults[0].id}"]`);
+          if (firstResultElement) {
+            firstResultElement.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'center'
+            });
+            
+            // Add a temporary highlight animation to the scrolled-to message
+            firstResultElement.classList.add('search-highlight-pulse');
+            setTimeout(() => {
+              firstResultElement.classList.remove('search-highlight-pulse');
+            }, 2000);
+          }
+        }, 100);
+      }
+    } else {
+      setSearchResultCount(0);
+    }
+  }, [searchQuery, messages]);
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
@@ -285,7 +335,14 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </Avatar>
             <div className="text-left">
               <h2 className="font-semibold text-foreground">{conversation.otherUser.displayName}</h2>
-              <p className="text-xs text-muted-foreground">{conversation.otherUser.walletAddress}</p>
+              <div className="flex items-center space-x-2">
+                <p className="text-xs text-muted-foreground">{conversation.otherUser.walletAddress}</p>
+                {searchQuery && searchResultCount > 0 && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                    {searchResultCount} {searchResultCount === 1 ? 'match' : 'matches'}
+                  </Badge>
+                )}
+              </div>
             </div>
           </Button>
         </div>
@@ -326,10 +383,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with delete option
-                  <div className="flex justify-end group">
+                  <div className="flex justify-end group" data-message-id={msg.id}>
                     <div className="relative">
                       <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md shadow-sm">
-                        <p className="text-sm font-medium break-words">{msg.content}</p>
+                        <p className="text-sm font-medium break-words">{highlightText(msg.content || "", searchQuery || "")}</p>
                         <span className="text-xs text-primary-foreground/80 mt-1 block">
                           {formatTimestamp(msg.timestamp)}
                         </span>
@@ -359,13 +416,13 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   </div>
                 ) : (
                   // Received message
-                  <div className="flex items-start space-x-3">
+                  <div className="flex items-start space-x-3" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="bg-white dark:bg-muted rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md shadow-sm border border-border/50">
-                      <p className="text-sm break-words text-foreground">{msg.content}</p>
+                      <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
                       <span className="text-xs text-muted-foreground mt-1 block">
                         {formatTimestamp(msg.timestamp)}
                       </span>

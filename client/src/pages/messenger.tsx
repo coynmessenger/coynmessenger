@@ -130,6 +130,7 @@ export default function MessengerPage() {
                 onOpenVideoCall={() => setIsVideoCallOpen(true)}
                 onToggleSidebar={() => {}}
                 onBack={() => setSelectedConversation(null)}
+                searchQuery={searchQuery}
               />
             ) : (
               <div className="flex-1 flex flex-col bg-background">
@@ -400,6 +401,7 @@ export default function MessengerPage() {
               onOpenVideoCall={() => setIsVideoCallOpen(true)}
               onToggleSidebar={() => setIsSidebarOpen(true)}
               onBack={() => setSelectedConversation(null)}
+              searchQuery={searchQuery}
             />
           ) : (
             <div className="flex-1 flex flex-col bg-background">
