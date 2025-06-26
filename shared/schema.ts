@@ -12,7 +12,6 @@ export const users = pgTable("users", {
   lastSeen: timestamp("last_seen").defaultNow(),
   // Mailing address fields for marketplace delivery
   fullName: text("full_name"),
-  phoneNumber: text("phone_number"),
   addressLine1: text("address_line_1"),
   addressLine2: text("address_line_2"),
   city: text("city"),

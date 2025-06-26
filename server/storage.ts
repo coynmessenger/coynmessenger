@@ -12,7 +12,7 @@ import {
   type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc } from "drizzle-orm";
+import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -208,12 +208,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getMessagesByIds(messageIds: number[]): Promise<Message[]> {
-    if (messageIds.length === 0) return [];
-    return await db.select().from(messages).where(
-      or(...messageIds.map(id => eq(messages.id, id)))
-    );
-  }
+
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const [message] = await db
@@ -554,6 +549,151 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(favorites.userId, userId), eq(favorites.productId, productId)));
     return !!favorite;
   }
+
+  // Missing escrow methods
+  async getEscrow(escrowId: number): Promise<Escrow | undefined> {
+    const [escrow] = await db.select().from(escrows).where(eq(escrows.id, escrowId));
+    return escrow || undefined;
+  }
+
+  async updateEscrow(escrowId: number, updates: Partial<InsertEscrow>): Promise<Escrow | null> {
+    const [updatedEscrow] = await db
+      .update(escrows)
+      .set(updates)
+      .where(eq(escrows.id, escrowId))
+      .returning();
+    return updatedEscrow || null;
+  }
+
+  async searchEscrows(userId: number, filters?: { status?: string; type?: string; tags?: string[] }): Promise<Escrow[]> {
+    const conditions = [
+      or(eq(escrows.initiatorId, userId), eq(escrows.participantId, userId))
+    ];
+
+    if (filters?.status) {
+      conditions.push(eq(escrows.status, filters.status));
+    }
+
+    if (filters?.type) {
+      conditions.push(eq(escrows.escrowType, filters.type));
+    }
+
+    return await db.select().from(escrows).where(and(...conditions));
+  }
+
+  // Milestone methods
+  async getEscrowMilestones(escrowId: number): Promise<EscrowMilestone[]> {
+    return await db.select().from(escrowMilestones).where(eq(escrowMilestones.escrowId, escrowId));
+  }
+
+  async createMilestone(milestone: InsertEscrowMilestone): Promise<EscrowMilestone> {
+    const [created] = await db
+      .insert(escrowMilestones)
+      .values(milestone)
+      .returning();
+    return created;
+  }
+
+  async updateMilestone(milestoneId: number, updates: Partial<InsertEscrowMilestone>): Promise<EscrowMilestone | null> {
+    const [updated] = await db
+      .update(escrowMilestones)
+      .set(updates)
+      .where(eq(escrowMilestones.id, milestoneId))
+      .returning();
+    return updated || null;
+  }
+
+  async completeMilestone(milestoneId: number): Promise<boolean> {
+    const result = await db
+      .update(escrowMilestones)
+      .set({ 
+        status: "completed",
+        completedAt: new Date()
+      })
+      .where(eq(escrowMilestones.id, milestoneId));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Dispute methods
+  async getEscrowDisputes(escrowId: number): Promise<EscrowDispute[]> {
+    return await db.select().from(escrowDisputes).where(eq(escrowDisputes.escrowId, escrowId));
+  }
+
+  async getUserDisputes(userId: number): Promise<EscrowDispute[]> {
+    return await db.select().from(escrowDisputes).where(eq(escrowDisputes.initiatorId, userId));
+  }
+
+  async createDispute(dispute: InsertEscrowDispute): Promise<EscrowDispute> {
+    const [created] = await db
+      .insert(escrowDisputes)
+      .values(dispute)
+      .returning();
+    return created;
+  }
+
+  async updateDispute(disputeId: number, updates: Partial<InsertEscrowDispute>): Promise<EscrowDispute | null> {
+    const [updated] = await db
+      .update(escrowDisputes)
+      .set(updates)
+      .where(eq(escrowDisputes.id, disputeId))
+      .returning();
+    return updated || null;
+  }
+
+  async resolveDispute(disputeId: number, resolution: string, mediatorId: number): Promise<boolean> {
+    const result = await db
+      .update(escrowDisputes)
+      .set({ 
+        status: "resolved",
+        resolution,
+        mediatorId,
+        resolvedAt: new Date()
+      })
+      .where(eq(escrowDisputes.id, disputeId));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Template methods
+  async getEscrowTemplates(category?: string): Promise<EscrowTemplate[]> {
+    if (category) {
+      return await db.select().from(escrowTemplates).where(eq(escrowTemplates.category, category));
+    }
+    return await db.select().from(escrowTemplates);
+  }
+
+  async getUserTemplates(userId: number): Promise<EscrowTemplate[]> {
+    return await db.select().from(escrowTemplates).where(eq(escrowTemplates.createdBy, userId));
+  }
+
+  async createTemplate(template: InsertEscrowTemplate): Promise<EscrowTemplate> {
+    const [created] = await db
+      .insert(escrowTemplates)
+      .values(template)
+      .returning();
+    return created;
+  }
+
+  async updateTemplate(templateId: number, updates: Partial<InsertEscrowTemplate>): Promise<EscrowTemplate | null> {
+    const [updated] = await db
+      .update(escrowTemplates)
+      .set(updates)
+      .where(eq(escrowTemplates.id, templateId))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteTemplate(templateId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(escrowTemplates)
+      .where(and(eq(escrowTemplates.id, templateId), eq(escrowTemplates.createdBy, userId)));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Missing message method
+  async getMessagesByIds(messageIds: number[]): Promise<Message[]> {
+    if (messageIds.length === 0) return [];
+    return await db.select().from(messages).where(inArray(messages.id, messageIds));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -581,6 +721,13 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const jane: User = {
@@ -592,7 +739,6 @@ export class MemStorage implements IStorage {
       isOnline: true,
       lastSeen: new Date(),
       fullName: null,
-      phoneNumber: null,
       addressLine1: null,
       addressLine2: null,
       city: null,
@@ -609,6 +755,13 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: false,
       lastSeen: new Date(Date.now() - 3600000), // 1 hour ago
+      fullName: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const daniel: User = {
@@ -619,6 +772,13 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const currentUser: User = {
@@ -629,6 +789,13 @@ export class MemStorage implements IStorage {
       profilePicture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     [chris, jane, gstax, daniel, currentUser].forEach(user => {
@@ -692,18 +859,42 @@ export class MemStorage implements IStorage {
     const user = this.users.get(id);
     if (!user) return undefined;
     
-    const updatedUser = { ...user, ...updates };
+    const updatedUser: User = {
+      id: user.id,
+      username: updates.username ?? user.username,
+      displayName: updates.displayName ?? user.displayName,
+      walletAddress: updates.walletAddress ?? user.walletAddress,
+      profilePicture: updates.profilePicture !== undefined ? updates.profilePicture : user.profilePicture,
+      isOnline: updates.isOnline !== undefined ? updates.isOnline : user.isOnline,
+      lastSeen: user.lastSeen,
+      fullName: updates.fullName !== undefined ? updates.fullName : user.fullName,
+      addressLine1: updates.addressLine1 !== undefined ? updates.addressLine1 : user.addressLine1,
+      addressLine2: updates.addressLine2 !== undefined ? updates.addressLine2 : user.addressLine2,
+      city: updates.city !== undefined ? updates.city : user.city,
+      state: updates.state !== undefined ? updates.state : user.state,
+      zipCode: updates.zipCode !== undefined ? updates.zipCode : user.zipCode,
+      country: updates.country !== undefined ? updates.country : user.country,
+    };
     this.users.set(id, updatedUser);
     return updatedUser;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const user: User = {
-      ...insertUser,
       id: this.currentUserId++,
-      lastSeen: new Date(),
+      username: insertUser.username,
+      displayName: insertUser.displayName,
+      walletAddress: insertUser.walletAddress,
       profilePicture: insertUser.profilePicture ?? null,
       isOnline: insertUser.isOnline ?? null,
+      lastSeen: new Date(),
+      fullName: insertUser.fullName ?? null,
+      addressLine1: insertUser.addressLine1 ?? null,
+      addressLine2: insertUser.addressLine2 ?? null,
+      city: insertUser.city ?? null,
+      state: insertUser.state ?? null,
+      zipCode: insertUser.zipCode ?? null,
+      country: insertUser.country ?? null,
     };
     this.users.set(user.id, user);
     return user;

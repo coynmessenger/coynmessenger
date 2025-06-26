@@ -186,7 +186,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   
   // Mailing address state
   const [fullName, setFullName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
@@ -205,7 +204,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setWalletAddress(user.walletAddress || "");
       setProfilePicture(user.profilePicture || "");
       setFullName(user.fullName || "");
-      setPhoneNumber(user.phoneNumber || "");
       setAddressLine1(user.addressLine1 || "");
       setAddressLine2(user.addressLine2 || "");
       setCity(user.city || "");
@@ -271,7 +269,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
     if (showShipping) {
       updateData.fullName = fullName;
-      updateData.phoneNumber = phoneNumber;
       updateData.addressLine1 = addressLine1;
       updateData.addressLine2 = addressLine2;
       updateData.city = city;
@@ -453,17 +450,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="John Doe"
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+1 (555) 123-4567"
                       className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
                     />
                   </div>

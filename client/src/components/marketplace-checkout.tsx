@@ -184,7 +184,6 @@ interface ShippingAddress {
   state: string;
   zipCode: string;
   country: string;
-  phoneNumber: string;
 }
 
 const CRYPTO_RATES = {
@@ -206,8 +205,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States',
-    phoneNumber: ''
+    country: 'United States'
   });
   const [shippingOption, setShippingOption] = useState<'standard' | 'express'>('standard');
   const [orderNotes, setOrderNotes] = useState('');
@@ -275,8 +273,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         city: (user as any).city || prev.city,
         state: (user as any).state || prev.state,
         zipCode: (user as any).zipCode || prev.zipCode,
-        country: (user as any).country || prev.country || 'United States',
-        phoneNumber: (user as any).phoneNumber || prev.phoneNumber
+        country: (user as any).country || prev.country || 'United States'
       }));
     }
   }, [currentStep, user]);
@@ -567,15 +564,6 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
                 placeholder="Enter full name"
               />
             </div>
-            <div>
-              <Label htmlFor="phoneNumber">Phone Number *</Label>
-              <Input
-                id="phoneNumber"
-                value={shippingAddress.phoneNumber}
-                onChange={(e) => setShippingAddress(prev => ({...prev, phoneNumber: e.target.value}))}
-                placeholder="Enter phone number"
-              />
-            </div>
           </div>
           
           <div>
@@ -819,7 +807,6 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
             {shippingAddress.addressLine2 && <p>{shippingAddress.addressLine2}</p>}
             <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
             <p>{shippingAddress.country}</p>
-            <p>Phone: {shippingAddress.phoneNumber}</p>
             <p className="text-orange-600 font-medium mt-2">
               {shippingOption === 'express' ? 'Express Shipping (2-3 days)' : 'Standard Shipping (5-7 days)'}
             </p>

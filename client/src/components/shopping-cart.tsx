@@ -192,7 +192,6 @@ interface ShippingAddress {
   state: string;
   zipCode: string;
   country: string;
-  phoneNumber: string;
 }
 
 export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartProps) {
@@ -209,8 +208,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States',
-    phoneNumber: ''
+    country: 'United States'
   });
   const [orderNotes, setOrderNotes] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -242,8 +240,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         city: (user as any).city || '',
         state: (user as any).state || '',
         zipCode: (user as any).zipCode || '',
-        country: (user as any).country || 'United States',
-        phoneNumber: (user as any).phoneNumber || ''
+        country: (user as any).country || 'United States'
       }));
     }
   }, [user, checkoutStep]);
@@ -296,7 +293,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   };
 
   const validateAddress = () => {
-    const required = ['fullName', 'addressLine1', 'city', 'state', 'zipCode', 'phoneNumber'];
+    const required = ['fullName', 'addressLine1', 'city', 'state', 'zipCode'];
     const missing = required.filter(field => !shippingAddress[field as keyof ShippingAddress].trim());
     
     if (missing.length > 0) {
@@ -542,17 +539,6 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone Number *</Label>
-                    <Input
-                      id="phoneNumber"
-                      value={shippingAddress.phoneNumber}
-                      onChange={(e) => setShippingAddress(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                      placeholder="(555) 123-4567"
-                      className="bg-input border-border"
-                    />
-                  </div>
-
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="addressLine1">Address Line 1 *</Label>
                     <Input
@@ -700,7 +686,6 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       {shippingAddress.addressLine2 && <p>{shippingAddress.addressLine2}</p>}
                       <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
                       <p>{shippingAddress.country}</p>
-                      <p className="text-muted-foreground">Phone: {shippingAddress.phoneNumber}</p>
                     </div>
                   </CardContent>
                 </Card>
