@@ -197,7 +197,7 @@ export default function Sidebar({
             onClick={() => onOpenWallet()}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Total Portfolio</span>
+              <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Total Balance</span>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
