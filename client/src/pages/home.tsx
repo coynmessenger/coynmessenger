@@ -103,15 +103,15 @@ export default function HomePage() {
       } else if (walletType === 'walletconnect') {
         // Simulate WalletConnect connection
         address = `0x${Math.random().toString(16).substr(2, 40)}`;
-        displayName = 'You';
+        displayName = 'WalletConnect User';
       } else if (walletType === 'trust') {
         // Simulate Trust Wallet connection
         address = `0x${Math.random().toString(16).substr(2, 40)}`;
-        displayName = 'You';
+        displayName = 'Trust Wallet User';
       } else if (walletType === 'coinbase') {
         // Simulate Coinbase Wallet connection
         address = `0x${Math.random().toString(16).substr(2, 40)}`;
-        displayName = 'You';
+        displayName = 'Coinbase User';
       }
 
       if (address) {
