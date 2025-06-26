@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -190,6 +190,39 @@ export default function MarketplacePage() {
     },
     refetchInterval: 60000 // Refresh every minute
   });
+
+  // Fetch user favorites
+  const { data: favorites = [] } = useQuery({
+    queryKey: ["/api/favorites"],
+    queryFn: async () => {
+      const res = await fetch("/api/favorites");
+      if (!res.ok) throw new Error("Failed to fetch favorites");
+      return res.json();
+    }
+  });
+
+  const queryClient = useQueryClient();
+
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const res = await fetch("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId })
+      });
+      if (!res.ok) throw new Error("Failed to toggle favorite");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+    }
+  });
+
+  // Helper function to check if product is favorited
+  const isProductFavorited = (productId: string): boolean => {
+    return favorites.some((fav: any) => fav.productId === productId);
+  };
 
   // Legacy sample items for comparison
   const legacyItems = [
@@ -599,12 +632,31 @@ export default function MarketplacePage() {
                           by {isAmazonProduct ? item.brand || 'Amazon' : seller}
                         </p>
                       </div>
-                      {(isAmazonProduct || item.featured) && (
-                        <Badge className="bg-orange-500 text-white ml-2 shrink-0">
-                          <Star className="h-3 w-3 mr-1" />
-                          {isAmazonProduct ? 'Amazon' : 'Featured'}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-2 ml-2 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-accent"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavoriteMutation.mutate(itemKey.toString());
+                          }}
+                        >
+                          <Heart 
+                            className={`h-4 w-4 ${
+                              isProductFavorited(itemKey.toString()) 
+                                ? 'fill-red-500 text-red-500' 
+                                : 'text-muted-foreground hover:text-red-500'
+                            }`} 
+                          />
+                        </Button>
+                        {(isAmazonProduct || item.featured) && (
+                          <Badge className="bg-orange-500 text-white">
+                            <Star className="h-3 w-3 mr-1" />
+                            {isAmazonProduct ? 'Amazon' : 'Featured'}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

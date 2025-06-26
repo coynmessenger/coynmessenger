@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -261,10 +261,34 @@ export default function ProductPage() {
     queryKey: ["/api/crypto/rates"],
   });
 
-  const { data: favoriteStatus } = useQuery({
-    queryKey: ['/api/favorites/status', productASIN],
-    enabled: !!productASIN,
+  // Fetch user favorites
+  const { data: favorites = [] } = useQuery({
+    queryKey: ["/api/favorites"],
+    queryFn: async () => {
+      const res = await fetch("/api/favorites");
+      if (!res.ok) throw new Error("Failed to fetch favorites");
+      return res.json();
+    }
   });
+
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const res = await fetch("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId })
+      });
+      if (!res.ok) throw new Error("Failed to toggle favorite");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+    }
+  });
+
+  // Check if current product is favorited
+  const isProductFavorited = productASIN ? favorites.some((fav: any) => fav.productId === productASIN) : false;
 
   // Find the current product
   const product = products.find(p => p.ASIN === productASIN);
@@ -308,60 +332,16 @@ export default function ProductPage() {
 
   // Update favorite status when data changes  
   useEffect(() => {
-    if (favoriteStatus && typeof favoriteStatus === 'object' && favoriteStatus !== null && 'isFavorite' in favoriteStatus) {
-      setIsWishlisted(Boolean((favoriteStatus as any).isFavorite));
-    }
-  }, [favoriteStatus]);
+    setIsWishlisted(isProductFavorited);
+  }, [isProductFavorited]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleFavorite = async () => {
-    if (!product) return;
-
-    try {
-      // Use the new toggle API endpoint
-      const response = await fetch('/api/favorites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product.ASIN,
-          productTitle: product.title,
-          productPrice: `${product.price} ${product.currency}`,
-          productImage: product.imageUrl,
-          productCategory: product.category,
-          productRating: product.rating,
-        }),
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        setIsWishlisted(result.isFavorite);
-        
-        // Invalidate favorites cache to update favorites page
-        queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/favorites/status'] });
-        
-        toast({
-          title: result.action === "added" ? "Added to favorites" : "Removed from favorites",
-          description: result.action === "added" 
-            ? "Product has been added to your wishlist"
-            : "Product has been removed from your wishlist",
-        });
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update favorites');
-      }
-    } catch (error) {
-      console.error('Favorites error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorites",
-        variant: "destructive",
-      });
+  const toggleFavorite = () => {
+    if (productASIN) {
+      toggleFavoriteMutation.mutate(productASIN);
     }
   };
 
@@ -539,11 +519,11 @@ export default function ProductPage() {
                           onClick={toggleFavorite}
                           className="text-muted-foreground hover:text-red-500"
                         >
-                          <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+                          <Heart className={`h-5 w-5 ${isProductFavorited ? 'fill-red-500 text-red-500' : ''}`} />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}</p>
+                        <p>{isProductFavorited ? 'Remove from favorites' : 'Add to favorites'}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
