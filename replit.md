@@ -220,6 +220,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Enhanced sidebar to show all 4 cryptocurrency assets and removed search functionality - now displays complete portfolio with Bitcoin, BNB, USDT, and COYN all visible with detailed breakdowns, authentic logos, USD values, 24h changes, and privacy toggle for comprehensive wallet monitoring
 - June 26, 2025: Streamlined sidebar header design - consolidated "COYN" and "Messenger" into single title "COYN Messenger" next to logo for cleaner, more professional appearance
 - June 26, 2025: Removed "+1 more assets" indicator from sidebar - now displays all 4 cryptocurrency assets directly without additional text indicators for cleaner wallet overview
+- June 26, 2025: Removed logo and "Conversations" header from messenger page - eliminated redundant header bar for cleaner, more streamlined interface that flows directly into contact list and messaging content
 
 ## User Preferences
 
