@@ -30,6 +30,7 @@ interface ShoppingCartProps {
 }
 
 const CRYPTO_RATES = {
+  BTC: "96,845.23",
   BNB: "683.12", 
   USDT: "1.00",
   COYN: "2.45"

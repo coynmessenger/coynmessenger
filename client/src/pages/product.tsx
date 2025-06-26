@@ -200,6 +200,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
                 <SelectItem value="COYN">COYN</SelectItem>
+                <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
                 <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
                 <SelectItem value="USDT">Tether (USDT)</SelectItem>
               </SelectContent>

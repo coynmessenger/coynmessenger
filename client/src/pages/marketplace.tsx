@@ -33,6 +33,7 @@ interface AmazonProduct {
 }
 
 interface CryptoRates {
+  BTC: number;
   BNB: number;
   USDT: number;
   COYN: number;
@@ -53,6 +54,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
 
   const usdPrice = parseFloat(product.price);
   const cryptoPrices = {
+    BTC: (usdPrice / cryptoRates.BTC).toFixed(8),
     BNB: (usdPrice / cryptoRates.BNB).toFixed(6),
     USDT: (usdPrice / cryptoRates.USDT).toFixed(2),
     COYN: (usdPrice / cryptoRates.COYN).toFixed(2)

@@ -514,9 +514,10 @@ export class MemStorage implements IStorage {
 
     // Create wallet balances for current user - 2025 market prices
     const walletBalances = [
-      { id: 1, userId: 5, currency: "BNB", balance: "8.5", usdValue: "5100.00", changePercent: "1.8" },
-      { id: 2, userId: 5, currency: "USDT", balance: "2500.00", usdValue: "2500.00", changePercent: "0.0" },
-      { id: 3, userId: 5, currency: "COYN", balance: "1500.00", usdValue: "1275.00", changePercent: "4.7" },
+      { id: 1, userId: 5, currency: "BTC", balance: "0.125", usdValue: "12500.00", changePercent: "3.2" },
+      { id: 2, userId: 5, currency: "BNB", balance: "8.5", usdValue: "5100.00", changePercent: "1.8" },
+      { id: 3, userId: 5, currency: "USDT", balance: "2500.00", usdValue: "2500.00", changePercent: "0.0" },
+      { id: 4, userId: 5, currency: "COYN", balance: "1500.00", usdValue: "1275.00", changePercent: "4.7" },
     ];
 
     walletBalances.forEach(balance => {
