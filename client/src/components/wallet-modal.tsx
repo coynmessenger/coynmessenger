@@ -743,42 +743,93 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+        <div className="space-y-3 sm:space-y-4 flex-1 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
             const changePercent = parseFloat(balance.changePercent || "0");
             const isPositive = changePercent >= 0;
+            const portfolioPercent = totalBalance > 0 ? (parseFloat(balance.usdValue || "0") / totalBalance * 100) : 0;
+            
+            // Mock current prices for better display
+            const currentPrices = {
+              BTC: 43250.00,
+              BNB: 312.45,
+              USDT: 1.00,
+              COYN: 0.125
+            };
+            
+            const currentPrice = currentPrices[balance.currency as keyof typeof currentPrices] || 0;
 
             return (
-              <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between">
+              <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                <CardContent className="p-4">
+                  {/* Top Row - Asset Name & Value */}
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                      <div className="w-10 h-10 flex items-center justify-center">
                         {renderCurrencyIcon(balance.currency, "lg")}
                       </div>
                       <div>
-                        <div className="font-medium text-black dark:text-white text-base sm:text-lg">
-                          {isBalanceVisible ? `${formatBalance(balance.balance, balance.currency)} ${balance.currency}` : "••••••"}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-slate-400 capitalize">
+                        <div className="font-semibold text-black dark:text-white text-lg">
                           {balance.currency === "BTC" ? "Bitcoin" : 
-                           balance.currency === "BNB" ? "BNB" :
-                           balance.currency === "USDT" ? "Tether" :
-                           balance.currency === "COYN" ? "COYN" : balance.currency}
+                           balance.currency === "BNB" ? "Binance Coin" :
+                           balance.currency === "USDT" ? "Tether USD" :
+                           balance.currency === "COYN" ? "COYN Token" : balance.currency}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-slate-400 uppercase font-medium">
+                          {balance.currency}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`font-medium text-base sm:text-lg ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                      <div className="font-semibold text-black dark:text-white text-lg">
                         {isBalanceVisible ? formatUSD(balance.usdValue || "0") : "••••••"}
                       </div>
-                      <div className={`text-xs flex items-center justify-end ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                      <div className="text-sm text-gray-500 dark:text-slate-400">
+                        {isBalanceVisible ? `${portfolioPercent.toFixed(1)}% of portfolio` : "••••••"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Middle Row - Balance & Price */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="text-sm text-gray-600 dark:text-slate-400">Balance</div>
+                      <div className="font-medium text-black dark:text-white">
+                        {isBalanceVisible ? `${formatBalance(balance.balance, balance.currency)} ${balance.currency}` : "••••••"}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600 dark:text-slate-400">Current Price</div>
+                      <div className="font-medium text-black dark:text-white">
+                        {isBalanceVisible ? formatUSD(currentPrice.toString()) : "••••••"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row - 24h Change & Performance */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-slate-600">
+                    <div className="flex items-center space-x-2">
+                      <div className="text-sm text-gray-600 dark:text-slate-400">24h Change</div>
+                      <div className={`text-sm font-medium flex items-center ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                         {isPositive ? (
-                          <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                          <TrendingUp className="h-3 w-3 mr-1" />
                         ) : (
-                          <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                          <TrendingDown className="h-3 w-3 mr-1" />
                         )}
-                        {Math.abs(changePercent).toFixed(1)}%
+                        {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {/* Performance indicator */}
+                      <div className={`w-2 h-2 rounded-full ${
+                        portfolioPercent > 40 ? 'bg-green-500' :
+                        portfolioPercent > 20 ? 'bg-yellow-500' :
+                        portfolioPercent > 10 ? 'bg-orange-500' : 'bg-gray-400'
+                      }`}></div>
+                      <div className="text-sm text-gray-500 dark:text-slate-400">
+                        {portfolioPercent > 40 ? 'Major holding' :
+                         portfolioPercent > 20 ? 'Significant' :
+                         portfolioPercent > 10 ? 'Moderate' : 'Minor holding'}
                       </div>
                     </div>
                   </div>

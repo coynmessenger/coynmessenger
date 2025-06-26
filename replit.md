@@ -214,6 +214,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Successfully implemented working contact list in sidebar component - added API integration to fetch all users, filter available contacts, and display them prominently with "Start New Conversation" section at top of messenger, includes click-to-start conversation functionality with loading states
 - June 26, 2025: Added wallet icon to messenger header - positioned wallet access button in top right corner of mobile header next to search and home icons for quick access to cryptocurrency wallet during messaging
 - June 26, 2025: Added back button to chat interface - mobile users can now tap back arrow in chat header to return to contact list when conversation is selected, improving navigation flow
+- June 26, 2025: Enhanced wallet asset breakdown with comprehensive cryptocurrency details - added current market prices, 24h price changes with trend indicators, portfolio percentages, performance classifications, and professional three-row card layout for better portfolio analytics
 
 ## User Preferences
 
