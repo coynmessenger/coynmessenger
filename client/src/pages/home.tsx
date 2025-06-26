@@ -161,7 +161,7 @@ export default function HomePage() {
     {
       icon: ShoppingBag,
       title: "Crypto Marketplace",
-      description: "Shop Amazon products and pay with cryptocurrency"
+      description: "Shop online products and pay with cryptocurrency"
     }
   ];
 

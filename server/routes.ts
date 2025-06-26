@@ -329,13 +329,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Amazon API routes
-  app.get("/api/amazon/search", async (req, res) => {
+  // Marketplace API routes
+  app.get("/api/marketplace/search", async (req, res) => {
     try {
       const { q: query = '', category, minPrice, maxPrice } = req.query;
-      const { amazonAPI } = await import('./amazon-api');
+      const { marketplaceAPI } = await import('./amazon-api');
       
-      const products = await amazonAPI.searchProducts(
+      const products = await marketplaceAPI.searchProducts(
         query as string, 
         category as string, 
         minPrice ? parseFloat(minPrice as string) : undefined,
@@ -344,16 +344,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(products);
     } catch (error) {
-      console.error("Amazon search error:", error);
-      res.status(500).json({ error: "Failed to search Amazon products" });
+      console.error("Marketplace search error:", error);
+      res.status(500).json({ error: "Failed to search marketplace products" });
     }
   });
 
   // Crypto rates API
   app.get("/api/crypto/rates", async (req, res) => {
     try {
-      const { amazonAPI } = await import('./amazon-api');
-      const rates = await amazonAPI.getCryptoRates();
+      const { marketplaceAPI } = await import('./amazon-api');
+      const rates = await marketplaceAPI.getCryptoRates();
       res.json(rates);
     } catch (error) {
       console.error("Crypto rates error:", error);

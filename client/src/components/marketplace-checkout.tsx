@@ -171,7 +171,7 @@ interface CartItem {
   currency: string;
 }
 
-interface AmazonCheckoutProps {
+interface MarketplaceCheckoutProps {
   isOpen: boolean;
   onClose: () => void;
 }
@@ -194,7 +194,7 @@ const CRYPTO_RATES = {
   COYN: "2.45"
 } as const;
 
-export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps) {
+export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceCheckoutProps) {
   const [currentStep, setCurrentStep] = useState<'cart' | 'review' | 'finalize'>('cart');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");

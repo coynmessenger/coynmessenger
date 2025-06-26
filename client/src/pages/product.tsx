@@ -29,12 +29,12 @@ import {
   Wallet
 } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
-import AmazonCheckout from "@/components/amazon-checkout";
+import MarketplaceCheckout from "@/components/marketplace-checkout";
 import { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 import SettingsModal from "@/components/settings-modal";
 
-interface AmazonProduct {
+interface Product {
   ASIN: string;
   title: string;
   price: string;
@@ -57,14 +57,14 @@ interface CryptoRates {
 }
 
 interface PurchaseModalProps {
-  product: AmazonProduct | null;
+  product: Product | null;
   isOpen: boolean;
   onClose: () => void;
   cryptoRates: CryptoRates;
 }
 
 interface ShareModalProps {
-  product: AmazonProduct | null;
+  product: Product | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -253,8 +253,8 @@ export default function ProductPage() {
   // Get product ASIN from URL params
   const productASIN = params?.asin;
 
-  const { data: products = [] } = useQuery<AmazonProduct[]>({
-    queryKey: ["/api/amazon/search", ""],
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ["/api/marketplace/search", ""],
   });
 
   const { data: cryptoRates = { BTC: 100000, BNB: 600, USDT: 1, COYN: 0.5 } } = useQuery<CryptoRates>({
@@ -849,7 +849,7 @@ export default function ProductPage() {
         showShipping={true}
       />
       
-      <AmazonCheckout 
+      <MarketplaceCheckout 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
       />

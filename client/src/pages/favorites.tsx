@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Home, ShoppingCart, Star, ArrowUp, Settings, Wallet, Store } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import AmazonCheckout from "@/components/amazon-checkout";
+import MarketplaceCheckout from "@/components/marketplace-checkout";
 import WalletHover from "@/components/wallet-hover";
 
 interface Favorite {
@@ -271,7 +271,7 @@ export default function FavoritesPage() {
         </Button>
       )}
 
-      <AmazonCheckout 
+      <MarketplaceCheckout 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
       />

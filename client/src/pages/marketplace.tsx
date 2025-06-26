@@ -14,11 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import SettingsModal from "@/components/settings-modal";
-import AmazonCheckout from "@/components/amazon-checkout";
+import MarketplaceCheckout from "@/components/marketplace-checkout";
 import { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
 
-interface AmazonProduct {
+interface Product {
   ASIN: string;
   title: string;
   price: string;
@@ -41,7 +41,7 @@ interface CryptoRates {
 }
 
 interface PurchaseModalProps {
-  product: AmazonProduct | null;
+  product: Product | null;
   isOpen: boolean;
   onClose: () => void;
   cryptoRates: CryptoRates;
@@ -153,7 +153,7 @@ export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
-  const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showCart, setShowCart] = useState(false);
@@ -165,15 +165,15 @@ export default function MarketplacePage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
 
-  // Fetch Amazon products with debounced search
-  const { data: amazonProducts = [], isLoading: isLoadingProducts } = useQuery<AmazonProduct[]>({
-    queryKey: ["/api/amazon/search", searchQuery, selectedCategory],
+  // Fetch marketplace products with debounced search
+  const { data: marketplaceProducts = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
+    queryKey: ["/api/marketplace/search", searchQuery, selectedCategory],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery.trim()) params.append('q', searchQuery.trim());
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
       
-      const res = await fetch(`/api/amazon/search?${params}`);
+      const res = await fetch(`/api/marketplace/search?${params}`);
       if (!res.ok) throw new Error("Failed to fetch products");
       return res.json();
     },
@@ -309,23 +309,23 @@ export default function MarketplacePage() {
     { value: "sports", label: "Sports & Outdoors", icon: Users }
   ];
 
-  const allItems = [...amazonProducts, ...legacyItems];
+  const allItems = [...marketplaceProducts, ...legacyItems];
   
   // Filter items and apply search/category filters
   const filteredItems = allItems.filter(item => {
-    const isAmazonProduct = 'ASIN' in item;
+    const isMarketplaceProduct = 'ASIN' in item;
     
     // Only filter out items that explicitly have no image URL at all
-    const hasValidImageUrl = isAmazonProduct ? 
+    const hasValidImageUrl = isMarketplaceProduct ? 
       item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('placeholder') : 
       ('image' in item && typeof item.image === 'string' && item.image.trim() !== '' && !item.image.includes('placeholder'));
     
-    // Allow items with valid image URLs or Amazon products (they have fallback handling)
-    if (!hasValidImageUrl && !isAmazonProduct) return false;
+    // Allow items with valid image URLs or marketplace products (they have fallback handling)
+    if (!hasValidImageUrl && !isMarketplaceProduct) return false;
     
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (isAmazonProduct ? item.brand?.toLowerCase() : item.seller?.toLowerCase())?.includes(searchQuery.toLowerCase());
+                         (isMarketplaceProduct ? item.brand?.toLowerCase() : item.seller?.toLowerCase())?.includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || item.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
@@ -1004,8 +1004,8 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Amazon Checkout Modal */}
-      <AmazonCheckout 
+      {/* Marketplace Checkout Modal */}
+      <MarketplaceCheckout 
         isOpen={showCart}
         onClose={() => setShowCart(false)}
       />

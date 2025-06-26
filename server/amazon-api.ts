@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-interface AmazonProduct {
+interface Product {
   ASIN: string;
   title: string;
   price: string;
@@ -22,7 +22,7 @@ interface CryptoRates {
   COYN: number;
 }
 
-class AmazonAPI {
+class MarketplaceAPI {
   private accessKey: string;
   private secretKey: string;
   private associateTag: string;
@@ -89,7 +89,7 @@ class AmazonAPI {
     };
   }
 
-  async searchProducts(query: string, category?: string, minPrice?: number, maxPrice?: number): Promise<AmazonProduct[]> {
+  async searchProducts(query: string, category?: string, minPrice?: number, maxPrice?: number): Promise<Product[]> {
     if (!this.accessKey || !this.secretKey || !this.associateTag) {
       console.log('[AMAZON API] Missing credentials, returning mock data');
       return this.getMockProducts(query);
@@ -127,14 +127,14 @@ class AmazonAPI {
       }
 
       const data = await response.json();
-      return this.parseAmazonResponse(data);
+      return this.parseResponse(data);
     } catch (error) {
       console.error('[AMAZON API] Search failed:', error);
       return this.getMockProducts(query);
     }
   }
 
-  private parseAmazonResponse(data: any): AmazonProduct[] {
+  private parseResponse(data: any): Product[] {
     if (!data.SearchResult?.Items) {
       return [];
     }
@@ -154,8 +154,8 @@ class AmazonAPI {
     }));
   }
 
-  private getMockProducts(query: string): AmazonProduct[] {
-    const mockProducts: AmazonProduct[] = [
+  private getMockProducts(query: string): Product[] {
+    const mockProducts: Product[] = [
       // Electronics
       {
         ASIN: 'B08N5WRWNW',
@@ -680,5 +680,5 @@ class AmazonAPI {
   }
 }
 
-export const amazonAPI = new AmazonAPI();
-export type { AmazonProduct, CryptoRates };
+export const marketplaceAPI = new MarketplaceAPI();
+export type { Product, CryptoRates };
