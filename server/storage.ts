@@ -446,9 +446,17 @@ export class MemStorage implements IStorage {
       username: "jane",
       displayName: "JANE",
       walletAddress: "0x92ba...4602",
-      profilePicture: "https://images.unsplash.com/photo-1494790108755-2616b332c2bd?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces",
+      profilePicture: null,
       isOnline: true,
       lastSeen: new Date(),
+      fullName: null,
+      phoneNumber: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      country: null,
     };
 
     const gstax: User = {
