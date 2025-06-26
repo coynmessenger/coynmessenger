@@ -224,6 +224,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Update local state when user data changes
   React.useEffect(() => {
     if (user && isOpen) {
+      console.log("Settings modal initializing with user data:", user);
+      console.log("User profile picture:", user.profilePicture);
       setDisplayName(user.displayName || "");
       setWalletAddress(user.walletAddress || "");
       setProfilePicture(user.profilePicture || "");
@@ -285,6 +287,16 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         }
         return oldData;
       });
+      
+      // Update cache for the specific user query with userId parameter
+      if (connectedUserId) {
+        queryClient.setQueryData(["/api/user", connectedUserId], (oldData: any) => {
+          if (oldData) {
+            return { ...oldData, profilePicture: response.profilePicture };
+          }
+          return oldData;
+        });
+      }
       
       // Also invalidate to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -400,6 +412,12 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                       {user?.displayName?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
+                  {/* Debug info */}
+                  {profilePicture && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Current: {profilePicture.substring(profilePicture.lastIndexOf('/') + 1)}
+                    </div>
+                  )}
                   <Button
                     onClick={triggerImageUpload}
                     disabled={uploadingImage}
