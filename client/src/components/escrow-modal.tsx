@@ -226,11 +226,11 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-orange-500 dark:text-cyan-400 text-xl font-bold flex items-center">
-            <Shield className="h-6 w-6 mr-2" />
-            Escrow Manager
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:max-w-2xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="text-orange-500 dark:text-cyan-400 text-lg sm:text-xl font-bold flex items-center">
+            <Shield className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+            <span className="truncate">Escrow Manager</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -257,7 +257,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreateEscrow} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
                       <Label className="text-orange-500 dark:text-cyan-400">Your Offer</Label>
                       <Select value={initiatorCurrency} onValueChange={setInitiatorCurrency}>
@@ -278,7 +278,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                         placeholder="Amount you'll deposit"
                         value={initiatorAmount}
                         onChange={(e) => setInitiatorAmount(e.target.value)}
-                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 h-10 sm:h-11"
                         required
                       />
                     </div>
@@ -302,7 +302,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                         placeholder="Amount they'll deposit"
                         value={participantAmount}
                         onChange={(e) => setParticipantAmount(e.target.value)}
-                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 h-10 sm:h-11"
                         required
                       />
                     </div>
@@ -314,14 +314,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       placeholder="What is this escrow for?"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
+                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-sm sm:text-base"
                       rows={3}
                     />
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                     <Button
                       type="submit"
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900 h-10 sm:h-11 text-sm sm:text-base"
                       disabled={createEscrowMutation.isPending}
                     >
                       {createEscrowMutation.isPending ? "Creating..." : "Create Escrow"}
@@ -330,7 +330,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                       type="button"
                       variant="secondary"
                       onClick={() => setShowCreateForm(false)}
-                      className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500 text-black dark:text-white"
+                      className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500 text-black dark:text-white h-10 sm:h-11 text-sm sm:text-base sm:w-24"
                     >
                       Cancel
                     </Button>
@@ -350,27 +350,31 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
             ) : (
               escrows.map((escrow) => (
                 <Card key={escrow.id} className="bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-medium text-cyan-400">{formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}</span>
-                          <span className="text-slate-400">🔄</span>
-                          <span className="font-medium text-purple-400">{formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}</span>
-                          {getStatusBadge(escrow.status, escrow.confirmationCount || 0, escrow.requiredConfirmations || 25)}
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2">
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-1 gap-1 sm:gap-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-cyan-400 text-sm sm:text-base">{formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}</span>
+                            <span className="text-slate-400">🔄</span>
+                            <span className="font-medium text-purple-400 text-sm sm:text-base">{formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}</span>
+                          </div>
+                          <div className="sm:ml-2">
+                            {getStatusBadge(escrow.status, escrow.confirmationCount || 0, escrow.requiredConfirmations || 25)}
+                          </div>
                         </div>
                         {escrow.description && (
-                          <p className="text-sm text-slate-400">{escrow.description}</p>
+                          <p className="text-xs sm:text-sm text-slate-400 mt-1 break-words">{escrow.description}</p>
                         )}
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-slate-400 sm:text-right whitespace-nowrap">
                         {new Date(escrow.createdAt!).toLocaleDateString()}
                       </div>
                     </div>
 
                     {(escrow.status === "pending" || escrow.status === "funded") && (
                       <div>
-                        <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 text-xs sm:text-sm">
                           <div className="space-y-2">
                             <span className="text-gray-600 dark:text-slate-400">Your {escrow.initiatorCurrency}:</span>
                             <div className="font-mono text-orange-600 dark:text-cyan-400">
@@ -402,7 +406,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                         </div>
 
                         {escrow.status === "pending" && parseFloat(escrow.initiatorAmount || "0") < parseFloat(escrow.initiatorRequiredAmount) && (
-                          <div className="flex space-x-2 mb-2">
+                          <div className="flex flex-col sm:flex-row gap-2 mb-2">
                             <Input
                               type="number"
                               step="0.0001"
@@ -412,13 +416,13 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                                 setSelectedEscrow(escrow.id);
                                 setFundingAmount(e.target.value);
                               }}
-                              className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-sm"
+                              className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-sm h-9 sm:h-10 flex-1"
                             />
                             <Button
                               onClick={() => handleFundEscrow(escrow.id)}
                               disabled={!fundingAmount || fundEscrowMutation.isPending}
                               size="sm"
-                              className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
+                              className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900 h-9 sm:h-10 px-4 sm:px-3 sm:w-24"
                             >
                               Add Funds
                             </Button>
@@ -427,14 +431,14 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
 
                         {escrow.status === "funded" && (
                           <div className="mb-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                            <p className="text-sm text-green-700 dark:text-green-400 mb-2">
+                            <p className="text-xs sm:text-sm text-green-700 dark:text-green-400 mb-2">
                               Both parties have funded! Ready to complete trade.
                             </p>
                             <Button
                               onClick={() => releaseEscrowMutation.mutate(escrow.id)}
                               disabled={releaseEscrowMutation.isPending}
                               size="sm"
-                              className="w-full bg-green-600 hover:bg-green-700 text-white"
+                              className="w-full bg-green-600 hover:bg-green-700 text-white h-9 sm:h-10 text-sm"
                             >
                               {releaseEscrowMutation.isPending ? "Releasing..." : "Complete Trade"}
                             </Button>
@@ -442,12 +446,12 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                         )}
 
                         {escrow.status === "confirming" && (
-                          <div className="mb-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                          <div className="mb-2 p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
-                              <p className="text-sm text-purple-700 dark:text-purple-400">
+                              <p className="text-xs sm:text-sm text-purple-700 dark:text-purple-400">
                                 Blockchain Confirmations
                               </p>
-                              <span className="text-sm font-mono text-purple-600 dark:text-purple-300">
+                              <span className="text-xs sm:text-sm font-mono text-purple-600 dark:text-purple-300">
                                 {escrow.confirmationCount || 0}/{escrow.requiredConfirmations || 25}
                               </span>
                             </div>
@@ -461,7 +465,7 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                               Waiting for blockchain confirmations. Funds will be automatically released when complete.
                             </p>
                             {escrow.blockchainTxHash && (
-                              <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">
+                              <p className="text-xs text-purple-500 dark:text-purple-400 mt-1 break-all sm:break-words">
                                 Tx Hash: {escrow.blockchainTxHash.substring(0, 20)}...
                               </p>
                             )}
@@ -474,16 +478,16 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
                             variant="destructive"
                             size="sm"
                             disabled={cancelEscrowMutation.isPending}
-                            className="w-full"
+                            className="w-full h-9 sm:h-10 text-sm"
                           >
-                            Cancel Escrow
+                            {cancelEscrowMutation.isPending ? "Canceling..." : "Cancel Escrow"}
                           </Button>
                         )}
                       </div>
                     )}
 
                     {escrow.status === "released" && escrow.releasedAt && (
-                      <p className="text-sm text-green-400">
+                      <p className="text-xs sm:text-sm text-green-400">
                         🎉 Released on {new Date(escrow.releasedAt).toLocaleDateString()}
                       </p>
                     )}
