@@ -37,9 +37,9 @@ export default function UserProfileModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border">
-        <DialogHeader>
-          <DialogTitle className="text-black dark:text-foreground">User Profile</DialogTitle>
-        </DialogHeader>
+        <div className="flex justify-center items-center py-4 bg-white dark:bg-card">
+          <h2 className="text-lg font-semibold text-black dark:text-foreground bg-white dark:bg-card">User Profile</h2>
+        </div>
         
         <div className="space-y-6">
           {/* Profile Picture and Basic Info */}

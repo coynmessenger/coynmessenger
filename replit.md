@@ -266,6 +266,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed search modal light theme and functionality - updated search bar colors to match light theme (white background, black text, orange focus borders), implemented proper search filtering for both conversations and contacts, search now filters by display name, username, and message content with real-time results
 - June 26, 2025: Added desktop back button to chat interface - implemented consistent back button functionality for both desktop and mobile layouts, users can now return to contact list from chat conversations on desktop similar to mobile experience
 - June 26, 2025: Implemented comprehensive search highlighting and auto-scroll functionality - search text now highlights in real-time with yellow background in both sent and received messages, automatically scrolls to first search result, includes search result counter in chat header, adds visual pulse animation for found results, works across both light and dark themes with proper color schemes
+- June 26, 2025: Fixed user profile modal header highlighting - removed unwanted yellow background from "User Profile" title by replacing DialogTitle with custom header component, ensuring clean white background without search highlighting interference
 
 ## User Preferences
 
