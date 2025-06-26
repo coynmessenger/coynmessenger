@@ -241,15 +241,18 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   useEffect(() => {
     if (isOpen) {
       const savedCart = localStorage.getItem('shopping-cart');
+      console.log('Loading cart from localStorage:', savedCart);
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart);
+          console.log('Parsed cart items:', parsedCart);
           setCartItems(parsedCart);
         } catch (error) {
           console.error('Error loading cart:', error);
           setCartItems([]);
         }
       } else {
+        console.log('No cart found in localStorage');
         setCartItems([]);
       }
     }
@@ -434,11 +437,23 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
     </div>
   );
 
-  const renderCartStep = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex-shrink-0 mb-4">
-        <h3 className="text-lg sm:text-xl font-semibold">Shopping Cart ({cartItems.length} items)</h3>
-      </div>
+  const renderCartStep = () => {
+    console.log('Rendering cart step with items:', cartItems);
+    
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-shrink-0 mb-6">
+          <h3 className="text-lg sm:text-xl font-semibold">Shopping Cart ({cartItems.length} items)</h3>
+          {cartItems.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">Items ready for checkout</p>
+          )}
+          {/* Debug info - remove in production */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-2 p-2 bg-yellow-100 rounded text-xs">
+              Debug: Cart has {cartItems.length} items. LocalStorage key: 'shopping-cart'
+            </div>
+          )}
+        </div>
       
       {cartItems.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
@@ -450,44 +465,51 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0">
+          {/* Cart Items List */}
+          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
             {cartItems.map((item) => (
-              <Card key={item.id} className="p-3 sm:p-4">
-                <div className="flex items-start space-x-3 sm:space-x-4">
+              <div key={item.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+                <div className="flex items-start space-x-4">
                   {item.imageUrl && (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.title}
-                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
-                    />
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title}
+                        className="w-20 h-20 object-cover rounded-lg border border-gray-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
                   )}
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <h4 className="font-medium text-sm sm:text-base line-clamp-2">{item.title}</h4>
-                    <p className="text-green-600 font-semibold text-base sm:text-lg">${item.price}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-base text-gray-900 dark:text-white mb-2 leading-tight">{item.title}</h4>
+                    <p className="text-green-600 font-bold text-lg mb-3">${item.price}</p>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-2">
                         <Button
                           variant="outline"
-                          size="icon"
-                          className="h-8 w-8 touch-manipulation"
+                          size="sm"
+                          className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-100"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                        <span className="w-8 text-center font-semibold text-gray-900 dark:text-white">{item.quantity}</span>
                         <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 touch-manipulation"
+                          variant="outline" 
+                          size="sm"
+                          className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-100"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-500 hover:text-red-700 touch-manipulation"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                         onClick={() => removeFromCart(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -495,7 +517,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
           
@@ -542,7 +564,8 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
         </>
       )}
     </div>
-  );
+    );
+  };
 
   const renderReviewStep = () => (
     <div className="space-y-6">
