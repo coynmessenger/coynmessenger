@@ -514,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Find or create user by wallet address
+  // Find existing user by wallet address (no new user creation)
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
       const { walletAddress, displayName } = req.body;
@@ -523,26 +523,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Wallet address is required" });
       }
 
-      // Check if user already exists
+      // Only find existing users, do not create new ones
       let user = await storage.getUserByWalletAddress(walletAddress);
       
       if (!user) {
-        // Create new user
-        const userData = insertUserSchema.parse({
-          username: `user_${Date.now()}`,
-          displayName: displayName || `User ${walletAddress.slice(-6)}`,
-          walletAddress,
-          profilePicture: null,
-          isOnline: true
+        // Return error if user doesn't exist - no new user creation
+        return res.status(404).json({ 
+          message: "Wallet address not found. Please contact administrator to register this wallet address." 
         });
-        
-        user = await storage.createUser(userData);
+      }
+      
+      // Update display name if provided and user exists
+      if (displayName && displayName.trim() !== user.displayName) {
+        user = await storage.updateUser(user.id, { displayName: displayName.trim() });
       }
       
       res.json(user);
     } catch (error) {
-      console.error("Error finding/creating user:", error);
-      res.status(500).json({ message: "Failed to find or create user" });
+      console.error("Error finding user:", error);
+      res.status(500).json({ message: "Failed to find user" });
+    }
+  });
+
+  // Admin endpoint to register new wallet addresses (for controlled user creation)
+  app.post("/api/admin/users/register", async (req, res) => {
+    try {
+      const { walletAddress, displayName, username } = req.body;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByWalletAddress(walletAddress);
+      if (existingUser) {
+        return res.status(409).json({ message: "Wallet address already registered" });
+      }
+
+      // Create new user with provided data
+      const userData = insertUserSchema.parse({
+        username: username || `user_${Date.now()}`,
+        displayName: displayName || `User ${walletAddress.slice(-6)}`,
+        walletAddress,
+        profilePicture: null,
+        isOnline: true
+      });
+      
+      const user = await storage.createUser(userData);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error registering user:", error);
+      res.status(500).json({ message: "Failed to register user" });
     }
   });
 

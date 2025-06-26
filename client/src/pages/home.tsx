@@ -52,16 +52,8 @@ export default function HomePage() {
           displayName
         });
       } catch (error) {
-        // If API fails, create a mock user for demo purposes
-        return {
-          id: Date.now(),
-          username: `user_${Date.now()}`,
-          displayName: displayName || `User ${walletAddress.slice(-6)}`,
-          walletAddress,
-          profilePicture: null,
-          isOnline: true,
-          lastSeen: new Date().toISOString(),
-        };
+        // If wallet address not found, throw error - no new user creation
+        throw new Error("Wallet address not recognized. Please contact administrator to register this wallet address.");
       }
     },
     onSuccess: (user: User) => {
@@ -310,8 +302,8 @@ export default function HomePage() {
                   </Button>
 
                   {connectWalletMutation.error && (
-                    <p className="text-yellow-500 dark:text-yellow-400 text-sm text-center">
-                      Connection issue detected - proceeding in demo mode
+                    <p className="text-red-500 dark:text-red-400 text-sm text-center">
+                      Wallet address not recognized. Please contact administrator to register this wallet address.
                     </p>
                   )}
                 </form>
