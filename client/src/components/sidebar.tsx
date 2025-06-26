@@ -116,8 +116,8 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Search */}
-        <div className="px-2 pb-2">
+        {/* Search - Mobile Optimized */}
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 sm:h-4 sm:w-4" />
             <Input
@@ -132,40 +132,40 @@ export default function Sidebar({
         {/* Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">
           {conversations.map((conversation) => (
-            <div key={conversation.id} className="px-1 sm:px-4 pb-0.5 sm:pb-2">
+            <div key={conversation.id} className="px-2 sm:px-3 pb-1 sm:pb-2">
               <div
-                className={`rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors border ${
+                className={`rounded-lg p-4 sm:p-3 cursor-pointer transition-colors border touch-manipulation min-h-[68px] sm:min-h-[60px] ${
                   selectedConversation === conversation.id
                     ? 'bg-gray-100 dark:chat-item-active border-gray-300 dark:border-cyan-500'
-                    : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
+                    : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-slate-600 dark:active:bg-slate-500 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
                 }`}
                 onClick={() => {
                   onSelectConversation(conversation.id);
                   onClose();
                 }}
               >
-                <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="flex items-center space-x-3 sm:space-x-2">
                   <div className="relative">
-                    <Avatar className="h-8 w-8 sm:h-12 sm:w-12">
+                    <Avatar className="h-12 w-12 sm:h-10 sm:w-10">
                       <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-                      <AvatarFallback className="text-xs sm:text-sm">
+                      <AvatarFallback className="text-sm sm:text-xs bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-300">
                         {conversation.otherUser.displayName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     {conversation.otherUser.isOnline && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-4 sm:h-4 bg-green-500 rounded-full border-1 sm:border-2 border-white dark:border-slate-800" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-xs sm:text-sm truncate text-black dark:text-foreground">
+                      <h3 className="font-semibold text-base sm:text-sm truncate text-black dark:text-foreground">
                         {conversation.otherUser.displayName}
                       </h3>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-sm sm:text-xs text-slate-400">
                         {conversation.lastMessage && formatTimestamp(conversation.lastMessage.timestamp)}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-400 truncate">
+                    <p className="text-sm sm:text-xs text-slate-400 truncate mt-1 sm:mt-0">
                       {formatLastMessage(conversation.lastMessage)}
                     </p>
                   </div>
