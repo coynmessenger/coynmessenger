@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
@@ -26,6 +27,27 @@ export default function MessengerPage() {
   const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
     queryKey: ["/api/conversations"],
   });
+
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+  });
+
+  const createConversationMutation = useMutation({
+    mutationFn: async (otherUserId: number) => {
+      const response = await apiRequest("POST", "/api/conversations", { otherUserId });
+      return response.json();
+    },
+    onSuccess: (newConversation: Conversation) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setSelectedConversation(newConversation.id);
+    },
+  });
+
+  // Filter out current user and users who already have conversations
+  const availableContacts = allUsers.filter(contact => 
+    contact.id !== user?.id && 
+    !conversations.some(conv => conv.otherUser.id === contact.id)
+  );
 
   // Keep messenger open to contact list view by default
 
@@ -141,17 +163,70 @@ export default function MessengerPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="text-center text-muted-foreground">
-                        <div className="mx-auto mb-4">
+                    <div className="flex-1 flex flex-col">
+                      <div className="bg-card border-b border-border p-4">
+                        <div className="flex items-center space-x-3">
                           <img 
                             src={coynLogoPath} 
                             alt="COYN Logo" 
-                            className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                            className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                           />
+                          <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                            Start a Conversation
+                          </h1>
                         </div>
-                        <h2 className="text-xl font-semibold mb-2">No Conversations Yet</h2>
-                        <p>Start a new conversation to begin messaging</p>
+                      </div>
+
+                      <div className="flex-1 overflow-auto">
+                        {availableContacts.length > 0 ? (
+                          <div className="divide-y divide-border">
+                            {availableContacts.map((contact) => (
+                              <div
+                                key={contact.id}
+                                onClick={() => createConversationMutation.mutate(contact.id)}
+                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="relative">
+                                    <img
+                                      src={contact.profilePicture || "/api/placeholder/40/40"}
+                                      alt={contact.displayName}
+                                      className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                    {contact.isOnline && (
+                                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-foreground truncate">
+                                      {contact.displayName}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground truncate">
+                                      @{contact.username}
+                                    </p>
+                                  </div>
+                                  {createConversationMutation.isPending && (
+                                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex items-center justify-center">
+                            <div className="text-center text-muted-foreground">
+                              <div className="mx-auto mb-4">
+                                <img 
+                                  src={coynLogoPath} 
+                                  alt="COYN Logo" 
+                                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                                />
+                              </div>
+                              <h2 className="text-xl font-semibold mb-2">All Set!</h2>
+                              <p>You're connected to all available contacts</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

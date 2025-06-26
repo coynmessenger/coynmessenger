@@ -81,6 +81,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new conversation
+  app.post("/api/conversations", async (req, res) => {
+    try {
+      const { otherUserId } = req.body;
+      const currentUserId = 5; // Current user
+      
+      if (!otherUserId) {
+        return res.status(400).json({ message: "Other user ID is required" });
+      }
+
+      // Check if conversation already exists
+      const existingConversation = await storage.getConversationByParticipants(currentUserId, otherUserId);
+      if (existingConversation) {
+        return res.json(existingConversation);
+      }
+
+      // Create new conversation
+      const newConversation = await storage.createConversation({
+        participant1Id: currentUserId,
+        participant2Id: otherUserId,
+      });
+
+      res.json(newConversation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create conversation" });
+    }
+  });
+
   // Get conversation messages
   app.get("/api/conversations/:id/messages", async (req, res) => {
     try {

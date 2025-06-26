@@ -209,7 +209,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed scroll issue in COYN wallet modal - changed overflow from hidden to auto, optimized crypto holdings section scrolling by removing problematic negative margins, improved mobile scrolling experience with proper flex layout
 - June 26, 2025: Fixed escrow release functionality - updated releaseEscrow method to accept both "pending" and "funded" statuses, corrected fund distribution logic to use required amounts instead of deposited amounts, verified complete release workflow with database status updates and timestamp recording
 - June 26, 2025: Added comprehensive show/hide balance functionality to marketplace - implemented balance privacy toggles in wallet hover component and Amazon checkout payment flows, users can now hide cryptocurrency amounts, rates, and totals with eye/eyeoff buttons for enhanced privacy across all marketplace transactions
-- June 26, 2025: Implemented conversation list in main messenger area - conversations now display prominently in the center panel with rich previews showing profile pictures, names, last messages, timestamps, and online status indicators for improved navigation and user experience
+- June 26, 2025: Implemented contact list where "start conversation" appears - replaced empty state with interactive contact list showing available users to message, includes profile pictures, usernames, online status indicators, click-to-start conversation functionality, and loading states for seamless chat initiation
 
 ## User Preferences
 
