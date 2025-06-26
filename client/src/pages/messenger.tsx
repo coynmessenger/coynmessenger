@@ -55,6 +55,18 @@ export default function MessengerPage() {
     !conversations.some(conv => conv.otherUser.id === contact.id)
   );
 
+  // Filter conversations and contacts based on search query
+  const filteredConversations = conversations.filter(conversation =>
+    conversation.otherUser.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conversation.otherUser.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+  );
+
+  const filteredContacts = availableContacts.filter(contact =>
+    contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contact.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Handler for opening wallet with optional pre-selected currency
   const handleOpenWallet = (currency?: string) => {
     setSelectedWalletCurrency(currency);
@@ -70,12 +82,6 @@ export default function MessengerPage() {
   // Keep messenger open to contact list view by default
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
-
-  // Filter conversations based on search query
-  const filteredConversations = conversations.filter(conversation =>
-    conversation.otherUser.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -137,7 +143,7 @@ export default function MessengerPage() {
                         <h3 className="text-sm font-medium text-muted-foreground">Start New Conversation</h3>
                       </div>
                       <div className="divide-y divide-border">
-                        {availableContacts.map((contact) => (
+                        {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
                           <div
                             key={contact.id}
                             onClick={() => createConversationMutation.mutate(contact.id)}
@@ -246,9 +252,9 @@ export default function MessengerPage() {
                       </div>
 
                       <div className="flex-1 overflow-auto">
-                        {availableContacts.length > 0 ? (
+                        {(searchQuery ? filteredContacts : availableContacts).length > 0 ? (
                           <div className="divide-y divide-border">
-                            {availableContacts.map((contact) => (
+                            {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
                               <div
                                 key={contact.id}
                                 onClick={() => createConversationMutation.mutate(contact.id)}
@@ -361,20 +367,20 @@ export default function MessengerPage() {
 
         {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="bg-slate-800 border-b border-slate-700 p-4 z-40">
+          <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 p-4 z-40">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-slate-50 placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 text-black dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:border-orange-500 dark:focus:border-cyan-500"
                 autoFocus
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
