@@ -109,14 +109,14 @@ export default function MessengerPage() {
             ) : (
               <div className="flex-1 flex flex-col bg-background">
                 {/* Header */}
-                <div className="bg-card border-b border-border p-4 sm:p-6">
-                  <div className="flex items-center space-x-3 sm:space-x-4">
+                <div className="bg-card border-b border-border p-4">
+                  <div className="flex items-center space-x-3">
                     <img 
                       src={coynLogoPath} 
                       alt="COYN Logo" 
-                      className="w-10 h-10 sm:w-8 sm:h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                      className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                     />
-                    <h1 className="text-2xl sm:text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                    <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
                       Conversations
                     </h1>
                   </div>
@@ -127,39 +127,39 @@ export default function MessengerPage() {
                   {/* Existing Conversations */}
                   {filteredConversations.length > 0 && (
                     <div>
-                      <div className="p-3 sm:p-4 bg-muted/30 border-b border-border">
-                        <h3 className="text-sm sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Your Conversations</h3>
+                      <div className="p-3 bg-muted/30 border-b border-border">
+                        <h3 className="text-sm font-medium text-muted-foreground">Your Conversations</h3>
                       </div>
                       <div className="divide-y divide-border">
                         {filteredConversations.map((conversation) => (
                           <div
                             key={conversation.id}
                             onClick={() => setSelectedConversation(conversation.id)}
-                            className="p-4 sm:p-6 hover:bg-accent/50 active:bg-accent/70 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 touch-manipulation min-h-[72px] sm:min-h-[80px]"
+                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
                           >
-                            <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="flex items-center space-x-3">
                               <div className="relative">
                                 <img
                                   src={conversation.otherUser.profilePicture || "/api/placeholder/40/40"}
                                   alt={conversation.otherUser.displayName}
-                                  className="w-14 h-14 sm:w-12 sm:h-12 rounded-full object-cover"
+                                  className="w-12 h-12 rounded-full object-cover"
                                 />
                                 {conversation.otherUser.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-4 h-4 sm:w-3 sm:h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <h3 className="font-medium text-base sm:text-sm text-foreground truncate">
+                                  <h3 className="font-medium text-foreground truncate">
                                     {conversation.otherUser.displayName}
                                   </h3>
                                   {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                    <span className="text-sm sm:text-xs text-muted-foreground">
+                                    <span className="text-xs text-muted-foreground">
                                       {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm sm:text-sm text-muted-foreground truncate mt-1">
+                                <p className="text-sm text-muted-foreground truncate">
                                   {conversation.lastMessage?.content || "No messages yet"}
                                 </p>
                               </div>
@@ -173,37 +173,37 @@ export default function MessengerPage() {
                   {/* Available Contacts to Start New Conversations */}
                   {availableContacts.length > 0 && (
                     <div>
-                      <div className="p-3 sm:p-4 bg-muted/30 border-b border-border">
-                        <h3 className="text-sm sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Start New Conversation</h3>
+                      <div className="p-3 bg-muted/30 border-b border-border">
+                        <h3 className="text-sm font-medium text-muted-foreground">Start New Conversation</h3>
                       </div>
                       <div className="divide-y divide-border">
                         {availableContacts.map((contact) => (
                           <div
                             key={contact.id}
                             onClick={() => createConversationMutation.mutate(contact.id)}
-                            className="p-4 sm:p-6 hover:bg-accent/50 active:bg-accent/70 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 touch-manipulation min-h-[72px] sm:min-h-[80px]"
+                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
                           >
-                            <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="flex items-center space-x-3">
                               <div className="relative">
                                 <img
                                   src={contact.profilePicture || "/api/placeholder/40/40"}
                                   alt={contact.displayName}
-                                  className="w-14 h-14 sm:w-12 sm:h-12 rounded-full object-cover"
+                                  className="w-12 h-12 rounded-full object-cover"
                                 />
                                 {contact.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-4 h-4 sm:w-3 sm:h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-medium text-base sm:text-sm text-foreground truncate">
+                                <h3 className="font-medium text-foreground truncate">
                                   {contact.displayName}
                                 </h3>
-                                <p className="text-sm sm:text-sm text-muted-foreground truncate mt-1">
+                                <p className="text-sm text-muted-foreground truncate">
                                   @{contact.username}
                                 </p>
                               </div>
                               {createConversationMutation.isPending && (
-                                <div className="w-6 h-6 sm:w-5 sm:h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                               )}
                             </div>
                           </div>
