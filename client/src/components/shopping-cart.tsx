@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import TermsModal from "@/components/terms-modal";
+import PrivacyModal from "@/components/privacy-modal";
 
 interface CartItem {
   id: string;
@@ -48,6 +50,8 @@ interface ShippingAddress {
 export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'review' | 'finalize'>('cart');
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
@@ -654,7 +658,22 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
                   />
                   <Label htmlFor="agreeTerms" className="text-sm">
-                    I agree to the Terms of Service and Privacy Policy
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="text-orange-500 hover:text-orange-600 underline"
+                    >
+                      Terms and Conditions
+                    </button>
+                    {' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacyModal(true)}
+                      className="text-orange-500 hover:text-orange-600 underline"
+                    >
+                      Privacy Policy
+                    </button>
                   </Label>
                 </div>
               </div>
@@ -705,6 +724,16 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Terms and Privacy Modals */}
+      <TermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+      />
+      <PrivacyModal 
+        isOpen={showPrivacyModal} 
+        onClose={() => setShowPrivacyModal(false)} 
+      />
     </>
   );
 }
