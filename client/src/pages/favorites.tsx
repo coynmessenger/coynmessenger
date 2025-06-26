@@ -245,7 +245,8 @@ export default function FavoritesPage() {
                           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
                           onClick={() => addToCart(favorite)}
                         >
-                          Add
+                          <ShoppingCart className="h-3 w-3 mr-1" />
+                          Cart
                         </Button>
                       </div>
                     </div>
