@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Home } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(1);
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,6 +26,13 @@ export default function MessengerPage() {
   const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
     queryKey: ["/api/conversations"],
   });
+
+  // Auto-select first conversation on load (WhatsApp-style behavior)
+  useEffect(() => {
+    if (conversations.length > 0 && selectedConversation === null) {
+      setSelectedConversation(conversations[0].id);
+    }
+  }, [conversations, selectedConversation]);
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
