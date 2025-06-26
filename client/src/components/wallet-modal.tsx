@@ -145,7 +145,7 @@ function SendModal({ isOpen, onClose, balances }: SendModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-lg w-[80vw] sm:w-[75vw] max-h-[85vh] overflow-y-auto p-6 sm:p-8 m-10 sm:m-12">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-lg w-[90vw] sm:w-[85vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 m-4 sm:m-6">
         <DialogHeader>
           <div className="flex items-center space-x-2">
             {step !== "form" && (
@@ -447,7 +447,7 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[80vw] sm:w-[75vw] max-w-md max-h-[85vh] overflow-hidden flex flex-col p-6 sm:p-8 m-10 sm:m-12">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 m-4 sm:m-6">
         <DialogHeader className="pb-4 border-b border-gray-200 dark:border-slate-600">
           <DialogTitle className="text-xl font-bold text-black dark:text-white flex items-center">
             <Shield className="h-5 w-5 mr-2 text-orange-600 dark:text-cyan-400" />
@@ -689,28 +689,28 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[80vw] sm:w-[75vw] max-w-md max-h-[85vh] overflow-hidden flex flex-col p-6 sm:p-8 m-10 sm:m-12">
-        <DialogHeader className="pb-1 sm:pb-4">
-          <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-0 sm:mb-2">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 m-4 sm:m-6">
+        <DialogHeader className="pb-2 sm:pb-4 flex-shrink-0">
+          <div className="flex items-center justify-center space-x-3 mb-1 sm:mb-2">
             <img 
               src={coynLogoPath} 
               alt="COYN Logo" 
-              className="w-5 h-5 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
+              className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
             />
-            <DialogTitle className="text-base sm:text-xl font-bold">COYN Wallet</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl font-bold">COYN Wallet</DialogTitle>
           </div>
         </DialogHeader>
 
         {/* Balance Section */}
-        <div className="text-center mb-3 sm:mb-6 flex-shrink-0">
-          <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-1 sm:mb-2">
+        <div className="text-center mb-4 sm:mb-6 flex-shrink-0">
+          <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-cyan-400 mb-2">
             {formatUSD(totalBalance.toString())}
           </div>
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">Total Balance</div>
+          <div className="text-sm sm:text-base text-gray-600 dark:text-slate-400">Total Balance</div>
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-1.5 sm:space-y-3 flex-1 overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:-mr-2 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+        <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto pr-2 -mr-2 min-h-0 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
             const icon = currencyIcons[balance.currency] || { color: "bg-gray-500", symbol: "?" };
             const changePercent = parseFloat(balance.changePercent || "0");
@@ -718,25 +718,25 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
             return (
               <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600">
-                <CardContent className="p-2 sm:p-3">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="flex items-center space-x-3">
                       {icon.isCoyn ? (
                         <img 
                           src={coynLogoPath} 
                           alt="COYN" 
-                          className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-[0_0_10px_rgba(255,193,7,0.4)]"
+                          className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-[0_0_10px_rgba(255,193,7,0.4)]"
                         />
                       ) : (
-                        <div className={`w-6 h-6 sm:w-8 sm:h-8 ${icon.color} rounded-full flex items-center justify-center`}>
-                          <span className="text-xs sm:text-sm font-bold text-white">{icon.symbol}</span>
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 ${icon.color} rounded-full flex items-center justify-center`}>
+                          <span className="text-sm sm:text-base font-bold text-white">{icon.symbol}</span>
                         </div>
                       )}
                       <div>
-                        <div className="font-medium text-black dark:text-white text-sm sm:text-base">
+                        <div className="font-medium text-black dark:text-white text-base sm:text-lg">
                           {formatBalance(balance.balance, balance.currency)} {balance.currency}
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-slate-400 capitalize">
+                        <div className="text-sm text-gray-600 dark:text-slate-400 capitalize">
                           {balance.currency === "BTC" ? "Bitcoin" : 
                            balance.currency === "BNB" ? "BNB" :
                            balance.currency === "USDT" ? "Tether" :
@@ -745,7 +745,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`font-medium text-sm sm:text-base ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                      <div className={`font-medium text-base sm:text-lg ${isPositive ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                         {formatUSD(balance.usdValue || "0")}
                       </div>
                       <div className={`text-xs flex items-center justify-end ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
@@ -846,29 +846,29 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-6 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 mt-4 sm:mt-6 flex-shrink-0">
           <Button 
-            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4"
+            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white h-12 sm:h-11 text-base font-semibold touch-manipulation"
             onClick={() => setShowSendModal(true)}
           >
-            <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <Send className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Send
           </Button>
           <Button 
             variant="outline"
-            className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4"
+            className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 h-12 sm:h-11 text-base font-semibold touch-manipulation"
             onClick={() => setShowQRCode(true)}
           >
-            <QrCode className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <QrCode className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Receive
           </Button>
           {userEscrows.length > 0 && (
             <Button 
               variant="outline"
-              className="border-orange-300 dark:border-blue-600 text-orange-700 dark:text-blue-300 hover:bg-orange-50 dark:hover:bg-blue-900/20 col-span-2 h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4"
+              className="border-orange-300 dark:border-blue-600 text-orange-700 dark:text-blue-300 hover:bg-orange-50 dark:hover:bg-blue-900/20 col-span-2 h-12 sm:h-11 text-base font-semibold touch-manipulation"
               onClick={() => setShowEscrowList(true)}
             >
-              <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Manage Escrows ({userEscrows.length})
             </Button>
           )}
