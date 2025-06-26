@@ -13,7 +13,7 @@ import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1750818324226.png";
 import metamaskLogo from "@assets/images(1)_1750925157265.png";
 import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1750925157245.png";
-
+import trustWalletLogo from "@assets/Trust-Wallet-Shield-Logo-Vector-Logo-Vector.svg-_1750925157209.png";
 import coinbaseLogo from "@assets/coinbase-logo_1750925157167.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
@@ -101,6 +101,9 @@ export default function HomePage() {
         } else {
           window.open('https://metamask.io/download/', '_blank');
         }
+      } else if (walletType === 'trust') {
+        // Trust Wallet integration coming soon
+        alert('Trust Wallet integration coming soon. Please use manual wallet address input for now.');
       } else {
         // For WalletConnect and Coinbase, show message that they need to use manual input
         alert(`${walletType === 'walletconnect' ? 'WalletConnect' : 'Coinbase Wallet'} integration coming soon. Please use manual wallet address input for now.`);
@@ -186,8 +189,8 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* Wallet Options */}
-                  <div className="grid grid-cols-3 gap-3">
+                  {/* 2x2 Grid of Wallet Options */}
+                  <div className="grid grid-cols-2 gap-3">
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
@@ -214,7 +217,18 @@ export default function HomePage() {
                       <span className="text-sm font-medium">WalletConnect</span>
                     </Button>
 
-
+                    {/* Trust Wallet */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('trust')}
+                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <img src={trustWalletLogo} alt="Trust Wallet" className="w-8 h-8 object-contain" />
+                      </div>
+                      <span className="text-sm font-medium">Trust Wallet</span>
+                    </Button>
 
                     {/* Coinbase Wallet */}
                     <Button 
