@@ -453,6 +453,16 @@ export default function MarketplacePage() {
               >
                 <Wallet className="h-6 w-6 sm:h-4 sm:w-4 text-orange-500 dark:text-cyan-400" />
               </Button>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src={coynLogoPath} 
+                  alt="COYN" 
+                  className="h-8 w-8 sm:h-6 sm:w-6 rounded-lg"
+                />
+                <h1 className="text-xl font-semibold text-foreground" style={{ fontFamily: 'Google Product Sans, sans-serif' }}>
+                  Marketplace
+                </h1>
+              </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-2">
               <Button

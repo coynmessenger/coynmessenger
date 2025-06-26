@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import AmazonCheckout from "@/components/amazon-checkout";
 import WalletHover from "@/components/wallet-hover";
+import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 
 interface Favorite {
   id: number;
@@ -132,9 +133,16 @@ export default function FavoritesPage() {
                   <Store className="h-6 w-6 sm:h-4 sm:w-4" />
                 </Button>
               </Link>
-              <h1 className="text-xl font-semibold text-foreground" style={{ fontFamily: 'Google Product Sans, sans-serif' }}>
-                Favorites
-              </h1>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src={coynLogoPath} 
+                  alt="COYN" 
+                  className="h-8 w-8 sm:h-6 sm:w-6 rounded-lg"
+                />
+                <h1 className="text-xl font-semibold text-foreground" style={{ fontFamily: 'Google Product Sans, sans-serif' }}>
+                  Favorites
+                </h1>
+              </div>
             </div>
             
             <div className="flex items-center gap-2 sm:gap-2">
