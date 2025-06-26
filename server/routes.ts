@@ -413,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/favorites", async (req, res) => {
     try {
       const userId = 5; // Current user
-      const { productId } = req.body;
+      const { productId, productTitle, productPrice, productImage, productCategory, productRating } = req.body;
       
       if (!productId) {
         return res.status(400).json({ message: "Product ID is required" });
@@ -427,10 +427,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const removed = await storage.removeFromFavorites(userId, productId);
         res.json({ action: "removed", isFavorite: false });
       } else {
+        // Validate required fields for adding to favorites
+        if (!productTitle || !productPrice || !productImage || !productCategory || productRating === undefined) {
+          return res.status(400).json({ 
+            message: "Missing required product information",
+            required: ["productTitle", "productPrice", "productImage", "productCategory", "productRating"]
+          });
+        }
+
         // Add to favorites
         const favoriteData = {
-          ...req.body,
           userId,
+          productId,
+          productTitle,
+          productPrice,
+          productImage,
+          productCategory,
+          productRating: Number(productRating),
         };
         const favorite = await storage.addToFavorites(favoriteData);
         res.json({ action: "added", isFavorite: true, favorite });

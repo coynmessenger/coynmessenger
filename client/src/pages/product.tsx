@@ -273,11 +273,19 @@ export default function ProductPage() {
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: async (productId: string) => {
+    mutationFn: async (product: any) => {
+      const favoriteData = {
+        productId: product.ASIN,
+        productTitle: product.title,
+        productPrice: product.price,
+        productImage: product.imageUrl,
+        productCategory: product.category,
+        productRating: product.rating || 0
+      };
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId })
+        body: JSON.stringify(favoriteData)
       });
       if (!res.ok) throw new Error("Failed to toggle favorite");
       return res.json();
@@ -340,8 +348,8 @@ export default function ProductPage() {
   };
 
   const toggleFavorite = () => {
-    if (productASIN) {
-      toggleFavoriteMutation.mutate(productASIN);
+    if (product) {
+      toggleFavoriteMutation.mutate(product);
     }
   };
 

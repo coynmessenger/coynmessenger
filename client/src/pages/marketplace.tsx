@@ -205,11 +205,19 @@ export default function MarketplacePage() {
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: async (productId: string) => {
+    mutationFn: async (product: any) => {
+      const favoriteData = {
+        productId: product.ASIN,
+        productTitle: product.title,
+        productPrice: product.price,
+        productImage: product.imageUrl,
+        productCategory: product.category,
+        productRating: product.rating || 0
+      };
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId })
+        body: JSON.stringify(favoriteData)
       });
       if (!res.ok) throw new Error("Failed to toggle favorite");
       return res.json();
@@ -639,7 +647,7 @@ export default function MarketplacePage() {
                           className="h-8 w-8 hover:bg-accent"
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleFavoriteMutation.mutate(itemKey.toString());
+                            toggleFavoriteMutation.mutate(item);
                           }}
                         >
                           <Heart 
