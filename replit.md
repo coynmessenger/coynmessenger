@@ -199,6 +199,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Added comprehensive order summary to finalize payment section - includes detailed item breakdown with images, shipping address display, cost breakdown, and order notes for complete purchase transparency
 - June 26, 2025: Updated Terms and Conditions contact email to coynful@gmail.com for customer support and legal inquiries
 - June 26, 2025: Removed wallet overview sidebar from favorites page - reverted to clean single-column layout using existing header wallet hover button functionality instead of dedicated sidebar for better consistency across pages
+- June 26, 2025: Fixed wallet overview cryptocurrency icons - replaced generic colored circles with authentic logos (official Bitcoin/Binance icons, proper USDT branding, and authentic COYN golden coin logo) for consistent branding across marketplace and favorites pages
 
 ## User Preferences
 

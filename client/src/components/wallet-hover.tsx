@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Wallet, Copy, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SiBitcoin, SiBinance } from "react-icons/si";
+import coynLogo from "@assets/COYN-symbol-square_1750892698348.png";
 import type { WalletBalance, User } from "@shared/schema";
 
 interface WalletHoverProps {
@@ -26,9 +27,7 @@ const getCurrencyIcon = (currency: string) => {
         <span className="text-white text-xs font-bold">₮</span>
       </div>;
     case "COYN": 
-      return <div className="w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-        <span className="text-white text-xs font-bold">C</span>
-      </div>;
+      return <img src={coynLogo} alt="COYN" className="w-6 h-6 rounded-full" />;
     default: 
       return <div className="w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center">
         <span className="text-white text-xs">?</span>
