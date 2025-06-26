@@ -708,7 +708,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 m-4 sm:m-6">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] overflow-y-auto flex flex-col p-4 sm:p-6 m-4 sm:m-6">
         <DialogHeader className="pb-2 sm:pb-4 flex-shrink-0">
           <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div className="flex items-center space-x-2 sm:space-x-3 flex-1">
@@ -743,7 +743,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         </div>
 
         {/* Crypto Holdings */}
-        <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto pr-2 -mr-2 min-h-0 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+        <div className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
           {balances.map((balance) => {
             const changePercent = parseFloat(balance.changePercent || "0");
             const isPositive = changePercent >= 0;

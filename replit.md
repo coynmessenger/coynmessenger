@@ -206,6 +206,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Removed "Send" and "Receive" buttons from messenger sidebar wallet section - streamlined wallet area to show only balance information, creating cleaner interface with more space for conversation list
 - June 26, 2025: Added hide and show balance functionality to messenger sidebar - implemented eye/eyeoff toggle button that allows users to hide balance display for privacy, showing dots instead of actual amount when hidden
 - June 26, 2025: Extended balance privacy feature to COYN wallet modal with comprehensive hide/show functionality - added eye/eyeoff toggle in wallet header, hides total balance and individual crypto amounts with "••••••" placeholder, optimized mobile touch targets with larger buttons (h-12 w-12 on mobile, h-10 w-10 on desktop) and improved header layout with proper spacing and truncation
+- June 26, 2025: Fixed scroll issue in COYN wallet modal - changed overflow from hidden to auto, optimized crypto holdings section scrolling by removing problematic negative margins, improved mobile scrolling experience with proper flex layout
 
 ## User Preferences
 
