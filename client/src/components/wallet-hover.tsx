@@ -55,20 +55,33 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
     if (isVisible && anchorRef.current) {
       const rect = anchorRef.current.getBoundingClientRect();
       const popupWidth = 320; // w-80 = 320px
+      const popupMaxHeight = window.innerHeight * 0.8; // 80vh
       const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
       
       // Calculate left position to keep popup in viewport
       let leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
       
-      // Adjust if popup would go off-screen
+      // Adjust if popup would go off-screen horizontally
       if (leftPosition < 8) {
         leftPosition = 8;
       } else if (leftPosition + popupWidth > viewportWidth - 8) {
         leftPosition = viewportWidth - popupWidth - 8;
       }
       
+      // Calculate top position and adjust if it would go off-screen vertically
+      let topPosition = rect.bottom + 8;
+      if (topPosition + popupMaxHeight > viewportHeight - 8) {
+        // Position above the button if there's not enough space below
+        topPosition = rect.top - popupMaxHeight - 8;
+        // If still not enough space, position at top of viewport
+        if (topPosition < 8) {
+          topPosition = 8;
+        }
+      }
+      
       setPosition({
-        top: rect.bottom + 8,
+        top: topPosition,
         left: leftPosition
       });
     }
@@ -126,13 +139,13 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
   return (
     <div
       id="wallet-hover-popup"
-      className="fixed z-[60] bg-background border border-border rounded-lg shadow-xl p-0 w-80"
+      className="fixed z-[60] bg-background border border-border rounded-lg shadow-xl p-0 w-80 max-h-[80vh] overflow-hidden flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
       }}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 flex-shrink-0">
         <CardTitle className="flex items-center justify-between text-foreground">
           <div className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
@@ -154,7 +167,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 overflow-y-auto flex-1 min-h-0">
         {/* Wallet Address */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
