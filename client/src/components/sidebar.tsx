@@ -94,14 +94,6 @@ export default function Sidebar({
             <Wallet className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-700 dark:text-primary" />
           </div>
           <div className="text-base sm:text-lg font-bold text-black dark:text-primary mb-1.5">$12,220.75</div>
-          <div className="flex space-x-1">
-            <Button size="sm" onClick={onOpenWallet} className="flex-1 bg-black dark:bg-primary text-white dark:text-primary-foreground hover:bg-gray-800 dark:hover:bg-primary/90 shadow-sm text-xs py-1 h-8">
-              Send
-            </Button>
-            <Button size="sm" variant="secondary" className="flex-1 bg-gray-100 dark:bg-secondary text-black dark:text-secondary-foreground hover:bg-gray-200 dark:hover:bg-secondary/80 text-xs py-1 h-8">
-              Receive
-            </Button>
-          </div>
         </div>
 
         {/* Search */}
