@@ -238,6 +238,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Updated chat header profile fallback to show simple letter display - changed from UserIcon to clean letter format (e.g., "J" for Jane) for better visual consistency with messaging app standards
 - June 26, 2025: Added professional user avatar icon component for missing profile images - created custom SVG user silhouette matching iStock style for consistent fallback display throughout messenger contact lists and conversations
 - June 26, 2025: Implemented custom orange wallet icon in messenger mobile header - replaced generic SVG with branded WalletIcon component featuring wallet design with card slot detail and orange color scheme to match COYN branding
+- June 26, 2025: Added comprehensive Web3 wallet connection options to homepage - implemented MetaMask, WalletConnect, Trust Wallet, and Coinbase Wallet connection buttons with authentic wallet logos, hover animations, and fallback manual address input for enhanced user onboarding
 
 ## User Preferences
 
