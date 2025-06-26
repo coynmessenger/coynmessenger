@@ -335,58 +335,7 @@ export default function Sidebar({
             </div>
           )}
 
-          {/* Existing Conversations */}
-          {conversations.length > 0 && (
-            <div>
-              {availableContacts.length > 0 && (
-                <div className="px-2 py-1 text-xs font-medium text-muted-foreground bg-muted/30">
-                  Recent Conversations
-                </div>
-              )}
-              {conversations.map((conversation) => (
-                <div key={conversation.id} className="px-1 sm:px-4 pb-0.5 sm:pb-2">
-                  <div
-                    className={`rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors border ${
-                      selectedConversation === conversation.id
-                        ? 'bg-gray-100 dark:chat-item-active border-gray-300 dark:border-cyan-500'
-                        : 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600 border-gray-200 dark:border-transparent hover:border-gray-300 dark:hover:border-slate-500'
-                    }`}
-                    onClick={() => {
-                      onSelectConversation(conversation.id);
-                      onClose();
-                    }}
-                  >
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                      <div className="relative">
-                        <Avatar className="h-8 w-8 sm:h-12 sm:w-12">
-                          <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-                          <AvatarFallback className="text-xs sm:text-sm">
-                            {conversation.otherUser.displayName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        {conversation.otherUser.isOnline && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-4 sm:h-4 bg-green-500 rounded-full border-1 sm:border-2 border-white dark:border-slate-800" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-xs sm:text-sm truncate text-black dark:text-foreground">
-                            {conversation.otherUser.displayName}
-                          </h3>
-                          <span className="text-xs text-slate-400">
-                            {conversation.lastMessage && formatTimestamp(conversation.lastMessage.timestamp)}
-                          </span>
-                        </div>
-                        <p className="text-xs sm:text-sm text-slate-400 truncate">
-                          {formatLastMessage(conversation.lastMessage)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+
         </div>
 
         {/* Mobile Settings - only visible on mobile */}
