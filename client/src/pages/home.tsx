@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +32,7 @@ declare global {
 export default function HomePage() {
   useScrollToTop();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [walletAddress, setWalletAddress] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isConnected, setIsConnected] = useState(() => {
@@ -60,6 +61,10 @@ export default function HomePage() {
       // Store connection state in localStorage
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
+      
+      // Invalidate user query cache to ensure fresh data in settings
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user", user.id] });
       
       setConnectedUser(user);
       setIsConnected(true);

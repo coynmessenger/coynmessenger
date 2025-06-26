@@ -61,7 +61,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user (hardcoded as user ID 5 for demo)
   app.get("/api/user", async (req, res) => {
     try {
-      const user = await storage.getUser(5); // Current user
+      // Check for user ID in query parameter or default to demo user (5)
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }

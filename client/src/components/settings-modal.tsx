@@ -193,8 +193,32 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const [zipCode, setZipCode] = useState("");
   const [country, setCountry] = useState("");
 
+  // Get connected user ID from localStorage
+  const getConnectedUserId = () => {
+    const storedUser = localStorage.getItem('connectedUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.id;
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
+    }
+    return null;
+  };
+
+  const connectedUserId = getConnectedUserId();
+
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user", connectedUserId],
+    queryFn: async () => {
+      const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.json();
+    },
   });
 
   // Update local state when user data changes
