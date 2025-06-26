@@ -299,12 +299,12 @@ export default function MarketplacePage() {
   ];
 
   const categories = [
-    { value: "all", label: "All Categories", icon: Package },
-    { value: "services", label: "Services", icon: Users },
-    { value: "nft", label: "NFTs", icon: Star },
-    { value: "tools", label: "Tools", icon: Zap },
-    { value: "education", label: "Education", icon: TrendingUp },
-    { value: "real-estate", label: "Real Estate", icon: Home }
+    { value: "all", label: "Categories", icon: Package },
+    { value: "electronics", label: "Electronics", icon: Zap },
+    { value: "home-garden", label: "Home & Garden", icon: Home },
+    { value: "clothing", label: "Clothing & Fashion", icon: Star },
+    { value: "books", label: "Books & Media", icon: TrendingUp },
+    { value: "sports", label: "Sports & Outdoors", icon: Users }
   ];
 
   const allItems = [...amazonProducts, ...legacyItems];
