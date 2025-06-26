@@ -370,6 +370,7 @@ export default function MessengerPage() {
               conversation={currentConversation}
               onOpenVideoCall={() => setIsVideoCallOpen(true)}
               onToggleSidebar={() => setIsSidebarOpen(true)}
+              onBack={() => setSelectedConversation(null)}
             />
           ) : (
             <div className="flex-1 flex flex-col bg-background">

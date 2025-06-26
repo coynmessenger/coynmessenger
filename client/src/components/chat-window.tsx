@@ -20,9 +20,10 @@ interface ChatWindowProps {
   conversation: Conversation & { otherUser: User };
   onOpenVideoCall: () => void;
   onToggleSidebar: () => void;
+  onBack?: () => void;
 }
 
-export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSidebar }: ChatWindowProps) {
+export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSidebar, onBack }: ChatWindowProps) {
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
@@ -209,6 +210,18 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       {/* Chat Header */}
       <div className="bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
+          {/* Back Button - Mobile Only */}
+          {onBack && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="lg:hidden p-2 hover:bg-accent text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          
           <Avatar className="h-10 w-10">
             <AvatarImage src={conversation.otherUser.profilePicture || ""} />
             <AvatarFallback className="bg-muted text-foreground">{conversation.otherUser.displayName.charAt(0)}</AvatarFallback>
