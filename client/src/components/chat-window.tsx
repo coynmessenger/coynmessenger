@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import EscrowModal from "@/components/escrow-modal";
+import QuickEscrowModal from "@/components/quick-escrow-modal";
+import EscrowStatusIndicator from "@/components/escrow-status-indicator";
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
 import type { User, Conversation, Message } from "@shared/schema";
@@ -39,6 +41,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
   const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
   const [showEscrowModal, setShowEscrowModal] = useState(false);
+  const [showQuickEscrowModal, setShowQuickEscrowModal] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -367,7 +370,13 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 onClick={() => setShowEscrowModal(true)}
                 className="text-foreground hover:text-foreground hover:bg-muted"
               >
-                🛡️ Manage Escrow
+                🛡️ Manage Escrows
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowQuickEscrowModal(true)}
+                className="text-foreground hover:text-foreground hover:bg-muted"
+              >
+                ⚡ Quick Escrow Trade
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -379,6 +388,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto bg-white dark:bg-background px-4 relative"
       >
+        {/* Escrow Status Indicator */}
+        <EscrowStatusIndicator conversationId={conversation.id} />
+        
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
@@ -603,6 +615,18 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   <span>Send COYN</span>
                 </div>
               </DropdownMenuItem>
+              <div className="px-2 py-1">
+                <div className="h-px bg-gray-200 dark:bg-slate-600" />
+              </div>
+              <DropdownMenuItem
+                onClick={() => setShowQuickEscrowModal(true)}
+                className="text-black dark:text-white hover:bg-orange-50 dark:hover:bg-orange-950 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4 text-orange-500" />
+                  <span>Send with Escrow</span>
+                </div>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex-1 relative">
@@ -662,6 +686,14 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       <EscrowModal
         isOpen={showEscrowModal}
         onClose={() => setShowEscrowModal(false)}
+        conversationId={conversation.id}
+        otherUser={conversation.otherUser}
+      />
+
+      {/* Quick Escrow Modal */}
+      <QuickEscrowModal
+        isOpen={showQuickEscrowModal}
+        onClose={() => setShowQuickEscrowModal(false)}
         conversationId={conversation.id}
         otherUser={conversation.otherUser}
       />
