@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Home, ShoppingCart, Star, ArrowUp, Settings, Wallet } from "lucide-react";
+import { Heart, Home, ShoppingCart, Star, ArrowUp, Settings, Wallet, Store } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import AmazonCheckout from "@/components/amazon-checkout";
@@ -114,6 +114,11 @@ export default function FavoritesPage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
+              <Link href="/marketplace">
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <Store className="h-5 w-5" />
+                </Button>
+              </Link>
               <Link href="/">
                 <Button variant="ghost" size="icon" className="h-10 w-10">
                   <Home className="h-5 w-5" />
@@ -143,13 +148,6 @@ export default function FavoritesPage() {
               >
                 <ShoppingCart className="h-5 w-5" />
               </Button>
-              
-              <Link href="/marketplace">
-                <Button variant="outline" className="h-10 px-4">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Marketplace
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
