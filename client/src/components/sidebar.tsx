@@ -189,6 +189,28 @@ export default function Sidebar({
           )}
         </div>
 
+        {/* Search Bar - Desktop Only */}
+        <div className="hidden lg:block p-4 border-b border-border bg-white dark:bg-card">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search messages..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              className="pl-10 bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange?.("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Enhanced Wallet Overview - Mobile Optimized */}
         <div className="mx-2 sm:mx-3 mb-2">
           {/* Total Balance Header */}
