@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import type { User, Conversation, Message } from "@shared/schema";
-import { Search, Wallet, UserPlus, Settings, Eye, EyeOff } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
+import { Search, Wallet, UserPlus, Settings, Eye, EyeOff, TrendingUp, TrendingDown } from "lucide-react";
+import { SiBinance, SiBitcoin } from "react-icons/si";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import AddContactModal from "./add-contact-modal";
@@ -45,6 +47,76 @@ export default function Sidebar({
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
+
+  // Fetch wallet balances
+  const { data: walletBalances = [] } = useQuery<WalletBalance[]>({
+    queryKey: ["/api/wallet/balances"],
+  });
+
+  // Calculate total balance
+  const totalBalance = walletBalances.reduce((sum, balance) => {
+    return sum + parseFloat(balance.usdValue || "0");
+  }, 0);
+
+  // Currency icons and helper functions
+  const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
+    BTC: { color: "bg-orange-500", symbol: "₿" },
+    BNB: { color: "bg-yellow-500", symbol: "⬢" },
+    USDT: { color: "bg-green-500", symbol: "₮" },
+    COYN: { color: "bg-gradient-to-br from-cyan-400 to-blue-500", symbol: "C", isCoyn: true },
+  };
+
+  const renderCurrencyIcon = (currency: string, size: "sm" | "md" | "lg" = "md") => {
+    const sizeClasses = {
+      sm: "w-4 h-4",
+      md: "w-5 h-5", 
+      lg: "w-6 h-6"
+    };
+
+    const config = currencyIcons[currency];
+    if (!config) {
+      return <div className={`${sizeClasses[size]} ${currencyIcons.BTC.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>?</div>;
+    }
+
+    if (config.isCoyn) {
+      return (
+        <img 
+          src={coynLogoPath} 
+          alt={currency} 
+          className={`${sizeClasses[size]} drop-shadow-[0_0_8px_rgba(255,193,7,0.3)]`}
+        />
+      );
+    }
+
+    if (currency === "BTC") {
+      return <SiBitcoin className={`${sizeClasses[size]} text-orange-500`} />;
+    }
+
+    if (currency === "BNB") {
+      return <SiBinance className={`${sizeClasses[size]} text-yellow-500`} />;
+    }
+
+    return (
+      <div className={`${sizeClasses[size]} ${config.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>
+        {config.symbol}
+      </div>
+    );
+  };
+
+  const formatBalance = (balance: string, currency: string) => {
+    const num = parseFloat(balance);
+    if (currency === "USDT") return num.toFixed(2);
+    if (currency === "BTC") return num.toFixed(8);
+    if (currency === "ETH") return num.toFixed(6);
+    return num.toFixed(3);
+  };
+
+  const formatUSD = (value: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(parseFloat(value));
+  };
 
   // Get available contacts (users not in current conversations and not current user)
   const availableContacts = allUsers.filter(contact => {
@@ -118,34 +190,89 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Wallet Quick View - Mobile Optimized */}
-        <div 
-          className="p-2 sm:p-3 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted mx-2 sm:mx-3 mb-1 sm:mb-2 rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm"
-          onClick={onOpenWallet}
-        >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Balance</span>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsBalanceVisible(!isBalanceVisible);
-                }}
-                className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-slate-600"
-              >
-                {isBalanceVisible ? (
-                  <Eye className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
-                ) : (
-                  <EyeOff className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
-                )}
-              </Button>
-              <Wallet className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-700 dark:text-primary" />
+        {/* Enhanced Wallet Overview - Mobile Optimized */}
+        <div className="mx-2 sm:mx-3 mb-2">
+          {/* Total Balance Header */}
+          <div 
+            className="p-3 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm mb-2"
+            onClick={onOpenWallet}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Total Portfolio</span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsBalanceVisible(!isBalanceVisible);
+                  }}
+                  className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-slate-600"
+                >
+                  {isBalanceVisible ? (
+                    <Eye className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
+                  ) : (
+                    <EyeOff className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
+                  )}
+                </Button>
+                <Wallet className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-700 dark:text-primary" />
+              </div>
+            </div>
+            <div className="text-lg font-bold text-black dark:text-primary">
+              {isBalanceVisible ? formatUSD(totalBalance.toString()) : "••••••"}
             </div>
           </div>
-          <div className="text-base sm:text-lg font-bold text-black dark:text-primary mb-1.5">
-            {isBalanceVisible ? "$12,220.75" : "••••••"}
+
+          {/* Asset Breakdown */}
+          <div className="space-y-1">
+            {walletBalances.slice(0, 3).map((balance) => {
+              const changePercent = parseFloat(balance.changePercent || "0");
+              const isPositive = changePercent >= 0;
+              const portfolioPercent = totalBalance > 0 ? (parseFloat(balance.usdValue || "0") / totalBalance * 100) : 0;
+              
+              return (
+                <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors cursor-pointer" onClick={onOpenWallet}>
+                  <CardContent className="p-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          {renderCurrencyIcon(balance.currency, "sm")}
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium text-black dark:text-white">
+                            {balance.currency}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-slate-400">
+                            {isBalanceVisible ? `${formatBalance(balance.balance, balance.currency)}` : "••••"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-medium text-black dark:text-white">
+                          {isBalanceVisible ? formatUSD(balance.usdValue || "0") : "••••••"}
+                        </div>
+                        <div className={`text-xs flex items-center justify-end ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                          {isPositive ? (
+                            <TrendingUp className="h-2 w-2 mr-1" />
+                          ) : (
+                            <TrendingDown className="h-2 w-2 mr-1" />
+                          )}
+                          {Math.abs(changePercent).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {walletBalances.length > 3 && (
+              <div 
+                className="text-center py-1 text-xs text-gray-500 dark:text-slate-400 cursor-pointer hover:text-primary"
+                onClick={onOpenWallet}
+              >
+                +{walletBalances.length - 3} more assets
+              </div>
+            )}
           </div>
         </div>
 

@@ -215,6 +215,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Added wallet icon to messenger header - positioned wallet access button in top right corner of mobile header next to search and home icons for quick access to cryptocurrency wallet during messaging
 - June 26, 2025: Added back button to chat interface - mobile users can now tap back arrow in chat header to return to contact list when conversation is selected, improving navigation flow
 - June 26, 2025: Enhanced wallet asset breakdown with comprehensive cryptocurrency details - added current market prices, 24h price changes with trend indicators, portfolio percentages, performance classifications, and professional three-row card layout for better portfolio analytics
+- June 26, 2025: Integrated enhanced wallet overview into messenger sidebar - added detailed asset breakdown showing top 3 cryptocurrencies with authentic logos, USD values, 24h changes, trend indicators, and privacy toggle functionality for quick portfolio monitoring during conversations
 
 ## User Preferences
 
