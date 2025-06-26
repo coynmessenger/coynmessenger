@@ -257,6 +257,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Removed Trust Wallet connection option - eliminated Trust Wallet button from homepage to prevent creation of test users, updated wallet connection grid to 3-column layout with MetaMask, WalletConnect, and Coinbase options only
 - June 26, 2025: Eliminated all test wallet user creation - removed "WalletConnect User", "Coinbase User", and "MetaMask User" creation from wallet connection flow, updated MetaMask to only work with real wallet connections, WalletConnect and Coinbase buttons now show "coming soon" message directing users to manual input
 - June 26, 2025: Added Trust Wallet back as sign-in option - restored Trust Wallet button to homepage with 2x2 wallet grid layout, Trust Wallet shows "coming soon" message directing users to manual input for now, maintains professional approach without creating test users
+- June 26, 2025: Fixed unwanted conversations issue - removed orphaned test users "Trust Wallet User" and "WalletConnect User" from database that were appearing as unwanted conversations in messenger, cleaned up associated conversations and invalid wallet addresses to ensure clean user experience
 
 ## User Preferences
 
