@@ -321,53 +321,39 @@ export default function ProductPage() {
     if (!product) return;
 
     try {
-      if (isWishlisted) {
-        // Remove from favorites
-        const response = await fetch(`/api/favorites/${product.ASIN}`, {
-          method: 'DELETE',
-        });
+      // Use the new toggle API endpoint
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.ASIN,
+          productTitle: product.title,
+          productPrice: `${product.price} ${product.currency}`,
+          productImage: product.imageUrl,
+          productCategory: product.category,
+          productRating: product.rating,
+        }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setIsWishlisted(result.isFavorite);
         
-        if (response.ok) {
-          setIsWishlisted(false);
-          // Invalidate favorites cache to update favorites page
-          queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/favorites/status'] });
-          toast({
-            title: "Removed from favorites",
-            description: "Product has been removed from your wishlist",
-          });
-        } else {
-          throw new Error('Failed to remove from favorites');
-        }
+        // Invalidate favorites cache to update favorites page
+        queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/favorites/status'] });
+        
+        toast({
+          title: result.action === "added" ? "Added to favorites" : "Removed from favorites",
+          description: result.action === "added" 
+            ? "Product has been added to your wishlist"
+            : "Product has been removed from your wishlist",
+        });
       } else {
-        // Add to favorites
-        const response = await fetch('/api/favorites', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            productId: product.ASIN,
-            productTitle: product.title,
-            productPrice: `${product.price} ${product.currency}`,
-            productImage: product.imageUrl,
-            productCategory: product.category,
-            productRating: product.rating,
-          }),
-        });
-        
-        if (response.ok) {
-          setIsWishlisted(true);
-          // Invalidate favorites cache to update favorites page
-          queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/favorites/status'] });
-          toast({
-            title: "Added to favorites",
-            description: "Product has been added to your wishlist",
-          });
-        } else {
-          throw new Error('Failed to add to favorites');
-        }
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update favorites');
       }
     } catch (error) {
       console.error('Favorites error:', error);

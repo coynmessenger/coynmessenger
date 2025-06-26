@@ -409,20 +409,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add product to favorites
+  // Toggle product in favorites (add if not exists, remove if exists)
   app.post("/api/favorites", async (req, res) => {
     try {
       const userId = 5; // Current user
-      const favoriteData = {
-        ...req.body,
-        userId,
-      };
+      const { productId } = req.body;
+      
+      if (!productId) {
+        return res.status(400).json({ message: "Product ID is required" });
+      }
 
-      const favorite = await storage.addToFavorites(favoriteData);
-      res.json(favorite);
+      // Check if product is already in favorites
+      const isAlreadyFavorite = await storage.isFavorite(userId, productId);
+      
+      if (isAlreadyFavorite) {
+        // Remove from favorites
+        const removed = await storage.removeFromFavorites(userId, productId);
+        res.json({ action: "removed", isFavorite: false });
+      } else {
+        // Add to favorites
+        const favoriteData = {
+          ...req.body,
+          userId,
+        };
+        const favorite = await storage.addToFavorites(favoriteData);
+        res.json({ action: "added", isFavorite: true, favorite });
+      }
     } catch (error) {
-      console.error("Error adding to favorites:", error);
-      res.status(500).json({ message: "Failed to add to favorites" });
+      console.error("Error toggling favorites:", error);
+      res.status(500).json({ message: "Failed to update favorites" });
     }
   });
 
