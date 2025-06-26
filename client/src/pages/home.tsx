@@ -86,36 +86,24 @@ export default function HomePage() {
 
   const handleWeb3Connect = async (walletType: string) => {
     try {
-      let address = '';
-      let displayName = '';
-
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined') {
           const accounts = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
           });
-          address = accounts[0];
-          displayName = `MetaMask User`;
+          
+          if (accounts && accounts[0]) {
+            connectWalletMutation.mutate({
+              walletAddress: accounts[0],
+              displayName: undefined // Let the backend generate a proper display name
+            });
+          }
         } else {
           window.open('https://metamask.io/download/', '_blank');
-          return;
         }
-      } else if (walletType === 'walletconnect') {
-        // Simulate WalletConnect connection
-        address = `0x${Math.random().toString(16).substr(2, 40)}`;
-        displayName = 'WalletConnect User';
-
-      } else if (walletType === 'coinbase') {
-        // Simulate Coinbase Wallet connection
-        address = `0x${Math.random().toString(16).substr(2, 40)}`;
-        displayName = 'Coinbase User';
-      }
-
-      if (address) {
-        connectWalletMutation.mutate({
-          walletAddress: address,
-          displayName
-        });
+      } else {
+        // For WalletConnect and Coinbase, show message that they need to use manual input
+        alert(`${walletType === 'walletconnect' ? 'WalletConnect' : 'Coinbase Wallet'} integration coming soon. Please use manual wallet address input for now.`);
       }
     } catch (error) {
       console.error(`Failed to connect ${walletType} wallet:`, error);
