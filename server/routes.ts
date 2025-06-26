@@ -397,6 +397,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user favorites
+  app.get("/api/favorites", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Error getting favorites:", error);
+      res.status(500).json({ message: "Failed to get favorites" });
+    }
+  });
+
+  // Add product to favorites
+  app.post("/api/favorites", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const favoriteData = {
+        ...req.body,
+        userId,
+      };
+
+      const favorite = await storage.addToFavorites(favoriteData);
+      res.json(favorite);
+    } catch (error) {
+      console.error("Error adding to favorites:", error);
+      res.status(500).json({ message: "Failed to add to favorites" });
+    }
+  });
+
+  // Remove product from favorites
+  app.delete("/api/favorites/:productId", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const productId = req.params.productId;
+      
+      const removed = await storage.removeFromFavorites(userId, productId);
+      if (!removed) {
+        return res.status(404).json({ message: "Favorite not found" });
+      }
+      
+      res.json({ message: "Removed from favorites" });
+    } catch (error) {
+      console.error("Error removing from favorites:", error);
+      res.status(500).json({ message: "Failed to remove from favorites" });
+    }
+  });
+
+  // Check if product is favorite
+  app.get("/api/favorites/status", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const productId = req.query.productId as string;
+      
+      if (!productId) {
+        return res.status(400).json({ message: "Product ID is required" });
+      }
+      
+      const isFavorite = await storage.isFavorite(userId, productId);
+      res.json({ isFavorite });
+    } catch (error) {
+      console.error("Error checking favorite status:", error);
+      res.status(500).json({ message: "Failed to check favorite status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

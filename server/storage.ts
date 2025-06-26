@@ -315,6 +315,34 @@ export class DatabaseStorage implements IStorage {
 
     return true;
   }
+
+  async getUserFavorites(userId: number): Promise<Favorite[]> {
+    const userFavorites = await db.select().from(favorites).where(eq(favorites.userId, userId));
+    return userFavorites;
+  }
+
+  async addToFavorites(favorite: InsertFavorite): Promise<Favorite> {
+    const [newFavorite] = await db
+      .insert(favorites)
+      .values(favorite)
+      .returning();
+    return newFavorite;
+  }
+
+  async removeFromFavorites(userId: number, productId: string): Promise<boolean> {
+    const result = await db
+      .delete(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.productId, productId)));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async isFavorite(userId: number, productId: string): Promise<boolean> {
+    const [favorite] = await db
+      .select()
+      .from(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.productId, productId)));
+    return !!favorite;
+  }
 }
 
 export class MemStorage implements IStorage {

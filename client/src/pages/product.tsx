@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -248,6 +248,7 @@ export default function ProductPage() {
   const [showWalletHover, setShowWalletHover] = useState(false);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Get product ASIN from URL params
   const productASIN = params?.asin;
@@ -328,10 +329,15 @@ export default function ProductPage() {
         
         if (response.ok) {
           setIsWishlisted(false);
+          // Invalidate favorites cache to update favorites page
+          queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/favorites/status'] });
           toast({
             title: "Removed from favorites",
             description: "Product has been removed from your wishlist",
           });
+        } else {
+          throw new Error('Failed to remove from favorites');
         }
       } else {
         // Add to favorites
@@ -352,13 +358,19 @@ export default function ProductPage() {
         
         if (response.ok) {
           setIsWishlisted(true);
+          // Invalidate favorites cache to update favorites page
+          queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/favorites/status'] });
           toast({
             title: "Added to favorites",
             description: "Product has been added to your wishlist",
           });
+        } else {
+          throw new Error('Failed to add to favorites');
         }
       }
     } catch (error) {
+      console.error('Favorites error:', error);
       toast({
         title: "Error",
         description: "Failed to update favorites",
