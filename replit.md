@@ -208,6 +208,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Extended balance privacy feature to COYN wallet modal with comprehensive hide/show functionality - added eye/eyeoff toggle in wallet header, hides total balance and individual crypto amounts with "••••••" placeholder, optimized mobile touch targets with larger buttons (h-12 w-12 on mobile, h-10 w-10 on desktop) and improved header layout with proper spacing and truncation
 - June 26, 2025: Fixed scroll issue in COYN wallet modal - changed overflow from hidden to auto, optimized crypto holdings section scrolling by removing problematic negative margins, improved mobile scrolling experience with proper flex layout
 - June 26, 2025: Fixed escrow release functionality - updated releaseEscrow method to accept both "pending" and "funded" statuses, corrected fund distribution logic to use required amounts instead of deposited amounts, verified complete release workflow with database status updates and timestamp recording
+- June 26, 2025: Added comprehensive show/hide balance functionality to marketplace - implemented balance privacy toggles in wallet hover component and Amazon checkout payment flows, users can now hide cryptocurrency amounts, rates, and totals with eye/eyeoff buttons for enhanced privacy across all marketplace transactions
 
 ## User Preferences
 

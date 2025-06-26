@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield, ChevronRight } from "lucide-react";
+import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
@@ -198,6 +198,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   const [currentStep, setCurrentStep] = useState<'cart' | 'review' | 'finalize'>('cart');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
     addressLine1: '',
@@ -762,9 +763,24 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
       {/* Payment Method */}
       <Card className="p-4">
         <CardHeader className="p-0 mb-4">
-          <CardTitle className="text-base flex items-center">
-            <Wallet className="w-4 h-4 mr-2" />
-            Payment Method
+          <CardTitle className="text-base flex items-center justify-between">
+            <div className="flex items-center">
+              <Wallet className="w-4 h-4 mr-2" />
+              Payment Method
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+              className="h-8 w-8 p-0 hover:bg-accent/50"
+              title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
+            >
+              {isBalanceVisible ? (
+                <Eye className="h-4 w-4" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )}
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -773,19 +789,19 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
               <SelectValue placeholder="Select cryptocurrency" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="BTC">Bitcoin (BTC) - ${CRYPTO_RATES.BTC}</SelectItem>
-              <SelectItem value="BNB">Binance Coin (BNB) - ${CRYPTO_RATES.BNB}</SelectItem>
-              <SelectItem value="USDT">Tether (USDT) - ${CRYPTO_RATES.USDT}</SelectItem>
-              <SelectItem value="COYN">COYN Token - ${CRYPTO_RATES.COYN}</SelectItem>
+              <SelectItem value="BTC">Bitcoin (BTC) - {isBalanceVisible ? `$${CRYPTO_RATES.BTC}` : "••••••"}</SelectItem>
+              <SelectItem value="BNB">Binance Coin (BNB) - {isBalanceVisible ? `$${CRYPTO_RATES.BNB}` : "••••••"}</SelectItem>
+              <SelectItem value="USDT">Tether (USDT) - {isBalanceVisible ? `$${CRYPTO_RATES.USDT}` : "••••••"}</SelectItem>
+              <SelectItem value="COYN">COYN Token - {isBalanceVisible ? `$${CRYPTO_RATES.COYN}` : "••••••"}</SelectItem>
             </SelectContent>
           </Select>
           
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm font-medium text-blue-800">
-              Total: ${calculateTotal().toFixed(2)} = {convertToCrypto(calculateTotal())} {selectedCrypto}
+              Total: {isBalanceVisible ? `$${calculateTotal().toFixed(2)} = ${convertToCrypto(calculateTotal())} ${selectedCrypto}` : "••••••"}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Rate: 1 {selectedCrypto} = ${CRYPTO_RATES[selectedCrypto]}
+              Rate: {isBalanceVisible ? `1 ${selectedCrypto} = $${CRYPTO_RATES[selectedCrypto]}` : "••••••"}
             </p>
           </div>
         </CardContent>

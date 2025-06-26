@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Wallet, Copy, ExternalLink } from "lucide-react";
+import { Wallet, Copy, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import coynLogo from "@assets/COYN-symbol-square_1750892698348.png";
@@ -37,6 +37,7 @@ const getCurrencyIcon = (currency: string) => {
 
 export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHoverProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const { toast } = useToast();
 
   // Fetch real wallet data
@@ -132,9 +133,24 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
       }}
     >
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-foreground">
-          <Wallet className="h-5 w-5" />
-          Wallet Overview
+        <CardTitle className="flex items-center justify-between text-foreground">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            Wallet Overview
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+            className="h-8 w-8 p-0 hover:bg-accent/50"
+            title={isBalanceVisible ? "Hide balance" : "Show balance"}
+          >
+            {isBalanceVisible ? (
+              <Eye className="h-4 w-4" />
+            ) : (
+              <EyeOff className="h-4 w-4" />
+            )}
+          </Button>
         </CardTitle>
       </CardHeader>
 
@@ -165,7 +181,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
         <div className="text-center space-y-1">
           <p className="text-sm text-muted-foreground">Total Balance</p>
           <p className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
-            {formatUSD(totalUSD.toString())}
+            {isBalanceVisible ? formatUSD(totalUSD.toString()) : "••••••"}
           </p>
         </div>
 
@@ -182,11 +198,15 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
                 </div>
                 <div>
                   <p className="font-medium text-foreground">{balance.currency}</p>
-                  <p className="text-xs text-muted-foreground">{formatBalance(balance.balance, balance.currency)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isBalanceVisible ? formatBalance(balance.balance, balance.currency) : "••••••"}
+                  </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-medium text-foreground">{formatUSD(balance.usdValue || "0")}</p>
+                <p className="font-medium text-foreground">
+                  {isBalanceVisible ? formatUSD(balance.usdValue || "0") : "••••••"}
+                </p>
               </div>
             </div>
           ))}
