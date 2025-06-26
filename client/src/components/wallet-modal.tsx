@@ -842,7 +842,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         {/* Currency Selection for Receive */}
         <div className="mt-2 sm:mt-4 flex-shrink-0">
           <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2">
-            Select Currency to Receive
+            Select Currency
           </label>
           <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
             <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white h-8 sm:h-10 text-sm">
