@@ -264,14 +264,7 @@ export default function Sidebar({
                 </Card>
               );
             })}
-            {walletBalances.length > 3 && (
-              <div 
-                className="text-center py-1 text-xs text-gray-500 dark:text-slate-400 cursor-pointer hover:text-primary"
-                onClick={onOpenWallet}
-              >
-                +{walletBalances.length - 3} more assets
-              </div>
-            )}
+
           </div>
         </div>
 
