@@ -225,7 +225,7 @@ export default function Sidebar({
 
           {/* Asset Breakdown */}
           <div className="space-y-1">
-            {walletBalances.slice(0, 3).map((balance) => {
+            {walletBalances.map((balance) => {
               const changePercent = parseFloat(balance.changePercent || "0");
               const isPositive = changePercent >= 0;
               const portfolioPercent = totalBalance > 0 ? (parseFloat(balance.usdValue || "0") / totalBalance * 100) : 0;
@@ -276,18 +276,7 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Search */}
-        <div className="px-2 pb-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 sm:h-4 sm:w-4" />
-            <Input
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              className="pl-12 bg-white dark:bg-input border-gray-300 dark:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 text-black dark:text-foreground placeholder-gray-500 dark:placeholder-muted-foreground rounded-lg h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
-            />
-          </div>
-        </div>
+
 
         {/* Contact List and Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">

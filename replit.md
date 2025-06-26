@@ -217,6 +217,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Enhanced wallet asset breakdown with comprehensive cryptocurrency details - added current market prices, 24h price changes with trend indicators, portfolio percentages, performance classifications, and professional three-row card layout for better portfolio analytics
 - June 26, 2025: Integrated enhanced wallet overview into messenger sidebar - added detailed asset breakdown showing top 3 cryptocurrencies with authentic logos, USD values, 24h changes, trend indicators, and privacy toggle functionality for quick portfolio monitoring during conversations
 - June 26, 2025: Removed conversation list from sidebar - streamlined interface to focus on contact discovery and wallet monitoring, keeping only new contact list and enhanced cryptocurrency portfolio overview for cleaner user experience
+- June 26, 2025: Enhanced sidebar to show all 4 cryptocurrency assets and removed search functionality - now displays complete portfolio with Bitcoin, BNB, USDT, and COYN all visible with detailed breakdowns, authentic logos, USD values, 24h changes, and privacy toggle for comprehensive wallet monitoring
 
 ## User Preferences
 
