@@ -110,18 +110,26 @@ export default function FavoritesPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/marketplace">
-                <Button variant="ghost" size="icon" className="h-10 w-10">
-                  <Store className="h-5 w-5" />
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+        <div className="container mx-auto px-4 sm:px-4 py-3 sm:py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 sm:space-x-3">
+              <Link href="/">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
+                >
+                  <Home className="h-6 w-6 sm:h-4 sm:w-4" />
                 </Button>
               </Link>
-              <Link href="/">
-                <Button variant="ghost" size="icon" className="h-10 w-10">
-                  <Home className="h-5 w-5" />
+              <Link href="/marketplace">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
+                >
+                  <Store className="h-6 w-6 sm:h-4 sm:w-4" />
                 </Button>
               </Link>
               <h1 className="text-xl font-semibold text-foreground" style={{ fontFamily: 'Google Product Sans, sans-serif' }}>
@@ -129,24 +137,24 @@ export default function FavoritesPage() {
               </h1>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 sm:gap-2">
               <Button
                 ref={walletButtonRef}
+                onClick={() => setShowWalletHover(!showWalletHover)}
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowWalletHover(!showWalletHover)}
-                className="h-10 w-10 relative"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
-                <Wallet className="h-5 w-5" />
+                <Wallet className="h-6 w-6 sm:h-4 sm:w-4 text-orange-500 dark:text-cyan-400" />
               </Button>
               
               <Button
+                onClick={() => setShowCart(true)}
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowCart(true)}
-                className="h-10 w-10"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
