@@ -240,19 +240,29 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   // Refresh cart when dialog opens
   useEffect(() => {
     if (isOpen) {
+      console.log('🛒 Cart dialog opened, loading items...');
       const savedCart = localStorage.getItem('shopping-cart');
-      console.log('Loading cart from localStorage:', savedCart);
+      console.log('🔍 Raw localStorage data:', savedCart);
+      
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart);
-          console.log('Parsed cart items:', parsedCart);
+          console.log('✅ Successfully parsed cart:', parsedCart);
+          console.log('📊 Cart items count:', parsedCart.length);
+          console.log('🏷️ Item details:', parsedCart.map((item: CartItem) => ({
+            id: item.id,
+            title: item.title?.substring(0, 30) + '...',
+            price: item.price,
+            quantity: item.quantity
+          })));
+          
           setCartItems(parsedCart);
         } catch (error) {
-          console.error('Error loading cart:', error);
+          console.error('❌ Error parsing cart from localStorage:', error);
           setCartItems([]);
         }
       } else {
-        console.log('No cart found in localStorage');
+        console.log('🚫 No cart found in localStorage');
         setCartItems([]);
       }
     }
@@ -292,7 +302,50 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   }, [isOpen]);
 
   const removeFromCart = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+    console.log('Removing item from cart:', id);
+    setCartItems(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      console.log('Cart after removal:', updated);
+      return updated;
+    });
+  };
+
+  // Debug function to test cart functionality  
+  const testCart = () => {
+    console.log('🧪 CART DEBUG TEST STARTED');
+    console.log('1. Current cart items:', cartItems);
+    console.log('2. Current localStorage cart:', localStorage.getItem('shopping-cart'));
+    
+    // Clear existing cart
+    localStorage.removeItem('shopping-cart');
+    console.log('3. Cleared localStorage');
+    
+    const testItems = [
+      {
+        id: "TEST001",
+        title: "Debug Test Item 1 - Short Title",
+        price: "19.99",
+        imageUrl: "https://via.placeholder.com/100x100/ff0000/ffffff?text=Test1",
+        quantity: 1,
+        currency: "USD"
+      },
+      {
+        id: "TEST002", 
+        title: "Debug Test Item 2 - Another Test Product",
+        price: "29.99",
+        imageUrl: "https://via.placeholder.com/100x100/00ff00/ffffff?text=Test2",
+        quantity: 2,
+        currency: "USD"
+      }
+    ];
+    
+    console.log('4. Setting test items:', testItems);
+    localStorage.setItem('shopping-cart', JSON.stringify(testItems));
+    console.log('5. Stored in localStorage:', localStorage.getItem('shopping-cart'));
+    
+    setCartItems(testItems);
+    console.log('6. Set cartItems state:', testItems);
+    console.log('🧪 CART DEBUG TEST COMPLETED');
   };
 
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -438,7 +491,9 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   );
 
   const renderCartStep = () => {
-    console.log('Rendering cart step with items:', cartItems);
+    console.log('🎨 Rendering cart step with items:', cartItems);
+    console.log('🔢 Current cart length:', cartItems.length);
+    console.log('📝 Cart items details:', cartItems);
     
     return (
       <div className="flex flex-col h-full">
@@ -447,10 +502,19 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
           {cartItems.length > 0 && (
             <p className="text-xs sm:text-sm text-gray-600 mt-1">Items ready for checkout</p>
           )}
-          {/* Debug info - remove in production */}
+          {/* Enhanced debug info */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="mt-2 p-2 bg-yellow-100 rounded text-xs">
-              Debug: Cart has {cartItems.length} items. LocalStorage key: 'shopping-cart'
+            <div className="mt-2 p-2 bg-yellow-100 rounded text-xs space-y-1">
+              <div>Debug: Cart has {cartItems.length} items</div>
+              <div>LocalStorage key: 'shopping-cart'</div>
+              <div>Cart state: {JSON.stringify(cartItems, null, 2)}</div>
+              <Button 
+                onClick={testCart} 
+                size="sm" 
+                className="mt-2 bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Test Cart
+              </Button>
             </div>
           )}
         </div>
@@ -467,6 +531,11 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
           <>
             {/* Cart Items List */}
             <div className="flex-1 space-y-3 sm:space-y-4 overflow-y-auto mb-4 sm:mb-6">
+              {process.env.NODE_ENV === 'development' && (
+                <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                  Rendering {cartItems.length} items: {cartItems.map(item => item.id).join(', ')}
+                </div>
+              )}
               {cartItems.map((item) => (
                 <div key={item.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 shadow-sm">
                   <div className="flex items-start space-x-3 sm:space-x-4">
@@ -927,6 +996,22 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
             {currentStep === 'finalize' && 'Complete your purchase with cryptocurrency payment'}
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Cart Debug Panel - Only in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mx-3 sm:mx-4 md:mx-6 p-2 bg-red-50 border border-red-200 rounded text-xs">
+            <div className="font-bold text-red-700 mb-1">CART DEBUG STATUS:</div>
+            <div className="grid grid-cols-2 gap-2 text-red-600">
+              <div>Dialog Open: {isOpen ? 'YES' : 'NO'}</div>
+              <div>Current Step: {currentStep}</div>
+              <div>Cart Items: {cartItems.length}</div>
+              <div>localStorage: {localStorage.getItem('shopping-cart') ? 'PRESENT' : 'EMPTY'}</div>
+            </div>
+            <div className="mt-2 text-red-500 font-mono text-xs">
+              Raw cart: {JSON.stringify(cartItems.slice(0, 1), null, 1)}
+            </div>
+          </div>
+        )}
         
         <div className="flex-shrink-0 px-3 sm:px-4 md:px-6">
           {renderProgressBar()}
