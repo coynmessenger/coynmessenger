@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import MarketplaceCheckout from "@/components/marketplace-checkout";
 import WalletHover from "@/components/wallet-hover";
+import WalletModal from "@/components/wallet-modal";
 
 interface Favorite {
   id: number;
@@ -28,7 +29,17 @@ export default function FavoritesPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showWalletHover, setShowWalletHover] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Wallet modal handlers
+  const handleOpenSend = () => {
+    setShowWalletModal(true);
+  };
+
+  const handleOpenReceive = () => {
+    setShowWalletModal(true);
+  };
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -280,6 +291,14 @@ export default function FavoritesPage() {
         isVisible={showWalletHover}
         onClose={() => setShowWalletHover(false)}
         anchorRef={walletButtonRef}
+        onOpenSend={handleOpenSend}
+        onOpenReceive={handleOpenReceive}
+      />
+
+      {/* Wallet Modal */}
+      <WalletModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
       />
     </div>
   );

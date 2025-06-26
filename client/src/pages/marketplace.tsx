@@ -17,6 +17,7 @@ import SettingsModal from "@/components/settings-modal";
 import MarketplaceCheckout from "@/components/marketplace-checkout";
 import { addToCart, getCartCount } from "@/components/shopping-cart";
 import WalletHover from "@/components/wallet-hover";
+import WalletModal from "@/components/wallet-modal";
 
 interface Product {
   ASIN: string;
@@ -159,7 +160,17 @@ export default function MarketplacePage() {
   const [showCart, setShowCart] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [showWalletHover, setShowWalletHover] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Wallet modal handlers - just open the main wallet modal
+  const handleOpenSend = () => {
+    setShowWalletModal(true);
+  };
+
+  const handleOpenReceive = () => {
+    setShowWalletModal(true);
+  };
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [imageIndexes, setImageIndexes] = useState<Map<string, number>>(new Map());
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -1015,6 +1026,14 @@ export default function MarketplacePage() {
         isVisible={showWalletHover}
         onClose={() => setShowWalletHover(false)}
         anchorRef={walletButtonRef}
+        onOpenSend={handleOpenSend}
+        onOpenReceive={handleOpenReceive}
+      />
+
+      {/* Wallet Modal */}
+      <WalletModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
       />
 
       {/* Scroll to Top Button */}

@@ -14,6 +14,8 @@ interface WalletHoverProps {
   isVisible: boolean;
   onClose: () => void;
   anchorRef: React.RefObject<HTMLElement>;
+  onOpenSend?: () => void;
+  onOpenReceive?: () => void;
 }
 
 const getCurrencyIcon = (currency: string) => {
@@ -35,7 +37,7 @@ const getCurrencyIcon = (currency: string) => {
   }
 };
 
-export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHoverProps) {
+export default function WalletHover({ isVisible, onClose, anchorRef, onOpenSend, onOpenReceive }: WalletHoverProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const { toast } = useToast();
@@ -235,7 +237,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
             className="flex-1"
             onClick={() => {
               onClose();
-              // Add send functionality here
+              onOpenSend?.();
             }}
           >
             Send
@@ -246,7 +248,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef }: WalletHov
             className="flex-1"
             onClick={() => {
               onClose();
-              // Add receive functionality here
+              onOpenReceive?.();
             }}
           >
             Receive
