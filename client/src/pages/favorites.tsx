@@ -68,15 +68,14 @@ export default function FavoritesPage() {
   }, []);
 
   useEffect(() => {
-    const handleCartUpdate = (event: CustomEvent) => {
-      // Force re-render when cart is updated
-      setShowCart(false);
-      setTimeout(() => setShowCart(true), 100);
+    const handleCartUpdate = () => {
+      // Just invalidate queries when cart is updated - don't force cart dialog open
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
     return () => window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
-  }, []);
+  }, [queryClient]);
 
   const addToCart = (favorite: Favorite) => {
     const cartItem = {
