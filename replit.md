@@ -246,6 +246,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Implemented completely authentic wallet logos using actual brand images - replaced all SVG designs with real MetaMask fox, WalletConnect bridge symbol, Trust Wallet shield, and Coinbase "C" logos for 100% legitimate appearance
 - June 26, 2025: Updated hamburger menu icon color from turquoise/cyan to slate-400 with orange hover effect - improved visual consistency with messenger interface color scheme
 - June 26, 2025: Fixed wallet overview window scroll issue on favorites page - added proper overflow handling, height constraints (max-h-[80vh]), flexible layout with scrollable content area, and improved positioning logic to prevent popup from going off-screen
+- June 26, 2025: Implemented comprehensive automatic scroll-to-top functionality across all pages using custom useScrollToTop hook - ensures users always start at top when navigating between marketplace, favorites, and product pages for consistent user experience
 
 ## User Preferences
 

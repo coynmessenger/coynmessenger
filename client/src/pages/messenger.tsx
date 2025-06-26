@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +16,7 @@ import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
+  useScrollToTop();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();

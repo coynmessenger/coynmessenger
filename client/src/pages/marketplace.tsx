@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
   if (!product) return null;
 
   const usdPrice = parseFloat(product.price);
-  const cryptoPrices = {
+  const cryptoPrices: Record<string, string> = {
     BTC: (usdPrice / cryptoRates.BTC).toFixed(8),
     BNB: (usdPrice / cryptoRates.BNB).toFixed(6),
     USDT: (usdPrice / cryptoRates.USDT).toFixed(2),
@@ -147,6 +148,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
 }
 
 export default function MarketplacePage() {
+  useScrollToTop();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -316,7 +318,7 @@ export default function MarketplacePage() {
     // Only filter out items that explicitly have no image URL at all
     const hasValidImageUrl = isAmazonProduct ? 
       item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('placeholder') : 
-      item.image && item.image.trim() !== '' && !item.image.includes('placeholder');
+      ('image' in item && typeof item.image === 'string' && item.image.trim() !== '' && !item.image.includes('placeholder'));
     
     // Allow items with valid image URLs or Amazon products (they have fallback handling)
     if (!hasValidImageUrl && !isAmazonProduct) return false;

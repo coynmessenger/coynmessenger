@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ interface Favorite {
 }
 
 export default function FavoritesPage() {
+  useScrollToTop();
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showWalletHover, setShowWalletHover] = useState(false);

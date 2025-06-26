@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1750818324226.png";
 import metamaskLogo from "@assets/images(1)_1750925157265.png";
@@ -29,6 +30,7 @@ declare global {
 }
 
 export default function HomePage() {
+  useScrollToTop();
   const [, setLocation] = useLocation();
   const [walletAddress, setWalletAddress] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -45,10 +47,9 @@ export default function HomePage() {
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
       try {
-        return await apiRequest("/api/users/find-or-create", {
-          method: "POST",
-          body: JSON.stringify({ walletAddress, displayName }),
-          headers: { "Content-Type": "application/json" },
+        return await apiRequest("POST", "/api/users/find-or-create", {
+          walletAddress,
+          displayName
         });
       } catch (error) {
         // If API fails, create a mock user for demo purposes
