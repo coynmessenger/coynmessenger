@@ -225,6 +225,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Added "Messenger" header to mobile messenger page - implemented clean header with COYN logo and "Messenger" title using Google Product Sans font, matching marketplace header styling for consistency across application
 - June 26, 2025: Removed highlighted "to Receive" text from COYN wallet - streamlined currency selection label to simply "Select Currency" for cleaner interface
 - June 26, 2025: Moved "Messenger" branding to mobile navigation bar - removed header from main content area and positioned COYN logo with "Messenger" text in top navigation for better mobile UX
+- June 26, 2025: Updated search functionality from "Search conversations" to "Search messages" - changed placeholder text in both mobile messenger interface and share modal for more accurate functionality description
+- June 26, 2025: Enhanced crypto send buttons with authentic cryptocurrency logos - replaced basic colored circles with official Bitcoin, Binance, Tether icons from react-icons and authentic COYN golden coin logo for professional branding consistency
 
 ## User Preferences
 
