@@ -492,9 +492,10 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
 
   const renderCartStep = () => {
     console.log('Rendering cart step with items:', cartItems);
+    console.log('Cart items length:', cartItems.length);
     
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col min-h-0">
         <div className="flex-shrink-0 mb-4">
           <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
           {cartItems.length > 0 && (
@@ -503,7 +504,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
         </div>
         
         {cartItems.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center min-h-[300px]">
             <div className="text-center py-8">
               <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Your cart is empty</p>
@@ -511,9 +512,9 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
             </div>
           </div>
         ) : (
-          <>
-            <div className="flex-1 space-y-4 overflow-y-auto mb-6">
-              {cartItems.map((item) => (
+          <div className="flex flex-col min-h-0">
+            <div className="space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[400px] mb-6">
+              {cartItems.map((item, index) => (
                 <div key={item.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
                   <div className="flex items-start space-x-4">
                     {item.imageUrl && (
@@ -523,9 +524,11 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
                           alt={item.title}
                           className="w-20 h-20 object-cover rounded-lg border border-gray-300"
                           onError={(e) => {
+                            console.log('Image failed to load:', item.imageUrl);
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                           }}
+                          onLoad={() => console.log('Image loaded:', item.imageUrl)}
                         />
                       </div>
                     )}
@@ -607,7 +610,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
                 </Button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     );
