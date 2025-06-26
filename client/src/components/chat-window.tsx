@@ -272,7 +272,9 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           
           <Avatar className="h-10 w-10">
             <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-            <AvatarFallback className="bg-muted text-foreground">{conversation.otherUser.displayName.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-foreground font-medium">
+              {conversation.otherUser.displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div>
             <h2 className="font-semibold text-foreground">{conversation.otherUser.displayName}</h2>
