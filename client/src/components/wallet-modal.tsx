@@ -414,6 +414,28 @@ function SendModal({ isOpen, onClose, balances, initialCurrency }: SendModalProp
 function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClose: () => void; escrows: Escrow[] }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedTab, setSelectedTab] = useState<"active" | "completed">("active");
+
+  const formatAmount = (amount: string) => {
+    const num = parseFloat(amount);
+    if (num === 0) return "0.0000";
+    if (num < 0.0001) return num.toExponential(4);
+    return num.toFixed(4);
+  };
+
+  const activeEscrows = escrows.filter(escrow => 
+    escrow.status === "pending" || 
+    escrow.status === "funded" || 
+    escrow.status === "confirming"
+  );
+
+  const completedEscrows = escrows.filter(escrow => 
+    escrow.status === "released" || 
+    escrow.status === "completed" || 
+    escrow.status === "cancelled"
+  );
+
+  const currentEscrows = selectedTab === "active" ? activeEscrows : completedEscrows;
 
   const releaseEscrowMutation = useMutation({
     mutationFn: async (escrowId: number) => {
@@ -466,8 +488,12 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending": return "text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800";
+      case "funded": return "text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800";
+      case "confirming": return "text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800";
+      case "released": return "text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800";
       case "completed": return "text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800";
       case "cancelled": return "text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-200 dark:border-red-800";
+      case "disputed": return "text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
       default: return "text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800";
     }
   };
@@ -480,20 +506,50 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
             <Shield className="h-5 w-5 mr-2 text-orange-600 dark:text-cyan-400" />
             Escrow Management
           </DialogTitle>
+          <div className="flex mt-4 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
+            <button
+              onClick={() => setSelectedTab("active")}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                selectedTab === "active"
+                  ? "bg-white dark:bg-slate-600 text-orange-600 dark:text-cyan-400 shadow-sm"
+                  : "text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              Active ({activeEscrows.length})
+            </button>
+            <button
+              onClick={() => setSelectedTab("completed")}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                selectedTab === "completed"
+                  ? "bg-white dark:bg-slate-600 text-orange-600 dark:text-cyan-400 shadow-sm"
+                  : "text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              History ({completedEscrows.length})
+            </button>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-3">
-          {escrows.length === 0 ? (
+          {currentEscrows.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-gray-100 dark:bg-slate-700 rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center mb-4">
                 <Shield className="h-8 w-8 text-gray-400 dark:text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-black dark:text-white mb-2">No Escrows Found</h3>
-              <p className="text-gray-600 dark:text-slate-400">You don't have any escrow transactions yet.</p>
-              <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">Create secure transactions from the wallet send feature.</p>
+              <h3 className="text-lg font-medium text-black dark:text-white mb-2">
+                {selectedTab === "active" ? "No Active Escrows" : "No Completed Escrows"}
+              </h3>
+              <p className="text-gray-600 dark:text-slate-400">
+                {selectedTab === "active" 
+                  ? "You don't have any active escrow transactions." 
+                  : "No escrow transaction history yet."}
+              </p>
+              {selectedTab === "active" && (
+                <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">Create secure transactions from the wallet send feature.</p>
+              )}
             </div>
           ) : (
-            escrows.map((escrow) => (
+            currentEscrows.map((escrow) => (
               <div key={escrow.id} className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -501,9 +557,15 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
                       <Shield className="h-4 w-4 text-orange-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <span className="font-semibold text-black dark:text-white">
-                        {escrow.initiatorRequiredAmount} {escrow.initiatorCurrency}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-black dark:text-white">
+                          {formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}
+                        </span>
+                        <span className="text-gray-400 dark:text-slate-500">⇄</span>
+                        <span className="font-semibold text-purple-600 dark:text-purple-400">
+                          {formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}
+                        </span>
+                      </div>
                       <p className="text-xs text-gray-500 dark:text-slate-400">
                         Escrow #{escrow.id}
                       </p>
@@ -522,14 +584,35 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
                   </div>
                 )}
 
+                {/* Funding Progress */}
+                {(escrow.status === "pending" || escrow.status === "funded") && (
+                  <div className="bg-gray-50 dark:bg-slate-600 rounded-md p-3 space-y-2">
+                    <h4 className="text-xs font-medium text-gray-700 dark:text-slate-300">Funding Progress</h4>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-600 dark:text-slate-400">You:</span>
+                        <span className="font-medium">
+                          {formatAmount(escrow.initiatorAmount || "0")} / {formatAmount(escrow.initiatorRequiredAmount)} {escrow.initiatorCurrency}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-600 dark:text-slate-400">Them:</span>
+                        <span className="font-medium">
+                          {formatAmount(escrow.participantAmount || "0")} / {formatAmount(escrow.participantRequiredAmount)} {escrow.participantCurrency}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between text-xs text-gray-600 dark:text-slate-500">
-                  <span>Created: {new Date(escrow.createdAt).toLocaleDateString()}</span>
+                  <span>Created: {escrow.createdAt ? new Date(escrow.createdAt).toLocaleDateString() : 'Unknown'}</span>
                   {escrow.releasedAt && (
                     <span>Released: {new Date(escrow.releasedAt).toLocaleDateString()}</span>
                   )}
                 </div>
 
-                {escrow.status === "pending" && (
+                {escrow.status === "pending" && selectedTab === "active" && (
                   <div className="flex space-x-2 pt-2">
                     <Button
                       size="sm"
@@ -577,7 +660,7 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
 
         <div className="flex justify-between items-center pt-4 flex-shrink-0 border-t border-gray-200 dark:border-slate-600">
           <div className="text-sm text-gray-600 dark:text-slate-400">
-            {escrows.length} {escrows.length === 1 ? 'escrow' : 'escrows'} total
+            {currentEscrows.length} {selectedTab} {currentEscrows.length === 1 ? 'escrow' : 'escrows'}
           </div>
           <Button onClick={onClose} variant="outline" className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700">
             Close
@@ -698,10 +781,17 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     enabled: isOpen,
   });
 
-  const { data: userEscrows = [] } = useQuery<Escrow[]>({
+  const { data: allUserEscrows = [] } = useQuery<Escrow[]>({
     queryKey: ["/api/user/escrows"],
     enabled: isOpen,
   });
+
+  // Filter to show only active escrows (pending, funded, confirming)
+  const userEscrows = allUserEscrows.filter(escrow => 
+    escrow.status === "pending" || 
+    escrow.status === "funded" || 
+    escrow.status === "confirming"
+  );
 
   const totalBalance = balances.reduce((sum, balance) => {
     return sum + parseFloat(balance.usdValue || "0");
@@ -963,7 +1053,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       <EscrowListModal
         isOpen={showEscrowList}
         onClose={() => setShowEscrowList(false)}
-        escrows={userEscrows}
+        escrows={allUserEscrows}
       />
 
       {/* QR Code Modal */}
