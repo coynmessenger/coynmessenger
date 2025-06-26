@@ -144,10 +144,13 @@ export default function MessengerPage() {
                               <div className="relative">
                                 <Avatar className="w-12 h-12">
                                   <AvatarImage 
-                                    src={contact.profilePicture || undefined} 
+                                    src={contact.username === 'jane' ? undefined : (contact.profilePicture || undefined)} 
                                     alt={contact.displayName}
+                                    onError={(e) => {
+                                      console.log(`Avatar failed to load for ${contact.displayName}:`, contact.profilePicture);
+                                    }}
                                   />
-                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                                     <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                                   </AvatarFallback>
                                 </Avatar>
