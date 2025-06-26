@@ -39,6 +39,7 @@ export interface IStorage {
 
   // Escrow
   getConversationEscrows(conversationId: number): Promise<Escrow[]>;
+  getUserEscrows(userId: number): Promise<Escrow[]>;
   createEscrow(escrow: InsertEscrow): Promise<Escrow>;
   addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null>;
   releaseEscrow(escrowId: number): Promise<boolean>;
@@ -177,6 +178,13 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  async getMessagesByIds(messageIds: number[]): Promise<Message[]> {
+    if (messageIds.length === 0) return [];
+    return await db.select().from(messages).where(
+      or(...messageIds.map(id => eq(messages.id, id)))
+    );
+  }
+
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const [message] = await db
       .insert(messages)
@@ -223,6 +231,12 @@ export class DatabaseStorage implements IStorage {
 
   async getConversationEscrows(conversationId: number): Promise<Escrow[]> {
     return await db.select().from(escrows).where(eq(escrows.conversationId, conversationId));
+  }
+
+  async getUserEscrows(userId: number): Promise<Escrow[]> {
+    return await db.select().from(escrows).where(
+      or(eq(escrows.initiatorId, userId), eq(escrows.participantId, userId))
+    );
   }
 
   async createEscrow(insertEscrow: InsertEscrow): Promise<Escrow> {

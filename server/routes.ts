@@ -209,6 +209,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user escrows
+  app.get("/api/user/escrows", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const escrows = await storage.getUserEscrows(userId);
+      res.json(escrows);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user escrows" });
+    }
+  });
+
   // Create escrow
   app.post("/api/escrows", async (req, res) => {
     try {

@@ -493,7 +493,7 @@ function EscrowListModal({ isOpen, onClose, escrows }: { isOpen: boolean; onClos
                     </div>
                     <div>
                       <span className="font-semibold text-black dark:text-white">
-                        {escrow.participant1Amount} {escrow.participant1Currency}
+                        {escrow.initiatorRequiredAmount} {escrow.initiatorCurrency}
                       </span>
                       <p className="text-xs text-gray-500 dark:text-slate-400">
                         Escrow #{escrow.id}
@@ -831,7 +831,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                     <div className="flex items-center space-x-2">
                       <Shield className="h-4 w-4 text-orange-600 dark:text-blue-400" />
                       <span className="text-sm font-medium text-black dark:text-white">
-                        {escrow.participant1Amount} {escrow.participant1Currency}
+                        {escrow.initiatorRequiredAmount} {escrow.initiatorCurrency}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
