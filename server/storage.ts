@@ -1,10 +1,14 @@
 import { 
   users, conversations, messages, walletBalances, escrows, favorites,
+  escrowMilestones, escrowDisputes, escrowTemplates,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
   type WalletBalance, type InsertWalletBalance,
   type Escrow, type InsertEscrow,
+  type EscrowMilestone, type InsertEscrowMilestone,
+  type EscrowDispute, type InsertEscrowDispute,
+  type EscrowTemplate, type InsertEscrowTemplate,
   type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
@@ -37,16 +41,39 @@ export interface IStorage {
   createWalletBalance(balance: InsertWalletBalance): Promise<WalletBalance>;
   updateWalletBalance(userId: number, currency: string, newBalance: string): Promise<void>;
 
-  // Escrow
+  // Enhanced Escrow System
   getConversationEscrows(conversationId: number): Promise<Escrow[]>;
   getUserEscrows(userId: number): Promise<Escrow[]>;
+  getEscrow(escrowId: number): Promise<Escrow | undefined>;
   createEscrow(escrow: InsertEscrow): Promise<Escrow>;
+  updateEscrow(escrowId: number, updates: Partial<InsertEscrow>): Promise<Escrow | null>;
   addFundsToEscrow(escrowId: number, userId: number, amount: string): Promise<Escrow | null>;
   updateEscrowStatus(escrowId: number, status: string, blockchainTxHash?: string): Promise<Escrow | null>;
   updateConfirmationCount(escrowId: number, count: number): Promise<Escrow | null>;
   releaseEscrow(escrowId: number): Promise<boolean>;
   cancelEscrow(escrowId: number, userId: number): Promise<boolean>;
   sendEscrowNotification(escrowId: number): Promise<boolean>;
+  searchEscrows(userId: number, filters?: { status?: string; type?: string; tags?: string[] }): Promise<Escrow[]>;
+  
+  // Milestone Management
+  getEscrowMilestones(escrowId: number): Promise<EscrowMilestone[]>;
+  createMilestone(milestone: InsertEscrowMilestone): Promise<EscrowMilestone>;
+  updateMilestone(milestoneId: number, updates: Partial<InsertEscrowMilestone>): Promise<EscrowMilestone | null>;
+  completeMilestone(milestoneId: number): Promise<boolean>;
+  
+  // Dispute System
+  getEscrowDisputes(escrowId: number): Promise<EscrowDispute[]>;
+  getUserDisputes(userId: number): Promise<EscrowDispute[]>;
+  createDispute(dispute: InsertEscrowDispute): Promise<EscrowDispute>;
+  updateDispute(disputeId: number, updates: Partial<InsertEscrowDispute>): Promise<EscrowDispute | null>;
+  resolveDispute(disputeId: number, resolution: string, mediatorId: number): Promise<boolean>;
+  
+  // Template System
+  getEscrowTemplates(category?: string): Promise<EscrowTemplate[]>;
+  getUserTemplates(userId: number): Promise<EscrowTemplate[]>;
+  createTemplate(template: InsertEscrowTemplate): Promise<EscrowTemplate>;
+  updateTemplate(templateId: number, updates: Partial<InsertEscrowTemplate>): Promise<EscrowTemplate | null>;
+  deleteTemplate(templateId: number, userId: number): Promise<boolean>;
 
   // Favorites
   getUserFavorites(userId: number): Promise<Favorite[]>;

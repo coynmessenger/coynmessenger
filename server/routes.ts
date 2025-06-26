@@ -383,6 +383,181 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Escrow Management Routes
+
+  // Get specific escrow details
+  app.get("/api/escrows/:id", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const escrow = await storage.getEscrow?.(escrowId);
+      if (!escrow) {
+        return res.status(404).json({ message: "Escrow not found" });
+      }
+
+      res.json(escrow);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get escrow details" });
+    }
+  });
+
+  // Search user escrows with filters
+  app.get("/api/user/escrows/search", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const { status, type, tags } = req.query;
+      
+      const filters: any = {};
+      if (status) filters.status = status as string;
+      if (type) filters.type = type as string;
+      if (tags) filters.tags = (tags as string).split(',');
+
+      const escrows = await storage.searchEscrows?.(userId, filters) || [];
+      res.json(escrows);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search escrows" });
+    }
+  });
+
+  // Update escrow
+  app.patch("/api/escrows/:id", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const updates = req.body;
+      const updatedEscrow = await storage.updateEscrow?.(escrowId, updates);
+      
+      if (!updatedEscrow) {
+        return res.status(404).json({ message: "Escrow not found" });
+      }
+
+      res.json(updatedEscrow);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update escrow" });
+    }
+  });
+
+  // Create and manage escrow disputes
+  app.post("/api/escrows/:id/disputes", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const disputeData = { 
+        ...req.body, 
+        escrowId,
+        initiatorId: 5 // Current user
+      };
+      
+      const dispute = await storage.createDispute?.(disputeData);
+      if (dispute) {
+        res.status(201).json(dispute);
+      } else {
+        res.status(500).json({ message: "Failed to create dispute" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create dispute" });
+    }
+  });
+
+  // Get escrow disputes
+  app.get("/api/escrows/:id/disputes", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const disputes = await storage.getEscrowDisputes?.(escrowId) || [];
+      res.json(disputes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get disputes" });
+    }
+  });
+
+  // Get user disputes
+  app.get("/api/user/disputes", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const disputes = await storage.getUserDisputes?.(userId) || [];
+      res.json(disputes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user disputes" });
+    }
+  });
+
+  // Escrow template management
+  app.get("/api/escrow/templates", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const templates = await storage.getEscrowTemplates?.(category as string) || [];
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get templates" });
+    }
+  });
+
+  app.post("/api/escrow/templates", async (req, res) => {
+    try {
+      const templateData = { 
+        ...req.body, 
+        createdBy: 5 // Current user
+      };
+      
+      const template = await storage.createTemplate?.(templateData);
+      if (template) {
+        res.status(201).json(template);
+      } else {
+        res.status(500).json({ message: "Failed to create template" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Milestone management
+  app.get("/api/escrows/:id/milestones", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const milestones = await storage.getEscrowMilestones?.(escrowId) || [];
+      res.json(milestones);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get milestones" });
+    }
+  });
+
+  app.post("/api/escrows/:id/milestones", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      if (isNaN(escrowId)) {
+        return res.status(400).json({ message: "Invalid escrow ID" });
+      }
+
+      const milestoneData = { ...req.body, escrowId };
+      const milestone = await storage.createMilestone?.(milestoneData);
+      
+      if (milestone) {
+        res.status(201).json(milestone);
+      } else {
+        res.status(500).json({ message: "Failed to create milestone" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create milestone" });
+    }
+  });
+
   // Marketplace API routes
   app.get("/api/marketplace/search", async (req, res) => {
     try {
