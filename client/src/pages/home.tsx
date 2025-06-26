@@ -10,6 +10,8 @@ import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, 
 import { apiRequest } from "@/lib/queryClient";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1750818324226.png";
+import TermsModal from "@/components/terms-modal";
+import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
 
 export default function HomePage() {
@@ -23,6 +25,8 @@ export default function HomePage() {
     const stored = localStorage.getItem('connectedUser');
     return stored ? JSON.parse(stored) : null;
   });
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
@@ -275,6 +279,23 @@ export default function HomePage() {
           <p>Secure • Decentralized • Private</p>
         </div>
 
+        {/* Legal Links */}
+        <div className="text-center mt-6 space-x-4">
+          <button
+            onClick={() => setShowTermsModal(true)}
+            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+          >
+            Terms & Conditions
+          </button>
+          <span className="text-sm text-muted-foreground">•</span>
+          <button
+            onClick={() => setShowPrivacyModal(true)}
+            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+          >
+            Privacy Policy
+          </button>
+        </div>
+
         {/* Powered by Coynful */}
         <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-opacity">
@@ -287,6 +308,16 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Terms and Privacy Modals */}
+      <TermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+      />
+      <PrivacyModal 
+        isOpen={showPrivacyModal} 
+        onClose={() => setShowPrivacyModal(false)} 
+      />
     </div>
   );
 }
