@@ -240,29 +240,16 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   // Refresh cart when dialog opens
   useEffect(() => {
     if (isOpen) {
-      console.log('🛒 Cart dialog opened, loading items...');
       const savedCart = localStorage.getItem('shopping-cart');
-      console.log('🔍 Raw localStorage data:', savedCart);
-      
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart);
-          console.log('✅ Successfully parsed cart:', parsedCart);
-          console.log('📊 Cart items count:', parsedCart.length);
-          console.log('🏷️ Item details:', parsedCart.map((item: CartItem) => ({
-            id: item.id,
-            title: item.title?.substring(0, 30) + '...',
-            price: item.price,
-            quantity: item.quantity
-          })));
-          
           setCartItems(parsedCart);
         } catch (error) {
-          console.error('❌ Error parsing cart from localStorage:', error);
+          console.error('Error loading cart:', error);
           setCartItems([]);
         }
       } else {
-        console.log('🚫 No cart found in localStorage');
         setCartItems([]);
       }
     }
@@ -302,50 +289,7 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
   }, [isOpen]);
 
   const removeFromCart = (id: string) => {
-    console.log('Removing item from cart:', id);
-    setCartItems(prev => {
-      const updated = prev.filter(item => item.id !== id);
-      console.log('Cart after removal:', updated);
-      return updated;
-    });
-  };
-
-  // Debug function to test cart functionality  
-  const testCart = () => {
-    console.log('🧪 CART DEBUG TEST STARTED');
-    console.log('1. Current cart items:', cartItems);
-    console.log('2. Current localStorage cart:', localStorage.getItem('shopping-cart'));
-    
-    // Clear existing cart
-    localStorage.removeItem('shopping-cart');
-    console.log('3. Cleared localStorage');
-    
-    const testItems = [
-      {
-        id: "TEST001",
-        title: "Debug Test Item 1 - Short Title",
-        price: "19.99",
-        imageUrl: "https://via.placeholder.com/100x100/ff0000/ffffff?text=Test1",
-        quantity: 1,
-        currency: "USD"
-      },
-      {
-        id: "TEST002", 
-        title: "Debug Test Item 2 - Another Test Product",
-        price: "29.99",
-        imageUrl: "https://via.placeholder.com/100x100/00ff00/ffffff?text=Test2",
-        quantity: 2,
-        currency: "USD"
-      }
-    ];
-    
-    console.log('4. Setting test items:', testItems);
-    localStorage.setItem('shopping-cart', JSON.stringify(testItems));
-    console.log('5. Stored in localStorage:', localStorage.getItem('shopping-cart'));
-    
-    setCartItems(testItems);
-    console.log('6. Set cartItems state:', testItems);
-    console.log('🧪 CART DEBUG TEST COMPLETED');
+    setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -490,131 +434,115 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
     </div>
   );
 
-  const renderCartStep = () => {
-    console.log('Rendering cart step with items:', cartItems);
-    console.log('Cart items length:', cartItems.length);
-    
-    return (
-      <div className="flex flex-col min-h-0">
-        <div className="flex-shrink-0 mb-4">
-          <h3 className="text-lg font-semibold">Shopping Cart ({cartItems.length} items)</h3>
-          {cartItems.length > 0 && (
-            <p className="text-sm text-gray-600 mt-1">Items ready for checkout</p>
-          )}
-        </div>
-        
-        {cartItems.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center min-h-[300px]">
-            <div className="text-center py-8">
-              <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">Your cart is empty</p>
-              <Button onClick={onClose} className="h-12 touch-manipulation">Continue Shopping</Button>
-            </div>
+  const renderCartStep = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex-shrink-0 mb-4">
+        <h3 className="text-lg sm:text-xl font-semibold">Shopping Cart ({cartItems.length} items)</h3>
+      </div>
+      
+      {cartItems.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-8">
+            <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">Your cart is empty</p>
+            <Button onClick={onClose} className="h-12 touch-manipulation">Continue Shopping</Button>
           </div>
-        ) : (
-          <div className="flex flex-col min-h-0">
-            <div className="space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[400px] mb-6">
-              {cartItems.map((item, index) => (
-                <div key={item.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-start space-x-4">
-                    {item.imageUrl && (
-                      <div className="flex-shrink-0">
-                        <img 
-                          src={item.imageUrl} 
-                          alt={item.title}
-                          className="w-20 h-20 object-cover rounded-lg border border-gray-300"
-                          onError={(e) => {
-                            console.log('Image failed to load:', item.imageUrl);
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                          onLoad={() => console.log('Image loaded:', item.imageUrl)}
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-base text-gray-900 dark:text-white mb-2 leading-tight">{item.title}</h4>
-                      <p className="text-green-600 font-bold text-lg mb-3">${item.price}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-100"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="w-8 text-center font-semibold text-gray-900 dark:text-white">{item.quantity}</span>
-                          <Button
-                            variant="outline" 
-                            size="sm"
-                            className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-100"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0">
+            {cartItems.map((item) => (
+              <Card key={item.id} className="p-3 sm:p-4">
+                <div className="flex items-start space-x-3 sm:space-x-4">
+                  {item.imageUrl && (
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.title}
+                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <h4 className="font-medium text-sm sm:text-base line-clamp-2">{item.title}</h4>
+                    <p className="text-green-600 font-semibold text-base sm:text-lg">${item.price}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => removeFromCart(item.id)}
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 touch-manipulation"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 touch-manipulation"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
                         </Button>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 touch-manipulation"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="flex-shrink-0 mt-4 space-y-4">
-              <Card className="p-4 bg-gray-50 dark:bg-gray-800">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal:</span>
-                    <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Shipping:</span>
-                    <span className="font-medium">${calculateShipping().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Tax:</span>
-                    <span className="font-medium">${calculateTax().toFixed(2)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span className="text-orange-600">${calculateTotal().toFixed(2)}</span>
-                  </div>
-                </div>
               </Card>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={onClose}
-                  className="w-full sm:w-auto h-12"
-                >
-                  Continue Shopping
-                </Button>
-                <Button 
-                  onClick={proceedToReview} 
-                  className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 h-12 font-semibold"
-                >
-                  Proceed to Review
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+            ))}
+          </div>
+          
+          <div className="flex-shrink-0 mt-4 space-y-4">
+            <Card className="p-4 bg-gray-50 dark:bg-gray-800">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Subtotal:</span>
+                  <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Shipping:</span>
+                  <span className="font-medium">${calculateShipping().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Tax:</span>
+                  <span className="font-medium">${calculateTax().toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg sm:text-xl">
+                  <span>Total:</span>
+                  <span className="text-orange-600">${calculateTotal().toFixed(2)}</span>
+                </div>
               </div>
+            </Card>
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="w-full sm:w-auto h-12 sm:h-10 touch-manipulation"
+              >
+                Continue Shopping
+              </Button>
+              <Button 
+                onClick={proceedToReview} 
+                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 h-12 sm:h-10 touch-manipulation font-semibold"
+              >
+                Proceed to Review
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
-        )}
-      </div>
-    );
-  };
+        </>
+      )}
+    </div>
+  );
 
   const renderReviewStep = () => (
     <div className="space-y-6">
@@ -963,9 +891,9 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[98vw] sm:w-[95vw] max-w-4xl h-[95vh] sm:h-[90vh] max-h-[95vh] p-0 m-1 sm:m-2 md:m-4 flex flex-col">
-        <DialogHeader className="p-3 sm:p-4 md:p-6 border-b border-border flex-shrink-0">
-          <DialogTitle className="text-base sm:text-lg md:text-xl font-bold">
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-0 m-2 sm:m-4 flex flex-col">
+        <DialogHeader className="p-4 sm:p-6 border-b border-border flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-xl font-bold">
             {currentStep === 'cart' && 'Shopping Cart'}
             {currentStep === 'review' && 'Review Your Order'}
             {currentStep === 'finalize' && 'Finalize Purchase'}
@@ -977,27 +905,11 @@ export default function AmazonCheckout({ isOpen, onClose }: AmazonCheckoutProps)
           </DialogDescription>
         </DialogHeader>
         
-        {/* Cart Debug Panel - Only in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mx-3 sm:mx-4 md:mx-6 p-2 bg-red-50 border border-red-200 rounded text-xs">
-            <div className="font-bold text-red-700 mb-1">CART DEBUG STATUS:</div>
-            <div className="grid grid-cols-2 gap-2 text-red-600">
-              <div>Dialog Open: {isOpen ? 'YES' : 'NO'}</div>
-              <div>Current Step: {currentStep}</div>
-              <div>Cart Items: {cartItems.length}</div>
-              <div>localStorage: {localStorage.getItem('shopping-cart') ? 'PRESENT' : 'EMPTY'}</div>
-            </div>
-            <div className="mt-2 text-red-500 font-mono text-xs">
-              Raw cart: {JSON.stringify(cartItems.slice(0, 1), null, 1)}
-            </div>
-          </div>
-        )}
-        
-        <div className="flex-shrink-0 px-3 sm:px-4 md:px-6">
+        <div className="flex-shrink-0">
           {renderProgressBar()}
         </div>
         
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 min-h-0" style={{ minHeight: '400px' }}>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
           {currentStep === 'cart' && renderCartStep()}
           {currentStep === 'review' && renderReviewStep()}
           {currentStep === 'finalize' && renderFinalizeStep()}
