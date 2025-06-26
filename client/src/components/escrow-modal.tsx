@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Escrow, User, WalletBalance } from "@shared/schema";
-import { Shield, Clock, CheckCircle, XCircle, Plus, DollarSign } from "lucide-react";
+import { Shield, Clock, CheckCircle, XCircle, Plus, DollarSign, Zap } from "lucide-react";
+import EnhancedEscrowModal from "./enhanced-escrow-modal";
 
 interface EscrowModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface EscrowModalProps {
 
 export default function EscrowModal({ isOpen, onClose, conversationId, otherUser }: EscrowModalProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEnhancedModal, setShowEnhancedModal] = useState(false);
   const [initiatorCurrency, setInitiatorCurrency] = useState("COYN");
   const [participantCurrency, setParticipantCurrency] = useState("BTC");
   const [initiatorAmount, setInitiatorAmount] = useState("");
@@ -254,10 +256,21 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:max-w-2xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[85vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-orange-500 dark:text-cyan-400 text-lg sm:text-xl font-bold flex items-center">
-            <Shield className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-            <span className="truncate">Escrow Manager</span>
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-orange-500 dark:text-cyan-400 text-lg sm:text-xl font-bold flex items-center">
+              <Shield className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+              <span className="truncate">Escrow Manager</span>
+            </DialogTitle>
+            <Button
+              onClick={() => setShowEnhancedModal(true)}
+              variant="outline"
+              size="sm"
+              className="border-orange-500 text-orange-500 hover:bg-orange-50 dark:border-cyan-400 dark:text-cyan-400 dark:hover:bg-cyan-950"
+            >
+              <Zap className="h-4 w-4 mr-1" />
+              Enhanced Mode
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -542,6 +555,13 @@ export default function EscrowModal({ isOpen, onClose, conversationId, otherUser
           </div>
         </div>
       </DialogContent>
+      
+      {/* Enhanced Escrow Modal */}
+      <EnhancedEscrowModal
+        isOpen={showEnhancedModal}
+        onClose={() => setShowEnhancedModal(false)}
+        conversationId={conversationId}
+      />
     </Dialog>
   );
 }

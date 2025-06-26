@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { insertMessageSchema, insertEscrowSchema, insertUserSchema } from "@shared/schema";
 import { initializeDatabase } from "./db";
 import { z } from "zod";
+import { enhancedEscrowManager } from "./escrow-enhanced";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
@@ -482,9 +483,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Escrow System Endpoints
+  
+  // Enhanced funding with blockchain simulation
+  app.post("/api/escrows/:id/fund-enhanced", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      const { amount } = req.body;
 
+      if (isNaN(escrowId) || !amount) {
+        return res.status(400).json({ message: "Invalid escrow ID or amount" });
+      }
 
+      const escrow = await enhancedEscrowManager.processEscrowFunding(escrowId, 5, amount);
+      if (!escrow) {
+        return res.status(404).json({ message: "Escrow not found or unauthorized" });
+      }
 
+      res.json(escrow);
+    } catch (error) {
+      console.error("Enhanced funding error:", error);
+      res.status(500).json({ message: "Failed to process enhanced funding" });
+    }
+  });
+
+  // Smart dispute initiation
+  app.post("/api/escrows/:id/smart-dispute", async (req, res) => {
+    try {
+      const escrowId = parseInt(req.params.id);
+      const { reason, evidence = [] } = req.body;
+
+      if (isNaN(escrowId) || !reason) {
+        return res.status(400).json({ message: "Invalid escrow ID or missing reason" });
+      }
+
+      await enhancedEscrowManager.initiateSmartDispute(escrowId, reason, evidence, 5);
+      res.json({ message: "Smart dispute initiated successfully" });
+    } catch (error) {
+      console.error("Smart dispute error:", error);
+      res.status(500).json({ message: "Failed to initiate smart dispute" });
+    }
+  });
+
+  // Get enhanced escrow analytics
+  app.get("/api/escrows/analytics", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const escrows = await storage.getUserEscrows(userId);
+      
+      const analytics = {
+        total: escrows.length,
+        pending: escrows.filter(e => e.status === "pending").length,
+        active: escrows.filter(e => ["funded", "confirming"].includes(e.status)).length,
+        completed: escrows.filter(e => e.status === "released").length,
+        disputed: escrows.filter(e => e.status === "disputed").length,
+        cancelled: escrows.filter(e => e.status === "cancelled").length,
+        averageAmount: escrows.length > 0 ? 
+          escrows.reduce((sum, e) => sum + parseFloat(e.initiatorRequiredAmount), 0) / escrows.length : 0,
+        successRate: escrows.length > 0 ? 
+          (escrows.filter(e => e.status === "released").length / escrows.length) * 100 : 0,
+        recentActivity: escrows
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 5)
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ message: "Failed to get escrow analytics" });
+    }
+  });
 
   // Marketplace API routes
   app.get("/api/marketplace/search", async (req, res) => {
