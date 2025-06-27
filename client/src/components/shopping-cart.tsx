@@ -427,15 +427,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] bg-background border-border p-4 sm:p-6">
-          <DialogHeader className="pb-4 border-b border-border">
-            <DialogTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
-              <ShoppingCartIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+        <DialogContent className="w-[95vw] max-w-4xl h-[85vh] max-h-[85vh] bg-background border-border p-3 sm:p-4">
+          <DialogHeader className="pb-2 border-b border-border">
+            <DialogTitle className="flex items-center gap-2 text-foreground text-base sm:text-lg">
+              <ShoppingCartIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               Shopping Cart ({cartItems.length} items)
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col h-full max-h-[calc(90vh-100px)] overflow-hidden">
+          <div className="flex flex-col h-full max-h-[calc(85vh-80px)] overflow-hidden">
             {cartItems.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center py-12">
@@ -447,70 +447,69 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
             ) : (
               <>
                 {/* Cart Items List */}
-                <div className="flex-1 overflow-y-auto space-y-3 py-2">
-                  <div className="text-sm text-muted-foreground mb-3 px-1">
+                <div className="flex-1 overflow-y-auto space-y-2 py-1">
+                  <div className="text-xs text-muted-foreground mb-2 px-1">
                     {cartItems.length} item{cartItems.length > 1 ? 's' : ''} in your cart
                   </div>
                   
                   {cartItems.map((item) => (
                     <Card key={item.id} className="bg-card border-border hover:shadow-md transition-shadow">
-                      <CardContent className="p-3 sm:p-4">
-                        <div className="flex items-start gap-3 sm:gap-4">
+                      <CardContent className="p-2 sm:p-3">
+                        <div className="flex items-start gap-2 sm:gap-3">
                           {item.imageUrl && (
                             <div className="flex-shrink-0">
                               <img 
                                 src={item.imageUrl} 
                                 alt={item.title}
-                                className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-border"
+                                className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg border border-border"
                               />
                             </div>
                           )}
                           
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-foreground text-base sm:text-lg mb-1 sm:mb-2 line-clamp-2">
+                            <h4 className="font-semibold text-foreground text-sm sm:text-base mb-1 line-clamp-2">
                               {item.title}
                             </h4>
-                            <p className="text-xl font-bold text-orange-500 dark:text-cyan-400 mb-4">
+                            <p className="text-lg font-bold text-orange-500 dark:text-cyan-400 mb-2">
                               ${item.price} each
                             </p>
                             
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-9 w-9"
+                                  className="h-7 w-7"
                                   onClick={() => updateQuantity(item.id, -1)}
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <Minus className="h-3 w-3" />
                                 </Button>
-                                <span className="w-12 text-center font-semibold text-lg text-foreground">
+                                <span className="w-8 text-center font-semibold text-sm text-foreground">
                                   {item.quantity}
                                 </span>
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-9 w-9"
+                                  className="h-7 w-7"
                                   onClick={() => updateQuantity(item.id, 1)}
                                 >
-                                  <Plus className="h-4 w-4" />
+                                  <Plus className="h-3 w-3" />
                                 </Button>
                               </div>
                               
-                              <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
                                 <div className="text-right">
-                                  <p className="text-sm text-muted-foreground">Subtotal</p>
-                                  <p className="text-lg font-bold text-foreground">
+                                  <p className="text-sm font-bold text-foreground">
                                     ${(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity).toFixed(2)}
                                   </p>
                                 </div>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                   onClick={() => removeItem(item.id)}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
                             </div>
@@ -522,15 +521,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                 </div>
 
                 {/* Cart Summary */}
-                <div className="border-t border-border pt-4 mt-4 space-y-4 flex-shrink-0">
-                  <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                <div className="border-t border-border pt-2 mt-2 space-y-3 flex-shrink-0">
+                  <div className="bg-muted/50 rounded-lg p-2 sm:p-3 space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-foreground text-base sm:text-lg">Cart Total:</span>
-                      <span className="text-xl sm:text-2xl font-bold text-orange-500 dark:text-cyan-400">
+                      <span className="font-medium text-foreground text-sm sm:text-base">Cart Total:</span>
+                      <span className="text-lg sm:text-xl font-bold text-orange-500 dark:text-cyan-400">
                         ${totalUSD.toFixed(2)} USD
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Shipping and taxes will be calculated at checkout
                     </p>
                   </div>
@@ -540,10 +539,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       setCheckoutStep('address');
                       setShowCheckoutModal(true);
                     }}
-                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold py-3 sm:py-4 text-base sm:text-lg"
+                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold py-2 sm:py-3 text-sm sm:text-base"
                     size="lg"
                   >
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                    <CreditCard className="h-4 w-4 mr-2" />
                     Proceed to Checkout
                   </Button>
                 </div>

@@ -325,6 +325,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Removed "Details & Reviews" expandable section from marketplace - eliminated expandable product details, mock reviews, and description panels from marketplace product cards for cleaner interface, removed associated state management and toggle functionality, updated imports to remove unused UI components
 - June 27, 2025: Fixed homepage welcome message to reflect connected user's display name - added useEffect to fetch current user data and update localStorage when display name changes, welcome message now shows "Welcome to COYN, Jen!" instead of outdated "COYNUSER" text, ensures homepage always displays current user profile information
 - June 27, 2025: Implemented @ID fallback system for users without display names - when no display name is provided during wallet connection, system automatically generates "@" + last 6 characters of wallet address (e.g., "@cdef12"), updated homepage welcome message and settings modal profile header to use consistent fallback logic, ensures all users have meaningful identifiers even without custom display names
+- June 27, 2025: Optimized shopping cart modal spacing for mobile - reduced modal height to 85vh, minimized padding (p-3 on mobile), compressed cart items with smaller images (12x12 on mobile), reduced quantity controls to h-7/w-7, tighter cart summary with compact button sizing, eliminated scroll requirements on mobile devices for better user experience
 
 ## User Preferences
 
