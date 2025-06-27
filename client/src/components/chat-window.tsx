@@ -650,15 +650,16 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
 
       {/* Crypto Send Modal */}
       <Dialog open={showCryptoModal} onOpenChange={resetCryptoModal}>
-        <DialogContent className="w-[90vw] sm:w-[85vw] max-w-md max-h-[95vh] m-5 sm:m-6 p-5 sm:p-6 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-          <DialogHeader>
+        <DialogContent className="w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] m-4 sm:m-6 p-0 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 flex flex-col">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-black dark:text-white text-lg font-semibold">
               {cryptoStep === "amount" ? `Send ${selectedCrypto}` : `Confirm ${selectedCrypto} Transfer`}
             </DialogTitle>
           </DialogHeader>
           
-          {cryptoStep === "amount" && (
-            <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 pt-4">
+            {cryptoStep === "amount" && (
+              <div className="space-y-4">
               <div>
                 <Label htmlFor="crypto-amount" className="text-black dark:text-white text-sm font-medium">
                   Amount to send
@@ -706,57 +707,58 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   Cancel
                 </Button>
               </div>
-            </div>
-          )}
+              </div>
+            )}
           
-          {cryptoStep === "confirm" && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-slate-400">Amount:</span>
-                  <span className="text-lg font-bold text-black dark:text-white">
-                    {cryptoAmount} {selectedCrypto}
-                  </span>
+            {cryptoStep === "confirm" && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-slate-400">Amount:</span>
+                    <span className="text-lg font-bold text-black dark:text-white">
+                      {cryptoAmount} {selectedCrypto}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-slate-400">Recipient:</span>
+                    <span className="text-sm font-medium text-black dark:text-white">
+                      {conversation.otherUser.displayName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-slate-400">Wallet Address:</span>
+                    <span className="text-xs font-mono text-black dark:text-white">
+                      {conversation.otherUser.walletAddress.slice(0, 6)}...{conversation.otherUser.walletAddress.slice(-4)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-slate-400">Recipient:</span>
-                  <span className="text-sm font-medium text-black dark:text-white">
-                    {conversation.otherUser.displayName}
-                  </span>
+                
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Important:</strong> This transaction cannot be reversed. Please verify all details before confirming.
+                  </p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-slate-400">Wallet Address:</span>
-                  <span className="text-xs font-mono text-black dark:text-white">
-                    {conversation.otherUser.walletAddress.slice(0, 6)}...{conversation.otherUser.walletAddress.slice(-4)}
-                  </span>
+                
+                <div className="flex space-x-3 pt-4">
+                  <Button
+                    onClick={handleSendConfirm}
+                    disabled={sendCryptoMutation.isPending}
+                    className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white font-medium"
+                  >
+                    {sendCryptoMutation.isPending ? "Sending..." : `Send ${selectedCrypto}`}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCryptoStep("amount")}
+                    disabled={sendCryptoMutation.isPending}
+                    className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700"
+                  >
+                    Back
+                  </Button>
                 </div>
               </div>
-              
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>Important:</strong> This transaction cannot be reversed. Please verify all details before confirming.
-                </p>
-              </div>
-              
-              <div className="flex space-x-3 pt-4">
-                <Button
-                  onClick={handleSendConfirm}
-                  disabled={sendCryptoMutation.isPending}
-                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white font-medium"
-                >
-                  {sendCryptoMutation.isPending ? "Sending..." : `Send ${selectedCrypto}`}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCryptoStep("amount")}
-                  disabled={sendCryptoMutation.isPending}
-                  className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700"
-                >
-                  Back
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
