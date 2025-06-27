@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
@@ -68,8 +69,23 @@ export default function ProductPage() {
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [selectedColor, setSelectedColor] = useState(0);
   const [showNFTRewards, setShowNFTRewards] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Sample reviews data - in real app would come from API
+  const reviewsData = [
+    { name: "Sarah M.", rating: 5, comment: "Excellent sound quality! The Alexa integration works perfectly and setup was incredibly easy.", verified: true, date: "2024-12-15" },
+    { name: "Mike R.", rating: 4, comment: "Great value for money. Compact design fits perfectly on my nightstand.", verified: true, date: "2024-12-10" },
+    { name: "Jennifer L.", rating: 5, comment: "Love how responsive it is. Voice recognition works even with background noise.", verified: false, date: "2024-12-08" },
+    { name: "David K.", rating: 4, comment: "Good product overall. Sound is clear and bass is surprisingly good for the size.", verified: true, date: "2024-12-05" },
+    { name: "Lisa P.", rating: 5, comment: "Perfect for controlling smart home devices. Very satisfied with this purchase!", verified: true, date: "2024-12-01" },
+    { name: "Alex T.", rating: 5, comment: "Amazing product! Works seamlessly with my smart home setup. Highly recommend.", verified: true, date: "2024-11-28" },
+    { name: "Emma W.", rating: 4, comment: "Good quality speaker with clear sound. Setup was easy and Alexa responds well.", verified: true, date: "2024-11-25" },
+    { name: "Ryan B.", rating: 5, comment: "Exceeded my expectations! The sound quality is fantastic for such a compact device.", verified: true, date: "2024-11-20" },
+    { name: "Jessica H.", rating: 4, comment: "Very happy with this purchase. The voice recognition is impressive and works from across the room.", verified: false, date: "2024-11-18" },
+    { name: "Mark S.", rating: 5, comment: "Perfect addition to my bedroom. Sound quality is great and Alexa integration is flawless.", verified: true, date: "2024-11-15" }
+  ];
 
   // Fetch product details
   const { data: product, isLoading, error } = useQuery<Product>({
@@ -420,16 +436,20 @@ export default function ProductPage() {
 
             {/* Reviews Section */}
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">Customer Reviews</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-foreground">Customer Reviews</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAllReviews(true)}
+                  className="text-orange-600 dark:text-cyan-400 border-orange-200 dark:border-cyan-600 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
+                >
+                  View All
+                </Button>
+              </div>
               <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                {[
-                  { name: "Sarah M.", rating: 5, comment: "Excellent sound quality! The Alexa integration works perfectly and setup was incredibly easy.", verified: true },
-                  { name: "Mike R.", rating: 4, comment: "Great value for money. Compact design fits perfectly on my nightstand.", verified: true },
-                  { name: "Jennifer L.", rating: 5, comment: "Love how responsive it is. Voice recognition works even with background noise.", verified: false },
-                  { name: "David K.", rating: 4, comment: "Good product overall. Sound is clear and bass is surprisingly good for the size.", verified: true },
-                  { name: "Lisa P.", rating: 5, comment: "Perfect for controlling smart home devices. Very satisfied with this purchase!", verified: true }
-                ].map((review, index) => (
-                  <div key={index} className="flex-shrink-0 w-72 p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm">
+                {reviewsData.slice(0, 3).map((review, index) => (
+                  <div key={index} className="flex-shrink-0 w-72 p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-slate-700/50 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{review.name}</span>
@@ -686,6 +706,58 @@ export default function ProductPage() {
           Earn NFT rewards with crypto purchases valued $50+. Each NFT provides exclusive benefits, early access, and rewards including shopping discounts, VIP perks, and special offers.
         </p>
       </div>
+
+      {/* All Reviews Modal */}
+      <Dialog open={showAllReviews} onOpenChange={setShowAllReviews}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-orange-200/50 dark:border-cyan-600/50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground mb-4">
+              Customer Reviews ({reviewsData.length})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto pr-2 space-y-4 max-h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-orange-300 dark:[&::-webkit-scrollbar-thumb]:bg-cyan-600 [&::-webkit-scrollbar-thumb]:rounded-full">
+            {reviewsData.map((review, index) => (
+              <div key={index} className="p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-slate-700/50 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-base">{review.name}</span>
+                      {review.verified && (
+                        <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm text-muted-foreground">{review.date}</span>
+                  </div>
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < review.rating
+                            ? "text-yellow-500 fill-current"
+                            : "text-gray-300 dark:text-gray-600"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-muted-foreground leading-relaxed mb-2">{review.comment}</p>
+                <p className="text-xs text-muted-foreground">Marketplace Verified Purchase</p>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-slate-700">
+            <Button
+              onClick={() => setShowAllReviews(false)}
+              className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
