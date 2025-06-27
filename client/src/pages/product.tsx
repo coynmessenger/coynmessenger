@@ -853,117 +853,27 @@ export default function ProductPage() {
       </div>
 
       {/* NFT Purchase Rewards */}
-      <div className="container mx-auto px-4 py-8 relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-cyan-900/20 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-cyan-900/40"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.1)_100%)]"></div>
-        
-        <div className="relative z-10">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-3">
-              🎁 NFT Purchase Rewards 🎁
-            </h2>
-            <p className="text-lg font-medium text-muted-foreground">
-              ⭐ Unlock Exclusive Digital Collectibles with Every Purchase ⭐
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {[
-              { 
-                tier: "Bronze", 
-                value: "$50+", 
-                color: "from-amber-500 via-orange-600 to-amber-700", 
-                reward: "Bronze NFT",
-                emoji: "🥉",
-                glow: "shadow-amber-500/50",
-                benefits: "5% Discount"
-              },
-              { 
-                tier: "Silver", 
-                value: "$100+", 
-                color: "from-gray-300 via-gray-500 to-slate-600", 
-                reward: "Silver NFT",
-                emoji: "🥈",
-                glow: "shadow-gray-500/50",
-                benefits: "10% Discount"
-              },
-              { 
-                tier: "Gold", 
-                value: "$250+", 
-                color: "from-yellow-300 via-yellow-500 to-yellow-700", 
-                reward: "Gold NFT",
-                emoji: "🥇",
-                glow: "shadow-yellow-500/50",
-                benefits: "15% Discount + VIP"
-              },
-              { 
-                tier: "Diamond", 
-                value: "$500+", 
-                color: "from-cyan-300 via-blue-500 to-purple-600", 
-                reward: "Diamond NFT",
-                emoji: "💎",
-                glow: "shadow-cyan-500/50",
-                benefits: "25% Discount + Premium"
-              }
-            ].map((reward, index) => (
-              <Card 
-                key={index} 
-                className={`
-                  bg-gradient-to-br ${reward.color} text-white relative overflow-hidden
-                  transform hover:scale-105 transition-all duration-300 ease-out
-                  shadow-2xl ${reward.glow} hover:shadow-3xl
-                  border-2 border-white/20 hover:border-white/40
-                `}
-              >
-                {/* Sparkle Effects */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-white/5"></div>
-                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/20 to-transparent rounded-bl-3xl"></div>
-                
-                <CardContent className="p-4 text-center relative z-10">
-                  <div className="text-4xl mb-2 animate-bounce">
-                    {reward.emoji}
-                  </div>
-                  <div className="text-2xl font-extrabold mb-1 drop-shadow-lg">
-                    {reward.tier}
-                  </div>
-                  <div className="text-sm font-semibold opacity-95 mb-2 bg-black/20 rounded-full px-2 py-1">
-                    {reward.value} purchase value
-                  </div>
-                  <div className="text-xs opacity-90 mb-1 font-medium">
-                    {reward.reward}
-                  </div>
-                  <div className="text-xs opacity-80 font-bold text-yellow-200">
-                    🎯 {reward.benefits}
-                  </div>
-                </CardContent>
-                
-                {/* Animated Border Glow */}
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-              </Card>
-            ))}
-          </div>
-          
-          <div className="mt-8 text-center bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-cyan-100/80 dark:from-purple-900/30 dark:via-blue-900/30 dark:to-cyan-900/30 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
-            <p className="text-base font-semibold text-foreground mb-3">
-              🚀 Exclusive NFT Benefits Await! 🚀
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              💰 Earn premium NFT rewards with crypto purchases valued $50+. Each NFT provides exclusive benefits including 
-              <span className="font-semibold text-purple-600 dark:text-purple-400"> 🛍️ shopping discounts</span>, 
-              <span className="font-semibold text-blue-600 dark:text-blue-400"> 👑 VIP perks</span>, 
-              <span className="font-semibold text-cyan-600 dark:text-cyan-400"> 🎁 special offers</span>, and 
-              <span className="font-semibold text-pink-600 dark:text-pink-400"> ⚡ early access</span> to new products!
-            </p>
-            <div className="mt-4 flex justify-center items-center space-x-2 text-xs font-medium text-muted-foreground">
-              <span>🔒 Blockchain Verified</span>
-              <span>•</span>
-              <span>🌟 Limited Edition</span>
-              <span>•</span>
-              <span>♾️ Lifetime Benefits</span>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 py-6">
+        <h2 className="text-xl font-bold text-foreground mb-4">NFT Purchase Rewards</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { tier: "Bronze", value: "$50+", color: "from-amber-600 to-amber-700", reward: "Bronze NFT" },
+            { tier: "Silver", value: "$100+", color: "from-gray-400 to-gray-600", reward: "Silver NFT" },
+            { tier: "Gold", value: "$250+", color: "from-yellow-400 to-yellow-600", reward: "Gold NFT" },
+            { tier: "Diamond", value: "$500+", color: "from-cyan-400 to-blue-600", reward: "Diamond NFT" }
+          ].map((reward, index) => (
+            <Card key={index} className={`bg-gradient-to-br ${reward.color} text-white`}>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold mb-1">{reward.tier}</div>
+                <div className="text-sm opacity-90 mb-2">{reward.value} purchase value</div>
+                <div className="text-xs opacity-80">{reward.reward}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+        <p className="text-sm text-muted-foreground mt-4 text-center">
+          Earn NFT rewards with crypto purchases valued $50+. Each NFT provides exclusive benefits, early access, and rewards including shopping discounts, VIP perks, and special offers.
+        </p>
       </div>
 
       {/* All Reviews Modal */}
