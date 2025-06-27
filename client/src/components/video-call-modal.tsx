@@ -28,6 +28,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  
+  // Drag functionality state
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!isOpen) {
@@ -38,6 +43,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setIsMuted(false);
         setIsVideoOff(false);
         setIsScreenSharing(false);
+        // Reset position to center
+        setPosition({ x: 0, y: 0 });
       }
       return;
     }
@@ -65,6 +72,61 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       clearTimeout(timer2);
     };
   }, [isOpen, isCallActive, onCallStart]);
+
+  // Drag functionality
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    setIsDragging(true);
+    setDragStart({ x: clientX - position.x, y: clientY - position.y });
+  };
+
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
+    if (!isDragging) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const newX = clientX - dragStart.x;
+    const newY = clientY - dragStart.y;
+    
+    // Constrain within viewport
+    const maxX = window.innerWidth - 400; // Assuming modal width ~400px
+    const maxY = window.innerHeight - 600; // Assuming modal height ~600px
+    
+    setPosition({
+      x: Math.max(-200, Math.min(maxX, newX)),
+      y: Math.max(0, Math.min(maxY, newY))
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Global drag event listeners
+  useEffect(() => {
+    if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => handleDragMove(e);
+      const handleMouseUp = () => handleDragEnd();
+      const handleTouchMove = (e: TouchEvent) => handleDragMove(e);
+      const handleTouchEnd = () => handleDragEnd();
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchend', handleTouchEnd);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isDragging, dragStart]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -138,11 +200,25 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         onClose();
       }
     }}>
-      <DialogContent className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden">
+      <DialogContent 
+        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden" 
+        style={{ 
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          marginTop: '-300px',
+          marginLeft: '-200px'
+        }}
+      >
         <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
         
-        {/* Video Area */}
-        <div className="relative aspect-video bg-slate-800">
+        {/* Video Area - Draggable */}
+        <div 
+          className="relative aspect-video bg-slate-800 cursor-move select-none"
+          onMouseDown={handleDragStart}
+          onTouchStart={handleDragStart}
+        >
           {callStatus === "connected" && !isVideoOff ? (
             // Simulated video feed
             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
