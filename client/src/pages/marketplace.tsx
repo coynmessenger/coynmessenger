@@ -15,8 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet, ChevronDown, Info } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import SettingsModal from "@/components/settings-modal";
-import MarketplaceCheckout from "@/components/marketplace-checkout";
-import { addToCart, getCartCount } from "@/components/shopping-cart";
+import { addToCart } from "@/components/shopping-cart";
 import MarketplaceWalletHover from "@/components/marketplace-wallet-hover";
 import WalletModal from "@/components/wallet-modal";
 
@@ -158,8 +157,7 @@ export default function MarketplacePage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showCart, setShowCart] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+
   const [showWalletHover, setShowWalletHover] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
@@ -433,27 +431,7 @@ export default function MarketplacePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Initialize cart count on page load
-  useEffect(() => {
-    setCartCount(getCartCount());
-  }, []);
 
-  // Listen for cart updates across components
-  useEffect(() => {
-    const handleCartUpdate = (event: CustomEvent) => {
-      setCartCount(event.detail.count);
-    };
-
-    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
-    return () => window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
-  }, []);
-
-  // Update cart count when cart modal closes
-  useEffect(() => {
-    if (!showCart) {
-      setCartCount(getCartCount());
-    }
-  }, [showCart]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -497,22 +475,6 @@ export default function MarketplacePage() {
               </Button>
             </div>
             <div className="flex items-center gap-2 sm:gap-2">
-              <Button
-                onClick={() => setShowCart(true)}
-                variant="ghost"
-                size="icon"
-                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
-              >
-                <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
-                {cartCount > 0 && (
-                  <Badge 
-                    className="absolute -top-2 -right-2 h-5 w-5 sm:h-4 sm:w-4 rounded-full p-0 flex items-center justify-center bg-orange-500 dark:bg-cyan-500 text-white text-xs sm:text-[10px]"
-                  >
-                    {cartCount}
-                  </Badge>
-                )}
-              </Button>
-
               <Button
                 onClick={() => setShowSettingsModal(true)}
                 variant="ghost"
@@ -924,10 +886,7 @@ export default function MarketplacePage() {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (isMarketplaceProduct) {
-                              console.log('Adding to cart:', item);
-                              const newCount = addToCart(item as any);
-                              console.log('New cart count:', newCount);
-                              setCartCount(newCount);
+                              addToCart(item as any);
                               toast({
                                 title: "Added to Cart",
                                 description: `${item.title} has been added to your cart`
@@ -1029,18 +988,12 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Marketplace Checkout Modal */}
-      <MarketplaceCheckout 
-        isOpen={showCart}
-        onClose={() => setShowCart(false)}
-      />
-
       {/* Marketplace Wallet Hover Component */}
       <MarketplaceWalletHover
         isVisible={showWalletHover}
         onClose={() => setShowWalletHover(false)}
         anchorRef={walletButtonRef}
-        onProceedToCheckout={() => setShowCart(true)}
+        onProceedToCheckout={() => {}}
       />
 
       {/* Wallet Modal */}
