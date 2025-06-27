@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new user with wallet address
       const userData = {
         username: walletAddress.slice(0, 8), // Use first 8 chars as username
-        displayName: displayName || walletAddress.slice(-6), // Use display name or last 6 chars of wallet
+        displayName: displayName || `@${walletAddress.slice(-6)}`, // Use display name or @id format
         walletAddress: walletAddress,
         isSetup: false, // Don't show automatically created wallet users in contact list
         isOnline: true,
