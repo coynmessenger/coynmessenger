@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -17,16 +17,7 @@ interface VideoCallModalProps {
   isCallActive?: boolean;
 }
 
-export default function VideoCallModal({ 
-  isOpen, 
-  onClose, 
-  onHide, 
-  onCallStart, 
-  onCallEnd, 
-  user, 
-  callType = "outgoing", 
-  isCallActive = false 
-}: VideoCallModalProps) {
+export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing", isCallActive = false }: VideoCallModalProps) {
   // Early return if no user is provided
   if (!user) {
     return null;
@@ -37,6 +28,14 @@ export default function VideoCallModal({
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  
+
+  
+  // Draggable state
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -84,6 +83,44 @@ export default function VideoCallModal({
     }
     return () => clearInterval(interval);
   }, [callStatus]);
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    setPosition({ x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add global mouse event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none'; // Prevent text selection while dragging
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging, dragStart]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -140,10 +177,8 @@ export default function VideoCallModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open && callStatus === "connected") {
-        // If call is connected, hide instead of closing
         handleHideCall();
       } else {
-        // If not connected, close normally
         onClose();
       }
     }}>
@@ -294,7 +329,7 @@ export default function VideoCallModal({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
