@@ -390,34 +390,34 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   };
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-6">
-      <div className="flex items-center space-x-2">
-        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+    <div className="flex items-center justify-center mb-2">
+      <div className="flex items-center space-x-1">
+        <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
           checkoutStep === 'address' ? 'bg-orange-500 text-white' : 
           ['review', 'payment'].includes(checkoutStep) ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
         }`}>
-          {['review', 'payment'].includes(checkoutStep) ? <Check className="h-4 w-4" /> : '1'}
+          {['review', 'payment'].includes(checkoutStep) ? <Check className="h-3 w-3" /> : '1'}
         </div>
-        <span className="text-sm font-medium">Address</span>
+        <span className="text-xs font-medium">Address</span>
         
-        <div className="w-8 h-px bg-gray-300"></div>
+        <div className="w-4 h-px bg-gray-300"></div>
         
-        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+        <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
           checkoutStep === 'review' ? 'bg-orange-500 text-white' :
           checkoutStep === 'payment' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
         }`}>
-          {checkoutStep === 'payment' ? <Check className="h-4 w-4" /> : '2'}
+          {checkoutStep === 'payment' ? <Check className="h-3 w-3" /> : '2'}
         </div>
-        <span className="text-sm font-medium">Review</span>
+        <span className="text-xs font-medium">Review</span>
         
-        <div className="w-8 h-px bg-gray-300"></div>
+        <div className="w-4 h-px bg-gray-300"></div>
         
-        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+        <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
           checkoutStep === 'payment' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'
         }`}>
           3
         </div>
-        <span className="text-sm font-medium">Payment</span>
+        <span className="text-xs font-medium">Pay</span>
       </div>
     </div>
   );
@@ -567,10 +567,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
       {/* Enhanced Checkout Modal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[75vh] max-h-[75vh] overflow-y-auto bg-background border-border p-2">
-          <DialogHeader className="pb-1">
-            <DialogTitle className="flex items-center gap-2 text-foreground text-sm">
-              <Package className="h-4 w-4" />
+        <DialogContent className="w-[95vw] max-w-4xl h-[70vh] max-h-[70vh] overflow-y-auto bg-background border-border p-1">
+          <DialogHeader className="pb-0">
+            <DialogTitle className="flex items-center gap-2 text-foreground text-xs">
+              <Package className="h-3 w-3" />
               Checkout - {checkoutStep === 'address' ? 'Shipping Address' : 
                         checkoutStep === 'review' ? 'Order Review' : 'Payment'}
             </DialogTitle>
@@ -578,61 +578,61 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
           {renderStepIndicator()}
 
-          <div className="space-y-1 sm:space-y-2 px-1">
+          <div className="space-y-0.5 px-0.5">
             {/* Address Step */}
             {checkoutStep === 'address' && (
-              <div className="space-y-1 sm:space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <MapPin className="h-4 w-4 text-orange-500" />
-                  <h3 className="text-sm font-semibold text-foreground">Shipping Information</h3>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 mb-0.5">
+                  <MapPin className="h-3 w-3 text-orange-500" />
+                  <h3 className="text-xs font-semibold text-foreground">Shipping Information</h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                  <div className="space-y-0.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 sm:gap-1">
+                  <div className="space-y-0">
                     <Label htmlFor="fullName" className="text-xs font-medium">Full Name *</Label>
                     <Input
                       id="fullName"
                       value={shippingAddress.fullName}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, fullName: e.target.value }))}
                       placeholder="Enter your full name"
-                      className="bg-input border-border h-9 text-sm"
+                      className="bg-input border-border h-8 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-0.5 sm:col-span-2">
+                  <div className="space-y-0 sm:col-span-2">
                     <Label htmlFor="addressLine1" className="text-xs font-medium">Address Line 1 *</Label>
                     <Input
                       id="addressLine1"
                       value={shippingAddress.addressLine1}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine1: e.target.value }))}
                       placeholder="Street address, P.O. box, company name"
-                      className="bg-input border-border h-9 text-sm"
+                      className="bg-input border-border h-8 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-0.5 sm:col-span-2">
+                  <div className="space-y-0 sm:col-span-2">
                     <Label htmlFor="addressLine2" className="text-xs font-medium">Address Line 2</Label>
                     <Input
                       id="addressLine2"
                       value={shippingAddress.addressLine2}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine2: e.target.value }))}
                       placeholder="Apartment, suite, unit, building, floor, etc."
-                      className="bg-input border-border h-9 text-sm"
+                      className="bg-input border-border h-8 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-0.5">
+                  <div className="space-y-0">
                     <Label htmlFor="city" className="text-xs font-medium">City *</Label>
                     <Input
                       id="city"
                       value={shippingAddress.city}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, city: e.target.value }))}
                       placeholder="City"
-                      className="bg-input border-border h-9 text-sm"
+                      className="bg-input border-border h-8 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-0.5">
+                  <div className="space-y-0">
                     <Label htmlFor="country" className="text-xs font-medium">Country *</Label>
                     <Select 
                       value={shippingAddress.country} 
@@ -644,7 +644,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         }));
                       }}
                     >
-                      <SelectTrigger className="bg-input border-border h-9 text-sm">
+                      <SelectTrigger className="bg-input border-border h-8 text-sm">
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
@@ -657,14 +657,14 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     </Select>
                   </div>
 
-                  <div className="space-y-1 sm:space-y-2">
-                    <Label htmlFor="state" className="text-sm font-medium">State/Province *</Label>
+                  <div className="space-y-0">
+                    <Label htmlFor="state" className="text-xs font-medium">State/Province *</Label>
                     {shippingAddress.country && STATES_PROVINCES[shippingAddress.country] ? (
                       <Select 
                         value={shippingAddress.state} 
                         onValueChange={(value) => setShippingAddress(prev => ({ ...prev, state: value }))}
                       >
-                        <SelectTrigger className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base">
+                        <SelectTrigger className="bg-input border-border h-8 text-sm">
                           <SelectValue placeholder="Select state/province" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -681,19 +681,19 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         value={shippingAddress.state}
                         onChange={(e) => setShippingAddress(prev => ({ ...prev, state: e.target.value }))}
                         placeholder="State, Province, or Region"
-                        className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
+                        className="bg-input border-border h-8 text-sm"
                       />
                     )}
                   </div>
 
-                  <div className="space-y-1 sm:space-y-2">
-                    <Label htmlFor="zipCode" className="text-sm font-medium">ZIP/Postal Code *</Label>
+                  <div className="space-y-0">
+                    <Label htmlFor="zipCode" className="text-xs font-medium">ZIP/Postal Code *</Label>
                     <Input
                       id="zipCode"
                       value={shippingAddress.zipCode}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, zipCode: e.target.value }))}
                       placeholder="ZIP or Postal Code"
-                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
+                      className="bg-input border-border h-8 text-sm"
                     />
                   </div>
                 </div>
