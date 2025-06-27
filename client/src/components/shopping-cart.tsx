@@ -710,16 +710,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="expressShipping"
-                    checked={expressShipping}
-                    onCheckedChange={(checked) => setExpressShipping(checked === true)}
-                  />
-                  <Label htmlFor="expressShipping" className="text-xs">
-                    Express Shipping (+$10.00) - Delivery in 1-2 business days
-                  </Label>
-                </div>
+
               </div>
             )}
 

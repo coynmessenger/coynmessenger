@@ -329,6 +329,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Fixed checkout modal spacing and forms for mobile devices - reduced checkout modal height to 85vh, minimized form field spacing, made input heights responsive (h-10), compressed labels to text-xs/sm, reduced textarea rows, optimized navigation buttons to stack vertically on mobile with compact h-10 sizing, eliminated scroll overflow for better mobile checkout experience
 - June 27, 2025: Made shopping cart items clickable to navigate back to product pages - added click handlers to both product images and titles in cart items, implemented hover effects with opacity transitions for images and color changes for titles, users can now click any cart item to return to its individual product page while closing the cart modal
 - June 27, 2025: Eliminated checkout modal scrolling with comprehensive spacing optimization - reduced modal height to 75vh, minimized all form spacing to 0.5 gaps, compressed input heights to h-9, reduced textarea to 1 row minimum, optimized labels to text-xs, eliminated padding throughout form elements for complete mobile viewport compatibility without scrolling
+- June 27, 2025: Removed express shipping checkbox from checkout form - eliminated highlighted express shipping option to simplify checkout process and reduce form complexity
 
 ## User Preferences
 
