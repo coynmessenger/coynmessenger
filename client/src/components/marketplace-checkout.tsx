@@ -266,7 +266,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate);
     };
-  }, [connectedUser, queryClient]);
+  }, [queryClient]); // Removed connectedUser from dependencies to prevent infinite loop
 
   // Refresh cart when dialog opens
   useEffect(() => {
