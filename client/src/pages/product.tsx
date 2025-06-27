@@ -591,11 +591,11 @@ export default function ProductPage() {
                     View All
                   </Button>
                 </div>
-                <div className="space-y-3">
-                  {reviewsData.slice(0, 2).map((review, index) => (
+                <div className="flex gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {reviewsData.slice(0, 5).map((review, index) => (
                     <div 
                       key={index} 
-                      className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30 animate-slide-in-right"
+                      className="flex-shrink-0 w-80 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30 animate-slide-in-right"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       <div className="flex items-center justify-between mb-2">
