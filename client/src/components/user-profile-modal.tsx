@@ -60,7 +60,7 @@ export default function UserProfileModal({
             
             <div className="text-center">
               <h2 className="text-xl font-semibold text-black dark:text-foreground">{user.displayName}</h2>
-              <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user.username}</p>
+              <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user.walletAddress?.slice(-6) || user.username}</p>
               <Badge 
                 variant={user.isOnline ? "default" : "secondary"} 
                 className={`mt-2 ${user.isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'}`}
