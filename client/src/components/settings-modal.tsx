@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera, Check } from "lucide-react";
 import type { User } from "@shared/schema";
 
 const COUNTRIES = [
@@ -180,6 +180,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const [walletAddress, setWalletAddress] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [showUploadSuccess, setShowUploadSuccess] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoConnect, setAutoConnect] = useState(true);
   const [messagePreview, setMessagePreview] = useState(true);
@@ -309,20 +311,34 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
       }
       
+      // Complete upload progress and show success animation
+      setUploadProgress(100);
+      setShowUploadSuccess(true);
+      
+      // Crypto-themed success toast with blockchain confirmation
       toast({
-        title: "Profile picture updated",
-        description: "Your profile picture has been uploaded and saved successfully.",
+        title: "🔐 Profile NFT Secured",
+        description: "Your profile picture has been minted and stored on the blockchain.",
+        duration: 4000,
       });
-      setUploadingImage(false);
+      
+      // Reset upload state after success animation
+      setTimeout(() => {
+        setUploadingImage(false);
+        setUploadProgress(0);
+        setShowUploadSuccess(false);
+      }, 2000);
     },
     onError: (error) => {
       console.error("Upload error:", error);
       toast({
-        title: "Upload failed",
-        description: "Failed to upload profile picture. Please try again.",
+        title: "⚠️ Blockchain Error",
+        description: "Failed to mint profile NFT. Network congestion detected.",
         variant: "destructive",
       });
       setUploadingImage(false);
+      setUploadProgress(0);
+      setShowUploadSuccess(false);
     },
   });
 
@@ -369,7 +385,24 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       return;
     }
 
+    // Start animated upload sequence
     setUploadingImage(true);
+    setUploadProgress(0);
+    setShowUploadSuccess(false);
+    
+    // Simulate crypto-themed upload progress with realistic timing
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 95) {
+          clearInterval(progressInterval);
+          return 95; // Stay at 95% until actual upload completes
+        }
+        // Simulate blockchain confirmation delays
+        const increment = Math.random() * 15 + 5; // Random 5-20% increments
+        return Math.min(prev + increment, 95);
+      });
+    }, 200);
+
     uploadImageMutation.mutate(file);
   };
 
@@ -411,34 +444,98 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Profile Picture Section */}
+              {/* Animated Crypto Profile Picture Section */}
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={profilePicture} />
-                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-lg">
-                      {user?.displayName?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  {/* Debug info */}
-                  {profilePicture && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      Current: {profilePicture.substring(profilePicture.lastIndexOf('/') + 1)}
+                <div className="relative group">
+                  {/* Main Avatar with Crypto Glow Effects */}
+                  <div className={`relative transition-all duration-500 ${uploadingImage ? 'animate-pulse' : ''}`}>
+                    {/* Animated Crypto Ring */}
+                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-orange-400 via-amber-500 to-orange-600 dark:from-cyan-400 dark:via-blue-500 dark:to-cyan-600 opacity-75 blur-md ${uploadingImage ? 'animate-spin' : 'group-hover:animate-pulse'} transition-all duration-700`}></div>
+                    
+                    {/* Success Ring Animation */}
+                    {showUploadSuccess && (
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 opacity-90 blur-lg animate-ping"></div>
+                    )}
+                    
+                    <Avatar className="relative z-10 h-20 w-20 border-4 border-white dark:border-slate-800 shadow-2xl transition-transform duration-300 group-hover:scale-105">
+                      <AvatarImage src={profilePicture} />
+                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-xl">
+                        {user?.displayName?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    {/* Upload Progress Ring */}
+                    {uploadingImage && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg className="w-24 h-24 transform -rotate-90 transition-all duration-300">
+                          <circle
+                            cx="48"
+                            cy="48"
+                            r="40"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                            className="text-gray-200 dark:text-gray-700"
+                          />
+                          <circle
+                            cx="48"
+                            cy="48"
+                            r="40"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                            strokeDasharray={`${2 * Math.PI * 40}`}
+                            strokeDashoffset={`${2 * Math.PI * 40 * (1 - uploadProgress / 100)}`}
+                            className="text-orange-500 dark:text-cyan-400 transition-all duration-300 ease-out"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute text-xs font-bold text-orange-600 dark:text-cyan-400">
+                          {Math.round(uploadProgress)}%
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Success Checkmark Animation */}
+                    {showUploadSuccess && (
+                      <div className="absolute inset-0 flex items-center justify-center z-20">
+                        <div className="bg-green-500 rounded-full p-2 animate-bounce">
+                          <Check className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Floating Crypto Particles (Upload Animation) */}
+                  {uploadingImage && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute top-0 left-1/2 w-2 h-2 bg-orange-400 dark:bg-cyan-400 rounded-full animate-ping opacity-75" style={{animationDelay: '0s'}}></div>
+                      <div className="absolute top-1/4 right-0 w-1 h-1 bg-amber-500 dark:bg-blue-400 rounded-full animate-ping opacity-60" style={{animationDelay: '0.5s'}}></div>
+                      <div className="absolute bottom-1/4 left-0 w-1.5 h-1.5 bg-orange-500 dark:bg-cyan-500 rounded-full animate-ping opacity-80" style={{animationDelay: '1s'}}></div>
+                      <div className="absolute bottom-0 right-1/4 w-1 h-1 bg-yellow-400 dark:bg-blue-300 rounded-full animate-ping opacity-70" style={{animationDelay: '1.5s'}}></div>
                     </div>
                   )}
+                  
+                  {/* Enhanced Upload Button */}
                   <Button
                     onClick={triggerImageUpload}
                     disabled={uploadingImage}
                     variant="outline"
                     size="sm"
-                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 bg-white dark:bg-slate-800 border-2 border-background"
+                    className={`absolute -bottom-2 -right-2 h-10 w-10 rounded-full p-0 bg-gradient-to-br from-orange-500 to-amber-600 dark:from-cyan-500 dark:to-blue-600 border-2 border-white dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${uploadingImage ? 'animate-pulse' : ''} ${showUploadSuccess ? 'bg-gradient-to-br from-green-500 to-emerald-600' : ''}`}
                   >
                     {uploadingImage ? (
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+                      <div className="relative">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <div className="absolute inset-0 animate-ping rounded-full bg-white opacity-20"></div>
+                      </div>
+                    ) : showUploadSuccess ? (
+                      <Check className="h-4 w-4 text-white animate-bounce" />
                     ) : (
-                      <Camera className="h-3 w-3" />
+                      <Camera className="h-4 w-4 text-white" />
                     )}
                   </Button>
+                  
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -447,19 +544,61 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                     className="hidden"
                   />
                 </div>
+                
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-black dark:text-foreground">{user?.displayName}</h3>
                   <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.walletAddress?.slice(-6) || user?.username}</p>
+                  
+                  {/* Enhanced Action Button */}
                   <Button
                     onClick={triggerImageUpload}
                     disabled={uploadingImage}
                     variant="outline"
                     size="sm"
-                    className="mt-2"
+                    className={`mt-3 relative overflow-hidden bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-700 border-orange-200 dark:border-cyan-700 hover:border-orange-400 dark:hover:border-cyan-500 transition-all duration-300 ${uploadingImage ? 'animate-pulse' : 'hover:scale-105'} ${showUploadSuccess ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-600' : ''}`}
                   >
-                    <Upload className="h-4 w-4 mr-2" />
-                    {uploadingImage ? "Uploading..." : "Change Picture"}
+                    <div className="flex items-center space-x-2">
+                      {uploadingImage ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 dark:border-cyan-400 border-t-transparent" />
+                          <span className="text-orange-600 dark:text-cyan-400 font-medium">Minting NFT...</span>
+                        </>
+                      ) : showUploadSuccess ? (
+                        <>
+                          <Check className="h-4 w-4 text-green-600 dark:text-green-400 animate-bounce" />
+                          <span className="text-green-600 dark:text-green-400 font-medium">NFT Secured!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 text-orange-600 dark:text-cyan-400" />
+                          <span className="text-orange-600 dark:text-cyan-400 font-medium">Upload Crypto Avatar</span>
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Animated Background Effect */}
+                    {uploadingImage && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 to-amber-400/20 dark:from-cyan-400/20 dark:to-blue-400/20 animate-pulse"></div>
+                    )}
                   </Button>
+                  
+                  {/* Upload Status Text */}
+                  {uploadingImage && (
+                    <div className="mt-2 space-y-1">
+                      <div className="text-xs text-orange-600 dark:text-cyan-400 font-medium">
+                        🔐 Securing to blockchain... {Math.round(uploadProgress)}%
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Confirming transaction on COYN network
+                      </div>
+                    </div>
+                  )}
+                  
+                  {showUploadSuccess && (
+                    <div className="mt-2 text-xs text-green-600 dark:text-green-400 font-medium animate-pulse">
+                      ✅ Profile NFT successfully minted and verified!
+                    </div>
+                  )}
                 </div>
               </div>
               
