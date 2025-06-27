@@ -46,7 +46,7 @@ export interface IStorage {
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
   getUserCurrencyBalance(userId: number, currency: string): Promise<WalletBalance | undefined>;
   createWalletBalance(balance: InsertWalletBalance): Promise<WalletBalance>;
-  updateWalletBalance(userId: number, currency: string, newBalance: string): Promise<void>;
+  updateWalletBalance(userId: number, currency: string, updateData: { balance?: string; usdValue?: string; changePercent?: string }): Promise<void>;
   transferCurrency(fromUserId: number, toUserId: number, currency: string, amount: number): Promise<boolean>;
 
   // Favorites
@@ -473,10 +473,10 @@ export class DatabaseStorage implements IStorage {
     return balance;
   }
 
-  async updateWalletBalance(userId: number, currency: string, newBalance: string): Promise<void> {
+  async updateWalletBalance(userId: number, currency: string, updateData: { balance?: string; usdValue?: string; changePercent?: string }): Promise<void> {
     await db
       .update(walletBalances)
-      .set({ balance: newBalance })
+      .set(updateData)
       .where(and(eq(walletBalances.userId, userId), eq(walletBalances.currency, currency)));
   }
 
@@ -502,8 +502,8 @@ export class DatabaseStorage implements IStorage {
       const newSenderBalance = (parseFloat(senderBalance.balance) - amount).toString();
       const newReceiverBalance = (parseFloat(receiverBalance.balance) + amount).toString();
 
-      await this.updateWalletBalance(fromUserId, currency, newSenderBalance);
-      await this.updateWalletBalance(toUserId, currency, newReceiverBalance);
+      await this.updateWalletBalance(fromUserId, currency, { balance: newSenderBalance });
+      await this.updateWalletBalance(toUserId, currency, { balance: newReceiverBalance });
 
       return true;
     } catch (error) {

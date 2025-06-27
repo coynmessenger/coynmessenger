@@ -11,6 +11,7 @@ import { initializeDatabase } from "./db";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
+import { blockchainService } from "./blockchain";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -89,8 +90,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Wallet address is required" });
       }
 
-      // Validate wallet address format (0x followed by 40 hex characters)
-      const isValidWallet = /^0x[a-fA-F0-9]{40}$/.test(walletAddress);
+      // Validate wallet address using blockchain service
+      const isValidWallet = await blockchainService.validateWalletAddress(walletAddress);
       if (!isValidWallet) {
         return res.status(400).json({ message: "Invalid wallet address format" });
       }
@@ -113,17 +114,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newUser = await storage.createUser(userData);
       
-      // Create initial wallet balances for the new user
-      const currencies = ['BTC', 'BNB', 'USDT', 'COYN'];
-      for (const currency of currencies) {
+      // Fetch real blockchain balances for the wallet address
+      console.log("Fetching blockchain balances for wallet:", walletAddress);
+      const blockchainBalances = await blockchainService.getWalletBalances(walletAddress);
+      
+      // Create wallet balances with real blockchain data
+      for (const balanceData of blockchainBalances) {
         await storage.createWalletBalance({
           userId: newUser.id,
-          currency,
-          balance: "0", // Start with 0 balance
-          usdValue: "0"
+          currency: balanceData.currency,
+          balance: balanceData.balance,
+          usdValue: balanceData.usdValue,
+          changePercent: balanceData.changePercent || "0.00"
         });
       }
 
+      console.log("Created user with real blockchain balances:", newUser.id);
       return res.json(newUser);
     } catch (error) {
       console.error("Find/create user error:", error);
@@ -217,6 +223,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(balances);
     } catch (error) {
       res.status(500).json({ message: "Failed to get wallet balances" });
+    }
+  });
+
+  // Refresh wallet balances from blockchain
+  app.post("/api/wallet/balances/refresh", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      // Get user's wallet address
+      const user = await storage.getUser(parseInt(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log("Refreshing blockchain balances for wallet:", user.walletAddress);
+      
+      // Fetch fresh blockchain balances
+      const blockchainBalances = await blockchainService.getWalletBalances(user.walletAddress);
+      
+      // Update existing wallet balances
+      for (const balanceData of blockchainBalances) {
+        await storage.updateWalletBalance(parseInt(userId), balanceData.currency, {
+          balance: balanceData.balance,
+          usdValue: balanceData.usdValue,
+          changePercent: balanceData.changePercent || "0.00"
+        });
+      }
+
+      // Return updated balances
+      const updatedBalances = await storage.getUserWalletBalances(parseInt(userId));
+      console.log("Updated wallet balances for user:", userId);
+      
+      res.json(updatedBalances);
+    } catch (error) {
+      console.error("Error refreshing wallet balances:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

@@ -49,6 +49,31 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     queryKey: ["/api/wallet/balances"],
   });
 
+  // Get current user ID from localStorage
+  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  const userId = connectedUser.id || 5;
+
+  // Refresh wallet balances mutation
+  const refreshBalancesMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({
+        title: "Balances Updated",
+        description: "Your wallet balances have been refreshed from the blockchain",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Refresh Failed",
+        description: error.message || "Failed to refresh wallet balances",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Calculate total balance
   const totalBalance = walletBalances.reduce((sum, balance) => {
     return sum + parseFloat(balance.usdValue || "0");
@@ -180,6 +205,16 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   {isBalanceVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => refreshBalancesMutation.mutate()}
+                  disabled={refreshBalancesMutation.isPending}
+                  className="h-8 w-8 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors"
+                  title="Refresh blockchain balances"
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshBalancesMutation.isPending ? 'animate-spin' : ''}`} />
                 </Button>
                 <Button
                   variant="ghost"
