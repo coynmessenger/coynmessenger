@@ -39,7 +39,6 @@ import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
-import { NFTRewardsModal } from "@/components/nft-rewards";
 
 interface Product {
   ASIN: string;
@@ -424,17 +423,7 @@ export default function ProductPage() {
                   </span>
                 )}
               </Button>
-              <NFTRewardsModal
-                trigger={
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="hover:bg-accent"
-                  >
-                    <Star className="h-5 w-5 text-yellow-500" />
-                  </Button>
-                }
-              />
+
               <Button 
                 variant="ghost" 
                 size="icon" 

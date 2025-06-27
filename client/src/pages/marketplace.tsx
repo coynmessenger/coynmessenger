@@ -19,7 +19,6 @@ import MarketplaceCheckout from "@/components/marketplace-checkout";
 import { addToCart, getCartCount } from "@/components/shopping-cart";
 import MarketplaceWalletHover from "@/components/marketplace-wallet-hover";
 import WalletModal from "@/components/wallet-modal";
-import { NFTRewardsModal } from "@/components/nft-rewards";
 
 interface Product {
   ASIN: string;
@@ -513,17 +512,7 @@ export default function MarketplacePage() {
                   </Badge>
                 )}
               </Button>
-              <NFTRewardsModal
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
-                  >
-                    <Star className="h-6 w-6 sm:h-4 sm:w-4 text-yellow-500" />
-                  </Button>
-                }
-              />
+
               <Button
                 onClick={() => setShowSettingsModal(true)}
                 variant="ghost"
