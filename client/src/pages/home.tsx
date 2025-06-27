@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,26 @@ export default function HomePage() {
   });
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  // Fetch current user data if connected (to get updated display name)
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (isConnected && connectedUser?.id) {
+        try {
+          const currentUser = await apiRequest("GET", `/api/user?userId=${connectedUser.id}`);
+          if (currentUser && currentUser.displayName !== connectedUser.displayName) {
+            // Update localStorage and state with current user data
+            localStorage.setItem('connectedUser', JSON.stringify(currentUser));
+            setConnectedUser(currentUser);
+          }
+        } catch (error) {
+          console.error("Failed to fetch current user:", error);
+        }
+      }
+    };
+
+    fetchCurrentUser();
+  }, [isConnected, connectedUser?.id]);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
