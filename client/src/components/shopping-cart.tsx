@@ -554,10 +554,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
       {/* Enhanced Checkout Modal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] overflow-y-auto bg-background border-border p-4 sm:p-6">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-foreground">
-              <Package className="h-5 w-5" />
+        <DialogContent className="w-[95vw] max-w-4xl h-[85vh] max-h-[85vh] overflow-y-auto bg-background border-border p-3 sm:p-4">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="flex items-center gap-2 text-foreground text-sm sm:text-base">
+              <Package className="h-4 w-4" />
               Checkout - {checkoutStep === 'address' ? 'Shipping Address' : 
                         checkoutStep === 'review' ? 'Order Review' : 'Payment'}
             </DialogTitle>
@@ -565,29 +565,29 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
           {renderStepIndicator()}
 
-          <div className="space-y-4 sm:space-y-6 px-1">
+          <div className="space-y-3 sm:space-y-4 px-1">
             {/* Address Step */}
             {checkoutStep === 'address' && (
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground">Shipping Information</h3>
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="h-4 w-4 text-orange-500" />
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Shipping Information</h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-1 sm:space-y-2">
-                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="fullName" className="text-xs sm:text-sm font-medium">Full Name *</Label>
                     <Input
                       id="fullName"
                       value={shippingAddress.fullName}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, fullName: e.target.value }))}
                       placeholder="Enter your full name"
-                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
+                      className="bg-input border-border h-10 sm:h-12 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1 sm:space-y-2 sm:col-span-2">
-                    <Label htmlFor="addressLine1" className="text-sm font-medium">Address Line 1 *</Label>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label htmlFor="addressLine1" className="text-xs sm:text-sm font-medium">Address Line 1 *</Label>
                     <Input
                       id="addressLine1"
                       value={shippingAddress.addressLine1}
@@ -597,30 +597,30 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     />
                   </div>
 
-                  <div className="space-y-1 sm:space-y-2 sm:col-span-2">
-                    <Label htmlFor="addressLine2" className="text-sm font-medium">Address Line 2</Label>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label htmlFor="addressLine2" className="text-xs sm:text-sm font-medium">Address Line 2</Label>
                     <Input
                       id="addressLine2"
                       value={shippingAddress.addressLine2}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine2: e.target.value }))}
                       placeholder="Apartment, suite, unit, building, floor, etc."
-                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
+                      className="bg-input border-border h-10 sm:h-12 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1 sm:space-y-2">
-                    <Label htmlFor="city" className="text-sm font-medium">City *</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="city" className="text-xs sm:text-sm font-medium">City *</Label>
                     <Input
                       id="city"
                       value={shippingAddress.city}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, city: e.target.value }))}
                       placeholder="City"
-                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
+                      className="bg-input border-border h-10 sm:h-12 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1 sm:space-y-2">
-                    <Label htmlFor="country" className="text-sm font-medium">Country *</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="country" className="text-xs sm:text-sm font-medium">Country *</Label>
                     <Select 
                       value={shippingAddress.country} 
                       onValueChange={(value) => {
@@ -631,7 +631,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         }));
                       }}
                     >
-                      <SelectTrigger className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base">
+                      <SelectTrigger className="bg-input border-border h-10 sm:h-12 text-sm">
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
@@ -685,15 +685,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   </div>
                 </div>
 
-                <div className="space-y-1 sm:space-y-2">
-                  <Label htmlFor="orderNotes" className="text-sm font-medium">Order Notes (Optional)</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="orderNotes" className="text-xs sm:text-sm font-medium">Order Notes (Optional)</Label>
                   <Textarea
                     id="orderNotes"
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
                     placeholder="Any special delivery instructions..."
-                    className="bg-input border-border text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
-                    rows={3}
+                    className="bg-input border-border text-sm min-h-[60px] sm:min-h-[80px]"
+                    rows={2}
                   />
                 </div>
 
@@ -703,7 +703,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     checked={expressShipping}
                     onCheckedChange={(checked) => setExpressShipping(checked === true)}
                   />
-                  <Label htmlFor="expressShipping" className="text-sm">
+                  <Label htmlFor="expressShipping" className="text-xs sm:text-sm">
                     Express Shipping (+$10.00) - Delivery in 1-2 business days
                   </Label>
                 </div>
@@ -956,16 +956,16 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border">
               {checkoutStep !== 'address' && (
                 <Button
                   variant="outline"
                   onClick={() => setCheckoutStep(
                     checkoutStep === 'payment' ? 'review' : 'address'
                   )}
-                  className="flex-1 h-10 sm:h-12 text-sm sm:text-base"
+                  className="flex-1 h-10 text-sm"
                 >
-                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <ArrowLeft className="h-3 w-3 mr-1" />
                   Back
                 </Button>
               )}
@@ -973,7 +973,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1 h-10 sm:h-12 text-sm sm:text-base"
+                className="flex-1 h-10 text-sm"
               >
                 Cancel
               </Button>
@@ -981,18 +981,18 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               {checkoutStep !== 'payment' ? (
                 <Button
                   onClick={handleNextStep}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white h-10 sm:h-12 text-sm sm:text-base"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white h-10 text-sm"
                 >
                   Continue
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
+                  <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleFinalizePurchase}
                   disabled={!agreedToTerms}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 h-10 sm:h-12 text-sm sm:text-base"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 h-10 text-sm"
                 >
-                  <Wallet className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <Wallet className="h-3 w-3 mr-1" />
                   Complete Order
                 </Button>
               )}
