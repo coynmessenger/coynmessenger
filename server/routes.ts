@@ -89,16 +89,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Wallet address is required" });
       }
 
-      // Only find existing users, don't create new ones
+      // Validate wallet address format (0x followed by 40 hex characters)
+      const isValidWallet = /^0x[a-fA-F0-9]{40}$/.test(walletAddress);
+      if (!isValidWallet) {
+        return res.status(400).json({ message: "Invalid wallet address format" });
+      }
+
+      // Check if user already exists
       const existingUser = await storage.getUserByWalletAddress(walletAddress);
       if (existingUser) {
         return res.json(existingUser);
       }
 
-      // Return error for unregistered addresses
-      return res.status(404).json({ 
-        message: "No user found with this wallet address. Please contact administrator to register your address." 
-      });
+      // Create new user with wallet address
+      const userData = {
+        username: walletAddress.slice(0, 8), // Use first 8 chars as username
+        displayName: displayName || `User ${walletAddress.slice(-6)}`, // Use display name or fallback
+        walletAddress: walletAddress,
+        isSetup: true, // Allow new users to appear in contact list
+        isOnline: true,
+        profileImage: null
+      };
+
+      const newUser = await storage.createUser(userData);
+      
+      // Create initial wallet balances for the new user
+      const currencies = ['BTC', 'BNB', 'USDT', 'COYN'];
+      for (const currency of currencies) {
+        await storage.createWalletBalance({
+          userId: newUser.id,
+          currency,
+          balance: "0", // Start with 0 balance
+          usdValue: "0"
+        });
+      }
+
+      return res.json(newUser);
     } catch (error) {
       console.error("Find/create user error:", error);
       res.status(500).json({ message: "Failed to find or create user" });
@@ -185,7 +211,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get wallet balances
   app.get("/api/wallet/balances", async (req, res) => {
     try {
-      const userId = 5; // Current user
+      // Get user ID from query parameter or default to 5
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const balances = await storage.getUserWalletBalances(userId);
       res.json(balances);
     } catch (error) {
