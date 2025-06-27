@@ -9,11 +9,14 @@ import type { User } from "@shared/schema";
 interface VideoCallModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onHide?: () => void;
+  onCallStart?: () => void;
+  onCallEnd?: () => void;
   user?: User;
   callType?: "incoming" | "outgoing";
 }
 
-export default function VideoCallModal({ isOpen, onClose, user, callType = "outgoing" }: VideoCallModalProps) {
+export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing" }: VideoCallModalProps) {
   // Early return if no user is provided
   if (!user) {
     return null;
@@ -41,6 +44,9 @@ export default function VideoCallModal({ isOpen, onClose, user, callType = "outg
 
     const timer2 = setTimeout(() => {
       setCallStatus("connected");
+      if (onCallStart) {
+        onCallStart();
+      }
     }, 3000);
 
     return () => {
@@ -67,9 +73,18 @@ export default function VideoCallModal({ isOpen, onClose, user, callType = "outg
 
   const handleEndCall = () => {
     setCallStatus("ended");
+    if (onCallEnd) {
+      onCallEnd();
+    }
     setTimeout(() => {
       onClose();
     }, 1000);
+  };
+
+  const handleHideCall = () => {
+    if (onHide) {
+      onHide();
+    }
   };
 
   const getStatusText = () => {
@@ -103,7 +118,15 @@ export default function VideoCallModal({ isOpen, onClose, user, callType = "outg
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open && callStatus === "connected") {
+        // If call is connected, hide instead of closing
+        handleHideCall();
+      } else {
+        // If not connected, close normally
+        onClose();
+      }
+    }}>
       <DialogContent className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden">
         <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
         

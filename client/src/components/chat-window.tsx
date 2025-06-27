@@ -50,6 +50,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [searchResultCount, setSearchResultCount] = useState(0);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     offsetX: number;
@@ -727,10 +728,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowVideoCall(true)}
-                className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-                title="Video call"
+                className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                  isVideoCallActive 
+                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={isVideoCallActive ? "Join active video call" : "Video call"}
               >
-                <Video className="h-5 w-5" />
+                <Video className={`h-5 w-5 ${isVideoCallActive ? 'animate-pulse' : ''}`} />
               </Button>
             </>
           )}
@@ -1649,6 +1654,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       <VideoCallModal
         isOpen={showVideoCall}
         onClose={() => setShowVideoCall(false)}
+        onHide={() => setShowVideoCall(false)}
+        onCallStart={() => setIsVideoCallActive(true)}
+        onCallEnd={() => setIsVideoCallActive(false)}
         user={conversation.otherUser}
       />
     </div>
