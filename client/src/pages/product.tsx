@@ -497,48 +497,21 @@ export default function ProductPage() {
                 <span className="text-lg text-muted-foreground">USD</span>
               </div>
               
+              {/* Crypto Conversion - Compact Display */}
               {cryptoRates && (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-foreground mb-2">Available in Crypto:</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
-                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">₿</span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.BTC).toFixed(6)}</div>
-                        <div className="text-xs text-muted-foreground">BTC</div>
-                      </div>
+                <div className="border-t border-gray-200/50 dark:border-slate-600/50 pt-4">
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <SiBitcoin className="h-4 w-4 text-orange-500" />
+                      <span className="font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.BTC).toFixed(6)} BTC</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
-                      <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">B</span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.BNB).toFixed(3)}</div>
-                        <div className="text-xs text-muted-foreground">BNB</div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <SiBinance className="h-4 w-4 text-yellow-500" />
+                      <span className="font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.BNB).toFixed(3)} BNB</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
-                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">₮</span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.USDT).toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">USDT</div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
-                      <div className="w-6 h-6 rounded-full overflow-hidden">
-                        <img src={coynLogoPath} alt="COYN" className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)}</div>
-                        <div className="text-xs text-muted-foreground">COYN</div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <img src={coynLogoPath} alt="COYN" className="h-4 w-4 rounded-full" />
+                      <span className="font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)} COYN</span>
                     </div>
                   </div>
                 </div>
