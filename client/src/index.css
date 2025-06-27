@@ -245,3 +245,9 @@
 .dark ::-webkit-scrollbar-thumb {
   background: rgba(34, 211, 238, 0.5);
 }
+
+/* Glass card effect */
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

@@ -715,7 +715,7 @@ export default function MarketplacePage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Product Image Carousel */}
-                    <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden group">
+                    <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -824,73 +824,42 @@ export default function MarketplacePage() {
                       )}
                     </div>
                     
-                    {/* Details Button */}
-                    <div className="flex justify-center mt-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs text-muted-foreground hover:text-foreground border-muted hover:border-orange-500/50"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Info className="h-3 w-3 mr-1" />
-                            details
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" className="w-64">
-                          <div className="p-3 space-y-2">
-                            <div className="font-medium text-sm">{item.title}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.description || 'Premium quality product available for crypto purchase.'}
-                            </div>
-                            <div className="flex items-center justify-between text-xs">
-                              <span>Rating:</span>
-                              <div className="flex items-center">
-                                <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
-                                <span>{item.rating}</span>
-                                {isMarketplaceProduct && (item as any).reviewCount > 0 && (
-                                  <span className="text-muted-foreground ml-1">({(item as any).reviewCount})</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between text-xs">
-                              <span>Category:</span>
-                              <Badge variant="secondary" className="text-xs">
-                                {item.category}
-                              </Badge>
-                            </div>
-                            {isMarketplaceProduct && (item as any).brand && (
-                              <div className="flex items-center justify-between text-xs">
-                                <span>Brand:</span>
-                                <span className="font-medium">{(item as any).brand}</span>
-                              </div>
+                    {/* Quick Details on Hover */}
+                    <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                      <div className="glass-card backdrop-blur-sm bg-white/80 dark:bg-black/80 rounded-lg p-3 shadow-lg border border-white/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                            <span className="text-xs font-medium">{item.rating}</span>
+                            {isMarketplaceProduct && (item as any).reviewCount > 0 && (
+                              <span className="text-xs text-muted-foreground">({(item as any).reviewCount})</span>
                             )}
-                            <div className="flex items-center justify-between text-xs pt-2 border-t">
-                              <span>Price:</span>
-                              <div className="text-right">
-                                <div className="font-bold">${item.price}</div>
-                                {isMarketplaceProduct && (
-                                  <div className="text-xs text-muted-foreground">
-                                    ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
-                                  </div>
-                                )}
-                              </div>
-                            </div>
                           </div>
-                          <DropdownMenuItem 
+                          <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                            {item.category}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-muted-foreground truncate">
+                              {item.description || 'Premium quality product'}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 ml-2 text-xs bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 border border-orange-500/20 hover:border-orange-500/40"
                             onClick={(e) => {
                               e.stopPropagation();
                               const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
                               setLocation(`/product/${productId}`);
                             }}
-                            className="cursor-pointer"
                           >
-                            <Package className="h-4 w-4 mr-2" />
-                            View Full Details
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            View
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                     
                     {/* Rating Section */}
