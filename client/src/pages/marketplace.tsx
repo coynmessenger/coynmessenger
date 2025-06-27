@@ -175,7 +175,6 @@ export default function MarketplacePage() {
   };
 
   const [imageIndexes, setImageIndexes] = useState<Map<string, number>>(new Map());
-  const [expandedDetails, setExpandedDetails] = useState<Map<string, boolean>>(new Map());
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
 
@@ -889,68 +888,10 @@ export default function MarketplacePage() {
                       </div>
                     </div>
 
-                    {/* Details Toggle Button - Small arrow icon */}
-                    <div className="px-4 pb-4 flex justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const currentState = expandedDetails.get(itemKey.toString()) || false;
-                          setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
-                        }}
-                        className="h-6 w-6 p-0 hover:bg-accent"
-                      >
-                        <ChevronRight 
-                          className={`h-4 w-4 transition-transform duration-200 ${
-                            expandedDetails.get(itemKey.toString()) ? 'rotate-90' : 'rotate-0'
-                          }`} 
-                        />
-                      </Button>
-                    </div>
+
                   </CardContent>
                   
-                  {/* Collapsible Details Section */}
-                  {expandedDetails.get(itemKey.toString()) && (
-                    <div className="border-t border-gray-200 dark:border-slate-700 px-4 py-4">
-                      <div className="space-y-3">
-                        <div className="text-sm text-muted-foreground">
-                          {item.description || 'Premium quality product available for crypto purchase.'}
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Rating:</span>
-                            <div className="flex items-center">
-                              <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
-                              <span>{item.rating}</span>
-                              {isMarketplaceProduct && (item as any).reviewCount > 0 && (
-                                <span className="text-muted-foreground ml-1 text-xs">({(item as any).reviewCount})</span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Category:</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {item.category}
-                            </Badge>
-                          </div>
-                          
-                          {isMarketplaceProduct && (item as any).brand && (
-                            <div className="flex items-center justify-between col-span-2">
-                              <span className="text-muted-foreground">Brand:</span>
-                              <span className="font-medium">{(item as any).brand}</span>
-                            </div>
-                          )}
-                        </div>
-                        
 
-                        
-
-                      </div>
-                    </div>
-                  )}
                   
                 </Card>
               );
