@@ -9,7 +9,7 @@ import { Heart, Home, ShoppingCart, Star, ArrowUp, Settings, Wallet, Store } fro
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import MarketplaceCheckout from "@/components/marketplace-checkout";
-import WalletHover from "@/components/wallet-hover";
+import MarketplaceWalletHover from "@/components/marketplace-wallet-hover";
 import WalletModal from "@/components/wallet-modal";
 
 interface Favorite {
@@ -154,11 +154,13 @@ export default function FavoritesPage() {
               <Button
                 ref={walletButtonRef}
                 onClick={() => setShowWalletHover(!showWalletHover)}
-                variant="ghost"
-                size="icon"
-                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
+                variant="outline"
+                size="sm"
+                className="hover:bg-accent relative h-12 sm:h-9 px-4 sm:px-3 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-orange-200 dark:border-cyan-600"
+                title="View payment methods and balance"
               >
-                <Wallet className="h-6 w-6 sm:h-4 sm:w-4 text-orange-500 dark:text-cyan-400" />
+                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-orange-500 dark:text-cyan-400 mr-2 sm:mr-1" />
+                <span className="text-sm font-medium text-orange-600 dark:text-cyan-400">Balance</span>
               </Button>
               
               <Button
@@ -287,12 +289,11 @@ export default function FavoritesPage() {
         onClose={() => setShowCart(false)}
       />
 
-      <WalletHover
+      <MarketplaceWalletHover
         isVisible={showWalletHover}
         onClose={() => setShowWalletHover(false)}
         anchorRef={walletButtonRef}
-        onOpenSend={handleOpenSend}
-        onOpenReceive={handleOpenReceive}
+        onProceedToCheckout={() => setShowCart(true)}
       />
 
       {/* Wallet Modal */}
