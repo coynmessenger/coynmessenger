@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Copy, MessageCircle, Phone, Video, Wallet } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -25,6 +27,14 @@ export default function UserProfileModal({
   onSendMessage 
 }: UserProfileModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Invalidate user cache when modal opens to ensure fresh data
+  useEffect(() => {
+    if (isOpen) {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    }
+  }, [isOpen, queryClient]);
 
   const copyWalletAddress = () => {
     navigator.clipboard.writeText(user.walletAddress);
@@ -78,7 +88,7 @@ export default function UserProfileModal({
             </h3>
             <div className="bg-gray-50 dark:bg-muted rounded-lg p-3 border border-border">
               <div className="flex items-center justify-between">
-                <code className="text-xs text-gray-700 dark:text-muted-foreground font-mono break-all">
+                <code className="text-xs text-gray-700 dark:text-muted-foreground font-mono break-all max-w-[200px] sm:max-w-[300px]">
                   {user.walletAddress}
                 </code>
                 <Button
