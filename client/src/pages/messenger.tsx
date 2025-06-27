@@ -120,11 +120,17 @@ export default function MessengerPage() {
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <img 
-              src={coynLogoPath} 
-              alt="COYN Logo" 
-              className="w-8 h-8"
-            />
+            <button
+              onClick={() => setIsWalletSidebarOpen(true)}
+              className="hover:opacity-80 transition-opacity"
+              title="Open COYN Wallet"
+            >
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-8 h-8 cursor-pointer"
+              />
+            </button>
             <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
@@ -365,11 +371,17 @@ export default function MessengerPage() {
         <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
-              <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
-              />
+              <button
+                onClick={() => setIsWalletSidebarOpen(true)}
+                className="hover:opacity-80 transition-opacity"
+                title="Open COYN Wallet"
+              >
+                <img 
+                  src={coynLogoPath} 
+                  alt="COYN Logo" 
+                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                />
+              </button>
               <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
