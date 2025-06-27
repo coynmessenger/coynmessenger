@@ -55,13 +55,14 @@ export default function MarketplaceWalletHover({
       const isMobile = viewportWidth < 640; // sm breakpoint
       
       // For mobile, center the modal horizontally
-      const popupWidth = isMobile ? viewportWidth * 0.9 : 384; // 90% on mobile, 384px on desktop
+      const popupWidth = isMobile ? viewportWidth - 32 : 384; // Full width minus 32px padding on mobile, 384px on desktop
       const popupMaxHeight = viewportHeight * 0.8;
       
       let leftPosition;
       if (isMobile) {
-        // Center horizontally on mobile
-        leftPosition = (viewportWidth - popupWidth) / 2;
+        // Center horizontally on mobile with padding
+        const padding = 16; // 16px padding on each side
+        leftPosition = padding;
       } else {
         // Desktop positioning relative to button
         leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
@@ -161,7 +162,7 @@ export default function MarketplaceWalletHover({
   return (
     <div
       id="marketplace-wallet-popup"
-      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-[90vw] sm:w-96 max-h-[80vh] overflow-hidden flex flex-col"
+      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-[calc(100vw-32px)] sm:w-96 max-h-[80vh] overflow-hidden flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
