@@ -655,9 +655,6 @@ export default function MarketplacePage() {
                         <p className="text-sm text-muted-foreground mt-1">
                           by {isMarketplaceProduct ? (item as any).brand || 'Marketplace' : seller}
                         </p>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">
-                          Click to view details →
-                        </div>
                       </div>
                       <div className="flex items-center gap-2 ml-2 shrink-0">
                         <Button
