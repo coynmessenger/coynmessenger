@@ -35,13 +35,19 @@ export default function PurchaseHistoryPage() {
   const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Get connected user from localStorage
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+
   const { data: purchases = [], isLoading } = useQuery({
-    queryKey: ['/api/purchases'],
+    queryKey: ['/api/purchases', connectedUser?.id],
     queryFn: async () => {
-      const response = await fetch('/api/purchases');
+      const userId = connectedUser?.id || 5; // fallback to 5 for demo
+      const response = await fetch(`/api/purchases?userId=${userId}`);
       if (!response.ok) throw new Error('Failed to fetch purchases');
       return response.json();
-    }
+    },
+    enabled: !!connectedUser // Only fetch when we have a connected user
   });
 
   // Auto-scroll to top

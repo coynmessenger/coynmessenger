@@ -79,6 +79,10 @@ export default function ProductPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get connected user from localStorage
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+
   // Get cart count for header badge
   const getCartCount = () => {
     const cart = JSON.parse(localStorage.getItem('shopping-cart') || '[]');
@@ -192,6 +196,7 @@ export default function ProductPage() {
       quantity: number;
       cryptoCurrency: string;
       cryptoAmount: number;
+      userId?: number;
     }) => {
       return apiRequest("POST", "/api/marketplace/purchase", purchaseData);
     },
@@ -201,6 +206,8 @@ export default function ProductPage() {
         title: "Purchase Successful!",
         description: `Transaction ID: ${data.transactionId}`,
       });
+      // Invalidate purchase history cache to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
     },
     onError: (error: any) => {
       toast({
@@ -310,6 +317,7 @@ export default function ProductPage() {
       quantity,
       cryptoCurrency: selectedCrypto,
       cryptoAmount: providedCrypto,
+      userId: connectedUser?.id || 5, // Add the connected user's ID
     });
   };
 

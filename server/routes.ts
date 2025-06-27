@@ -787,8 +787,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Purchase product with cryptocurrency
   app.post("/api/marketplace/purchase", async (req, res) => {
     try {
-      const { productId, quantity = 1, cryptoCurrency, cryptoAmount, shippingAddress, productTitle, totalValue } = req.body;
-      const userId = (req as any).session?.userId || 5; // Default to demo user
+      const { productId, quantity = 1, cryptoCurrency, cryptoAmount, shippingAddress, productTitle, totalValue, userId } = req.body;
+      const actualUserId = userId || (req as any).session?.userId || 5; // Use passed userId or session fallback
 
       if (!productId || !cryptoCurrency || !cryptoAmount) {
         return res.status(400).json({ message: "Missing required payment information" });
@@ -799,7 +799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         quantity,
         cryptoCurrency,
         cryptoAmount,
-        userId
+        actualUserId
       );
 
       if (!result.success) {
@@ -809,7 +809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create purchase record
       const purchaseValue = parseFloat(totalValue) || parseFloat(cryptoAmount);
       const purchase = await storage.createPurchase({
-        userId,
+        userId: actualUserId,
         productId,
         productTitle: productTitle || `Product ${productId}`,
         quantity,
@@ -826,7 +826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rewardTier = storage.checkRewardEligibility(purchaseValue);
       if (rewardTier) {
         await storage.createNFTReward({
-          userId,
+          userId: actualUserId,
           tier: rewardTier,
           productId,
           productTitle: productTitle || `Product ${productId}`,
@@ -835,10 +835,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRedeemed: false
         });
         
-        console.log(`[NFT REWARD] User ${userId} earned ${rewardTier} tier NFT reward for purchase of $${purchaseValue}`);
+        console.log(`[NFT REWARD] User ${actualUserId} earned ${rewardTier} tier NFT reward for purchase of $${purchaseValue}`);
       }
 
-      console.log(`[PURCHASE] User ${userId} purchased ${quantity}x ${productId} with ${cryptoAmount} ${cryptoCurrency}`);
+      console.log(`[PURCHASE] User ${actualUserId} purchased ${quantity}x ${productId} with ${cryptoAmount} ${cryptoCurrency}`);
       console.log(`[PURCHASE] Transaction ID: ${result.transactionId}`);
       
       res.json({
@@ -888,7 +888,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Purchase history API
   app.get("/api/purchases", async (req, res) => {
     try {
-      const userId = (req as any).session?.userId || 5;
+      // Get user ID from query parameter or default to 5 for backward compatibility
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const purchases = await storage.getPurchases(userId);
       res.json(purchases);
     } catch (error) {

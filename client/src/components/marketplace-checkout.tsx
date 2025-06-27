@@ -399,6 +399,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           totalValue: (parseFloat(item.price.replace('$', '')) * item.quantity).toString(),
           cryptoCurrency: selectedCrypto,
           cryptoAmount,
+          userId: connectedUser?.id || 5, // Add the connected user's ID
           shippingAddress: `${shippingAddress.fullName}, ${shippingAddress.addressLine1}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}, ${shippingAddress.country}`,
           orderNotes
         };
@@ -420,6 +421,9 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         title: "Order Placed Successfully!",
         description: `Your order of ${cartItems.length} item(s) has been confirmed. You may have earned NFT rewards!`,
       });
+      
+      // Invalidate purchase history cache to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
       
       // Clear cart and close
       setCartItems([]);
