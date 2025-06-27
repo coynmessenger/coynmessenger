@@ -815,12 +815,12 @@ export default function ProductPage() {
         <h2 className="text-xl font-bold text-foreground mb-4">You might also like</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {[
-            { title: "Gaming Headset", price: "79.99", image: "https://m.media-amazon.com/images/I/61CGHv6kmWL._AC_UX679_.jpg", asin: "B07FZQJ8PY" },
-            { title: "iPad Pro 5th Generation", price: "649.00", image: "https://m.media-amazon.com/images/I/51F9d8h5TJL._AC_UX679_.jpg", asin: "B09G91LXFP" },
-            { title: "Gaming Keyboard", price: "129.99", image: "https://m.media-amazon.com/images/I/61Tq-c2PwwL._AC_UX679_.jpg", asin: "B07ZGDPT4M" },
-            { title: "MacBook Pro", price: "1999.00", image: "https://m.media-amazon.com/images/I/61RJn0ofUsL._AC_UX679_.jpg", asin: "B0BSHF7LLL" },
-            { title: "Wireless Mouse", price: "49.99", image: "https://m.media-amazon.com/images/I/61mpMH5TzkL._AC_UX679_.jpg", asin: "B08BHVS7VJ" },
-            { title: "USB-C Hub", price: "39.99", image: "https://m.media-amazon.com/images/I/61Bl8lWwJoL._AC_UX679_.jpg", asin: "B087QZVQJX" }
+            { title: "Apple AirPods Pro (2nd Generation)", price: "249.00", image: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg", asin: "B087CQR456" },
+            { title: "Samsung Galaxy Watch 4", price: "279.99", image: "https://m.media-amazon.com/images/I/61MWOGeVCJL._AC_SL1500_.jpg", asin: "B08GGGHLZD" },
+            { title: "Sony WH-1000XM5 Wireless Headphones", price: "399.99", image: "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg", asin: "B0BSHF7LKS" },
+            { title: "iPad Air (5th Generation)", price: "599.00", image: "https://m.media-amazon.com/images/I/61NGnpjoTDL._AC_SL1500_.jpg", asin: "B09JQMJHXY" },
+            { title: "Nintendo Switch OLED Model", price: "349.99", image: "https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg", asin: "B08N5WRWNZ" },
+            { title: "MacBook Air M2", price: "1199.00", image: "https://m.media-amazon.com/images/I/71jG+e7roXL._AC_SL1500_.jpg", asin: "B087XZQGBW" }
           ].map((item, index) => (
             <Card 
               key={index} 
