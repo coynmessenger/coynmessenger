@@ -363,6 +363,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Fixed marketplace wallet modal positioning - aligned wallet modal to left edge of screen on mobile devices with full viewport width for better user experience
 - June 27, 2025: Updated messenger mobile header - made wallet icon highlighted with orange background and removed hamburger menu for cleaner interface with wallet as primary action button
 - June 27, 2025: Made COYN logo clickable in messenger - clicking the COYN logo in both desktop and mobile headers now opens the wallet sidebar for quick access to wallet features
+- June 27, 2025: Swapped header layout positioning - moved COYN logo to right side where home button was, moved home button to left side where logo was, creating new layout arrangement for messenger header
 
 ## User Preferences
 

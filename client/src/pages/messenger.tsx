@@ -120,6 +120,21 @@ export default function MessengerPage() {
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => setLocation("/")}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Return to Home
+            </Button>
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+              Messenger
+            </h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
             <button
               onClick={() => setIsWalletSidebarOpen(true)}
               className="hover:opacity-80 transition-opacity"
@@ -131,21 +146,6 @@ export default function MessengerPage() {
                 className="w-8 h-8 cursor-pointer"
               />
             </button>
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-              Messenger
-            </h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
-            <Button
-              onClick={() => setLocation("/")}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Return to Home
-            </Button>
           </div>
         </div>
 
@@ -371,17 +371,15 @@ export default function MessengerPage() {
         <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setIsWalletSidebarOpen(true)}
-                className="hover:opacity-80 transition-opacity"
-                title="Open COYN Wallet"
+              <Button
+                onClick={() => setLocation("/")}
+                variant="ghost"
+                size="sm"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
+                title="Home"
               >
-                <img 
-                  src={coynLogoPath} 
-                  alt="COYN Logo" 
-                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
-                />
-              </button>
+                <Home className="h-5 w-5" />
+              </Button>
               <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
@@ -395,22 +393,17 @@ export default function MessengerPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
-              <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2 bg-orange-100 dark:bg-orange-100 rounded-md"
+              <button
                 onClick={() => setIsWalletSidebarOpen(true)}
-                title="Wallet"
+                className="hover:opacity-80 transition-opacity"
+                title="Open COYN Wallet"
               >
-                <WalletIcon className="w-5 h-5" />
+                <img 
+                  src={coynLogoPath} 
+                  alt="COYN Logo" 
+                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                />
               </button>
-              <Button
-                onClick={() => setLocation("/")}
-                variant="ghost"
-                size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
-                title="Home"
-              >
-                <Home className="h-5 w-5" />
-              </Button>
             </div>
           </div>
         </nav>
