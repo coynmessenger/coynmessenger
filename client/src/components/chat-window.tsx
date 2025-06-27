@@ -53,14 +53,17 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Popular emojis for quick access
-  const popularEmojis = [
-    "😀", "😂", "😍", "😎", "😊", "😔", "😮", "😤",
-    "👍", "👎", "👏", "🙏", "💪", "✌️", "🤝", "👋",
-    "❤️", "💙", "💚", "💛", "🧡", "💜", "🖤", "🤍",
-    "🔥", "💎", "⚡", "⭐", "🌟", "💯", "🎉", "🚀",
-    "💰", "💸", "🪙", "📈", "📉", "💳", "🏦", "🎯"
-  ];
+  // Popular emojis for quick access - organized by categories
+  const emojiCategories = {
+    faces: ["😀", "😂", "🤣", "😊", "😍", "🥰", "😘", "😎", "🤔", "😮", "😤", "😔", "🥺", "😭", "😱", "🤗"],
+    gestures: ["👍", "👎", "👏", "🙏", "💪", "✌️", "🤝", "👋", "🤙", "👌", "🤞", "🙌", "👐", "🤲", "🫶", "👊"],
+    hearts: ["❤️", "💙", "💚", "💛", "🧡", "💜", "🖤", "🤍", "🤎", "💗", "💖", "💕", "💓", "💘", "💯", "💋"],
+    crypto: ["💰", "💸", "🪙", "💎", "📈", "📉", "💳", "🏦", "🚀", "⚡", "🔥", "💯", "🎯", "⭐", "🌟", "🎉"],
+    nature: ["🌞", "🌙", "⭐", "🌟", "☀️", "🌈", "🔥", "💧", "🌸", "🌺", "🌻", "🌹", "🍀", "🌿", "🌱", "🎄"],
+    objects: ["🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🎖️", "🏅", "⚽", "🏀", "🎯", "🎪", "🎭", "🎨", "🎵", "🎶"]
+  };
+
+  const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof emojiCategories>("faces");
 
   const { data: messages = [] } = useQuery<(Message & { sender: User })[]>({
     queryKey: ["/api/conversations", conversation.id, "messages"],
@@ -631,24 +634,45 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
                   <Smile className="h-5 w-5 sm:h-4 sm:w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 bg-slate-800 border-slate-700" align="end">
+              <PopoverContent className="w-80 p-4 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
                 <div className="space-y-3">
-                  <h3 className="font-medium text-slate-200">Popular Emojis</h3>
-                  <div className="grid grid-cols-8 gap-2">
-                    {popularEmojis.map((emoji, index) => (
+                  <h3 className="font-medium text-gray-900 dark:text-slate-200">Emojis</h3>
+                  
+                  {/* Category Tabs */}
+                  <div className="flex flex-wrap gap-1 border-b border-gray-200 dark:border-slate-700 pb-2">
+                    {Object.keys(emojiCategories).map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => setSelectedEmojiCategory(category as keyof typeof emojiCategories)}
+                        className={`px-2 py-1 text-xs rounded-md transition-colors capitalize ${
+                          selectedEmojiCategory === category
+                            ? "bg-orange-100 dark:bg-cyan-900/50 text-orange-700 dark:text-cyan-300 border border-orange-300 dark:border-cyan-600"
+                            : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Emoji Grid */}
+                  <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+                    {emojiCategories[selectedEmojiCategory].map((emoji, index) => (
                       <button
                         key={index}
                         type="button"
                         onClick={() => handleEmojiSelect(emoji)}
-                        className="text-xl hover:bg-slate-700 rounded p-2 transition-colors"
+                        className="text-xl hover:bg-orange-100 dark:hover:bg-slate-700 rounded p-2 transition-colors duration-200 hover:scale-110 active:scale-95"
                       >
                         {emoji}
                       </button>
                     ))}
                   </div>
-                  <div className="pt-2 border-t border-slate-700">
-                    <p className="text-xs text-slate-400">
-                      Tip: You can also type emojis directly or copy-paste them!
+                  
+                  <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      Tip: You can also type emojis directly!
                     </p>
                   </div>
                 </div>
