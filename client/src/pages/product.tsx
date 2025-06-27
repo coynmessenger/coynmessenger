@@ -248,8 +248,8 @@ export default function ProductPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="container mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative aspect-square bg-white dark:bg-slate-800 rounded-lg overflow-hidden group shadow-lg">
@@ -378,7 +378,7 @@ export default function ProductPage() {
                   />
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground mt-2">You might also like</p>
+
             </div>
 
             {/* Trust Indicators */}
@@ -558,16 +558,18 @@ export default function ProductPage() {
       )}
 
       {/* Suggested Products */}
-      <div className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-foreground mb-6">You might also like</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="container mx-auto px-4 py-6">
+        <h2 className="text-xl font-bold text-foreground mb-4">You might also like</h2>
+        <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {[
             { title: "Gaming Headset", price: "79.99", image: "https://m.media-amazon.com/images/I/61CGHv6kmWL._AC_UX679_.jpg" },
             { title: "iPad Pro 5th Generation", price: "649.00", image: "https://m.media-amazon.com/images/I/51F9d8h5TJL._AC_UX679_.jpg" },
             { title: "Gaming Keyboard", price: "129.99", image: "https://m.media-amazon.com/images/I/61Tq-c2PwwL._AC_UX679_.jpg" },
-            { title: "MacBook Pro", price: "1999.00", image: "https://m.media-amazon.com/images/I/61RJn0ofUsL._AC_UX679_.jpg" }
+            { title: "MacBook Pro", price: "1999.00", image: "https://m.media-amazon.com/images/I/61RJn0ofUsL._AC_UX679_.jpg" },
+            { title: "Wireless Mouse", price: "49.99", image: "https://m.media-amazon.com/images/I/61mpMH5TzkL._AC_UX679_.jpg" },
+            { title: "USB-C Hub", price: "39.99", image: "https://m.media-amazon.com/images/I/61Bl8lWwJoL._AC_UX679_.jpg" }
           ].map((item, index) => (
-            <Card key={index} className="group cursor-pointer hover:shadow-lg transition-shadow duration-300">
+            <Card key={index} className="flex-shrink-0 w-40 group cursor-pointer hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-3">
                 <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-3 overflow-hidden">
                   <img
@@ -589,8 +591,8 @@ export default function ProductPage() {
       </div>
 
       {/* NFT Purchase Rewards */}
-      <div className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-foreground mb-6">NFT Purchase Rewards</h2>
+      <div className="container mx-auto px-4 py-6">
+        <h2 className="text-xl font-bold text-foreground mb-4">NFT Purchase Rewards</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { tier: "Bronze", value: "$50+", color: "from-amber-600 to-amber-700", reward: "Bronze NFT" },
