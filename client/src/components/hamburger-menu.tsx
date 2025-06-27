@@ -132,7 +132,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
     
     // If message is not starred, star it directly
     try {
-      await apiRequest(`/api/messages/${message.id}/star`, 'PATCH', { isStarred: true });
+      await apiRequest('PATCH', `/api/messages/${message.id}/star`, { isStarred: true });
       
       // Refresh starred messages list
       queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
@@ -154,7 +154,8 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
     if (!messageToUnstar) return;
     
     try {
-      await apiRequest(`/api/messages/${messageToUnstar.id}/star`, 'PATCH', { isStarred: false });
+      console.log('Unstarring message:', messageToUnstar.id);
+      await apiRequest('PATCH', `/api/messages/${messageToUnstar.id}/star`, { isStarred: false });
       
       // Refresh starred messages list
       queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
@@ -164,6 +165,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
         description: "Removed from starred messages",
       });
     } catch (error) {
+      console.error('Error unstarring message:', error);
       toast({
         title: "Failed to unstar message",
         description: "Please try again",
