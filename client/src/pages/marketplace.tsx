@@ -892,21 +892,20 @@ export default function MarketplacePage() {
                       </div>
                     </div>
 
-                    {/* Details Toggle Button - Positioned below categories */}
-                    <div className="px-4 pb-4">
+                    {/* Details Toggle Button - Small arrow icon */}
+                    <div className="px-4 pb-4 flex justify-center">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           const currentState = expandedDetails.get(itemKey.toString()) || false;
                           setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
                         }}
-                        className="w-full text-xs h-8 border-border hover:bg-accent"
+                        className="h-6 w-6 p-0 hover:bg-accent"
                       >
-                        <span>Details</span>
                         <ChevronRight 
-                          className={`h-3 w-3 ml-1 transition-transform duration-200 ${
+                          className={`h-4 w-4 transition-transform duration-200 ${
                             expandedDetails.get(itemKey.toString()) ? 'rotate-90' : 'rotate-0'
                           }`} 
                         />
