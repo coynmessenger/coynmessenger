@@ -5,9 +5,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers } from "@shared/schema";
+import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites } from "@shared/schema";
 import { db } from "./db";
 import { initializeDatabase } from "./db";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 
@@ -591,6 +592,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Share product error:", error);
       res.status(500).json({ message: "Failed to share product" });
+    }
+  });
+
+  // Favorites API routes
+  app.get("/api/favorites", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const favorites = await storage.getFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Get favorites error:", error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
+
+  app.post("/api/favorites", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const { productId, productTitle, productPrice, productImage, productCategory, productRating } = req.body;
+      
+      if (!productId || !productTitle) {
+        return res.status(400).json({ message: "Product ID and title are required" });
+      }
+
+      // Add to favorites with proper data structure
+      const favoriteData = {
+        userId,
+        productId,
+        productTitle,
+        productPrice: productPrice || "$0.00",
+        productImage: productImage || "",
+        productCategory: productCategory || "General",
+        productRating: productRating || 0
+      };
+
+      const [favorite] = await db
+        .insert(favorites)
+        .values(favoriteData)
+        .returning();
+
+      res.json({ 
+        message: "Added to favorites",
+        favorite,
+        action: "added"
+      });
+    } catch (error) {
+      console.error("Add favorite error:", error);
+      res.status(500).json({ message: "Failed to add to favorites" });
+    }
+  });
+
+  app.delete("/api/favorites/:productId", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const { productId } = req.params;
+      
+      const success = await storage.removeFromFavorites(userId, productId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Favorite not found" });
+      }
+
+      res.json({ 
+        message: "Removed from favorites",
+        action: "removed"
+      });
+    } catch (error) {
+      console.error("Remove favorite error:", error);
+      res.status(500).json({ message: "Failed to remove from favorites" });
     }
   });
 
