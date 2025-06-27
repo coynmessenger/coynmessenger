@@ -214,28 +214,28 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
             
             return (
               <Card key={balance.currency} className="border border-gray-200 dark:border-slate-600 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedCurrency(balance.currency)}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between min-h-[60px]">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
                       {getCurrencyIcon(balance.currency)}
-                      <div>
-                        <p className="font-medium text-black dark:text-white">{balance.currency}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-black dark:text-white truncate">{balance.currency}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                           {formatBalance(balance.balance, showBalance)} {balance.currency}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium text-black dark:text-white">
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-medium text-black dark:text-white text-sm">
                         {formatUSDValue(balance.balance, balance.currency, showBalance)}
                       </p>
-                      <div className="flex items-center gap-1 text-sm">
+                      <div className="flex items-center gap-1 text-xs justify-end">
                         {isPositive ? (
-                          <TrendingUp className="h-3 w-3 text-green-500" />
+                          <TrendingUp className="h-3 w-3 text-green-500 flex-shrink-0" />
                         ) : (
-                          <TrendingDown className="h-3 w-3 text-red-500" />
+                          <TrendingDown className="h-3 w-3 text-red-500 flex-shrink-0" />
                         )}
-                        <span className={isPositive ? "text-green-500" : "text-red-500"}>
+                        <span className={`${isPositive ? "text-green-500" : "text-red-500"} whitespace-nowrap`}>
                           {showBalance ? `${isPositive ? '+' : ''}${change24h.toFixed(1)}%` : "••••"}
                         </span>
                       </div>
