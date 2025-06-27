@@ -102,6 +102,9 @@ export default function ProductPage() {
     queryKey: ["/api/crypto/rates"],
   });
 
+  // Debug crypto rates
+  console.log("ProductPage: cryptoRates =", cryptoRates);
+
   // Fetch favorites
   const { data: favorites = [] } = useQuery({
     queryKey: ['/api/favorites'],
