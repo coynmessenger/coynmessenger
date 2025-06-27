@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -140,6 +140,7 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
                 }`}
               >
                 <Avatar className="h-8 w-8">
+                  <AvatarImage src={conversation.otherUser.profilePicture || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white text-xs font-semibold">
                     {conversation.otherUser.displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>

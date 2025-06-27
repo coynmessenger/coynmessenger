@@ -1046,9 +1046,12 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
                 : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-orange-500 dark:bg-cyan-500 flex items-center justify-center text-white text-sm font-medium">
-              {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
-            </div>
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
+              <AvatarFallback className="bg-orange-500 dark:bg-cyan-500 text-white text-sm font-medium">
+                {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground">
                 {conversation.otherUser?.displayName || conversation.otherUser?.username}
