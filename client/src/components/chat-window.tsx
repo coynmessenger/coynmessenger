@@ -396,12 +396,35 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowMessageOptions(null);
   };
 
+  const starMessageMutation = useMutation({
+    mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
+      const response = await apiRequest("PATCH", `/api/messages/${messageId}/star`, { isStarred });
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
+      
+      toast({
+        title: variables.isStarred ? "Message starred" : "Message unstarred",
+        description: variables.isStarred ? "Message added to starred messages" : "Message removed from starred messages",
+        duration: 1500,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to update star",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleStarMessage = (message: Message) => {
-    // Implement star/favorite functionality
-    toast({
-      title: "Message starred",
-      description: "Message added to starred messages",
-      duration: 1500,
+    const isCurrentlyStarred = message.isStarred || false;
+    starMessageMutation.mutate({ 
+      messageId: message.id, 
+      isStarred: !isCurrentlyStarred 
     });
     setShowMessageOptions(null);
   };
@@ -645,9 +668,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
                             onClick={() => handleStarMessage(msg)}
-                            title="Star"
+                            title={msg.isStarred ? "Unstar" : "Star"}
                           >
-                            <Star className="h-4 w-4" />
+                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
                           </Button>
                           <Button
                             variant="ghost"
@@ -774,9 +797,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
                             onClick={() => handleStarMessage(msg)}
-                            title="Star"
+                            title={msg.isStarred ? "Unstar" : "Star"}
                           >
-                            <Star className="h-4 w-4" />
+                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
                           </Button>
                           <Button
                             variant="ghost"
