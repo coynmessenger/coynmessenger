@@ -760,7 +760,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteMessage(msg.id);
+                              deleteMessageMutation.mutate(msg.id);
                             }}
                             title="Delete"
                           >
@@ -904,6 +904,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             title="Forward"
                           >
                             <Forward className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMessageMutation.mutate(msg.id);
+                            }}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1077,7 +1089,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteMessage(msg.id);
+                            deleteMessageMutation.mutate(msg.id);
                           }}
                           title="Delete"
                         >
