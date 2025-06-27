@@ -271,19 +271,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
             </div>
           </div>
 
-          {/* Bottom Actions */}
-          <div className="p-6 border-t border-gray-200/50 dark:border-gray-700/50">
-            <div className="grid grid-cols-2 gap-3">
-              <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg">
-                <ArrowDownLeft className="w-4 h-4 mr-2" />
-                Receive
-              </Button>
-              <Button variant="outline" className="border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-900/20">
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                Send All
-              </Button>
-            </div>
-          </div>
+
         </div>
       </div>
 
