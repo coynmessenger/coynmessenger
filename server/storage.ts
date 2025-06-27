@@ -31,6 +31,7 @@ export interface IStorage {
 
   // Messages
   getMessage(id: number): Promise<Message | undefined>;
+  getMessagesByIds(ids: number[]): Promise<Message[]>;
   getConversationMessages(conversationId: number): Promise<(Message & { sender: User })[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   deleteMessage(messageId: number, userId: number): Promise<boolean>;
@@ -268,6 +269,11 @@ export class DatabaseStorage implements IStorage {
   async getMessage(id: number): Promise<Message | undefined> {
     const [message] = await db.select().from(messages).where(eq(messages.id, id));
     return message || undefined;
+  }
+
+  async getMessagesByIds(ids: number[]): Promise<Message[]> {
+    if (ids.length === 0) return [];
+    return await db.select().from(messages).where(inArray(messages.id, ids));
   }
 
   async getConversationMessages(conversationId: number): Promise<(Message & { sender: User })[]> {

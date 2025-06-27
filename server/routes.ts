@@ -517,6 +517,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Share messages between conversations
+  app.post("/api/messages/share", async (req, res) => {
+    try {
+      const { conversationIds, messageIds } = req.body;
+      const userId = 5; // Current user
+      
+      if (!conversationIds || !messageIds || conversationIds.length === 0 || messageIds.length === 0) {
+        return res.status(400).json({ message: "Missing conversation IDs or message IDs" });
+      }
+
+      // Get the original messages
+      const messages = await storage.getMessagesByIds(messageIds);
+      if (messages.length === 0) {
+        return res.status(404).json({ message: "Messages not found" });
+      }
+
+      // Create shared messages in each target conversation
+      for (const conversationId of conversationIds) {
+        for (const message of messages) {
+          const sharedMessage = {
+            conversationId,
+            senderId: userId,
+            content: `📤 Shared: ${message.content}`,
+            messageType: "text" as const,
+            originalMessageId: message.id
+          };
+          await storage.createMessage(sharedMessage);
+        }
+      }
+
+      res.json({ 
+        message: "Messages shared successfully",
+        sharedTo: conversationIds.length,
+        messagesShared: messageIds.length
+      });
+    } catch (error) {
+      console.error("Share messages error:", error);
+      res.status(500).json({ message: "Failed to share messages" });
+    }
+  });
+
+  // Share product to conversations
+  app.post("/api/messages/share-product", async (req, res) => {
+    try {
+      const { conversationIds, productId, productTitle, productPrice, productImage } = req.body;
+      const userId = 5; // Current user
+      
+      if (!conversationIds || conversationIds.length === 0 || !productId || !productTitle) {
+        return res.status(400).json({ message: "Missing required product information" });
+      }
+
+      // Create product sharing messages in each target conversation
+      for (const conversationId of conversationIds) {
+        const productMessage = {
+          conversationId,
+          senderId: userId,
+          content: `🛍️ Check out this product: ${productTitle} - $${productPrice}`,
+          messageType: "product_share" as const,
+          productId,
+          productTitle,
+          productPrice,
+          productImage
+        };
+        await storage.createMessage(productMessage);
+      }
+
+      res.json({ 
+        message: "Product shared successfully",
+        sharedTo: conversationIds.length,
+        productTitle
+      });
+    } catch (error) {
+      console.error("Share product error:", error);
+      res.status(500).json({ message: "Failed to share product" });
+    }
+  });
+
   // Enhanced Marketplace API routes
   app.get("/api/marketplace/search", async (req, res) => {
     try {

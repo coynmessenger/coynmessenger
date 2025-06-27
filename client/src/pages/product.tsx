@@ -31,7 +31,9 @@ import {
   Wallet,
   Check,
   Clock,
-  Package
+  Package,
+  Send,
+  MessageCircle
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
@@ -70,6 +72,7 @@ export default function ProductPage() {
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [showNFTRewards, setShowNFTRewards] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -181,6 +184,33 @@ export default function ProductPage() {
         variant: "destructive",
       });
       setPurchaseStep("select");
+    },
+  });
+
+  // Share product mutation
+  const shareProductMutation = useMutation({
+    mutationFn: async (data: { 
+      conversationIds: number[];
+      productId: string;
+      productTitle: string;
+      productPrice: string;
+      productImage: string;
+    }) => {
+      return apiRequest("POST", "/api/messages/share-product", data);
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Product shared successfully",
+        description: `Shared to ${variables.conversationIds.length} conversation${variables.conversationIds.length > 1 ? 's' : ''}`,
+      });
+      setShowShareModal(false);
+    },
+    onError: () => {
+      toast({
+        title: "Failed to share product",
+        description: "Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -355,7 +385,12 @@ export default function ProductPage() {
                   }`} 
                 />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-accent">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-accent"
+                onClick={() => setShowShareModal(true)}
+              >
                 <Share className="h-5 w-5" />
               </Button>
             </div>
@@ -872,6 +907,161 @@ export default function ProductPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Product Share Modal */}
+      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Product</DialogTitle>
+          </DialogHeader>
+          
+          <ProductShareModalContent 
+            product={product}
+            onShare={(conversationIds) => {
+              if (product) {
+                shareProductMutation.mutate({
+                  conversationIds,
+                  productId: product.ASIN,
+                  productTitle: product.title,
+                  productPrice: product.price,
+                  productImage: product.imageUrl,
+                });
+              }
+            }}
+            onClose={() => setShowShareModal(false)}
+            isSharing={shareProductMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Product Share Modal Content Component
+interface ProductShareModalContentProps {
+  product: Product | null;
+  onShare: (conversationIds: number[]) => void;
+  onClose: () => void;
+  isSharing: boolean;
+}
+
+function ProductShareModalContent({ product, onShare, onClose, isSharing }: ProductShareModalContentProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedConversations, setSelectedConversations] = useState<Set<number>>(new Set());
+
+  const { data: conversations = [] } = useQuery<any[]>({
+    queryKey: ["/api/conversations"],
+  });
+
+  const filteredConversations = conversations.filter(conv => 
+    conv.otherUser?.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.otherUser?.username?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleConversationSelection = (conversationId: number) => {
+    const newSelected = new Set(selectedConversations);
+    if (newSelected.has(conversationId)) {
+      newSelected.delete(conversationId);
+    } else {
+      newSelected.add(conversationId);
+    }
+    setSelectedConversations(newSelected);
+  };
+
+  const handleShare = () => {
+    if (selectedConversations.size === 0) return;
+    onShare(Array.from(selectedConversations));
+  };
+
+  if (!product) return null;
+
+  return (
+    <div className="space-y-4">
+      {/* Product Preview */}
+      <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
+        <div className="flex items-center gap-3">
+          <img
+            src={product.imageUrl}
+            alt={product.title}
+            className="w-12 h-12 object-cover rounded"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{product.title}</p>
+            <p className="text-sm text-muted-foreground">${product.price}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Conversations */}
+      <div className="relative">
+        <Input
+          type="text"
+          placeholder="Search conversations..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+        <MessageCircle className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+      </div>
+
+      {/* Conversations List */}
+      <div className="max-h-64 overflow-y-auto space-y-2">
+        {filteredConversations.map((conversation) => (
+          <div
+            key={conversation.id}
+            onClick={() => toggleConversationSelection(conversation.id)}
+            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+              selectedConversations.has(conversation.id)
+                ? 'bg-orange-50 dark:bg-cyan-900/20 border-orange-200 dark:border-cyan-600'
+                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-full bg-orange-500 dark:bg-cyan-500 flex items-center justify-center text-white text-sm font-medium">
+              {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {conversation.otherUser?.displayName || conversation.otherUser?.username}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {conversation.otherUser?.username && conversation.otherUser?.displayName !== conversation.otherUser?.username 
+                  ? `@${conversation.otherUser.username}` 
+                  : 'User'}
+              </p>
+            </div>
+            {selectedConversations.has(conversation.id) && (
+              <Check className="h-4 w-4 text-orange-600 dark:text-cyan-400" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {filteredConversations.length === 0 && (
+        <div className="text-center py-8">
+          <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+          <p className="text-muted-foreground">No conversations found</p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex justify-between items-center pt-4 border-t">
+        <div className="text-sm text-muted-foreground">
+          {selectedConversations.size} conversation{selectedConversations.size !== 1 ? 's' : ''} selected
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleShare}
+            disabled={selectedConversations.size === 0 || isSharing}
+            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
