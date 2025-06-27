@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   displayName: text("display_name").notNull(),
+  signInName: text("sign_in_name"), // Name provided during wallet sign-in
   walletAddress: text("wallet_address").notNull(),
   profilePicture: text("profile_picture"),
   isOnline: boolean("is_online").default(false),

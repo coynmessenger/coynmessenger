@@ -44,6 +44,19 @@ const upload = multer({
   }
 });
 
+// Helper function to get effective display name with correct priority
+function getEffectiveDisplayName(user: any): string {
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
+  if (user.signInName) {
+    return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  return `@${user.walletAddress.slice(-6)}`;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -65,7 +78,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json(user);
+      
+      // Return user with effective display name
+      const userWithEffectiveName = {
+        ...user,
+        displayName: getEffectiveDisplayName(user)
+      };
+      
+      res.json(userWithEffectiveName);
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
     }
@@ -102,23 +122,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists
       const existingUser = await storage.getUserByWalletAddress(walletAddress);
       if (existingUser) {
-        // If display name was provided and it's different, update it
-        if (displayName && displayName !== existingUser.displayName) {
-          console.log(`Updating user ${existingUser.id} display name from "${existingUser.displayName}" to "${displayName}"`);
+        // If display name was provided and it's different from sign-in name, update it
+        if (displayName && displayName !== existingUser.signInName) {
+          console.log(`Updating user ${existingUser.id} sign-in name from "${existingUser.signInName}" to "${displayName}"`);
           const updatedUser = await storage.updateUser(existingUser.id, {
-            displayName: displayName
+            signInName: displayName
           });
           console.log("Updated user:", updatedUser);
-          return res.json(updatedUser);
+          
+          // Return user with effective display name
+          const userWithEffectiveName = {
+            ...updatedUser,
+            displayName: getEffectiveDisplayName(updatedUser)
+          };
+          return res.json(userWithEffectiveName);
         }
-        console.log(`User exists with same display name: "${existingUser.displayName}"`);
-        return res.json(existingUser);
+        console.log(`User exists with same sign-in name: "${existingUser.signInName}"`);
+        
+        // Return user with effective display name
+        const userWithEffectiveName = {
+          ...existingUser,
+          displayName: getEffectiveDisplayName(existingUser)
+        };
+        return res.json(userWithEffectiveName);
       }
 
       // Create new user with wallet address
       const userData = {
         username: walletAddress.slice(0, 8), // Use first 8 chars as username
         displayName: displayName || `@${walletAddress.slice(-6)}`, // Use display name or @id format
+        signInName: displayName, // Store the sign-in name separately (can be null)
         walletAddress: walletAddress,
         isSetup: false, // Don't show automatically created wallet users in contact list
         isOnline: true,
@@ -143,7 +176,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("Created user with real blockchain balances:", newUser.id);
-      return res.json(newUser);
+      
+      // Return user with effective display name
+      const userWithEffectiveName = {
+        ...newUser,
+        displayName: getEffectiveDisplayName(newUser)
+      };
+      
+      return res.json(userWithEffectiveName);
     } catch (error) {
       console.error("Find/create user error:", error);
       res.status(500).json({ message: "Failed to find or create user" });
