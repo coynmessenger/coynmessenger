@@ -735,6 +735,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Crypto rates endpoint
+  app.get("/api/crypto/rates", async (req, res) => {
+    try {
+      const rates = await marketplaceAPI.getCryptoRates();
+      res.json(rates);
+    } catch (error) {
+      console.error("[CRYPTO RATES] Error fetching rates:", error);
+      res.status(500).json({ message: "Failed to fetch crypto rates" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
