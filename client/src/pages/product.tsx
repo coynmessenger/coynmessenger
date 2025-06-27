@@ -24,16 +24,14 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
-  ChevronDown,
+
   Plus,
   Minus,
   CreditCard,
   Wallet,
   Check,
   Clock,
-  Package,
-  Info
+  Package
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
@@ -72,7 +70,7 @@ export default function ProductPage() {
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [showNFTRewards, setShowNFTRewards] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [showDetailsReviews, setShowDetailsReviews] = useState(false);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -512,102 +510,83 @@ export default function ProductPage() {
               )}
             </div>
 
-            {/* Details & Reviews Dropdown */}
-            <div className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setShowDetailsReviews(!showDetailsReviews)}
-                className="w-full flex items-center justify-between p-4 bg-white/50 dark:bg-slate-800/50 hover:bg-white/70 dark:hover:bg-slate-800/70 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Info className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
-                  <span className="font-medium text-foreground">Details & Reviews</span>
-                </div>
-                {showDetailsReviews ? (
-                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                )}
-              </button>
-              
-              {showDetailsReviews && (
-                <div className="p-4 bg-white/30 dark:bg-slate-800/30 border-t border-gray-200 dark:border-slate-700 space-y-6">
-                  {/* Product Details */}
-                  {product.description && (
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-2">Product Details</h4>
-                      <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-                    </div>
-                  )}
-                  
-                  {/* Specifications */}
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Specifications</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                        <span className="text-muted-foreground">Brand:</span>
-                        <span className="font-medium text-foreground">{product.brand}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                        <span className="text-muted-foreground">Category:</span>
-                        <span className="font-medium text-foreground">{product.category}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                        <span className="text-muted-foreground">Rating:</span>
-                        <span className="font-medium text-foreground">{product.rating}/5 stars</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                        <span className="text-muted-foreground">Reviews:</span>
-                        <span className="font-medium text-foreground">{product.reviewCount.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Customer Reviews Preview */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-foreground">Customer Reviews</h4>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAllReviews(true)}
-                        className="text-orange-600 dark:text-cyan-400 border-orange-200 dark:border-cyan-600 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
-                      >
-                        View All
-                      </Button>
-                    </div>
-                    <div className="space-y-3">
-                      {reviewsData.slice(0, 2).map((review, index) => (
-                        <div key={index} className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">{review.name}</span>
-                              {review.verified && (
-                                <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
-                                  Verified
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-3 w-3 ${
-                                    i < review.rating
-                                      ? "text-yellow-500 fill-current"
-                                      : "text-gray-300 dark:text-gray-600"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Marketplace Verified Purchase</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            {/* Product Details & Reviews - Always Visible */}
+            <div className="space-y-6">
+              {/* Product Details */}
+              {product.description && (
+                <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
+                  <h4 className="font-semibold text-foreground mb-2">Product Details</h4>
+                  <p className="text-muted-foreground leading-relaxed">{product.description}</p>
                 </div>
               )}
+              
+              {/* Specifications */}
+              <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
+                <h4 className="font-semibold text-foreground mb-2">Specifications</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                    <span className="text-muted-foreground">Brand:</span>
+                    <span className="font-medium text-foreground">{product.brand}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                    <span className="text-muted-foreground">Category:</span>
+                    <span className="font-medium text-foreground">{product.category}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                    <span className="text-muted-foreground">Rating:</span>
+                    <span className="font-medium text-foreground">{product.rating}/5 stars</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                    <span className="text-muted-foreground">Reviews:</span>
+                    <span className="font-medium text-foreground">{product.reviewCount.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Customer Reviews Preview */}
+              <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-foreground">Customer Reviews</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAllReviews(true)}
+                    className="text-orange-600 dark:text-cyan-400 border-orange-200 dark:border-cyan-600 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
+                  >
+                    View All
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {reviewsData.slice(0, 2).map((review, index) => (
+                    <div key={index} className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{review.name}</span>
+                          {review.verified && (
+                            <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                              Verified
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-3 w-3 ${
+                                i < review.rating
+                                  ? "text-yellow-500 fill-current"
+                                  : "text-gray-300 dark:text-gray-600"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Marketplace Verified Purchase</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Trust Indicators */}
