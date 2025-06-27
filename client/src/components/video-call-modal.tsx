@@ -1,83 +1,46 @@
 import { useState, useEffect } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Monitor } from "lucide-react";
-import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
-import type { User } from "@shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Video, VideoOff, Mic, MicOff, Monitor, Phone, Maximize2, Minimize2 } from "lucide-react";
 
 interface VideoCallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onHide?: () => void;
+  onCallEnd: () => void;
+  recipientName: string;
   onCallStart?: () => void;
-  onCallEnd?: () => void;
-  user?: User;
-  callType?: "incoming" | "outgoing";
-  isCallActive?: boolean;
 }
 
 export default function VideoCallModal({ 
   isOpen, 
   onClose, 
-  onHide, 
-  onCallStart, 
   onCallEnd, 
-  user, 
-  callType = "outgoing", 
-  isCallActive = false 
+  recipientName,
+  onCallStart 
 }: VideoCallModalProps) {
-  // Early return if no user is provided
-  if (!user) {
-    return null;
-  }
-  
-  const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
   const [callDuration, setCallDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) {
-      // Only reset if call is not active (completely ending the call)
-      if (!isCallActive) {
-        setCallStatus("connecting");
-        setCallDuration(0);
-        setIsMuted(false);
-        setIsVideoOff(false);
-        setIsScreenSharing(false);
-      }
-      return;
+    if (isOpen && callStatus === 'connecting') {
+      onCallStart?.();
+      
+      // Simulate call progression
+      setTimeout(() => setCallStatus('ringing'), 1000);
+      setTimeout(() => setCallStatus('connected'), 3000);
     }
-
-    // If rejoining an active call, go directly to connected state
-    if (isCallActive) {
-      setCallStatus("connected");
-      return;
-    }
-
-    // Otherwise, go through normal connection process
-    const timer1 = setTimeout(() => {
-      setCallStatus("ringing");
-    }, 1000);
-
-    const timer2 = setTimeout(() => {
-      setCallStatus("connected");
-      if (onCallStart) {
-        onCallStart();
-      }
-    }, 3000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, [isOpen, isCallActive, onCallStart]);
+  }, [isOpen, callStatus, onCallStart]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (callStatus === "connected") {
+    if (callStatus === 'connected') {
       interval = setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
@@ -85,215 +48,182 @@ export default function VideoCallModal({
     return () => clearInterval(interval);
   }, [callStatus]);
 
+  const handleEndCall = () => {
+    setCallStatus('connecting');
+    setCallDuration(0);
+    onCallEnd();
+    onClose();
+  };
+
+  const handleToggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleToggleVideo = () => {
+    setIsVideoOn(!isVideoOn);
+  };
+
+  const handleToggleScreenShare = () => {
+    setIsScreenSharing(!isScreenSharing);
+  };
+
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const handleToggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleEndCall = () => {
-    setCallStatus("ended");
-    if (onCallEnd) {
-      onCallEnd();
-    }
-    setTimeout(() => {
-      onClose();
-    }, 1000);
-  };
-
-  const handleHideCall = () => {
-    if (onHide) {
-      onHide();
-    }
-  };
-
   const getStatusText = () => {
     switch (callStatus) {
-      case "connecting":
-        return "Connecting...";
-      case "ringing":
-        return callType === "incoming" ? "Incoming video call" : "Ringing...";
-      case "connected":
-        return formatDuration(callDuration);
-      case "ended":
-        return "Call ended";
-      default:
-        return "";
+      case 'connecting': return 'Connecting...';
+      case 'ringing': return 'Ringing...';
+      case 'connected': return formatDuration(callDuration);
+      default: return '';
     }
   };
 
-  const getStatusColor = () => {
-    switch (callStatus) {
-      case "connecting":
-        return "text-yellow-400";
-      case "ringing":
-        return "text-blue-400";
-      case "connected":
-        return "text-green-400";
-      case "ended":
-        return "text-red-400";
-      default:
-        return "text-gray-400";
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open && callStatus === "connected") {
-        // If call is connected, hide instead of closing
-        handleHideCall();
-      } else {
-        // If not connected, close normally
-        onClose();
-      }
-    }}>
-      <DialogContent className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden">
-        <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
-        
-        {/* Video Area */}
-        <div className="relative aspect-video bg-slate-800">
-          {callStatus === "connected" && !isVideoOff ? (
-            // Simulated video feed
-            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
-                  <AvatarImage src={user.profilePicture || ""} />
-                  <AvatarFallback className="bg-slate-700 text-2xl">
-                    <UserAvatarIcon className="w-12 h-12 text-slate-400" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-white/60 text-sm">Video connected</div>
-              </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent 
+        className={`
+          glass-card border-orange-500/20 
+          ${isFullscreen ? 'w-screen h-screen max-w-none max-h-none m-0' : 'w-[95vw] max-w-4xl h-[95vh]'}
+          ${isMinimized ? 'h-20 w-80' : ''}
+          flex flex-col
+        `}
+        style={{
+          background: 'rgba(15, 23, 42, 0.95)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* Video Call Header */}
+        <div className="flex items-center justify-between p-4 border-b border-orange-500/20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
+              {recipientName.charAt(0).toUpperCase()}
             </div>
-          ) : (
-            // User avatar when video is off or not connected
-            <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-              <div className="text-center space-y-6">
-                <Avatar className="w-32 h-32 mx-auto border-4 border-white/20 shadow-xl">
-                  <AvatarImage src={user.profilePicture || ""} />
-                  <AvatarFallback className="bg-slate-700 text-4xl">
-                    <UserAvatarIcon className="w-16 h-16 text-slate-400" />
-                  </AvatarFallback>
-                </Avatar>
-                {callStatus === "connected" && isVideoOff && (
-                  <div className="text-white/60 text-sm">Camera is off</div>
-                )}
-              </div>
+            <div>
+              <h3 className="font-semibold text-white">{recipientName}</h3>
+              <p className="text-sm text-gray-400">{getStatusText()}</p>
             </div>
-          )}
-
-          {/* Self view (small preview) */}
-          {callStatus === "connected" && (
-            <div className="absolute top-4 right-4 w-32 h-24 bg-slate-700 rounded-lg border-2 border-white/20 overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
-                <div className="text-white/40 text-xs">You</div>
-              </div>
-            </div>
-          )}
-
-          {/* Status overlay */}
-          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${
-                callStatus === "connected" ? "bg-green-400" : "bg-yellow-400"
-              } animate-pulse`}></div>
-              <span className={`text-sm font-medium ${getStatusColor()}`}>
-                {getStatusText()}
-              </span>
-            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleMinimize}
+              className="text-gray-400 hover:text-white"
+            >
+              {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleFullscreen}
+              className="text-gray-400 hover:text-white"
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
           </div>
         </div>
 
-        {/* User Info & Controls */}
-        <div className="p-6 space-y-6">
-          {/* User Name */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
-          </div>
-
-          {/* Call Controls */}
-          {callStatus !== "ended" && (
-            <div className="flex justify-center space-x-4">
-              {callStatus === "connected" && (
-                <>
-                  {/* Mute Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                      isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                    title={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  </Button>
-
-                  {/* Video Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsVideoOff(!isVideoOff)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                      isVideoOff 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                    title={isVideoOff ? "Turn on camera" : "Turn off camera"}
-                  >
-                    {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                  </Button>
-
-                  {/* Screen Share Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsScreenSharing(!isScreenSharing)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                      isScreenSharing 
-                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                    title={isScreenSharing ? "Stop sharing" : "Share screen"}
-                  >
-                    <Monitor className="h-5 w-5" />
-                  </Button>
-                </>
+        {!isMinimized && (
+          <>
+            {/* Video Area */}
+            <div className="flex-1 relative bg-gray-900 rounded-lg m-4">
+              {callStatus === 'connected' ? (
+                <div className="h-full flex items-center justify-center">
+                  {isVideoOn ? (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-gray-400">
+                        <Video className="h-16 w-16 mx-auto mb-4" />
+                        <p>Video call with {recipientName}</p>
+                        {isScreenSharing && (
+                          <Badge className="mt-2 bg-green-500/20 text-green-400">
+                            Screen Sharing
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400">
+                      <VideoOff className="h-16 w-16 mx-auto mb-4" />
+                      <p>Camera is off</p>
+                    </div>
+                  )}
+                  
+                  {/* Self preview window */}
+                  <div className="absolute bottom-4 right-4 w-32 h-24 bg-gray-800 rounded-lg border border-gray-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold">
+                      You
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-400">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-orange-500 to-cyan-500 flex items-center justify-center text-white text-2xl font-semibold mx-auto mb-4">
+                      {recipientName.charAt(0).toUpperCase()}
+                    </div>
+                    <p className="text-lg">{getStatusText()}</p>
+                  </div>
+                </div>
               )}
-
-              {/* End Call Button */}
-              <Button
-                onClick={handleEndCall}
-                className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
-                title="End call"
-              >
-                <PhoneOff className="h-5 w-5" />
-              </Button>
             </div>
-          )}
 
-          {/* Incoming Call Actions */}
-          {callType === "incoming" && callStatus === "ringing" && (
-            <div className="flex justify-center space-x-8">
-              <Button
-                onClick={handleEndCall}
-                className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
-                title="Decline"
-              >
-                <PhoneOff className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={() => setCallStatus("connected")}
-                className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
-                title="Accept video call"
-              >
-                <Video className="h-6 w-6" />
-              </Button>
+            {/* Call Controls */}
+            <div className="p-4 border-t border-orange-500/20">
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant={isMuted ? "destructive" : "secondary"}
+                  size="lg"
+                  onClick={handleToggleMute}
+                  className="rounded-full w-12 h-12"
+                >
+                  {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
+
+                <Button
+                  variant={isVideoOn ? "secondary" : "destructive"}
+                  size="lg"
+                  onClick={handleToggleVideo}
+                  className="rounded-full w-12 h-12"
+                >
+                  {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+                </Button>
+
+                <Button
+                  variant={isScreenSharing ? "default" : "secondary"}
+                  size="lg"
+                  onClick={handleToggleScreenShare}
+                  className="rounded-full w-12 h-12"
+                >
+                  <Monitor className="h-5 w-5" />
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  onClick={handleEndCall}
+                  className="rounded-full w-12 h-12 bg-red-500 hover:bg-red-600"
+                >
+                  <Phone className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
