@@ -427,15 +427,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] bg-background border-border">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="flex items-center gap-2 text-foreground text-xl">
-              <ShoppingCartIcon className="h-6 w-6" />
+        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] bg-background border-border p-4 sm:p-6">
+          <DialogHeader className="pb-4 border-b border-border">
+            <DialogTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
+              <ShoppingCartIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               Shopping Cart ({cartItems.length} items)
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col h-full max-h-[calc(90vh-120px)]">
+          <div className="flex flex-col h-full max-h-[calc(90vh-100px)] overflow-hidden">
             {cartItems.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center py-12">
@@ -447,27 +447,27 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
             ) : (
               <>
                 {/* Cart Items List */}
-                <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-                  <div className="text-sm text-muted-foreground mb-4">
+                <div className="flex-1 overflow-y-auto space-y-3 py-2">
+                  <div className="text-sm text-muted-foreground mb-3 px-1">
                     {cartItems.length} item{cartItems.length > 1 ? 's' : ''} in your cart
                   </div>
                   
                   {cartItems.map((item) => (
                     <Card key={item.id} className="bg-card border-border hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-6">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start gap-3 sm:gap-4">
                           {item.imageUrl && (
                             <div className="flex-shrink-0">
                               <img 
                                 src={item.imageUrl} 
                                 alt={item.title}
-                                className="w-20 h-20 object-cover rounded-lg border border-border"
+                                className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-border"
                               />
                             </div>
                           )}
                           
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-foreground text-lg mb-2 line-clamp-2">
+                            <h4 className="font-semibold text-foreground text-base sm:text-lg mb-1 sm:mb-2 line-clamp-2">
                               {item.title}
                             </h4>
                             <p className="text-xl font-bold text-orange-500 dark:text-cyan-400 mb-4">
@@ -522,15 +522,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                 </div>
 
                 {/* Cart Summary */}
-                <div className="border-t border-border pt-6 mt-6 space-y-6">
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-center text-lg">
-                      <span className="font-medium text-foreground">Cart Total:</span>
-                      <span className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
+                <div className="border-t border-border pt-4 mt-4 space-y-4 flex-shrink-0">
+                  <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-foreground text-base sm:text-lg">Cart Total:</span>
+                      <span className="text-xl sm:text-2xl font-bold text-orange-500 dark:text-cyan-400">
                         ${totalUSD.toFixed(2)} USD
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Shipping and taxes will be calculated at checkout
                     </p>
                   </div>
@@ -540,10 +540,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       setCheckoutStep('address');
                       setShowCheckoutModal(true);
                     }}
-                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold py-4 text-lg"
+                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold py-3 sm:py-4 text-base sm:text-lg"
                     size="lg"
                   >
-                    <CreditCard className="h-5 w-5 mr-3" />
+                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                     Proceed to Checkout
                   </Button>
                 </div>
@@ -555,7 +555,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
       {/* Enhanced Checkout Modal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-background border-border">
+        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] overflow-y-auto bg-background border-border p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
               <Package className="h-5 w-5" />
@@ -566,62 +566,62 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
           {renderStepIndicator()}
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 px-1">
             {/* Address Step */}
             {checkoutStep === 'address' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="h-5 w-5 text-orange-500" />
-                  <h3 className="text-lg font-semibold text-foreground">Shipping Information</h3>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">Shipping Information</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name *</Label>
                     <Input
                       id="fullName"
                       value={shippingAddress.fullName}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, fullName: e.target.value }))}
                       placeholder="Enter your full name"
-                      className="bg-input border-border"
+                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
                     />
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="addressLine1">Address Line 1 *</Label>
+                  <div className="space-y-1 sm:space-y-2 sm:col-span-2">
+                    <Label htmlFor="addressLine1" className="text-sm font-medium">Address Line 1 *</Label>
                     <Input
                       id="addressLine1"
                       value={shippingAddress.addressLine1}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine1: e.target.value }))}
                       placeholder="Street address, P.O. box, company name"
-                      className="bg-input border-border"
+                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
                     />
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="addressLine2">Address Line 2</Label>
+                  <div className="space-y-1 sm:space-y-2 sm:col-span-2">
+                    <Label htmlFor="addressLine2" className="text-sm font-medium">Address Line 2</Label>
                     <Input
                       id="addressLine2"
                       value={shippingAddress.addressLine2}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine2: e.target.value }))}
                       placeholder="Apartment, suite, unit, building, floor, etc."
-                      className="bg-input border-border"
+                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City *</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="city" className="text-sm font-medium">City *</Label>
                     <Input
                       id="city"
                       value={shippingAddress.city}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, city: e.target.value }))}
                       placeholder="City"
-                      className="bg-input border-border"
+                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country *</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="country" className="text-sm font-medium">Country *</Label>
                     <Select 
                       value={shippingAddress.country} 
                       onValueChange={(value) => {
@@ -632,7 +632,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         }));
                       }}
                     >
-                      <SelectTrigger className="bg-input border-border">
+                      <SelectTrigger className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base">
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
@@ -645,14 +645,14 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State/Province *</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="state" className="text-sm font-medium">State/Province *</Label>
                     {shippingAddress.country && STATES_PROVINCES[shippingAddress.country] ? (
                       <Select 
                         value={shippingAddress.state} 
                         onValueChange={(value) => setShippingAddress(prev => ({ ...prev, state: value }))}
                       >
-                        <SelectTrigger className="bg-input border-border">
+                        <SelectTrigger className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base">
                           <SelectValue placeholder="Select state/province" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -669,31 +669,31 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         value={shippingAddress.state}
                         onChange={(e) => setShippingAddress(prev => ({ ...prev, state: e.target.value }))}
                         placeholder="State, Province, or Region"
-                        className="bg-input border-border"
+                        className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
                       />
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="zipCode">ZIP/Postal Code *</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="zipCode" className="text-sm font-medium">ZIP/Postal Code *</Label>
                     <Input
                       id="zipCode"
                       value={shippingAddress.zipCode}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, zipCode: e.target.value }))}
                       placeholder="ZIP or Postal Code"
-                      className="bg-input border-border"
+                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="orderNotes">Order Notes (Optional)</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="orderNotes" className="text-sm font-medium">Order Notes (Optional)</Label>
                   <Textarea
                     id="orderNotes"
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
                     placeholder="Any special delivery instructions..."
-                    className="bg-input border-border"
+                    className="bg-input border-border text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
                     rows={3}
                   />
                 </div>
@@ -957,16 +957,16 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-border">
               {checkoutStep !== 'address' && (
                 <Button
                   variant="outline"
                   onClick={() => setCheckoutStep(
                     checkoutStep === 'payment' ? 'review' : 'address'
                   )}
-                  className="flex-1"
+                  className="flex-1 h-10 sm:h-12 text-sm sm:text-base"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Back
                 </Button>
               )}
@@ -974,7 +974,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1"
+                className="flex-1 h-10 sm:h-12 text-sm sm:text-base"
               >
                 Cancel
               </Button>
@@ -982,18 +982,18 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               {checkoutStep !== 'payment' ? (
                 <Button
                   onClick={handleNextStep}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white h-10 sm:h-12 text-sm sm:text-base"
                 >
                   Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleFinalizePurchase}
                   disabled={!agreedToTerms}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 h-10 sm:h-12 text-sm sm:text-base"
                 >
-                  <Wallet className="h-4 w-4 mr-2" />
+                  <Wallet className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Complete Order
                 </Button>
               )}
