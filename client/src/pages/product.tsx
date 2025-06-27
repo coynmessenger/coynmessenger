@@ -97,6 +97,11 @@ export default function ProductPage() {
     return () => window.removeEventListener('storage', handleCartUpdate);
   }, []);
 
+  // Scroll to top when product changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [asin]);
+
   // Sample reviews data - in real app would come from API
   const reviewsData = [
     { name: "Sarah M.", rating: 5, comment: "Excellent sound quality! The Alexa integration works perfectly and setup was incredibly easy.", verified: true, date: "2024-12-15" },
