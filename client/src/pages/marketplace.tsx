@@ -461,12 +461,11 @@ export default function MarketplacePage() {
                 ref={walletButtonRef}
                 onClick={() => setShowWalletHover(!showWalletHover)}
                 variant="outline"
-                size="sm"
-                className="hover:bg-accent relative h-12 sm:h-9 px-4 sm:px-3 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-orange-200 dark:border-cyan-600"
+                size="icon"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-orange-200 dark:border-cyan-600"
                 title="View payment methods and balance"
               >
-                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-orange-500 dark:text-cyan-400 mr-2 sm:mr-1" />
-                <span className="text-sm font-medium text-orange-600 dark:text-cyan-400">Balance</span>
+                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-orange-500 dark:text-cyan-400" />
               </Button>
             </div>
             <div className="flex items-center gap-2 sm:gap-2">
