@@ -70,8 +70,8 @@ export default function ProductPage() {
   const queryClient = useQueryClient();
 
   // Fetch product details
-  const { data: product, isLoading } = useQuery<Product>({
-    queryKey: ["/api/marketplace/product", asin],
+  const { data: product, isLoading, error } = useQuery<Product>({
+    queryKey: [`/api/marketplace/product/${asin}`],
     enabled: !!asin,
   });
 
@@ -162,6 +162,14 @@ export default function ProductPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('ProductPage: asin =', asin);
+    console.log('ProductPage: product =', product);
+    console.log('ProductPage: isLoading =', isLoading);
+    console.log('ProductPage: error =', error);
+  }, [asin, product, isLoading, error]);
 
   if (isLoading) {
     return (
