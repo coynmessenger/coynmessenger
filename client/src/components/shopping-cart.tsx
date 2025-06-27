@@ -219,8 +219,11 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const queryClient = useQueryClient();
 
   // Fetch user data to pre-populate address - Get connected user from localStorage
-  const connectedUserString = localStorage.getItem('connectedUser');
-  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+  const [connectedUser, setConnectedUser] = useState(() => {
+    const connectedUserString = localStorage.getItem('connectedUser');
+    return connectedUserString ? JSON.parse(connectedUserString) : null;
+  });
+  
   const { data: user } = useQuery({
     queryKey: ['/api/user', connectedUser?.id],
     enabled: !!connectedUser, // Only fetch when we have a connected user
@@ -273,9 +276,12 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     };
     
     const handleDisplayNameUpdate = () => {
-      // Invalidate user query to refresh display name in checkout forms
-      if (connectedUser) {
-        queryClient.invalidateQueries({ queryKey: ['/api/user', connectedUser.id] });
+      // Refresh connected user from localStorage
+      const updatedUserString = localStorage.getItem('connectedUser');
+      if (updatedUserString) {
+        const updatedUser = JSON.parse(updatedUserString);
+        setConnectedUser(updatedUser);
+        queryClient.invalidateQueries({ queryKey: ['/api/user', updatedUser.id] });
       }
     };
     
