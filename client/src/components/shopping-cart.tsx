@@ -245,17 +245,33 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     }
   }, [user, checkoutStep]);
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount and when modal opens
   useEffect(() => {
-    const savedCart = localStorage.getItem('shopping-cart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (e) {
-        console.error('Error loading cart:', e);
+    const loadCart = () => {
+      const savedCart = localStorage.getItem('shopping-cart');
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          setCartItems(parsedCart);
+        } catch (e) {
+          console.error('Error loading cart:', e);
+        }
       }
-    }
-  }, []);
+    };
+
+    loadCart(); // Load immediately
+    
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      loadCart();
+    };
+    
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, [isOpen]); // Re-load when modal opens
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -1012,14 +1028,12 @@ export const addToCart = (product: {
   currency?: string;
 }) => {
   try {
-    console.log('Adding to cart:', product);
     const cartItems = JSON.parse(localStorage.getItem('shopping-cart') || '[]') as CartItem[];
     
     const existingItem = cartItems.find(item => item.id === product.ASIN);
     
     if (existingItem) {
       existingItem.quantity += 1;
-      console.log('Updated existing item quantity:', existingItem.quantity);
     } else {
       const newItem = {
         id: product.ASIN,
@@ -1030,12 +1044,10 @@ export const addToCart = (product: {
         currency: product.currency || 'USD'
       };
       cartItems.push(newItem);
-      console.log('Added new item:', newItem);
     }
     
     localStorage.setItem('shopping-cart', JSON.stringify(cartItems));
     const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-    console.log('Cart updated, total items:', totalItems);
     
     // Dispatch custom event to update cart count across components
     window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: totalItems } }));
