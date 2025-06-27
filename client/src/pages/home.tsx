@@ -19,12 +19,14 @@ import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
 
-// MetaMask type declarations
+// Web3 Wallet type declarations
 declare global {
   interface Window {
     ethereum?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
       isMetaMask?: boolean;
+      isCoinbaseWallet?: boolean;
+      isTrustWallet?: boolean;
     };
   }
 }
@@ -114,29 +116,123 @@ export default function HomePage() {
   const handleWeb3Connect = async (walletType: string) => {
     try {
       if (walletType === 'metamask') {
-        if (typeof window.ethereum !== 'undefined') {
-          const accounts = await window.ethereum.request({ 
-            method: 'eth_requestAccounts' 
-          });
-          
-          if (accounts && accounts[0]) {
-            connectWalletMutation.mutate({
-              walletAddress: accounts[0],
-              displayName: undefined // Let the backend generate a proper display name
+        // Check if MetaMask is installed
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+          try {
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
             });
+            
+            if (accounts && accounts[0]) {
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined // Let the backend generate a proper display name
+              });
+            }
+          } catch (error: any) {
+            if (error.code === 4001) {
+              alert('Please approve the connection in MetaMask to continue.');
+            } else {
+              console.error('MetaMask connection error:', error);
+              alert('Failed to connect to MetaMask. Please try again.');
+            }
           }
         } else {
-          window.open('https://metamask.io/download/', '_blank');
+          // MetaMask not installed - open download page or deep link
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          if (isMobile) {
+            // On mobile, try to open MetaMask app
+            window.location.href = 'https://metamask.app.link/dapp/' + window.location.host;
+          } else {
+            // On desktop, redirect to download page
+            window.open('https://metamask.io/download/', '_blank');
+          }
         }
       } else if (walletType === 'trust') {
-        // Trust Wallet integration coming soon
-        alert('Trust Wallet integration coming soon. Please use manual wallet address input for now.');
-      } else {
-        // For WalletConnect and Coinbase, show message that they need to use manual input
-        alert(`${walletType === 'walletconnect' ? 'WalletConnect' : 'Coinbase Wallet'} integration coming soon. Please use manual wallet address input for now.`);
+        // Trust Wallet integration
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+          // Try to open Trust Wallet app with deep link
+          try {
+            window.location.href = 'trust://open_url?coin_id=60&url=' + encodeURIComponent(window.location.href);
+          } catch (error) {
+            // Fallback to Trust Wallet website if deep link fails
+            window.open('https://trustwallet.com/', '_blank');
+            alert('Trust Wallet app not found. Please install Trust Wallet from the app store and try again, or use manual wallet address input.');
+          }
+        } else {
+          // On desktop, check if Trust Wallet extension exists
+          if (typeof window.ethereum !== 'undefined' && (window.ethereum as any).isTrustWallet) {
+            try {
+              const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            } catch (error: any) {
+              if (error.code === 4001) {
+                alert('Please approve the connection in Trust Wallet to continue.');
+              } else {
+                console.error('Trust Wallet connection error:', error);
+                alert('Failed to connect to Trust Wallet. Please try again.');
+              }
+            }
+          } else {
+            alert('Trust Wallet is primarily a mobile app. Please install Trust Wallet on your mobile device and try again, or use manual wallet address input.');
+          }
+        }
+      } else if (walletType === 'walletconnect') {
+        // WalletConnect integration
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+          // On mobile, provide instructions for WalletConnect
+          alert('To connect via WalletConnect:\n\n1. Open your wallet app (MetaMask, Trust Wallet, Rainbow, etc.)\n2. Look for "WalletConnect" or "Connect to DApp" option\n3. Scan QR code or paste connection link\n\nFor now, you can use the manual wallet address input below.');
+        } else {
+          // On desktop, provide WalletConnect instructions
+          alert('WalletConnect allows you to connect multiple wallet apps:\n\n• MetaMask Mobile\n• Trust Wallet\n• Rainbow Wallet\n• Coinbase Wallet Mobile\n\nFor now, please use manual wallet address input, or try MetaMask browser extension if installed.');
+        }
+      } else if (walletType === 'coinbase') {
+        // Coinbase Wallet integration
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+          // Try to open Coinbase Wallet app
+          window.location.href = 'cbwallet://dapp?url=' + encodeURIComponent(window.location.href);
+        } else {
+          // Check if Coinbase Wallet extension is installed
+          if (typeof window.ethereum !== 'undefined' && (window.ethereum as any).isCoinbaseWallet) {
+            try {
+              const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            } catch (error: any) {
+              if (error.code === 4001) {
+                alert('Please approve the connection in Coinbase Wallet to continue.');
+              } else {
+                console.error('Coinbase Wallet connection error:', error);
+                alert('Failed to connect to Coinbase Wallet. Please try again.');
+              }
+            }
+          } else {
+            // Coinbase Wallet not installed
+            window.open('https://www.coinbase.com/wallet', '_blank');
+          }
+        }
       }
     } catch (error) {
       console.error(`Failed to connect ${walletType} wallet:`, error);
+      alert(`Failed to connect ${walletType} wallet. Please try again or use manual wallet address input.`);
     }
   };
 
