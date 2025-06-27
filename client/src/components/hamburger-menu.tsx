@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,8 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [messageToUnstar, setMessageToUnstar] = useState<StarredMessage | null>(null);
+  const [showUnstarConfirm, setShowUnstarConfirm] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -120,23 +123,61 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   };
 
   const handleStarMessage = async (message: StarredMessage) => {
+    // If message is starred and we're trying to unstar, show confirmation
+    if (message.isStarred) {
+      setMessageToUnstar(message);
+      setShowUnstarConfirm(true);
+      return;
+    }
+    
+    // If message is not starred, star it directly
     try {
-      await apiRequest(`/api/messages/${message.id}/star`, 'PATCH', { isStarred: !message.isStarred });
+      await apiRequest(`/api/messages/${message.id}/star`, 'PATCH', { isStarred: true });
       
       // Refresh starred messages list
       queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
       
       toast({
-        title: message.isStarred ? "Message unstarred" : "Message starred",
-        description: message.isStarred ? "Removed from starred messages" : "Added to starred messages",
+        title: "Message starred",
+        description: "Added to starred messages",
       });
     } catch (error) {
       toast({
-        title: "Failed to update message",
+        title: "Failed to star message",
         description: "Please try again",
         variant: "destructive",
       });
     }
+  };
+
+  const confirmUnstarMessage = async () => {
+    if (!messageToUnstar) return;
+    
+    try {
+      await apiRequest(`/api/messages/${messageToUnstar.id}/star`, 'PATCH', { isStarred: false });
+      
+      // Refresh starred messages list
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
+      
+      toast({
+        title: "Message unstarred",
+        description: "Removed from starred messages",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to unstar message",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+    
+    setShowUnstarConfirm(false);
+    setMessageToUnstar(null);
+  };
+
+  const cancelUnstarMessage = () => {
+    setShowUnstarConfirm(false);
+    setMessageToUnstar(null);
   };
 
   return (
@@ -362,6 +403,29 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Unstar Confirmation Dialog */}
+      <AlertDialog open={showUnstarConfirm} onOpenChange={setShowUnstarConfirm}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from starred messages?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This message will be removed from your starred messages. You can star it again anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelUnstarMessage}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmUnstarMessage}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
