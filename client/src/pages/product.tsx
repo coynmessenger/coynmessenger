@@ -255,7 +255,7 @@ export default function ProductPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -286,10 +286,10 @@ export default function ProductPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Product Images */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="relative aspect-square bg-white dark:bg-slate-800 rounded-lg overflow-hidden group shadow-lg">
               <img
                 src={images[currentImageIndex]}
@@ -325,7 +325,7 @@ export default function ProductPage() {
 
             {/* Thumbnail strip */}
             {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {images.map((image, index) => (
                   <button
                     key={index}
@@ -348,7 +348,7 @@ export default function ProductPage() {
           </div>
 
           {/* Product Details */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Title & Rating */}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 leading-relaxed">{product.title}</h1>
