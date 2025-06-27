@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet, ChevronDown, Info } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet, ChevronDown, Info, FileText } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import SettingsModal from "@/components/settings-modal";
 import { addToCart, getCartCount } from "@/components/shopping-cart";
@@ -489,6 +489,15 @@ export default function MarketplacePage() {
                 className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
                 <Heart className="h-6 w-6 sm:h-4 sm:w-4" />
+              </Button>
+              <Button
+                onClick={() => setLocation('/purchase-history')}
+                variant="ghost"
+                size="icon"
+                className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
+                title="Purchase History"
+              >
+                <FileText className="h-6 w-6 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 ref={walletButtonRef}
