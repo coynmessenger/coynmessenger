@@ -241,31 +241,21 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
-      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
-      setShowBackToTop(isScrolledUp);
+      // Show button if we have scrollable content and not at the bottom
+      const hasScrollableContent = scrollHeight > clientHeight;
+      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 20;
+      setShowBackToTop(hasScrollableContent && isScrolledUp);
     };
 
     container.addEventListener('scroll', handleScroll);
+    // Check initial scroll state
+    handleScroll();
     return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
-      setShowBackToTop(isScrolledUp);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const scrollToTop = () => {
     messagesContainerRef.current?.scrollTo({
@@ -498,13 +488,14 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
         <div ref={messagesEndRef} className="h-4" />
 
         {/* Back to Top Button */}
-        {showBackToTop && (
+        {(showBackToTop || true) && (
           <Button
             onClick={scrollToTop}
-            className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white shadow-lg transition-all duration-300 ease-in-out transform hover:scale-110"
+            className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:bg-gradient-to-r dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 backdrop-blur-sm border-2 border-white/20 dark:border-slate-800/20"
             size="sm"
+            title="Back to top"
           >
-            <ArrowUp className="h-5 w-5" />
+            <ArrowUp className="h-6 w-6" />
           </Button>
         )}
       </div>
