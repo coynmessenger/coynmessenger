@@ -567,9 +567,9 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
       {/* Enhanced Checkout Modal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[85vh] max-h-[85vh] overflow-y-auto bg-background border-border p-3 sm:p-4">
-          <DialogHeader className="pb-2">
-            <DialogTitle className="flex items-center gap-2 text-foreground text-sm sm:text-base">
+        <DialogContent className="w-[95vw] max-w-4xl h-[75vh] max-h-[75vh] overflow-y-auto bg-background border-border p-2">
+          <DialogHeader className="pb-1">
+            <DialogTitle className="flex items-center gap-2 text-foreground text-sm">
               <Package className="h-4 w-4" />
               Checkout - {checkoutStep === 'address' ? 'Shipping Address' : 
                         checkoutStep === 'review' ? 'Order Review' : 'Payment'}
@@ -578,62 +578,62 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
           {renderStepIndicator()}
 
-          <div className="space-y-3 sm:space-y-4 px-1">
+          <div className="space-y-1 sm:space-y-2 px-1">
             {/* Address Step */}
             {checkoutStep === 'address' && (
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="space-y-1 sm:space-y-2">
+                <div className="flex items-center gap-2 mb-1">
                   <MapPin className="h-4 w-4 text-orange-500" />
-                  <h3 className="text-sm sm:text-base font-semibold text-foreground">Shipping Information</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Shipping Information</h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="fullName" className="text-xs sm:text-sm font-medium">Full Name *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="fullName" className="text-xs font-medium">Full Name *</Label>
                     <Input
                       id="fullName"
                       value={shippingAddress.fullName}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, fullName: e.target.value }))}
                       placeholder="Enter your full name"
-                      className="bg-input border-border h-10 sm:h-12 text-sm"
+                      className="bg-input border-border h-9 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label htmlFor="addressLine1" className="text-xs sm:text-sm font-medium">Address Line 1 *</Label>
+                  <div className="space-y-0.5 sm:col-span-2">
+                    <Label htmlFor="addressLine1" className="text-xs font-medium">Address Line 1 *</Label>
                     <Input
                       id="addressLine1"
                       value={shippingAddress.addressLine1}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine1: e.target.value }))}
                       placeholder="Street address, P.O. box, company name"
-                      className="bg-input border-border h-10 sm:h-12 text-sm sm:text-base"
+                      className="bg-input border-border h-9 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label htmlFor="addressLine2" className="text-xs sm:text-sm font-medium">Address Line 2</Label>
+                  <div className="space-y-0.5 sm:col-span-2">
+                    <Label htmlFor="addressLine2" className="text-xs font-medium">Address Line 2</Label>
                     <Input
                       id="addressLine2"
                       value={shippingAddress.addressLine2}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, addressLine2: e.target.value }))}
                       placeholder="Apartment, suite, unit, building, floor, etc."
-                      className="bg-input border-border h-10 sm:h-12 text-sm"
+                      className="bg-input border-border h-9 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="city" className="text-xs sm:text-sm font-medium">City *</Label>
+                  <div className="space-y-0.5">
+                    <Label htmlFor="city" className="text-xs font-medium">City *</Label>
                     <Input
                       id="city"
                       value={shippingAddress.city}
                       onChange={(e) => setShippingAddress(prev => ({ ...prev, city: e.target.value }))}
                       placeholder="City"
-                      className="bg-input border-border h-10 sm:h-12 text-sm"
+                      className="bg-input border-border h-9 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="country" className="text-xs sm:text-sm font-medium">Country *</Label>
+                  <div className="space-y-0.5">
+                    <Label htmlFor="country" className="text-xs font-medium">Country *</Label>
                     <Select 
                       value={shippingAddress.country} 
                       onValueChange={(value) => {
@@ -644,7 +644,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         }));
                       }}
                     >
-                      <SelectTrigger className="bg-input border-border h-10 sm:h-12 text-sm">
+                      <SelectTrigger className="bg-input border-border h-9 text-sm">
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
@@ -698,15 +698,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="orderNotes" className="text-xs sm:text-sm font-medium">Order Notes (Optional)</Label>
+                <div className="space-y-0.5">
+                  <Label htmlFor="orderNotes" className="text-xs font-medium">Order Notes (Optional)</Label>
                   <Textarea
                     id="orderNotes"
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
                     placeholder="Any special delivery instructions..."
-                    className="bg-input border-border text-sm min-h-[60px] sm:min-h-[80px]"
-                    rows={2}
+                    className="bg-input border-border text-sm min-h-[40px]"
+                    rows={1}
                   />
                 </div>
 
@@ -716,7 +716,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     checked={expressShipping}
                     onCheckedChange={(checked) => setExpressShipping(checked === true)}
                   />
-                  <Label htmlFor="expressShipping" className="text-xs sm:text-sm">
+                  <Label htmlFor="expressShipping" className="text-xs">
                     Express Shipping (+$10.00) - Delivery in 1-2 business days
                   </Label>
                 </div>
