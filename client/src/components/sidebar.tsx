@@ -160,26 +160,29 @@ export default function Sidebar({
 
   return (
     <>
-      <div className={`fixed lg:relative inset-y-0 left-0 w-80 bg-card border-r border-border transform transition-transform duration-300 ease-in-out z-40 pt-16 lg:pt-0 flex flex-col ${
+      <div className={`fixed lg:relative inset-y-0 left-0 w-80 bg-white/95 dark:bg-slate-900/95 border-r border-white/20 dark:border-slate-700/50 backdrop-blur-xl shadow-2xl transform transition-all duration-500 ease-in-out z-40 pt-16 lg:pt-0 flex flex-col ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         {/* Logo Header */}
-        <div className="p-6 border-b border-border hidden lg:block bg-white dark:bg-card">
+        <div className="p-6 border-b border-white/20 dark:border-slate-700/50 hidden lg:block bg-gradient-to-r from-white/80 to-orange-50/60 dark:from-slate-900/80 dark:to-slate-800/60 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,193,7,0.4)]"
-              />
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 blur-lg opacity-20 animate-pulse"></div>
+                <img 
+                  src={coynLogoPath} 
+                  alt="COYN Logo" 
+                  className="w-12 h-12 relative z-10 drop-shadow-[0_0_20px_rgba(251,146,60,0.6)] hover:drop-shadow-[0_0_30px_rgba(251,146,60,0.8)] transition-all duration-300"
+                />
+              </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">COYN Messenger</h1>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent">COYN Messenger</h1>
               </div>
             </div>
 
           </div>
           {user && (
-            <div className="mt-4 text-xs text-primary font-mono">
+            <div className="mt-4 text-xs font-mono bg-orange-100/50 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-orange-200/50 dark:border-slate-600/50 text-orange-700 dark:text-orange-300 backdrop-blur-sm">
               {user.walletAddress}
             </div>
           )}

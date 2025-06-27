@@ -151,24 +151,28 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
+      
+      <div className="max-w-4xl w-full space-y-8 relative z-10">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex flex-col items-center justify-center mb-8">
-            {/* COYN Logo */}
+            {/* COYN Logo with Enhanced Glow */}
             <div className="relative mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-2xl opacity-30 scale-150 animate-pulse"></div>
               <img 
                 src={coynLogoPath} 
                 alt="COYN Logo" 
-                className="w-24 h-24 drop-shadow-[0_0_30px_rgba(255,193,7,0.6)]"
+                className="w-28 h-28 relative z-10 drop-shadow-[0_0_40px_rgba(251,146,60,0.8)] hover:drop-shadow-[0_0_60px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-110"
               />
             </div>
           </div>
         </div>
 
-        {/* Main CTA Card - Moved to top */}
-        <Card className="bg-card/80 border-border backdrop-blur-xl max-w-lg mx-auto">
+        {/* Main CTA Card - Enhanced with Glassmorphism */}
+        <Card className="bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/50 backdrop-blur-2xl max-w-lg mx-auto shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-all duration-500 hover:scale-[1.02]">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
@@ -193,27 +197,27 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
-                      <div className="w-10 h-10 flex items-center justify-center">
-                        <img src={metamaskLogo} alt="MetaMask" className="w-8 h-8 object-contain" />
+                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <img src={metamaskLogo} alt="MetaMask" className="w-8 h-8 object-contain drop-shadow-sm" />
                       </div>
-                      <span className="text-sm font-medium">MetaMask</span>
+                      <span className="text-sm font-semibold">MetaMask</span>
                     </Button>
 
                     {/* WalletConnect */}
                     <Button 
                       onClick={() => handleWeb3Connect('walletconnect')}
-                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
-                      <div className="w-10 h-10 flex items-center justify-center">
-                        <img src={walletConnectLogo} alt="WalletConnect" className="w-8 h-8 object-contain" />
+                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <img src={walletConnectLogo} alt="WalletConnect" className="w-8 h-8 object-contain drop-shadow-sm" />
                       </div>
-                      <span className="text-sm font-medium">WalletConnect</span>
+                      <span className="text-sm font-semibold">WalletConnect</span>
                     </Button>
 
                     {/* Trust Wallet */}

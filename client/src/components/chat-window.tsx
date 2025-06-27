@@ -368,7 +368,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto bg-white dark:bg-background px-4 relative"
+        className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm"
       >
 
         
@@ -379,7 +379,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                   // Sent message (current user) - with delete option
                   <div className="flex justify-end group" data-message-id={msg.id}>
                     <div className="relative">
-                      <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md shadow-sm">
+                      <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
                         <p className="text-sm font-medium break-words">{highlightText(msg.content || "", searchQuery || "")}</p>
                         <span className="text-xs text-primary-foreground/80 mt-1 block">
                           {formatTimestamp(msg.timestamp)}
@@ -414,7 +414,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="bg-white dark:bg-muted rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md shadow-sm border border-border/50">
+                    <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
                       <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
                       <span className="text-xs text-muted-foreground mt-1 block">
                         {formatTimestamp(msg.timestamp)}
@@ -426,7 +426,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 // Crypto transaction message
                 <div className="flex justify-center group">
                   <div className="relative">
-                    <Card className="bg-gradient-to-r from-cyan-600/20 to-cyan-500/20 border-cyan-500/30 max-w-sm">
+                    <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-sm shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
                       <CardContent className="p-4">
                       <div className="flex items-center justify-center space-x-2 mb-2">
                         <Coins className="h-4 w-4 text-cyan-400" />
@@ -540,7 +540,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
       )}
 
       {/* Message Input */}
-      <div className="border-t border-border bg-white dark:bg-card p-4">
+      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-4 shadow-lg">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -548,7 +548,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-cyan-400 hover:bg-slate-700"
+                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -605,7 +605,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="pr-12 h-12 sm:h-10 text-base sm:text-sm bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 focus:border-primary dark:focus:border-cyan-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation"
+              className="pr-12 h-12 sm:h-10 text-base sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
             />
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
@@ -645,7 +645,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
           <Button 
             type="submit"
             size="icon"
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 h-12 w-12 sm:h-10 sm:w-10 touch-manipulation"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white h-12 w-12 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <Send className="h-5 w-5 sm:h-4 sm:w-4" />
