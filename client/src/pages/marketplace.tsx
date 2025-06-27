@@ -936,7 +936,7 @@ export default function MarketplacePage() {
             <CardContent className="pt-6">
               <Package className="h-8 w-8 text-primary mx-auto mb-2" />
               <div className="text-2xl font-bold text-foreground">{allItems.length}+</div>
-              <div className="text-sm text-muted-foreground">Amazon Products</div>
+              <div className="text-sm text-muted-foreground">Products</div>
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-card border-border text-center">
