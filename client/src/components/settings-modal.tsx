@@ -210,9 +210,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const connectedUserId = getConnectedUserId();
 
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user", connectedUserId],
     queryFn: async () => {
-      const response = await fetch("/api/user");
+      const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch user');
       }
@@ -240,10 +241,14 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
   const updateUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      return apiRequest("PATCH", "/api/user", userData);
+      const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
+      return apiRequest("PATCH", url, userData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+      }
       toast({
         title: "Settings updated",
         description: "Your profile has been updated successfully."
@@ -264,8 +269,9 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       formData.append("profileImage", file);
       console.log("Uploading file:", file.name, file.size);
       
-      // Upload avatar for current user
-      const response = await fetch("/api/user/upload-avatar", {
+      // Upload avatar for connected user
+      const url = connectedUserId ? `/api/user/upload-avatar?userId=${connectedUserId}` : "/api/user/upload-avatar";
+      const response = await fetch(url, {
         method: "POST",
         body: formData,
       });
@@ -288,8 +294,20 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         return oldData;
       });
       
+      if (connectedUserId) {
+        queryClient.setQueryData(["/api/user", connectedUserId], (oldData: any) => {
+          if (oldData) {
+            return { ...oldData, profilePicture: response.profilePicture };
+          }
+          return oldData;
+        });
+      }
+      
       // Invalidate to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+      }
       
       toast({
         title: "Profile picture updated",
