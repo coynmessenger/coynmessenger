@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
+import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon } from "lucide-react";
@@ -19,6 +20,7 @@ export default function MessengerPage() {
   useScrollToTop();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -119,6 +121,7 @@ export default function MessengerPage() {
             isOpen={false}
             onClose={() => {}}
             onOpenWallet={handleOpenWallet}
+            onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -343,7 +346,7 @@ export default function MessengerPage() {
               </button>
               <button 
                 className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
-                onClick={() => setIsWalletOpen(true)}
+                onClick={() => setIsWalletSidebarOpen(true)}
               >
                 <WalletIcon className="w-5 h-5" />
               </button>
@@ -527,6 +530,7 @@ export default function MessengerPage() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onOpenWallet={handleOpenWallet}
+          onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
@@ -542,6 +546,13 @@ export default function MessengerPage() {
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
         otherUser={currentConversation?.otherUser}
+      />
+      
+      {/* Wallet Sidebar */}
+      <WalletSidebar
+        isOpen={isWalletSidebarOpen}
+        onClose={() => setIsWalletSidebarOpen(false)}
+        user={user}
       />
 
       {/* Mobile Sidebar Overlay */}

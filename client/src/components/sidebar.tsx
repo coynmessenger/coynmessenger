@@ -23,6 +23,7 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenWallet: (currency?: string) => void;
+  onOpenWalletSidebar?: () => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
 }
@@ -35,6 +36,7 @@ export default function Sidebar({
   isOpen,
   onClose,
   onOpenWallet,
+  onOpenWalletSidebar,
   searchQuery = "",
   onSearchChange,
 }: SidebarProps) {
@@ -297,7 +299,7 @@ export default function Sidebar({
         <div className="lg:hidden p-4 border-t border-border bg-white dark:bg-card">
           <div className="flex gap-2">
             <Button 
-              onClick={() => onOpenWallet()}
+              onClick={() => onOpenWalletSidebar?.()}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
               <Wallet className="h-4 w-4 mr-2" />
