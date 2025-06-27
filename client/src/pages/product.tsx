@@ -24,6 +24,9 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Info,
 
   Plus,
   Minus,
@@ -73,6 +76,7 @@ export default function ProductPage() {
   const [showNFTRewards, setShowNFTRewards] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showDetailsDropdown, setShowDetailsDropdown] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -545,87 +549,114 @@ export default function ProductPage() {
               )}
             </div>
 
-            {/* Product Details & Reviews - Always Visible */}
-            <div className="space-y-6">
-              {/* Product Details */}
-              {product.description && (
-                <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
-                  <h4 className="font-semibold text-foreground mb-2">Product Details</h4>
-                  <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            {/* Details & Reviews Dropdown */}
+            <div className="space-y-4">
+              {/* Dropdown Trigger Button */}
+              <Button
+                variant="ghost"
+                onClick={() => setShowDetailsDropdown(!showDetailsDropdown)}
+                className="w-full justify-between p-4 h-auto bg-white/30 dark:bg-slate-800/30 hover:bg-white/50 dark:hover:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <Info className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
+                  <span className="font-medium text-foreground">Details & Reviews</span>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                    <span>{product.rating}</span>
+                    <span>({product.reviewCount.toLocaleString()})</span>
+                  </div>
+                </div>
+                {showDetailsDropdown ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground transition-transform duration-200" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200" />
+                )}
+              </Button>
+
+              {/* Collapsible Content */}
+              {showDetailsDropdown && (
+                <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
+                  {/* Product Details */}
+                  {product.description && (
+                    <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
+                      <h4 className="font-semibold text-foreground mb-2">Product Details</h4>
+                      <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+                    </div>
+                  )}
+                  
+                  {/* Specifications */}
+                  <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <h4 className="font-semibold text-foreground mb-2">Specifications</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                        <span className="text-muted-foreground">Brand:</span>
+                        <span className="font-medium text-foreground">{product.brand}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                        <span className="text-muted-foreground">Category:</span>
+                        <span className="font-medium text-foreground">{product.category}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                        <span className="text-muted-foreground">Rating:</span>
+                        <span className="font-medium text-foreground">{product.rating}/5 stars</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
+                        <span className="text-muted-foreground">Reviews:</span>
+                        <span className="font-medium text-foreground">{product.reviewCount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Customer Reviews Preview */}
+                  <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700 animate-slide-in-right">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-foreground">Customer Reviews</h4>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAllReviews(true)}
+                        className="text-orange-600 dark:text-cyan-400 border-orange-200 dark:border-cyan-600 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
+                      >
+                        View All
+                      </Button>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      {reviewsData.slice(0, 5).map((review, index) => (
+                        <div 
+                          key={index} 
+                          className="flex-shrink-0 w-80 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30 animate-slide-in-right"
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{review.name}</span>
+                              {review.verified && (
+                                <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                                  Verified
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${
+                                    i < review.rating
+                                      ? "text-yellow-500 fill-current"
+                                      : "text-gray-300 dark:text-gray-600"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Marketplace Verified Purchase</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              {/* Specifications */}
-              <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
-                <h4 className="font-semibold text-foreground mb-2">Specifications</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                    <span className="text-muted-foreground">Brand:</span>
-                    <span className="font-medium text-foreground">{product.brand}</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                    <span className="text-muted-foreground">Category:</span>
-                    <span className="font-medium text-foreground">{product.category}</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                    <span className="text-muted-foreground">Rating:</span>
-                    <span className="font-medium text-foreground">{product.rating}/5 stars</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-200/50 dark:border-slate-700/50">
-                    <span className="text-muted-foreground">Reviews:</span>
-                    <span className="font-medium text-foreground">{product.reviewCount.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Customer Reviews Preview */}
-              <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700 animate-slide-in-right">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">Customer Reviews</h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAllReviews(true)}
-                    className="text-orange-600 dark:text-cyan-400 border-orange-200 dark:border-cyan-600 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
-                  >
-                    View All
-                  </Button>
-                </div>
-                <div className="flex gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                  {reviewsData.slice(0, 5).map((review, index) => (
-                    <div 
-                      key={index} 
-                      className="flex-shrink-0 w-80 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30 animate-slide-in-right"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{review.name}</span>
-                          {review.verified && (
-                            <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
-                              Verified
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < review.rating
-                                  ? "text-yellow-500 fill-current"
-                                  : "text-gray-300 dark:text-gray-600"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Marketplace Verified Purchase</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Trust Indicators */}
