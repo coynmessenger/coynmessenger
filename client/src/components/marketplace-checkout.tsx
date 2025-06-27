@@ -218,7 +218,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
     staleTime: 1000 * 60 * 5,
   });
 
-  // Load cart from localStorage
+  // Load cart from localStorage and listen for updates
   useEffect(() => {
     const loadCart = () => {
       const savedCart = localStorage.getItem('shopping-cart');
@@ -230,9 +230,23 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           console.error('Error loading cart:', error);
           setCartItems([]);
         }
+      } else {
+        setCartItems([]);
       }
     };
-    loadCart();
+
+    loadCart(); // Load immediately
+
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      loadCart();
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
   }, []);
 
   // Refresh cart when dialog opens
@@ -435,6 +449,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 mb-4">
         <h3 className="text-lg sm:text-xl font-semibold">Shopping Cart ({cartItems.length} items)</h3>
+        {console.log('Marketplace checkout cartItems:', cartItems)}
       </div>
       
       {cartItems.length === 0 ? (
