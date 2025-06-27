@@ -49,8 +49,47 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [searchResultCount, setSearchResultCount] = useState(0);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [swipeState, setSwipeState] = useState<{
+    messageId: number | null;
+    offsetX: number;
+    isDragging: boolean;
+    showConfirm: boolean;
+    startX: number;
+  }>({
+    messageId: null,
+    offsetX: 0,
+    isDragging: false,
+    showConfirm: false,
+    startX: 0
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Add global mouse event listeners for swipe functionality
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (swipeState.isDragging) {
+        e.preventDefault();
+        handleSwipeMove(e as any);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (swipeState.isDragging) {
+        handleSwipeEnd();
+      }
+    };
+
+    if (swipeState.isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [swipeState.isDragging]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -209,6 +248,76 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleEmojiSelect = (emoji: string) => {
     setMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
+  };
+
+  // Swipe-to-delete handlers
+  const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    setSwipeState({
+      messageId,
+      offsetX: 0,
+      isDragging: true,
+      showConfirm: false,
+      startX: clientX
+    });
+  };
+
+  const handleSwipeMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!swipeState.isDragging || !swipeState.messageId) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const deltaX = Math.max(0, clientX - swipeState.startX); // Only allow right swipes
+    
+    setSwipeState(prev => ({
+      ...prev,
+      offsetX: Math.min(deltaX, 150) // Limit maximum swipe distance
+    }));
+  };
+
+  const handleSwipeEnd = () => {
+    if (!swipeState.isDragging) return;
+
+    if (swipeState.offsetX > 80) {
+      // Show delete confirmation
+      setSwipeState(prev => ({
+        ...prev,
+        isDragging: false,
+        showConfirm: true,
+        offsetX: 150
+      }));
+    } else {
+      // Reset position
+      setSwipeState({
+        messageId: null,
+        offsetX: 0,
+        isDragging: false,
+        showConfirm: false,
+        startX: 0
+      });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (swipeState.messageId) {
+      deleteMessageMutation.mutate(swipeState.messageId);
+    }
+    setSwipeState({
+      messageId: null,
+      offsetX: 0,
+      isDragging: false,
+      showConfirm: false,
+      startX: 0
+    });
+  };
+
+  const handleDeleteCancel = () => {
+    setSwipeState({
+      messageId: null,
+      offsetX: 0,
+      isDragging: false,
+      showConfirm: false,
+      startX: 0
+    });
   };
 
   const handleQuickSend = (currency: string) => {
@@ -391,35 +500,55 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
-                  // Sent message (current user) - with delete option
-                  <div className="flex justify-end group" data-message-id={msg.id}>
-                    <div className="relative">
+                  // Sent message (current user) - with swipe-to-delete
+                  <div className="flex justify-end group relative" data-message-id={msg.id}>
+                    {/* Delete confirmation overlay */}
+                    {swipeState.showConfirm && swipeState.messageId === msg.id && (
+                      <div className="absolute right-0 top-0 h-full flex items-center space-x-2 px-4 bg-red-500/90 rounded-l-2xl backdrop-blur-sm z-10">
+                        <Button
+                          onClick={handleDeleteConfirm}
+                          className="bg-white text-red-500 hover:bg-red-50 px-3 py-1 h-8 text-sm font-medium rounded-lg shadow-sm"
+                        >
+                          Delete
+                        </Button>
+                        <Button
+                          onClick={handleDeleteCancel}
+                          variant="ghost"
+                          className="text-white hover:bg-white/20 px-3 py-1 h-8 text-sm rounded-lg"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Swipeable message */}
+                    <div 
+                      className="relative cursor-pointer touch-pan-y select-none"
+                      style={{
+                        transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
+                        transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                      onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                      onTouchMove={handleSwipeMove}
+                      onTouchEnd={handleSwipeEnd}
+                      onMouseDown={(e) => handleSwipeStart(e, msg.id)}
+                      onMouseMove={handleSwipeMove}
+                      onMouseUp={handleSwipeEnd}
+                      onMouseLeave={handleSwipeEnd}
+                    >
                       <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
                         <p className="text-sm font-medium break-words">{highlightText(msg.content || "", searchQuery || "")}</p>
                         <span className="text-xs text-primary-foreground/80 mt-1 block">
                           {formatTimestamp(msg.timestamp)}
                         </span>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute -top-1 -left-8 h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-gray-100 dark:hover:bg-slate-700/20 rounded-full"
-                          >
-                            <MoreVertical className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-                          <DropdownMenuItem
-                            onClick={() => deleteMessageMutation.mutate(msg.id)}
-                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 justify-center p-2 h-8 w-8 min-w-0"
-                            disabled={deleteMessageMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      
+                      {/* Visual hint */}
+                      {swipeState.messageId === msg.id && swipeState.offsetX > 20 && !swipeState.showConfirm && (
+                        <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-red-400 px-2">
+                          <Trash2 className="h-5 w-5" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
