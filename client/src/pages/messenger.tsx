@@ -321,7 +321,7 @@ export default function MessengerPage() {
       <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
         <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
-          <div className="flex items-center justify-center p-4">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <img 
                 src={coynLogoPath} 
