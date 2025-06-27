@@ -121,7 +121,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
   const handleStarMessage = async (message: StarredMessage) => {
     try {
-      await apiRequest(`/api/messages/${message.id}/star`, 'PATCH', { starred: !message.isStarred });
+      await apiRequest(`/api/messages/${message.id}/star`, 'PATCH', { isStarred: !message.isStarred });
       
       // Refresh starred messages list
       queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
@@ -171,46 +171,59 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* Starred Messages Modal */}
       <Dialog open={showStarredMessages} onOpenChange={setShowStarredMessages}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
+        <DialogContent className="w-[95vw] sm:w-[500px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
+          <div className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <Star className="h-5 w-5 text-orange-600 dark:text-orange-400 fill-current" />
+              </div>
               Starred Messages
+              {starredMessages.length > 0 && (
+                <Badge variant="secondary" className="ml-auto bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                  {starredMessages.length}
+                </Badge>
+              )}
             </DialogTitle>
-          </DialogHeader>
+          </div>
           
-          <ScrollArea className="max-h-[60vh]">
+          <div className="flex-1 overflow-hidden">
             {starredMessages.length === 0 ? (
-              <div className="text-center py-8">
-                <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">No starred messages</h3>
-                <p className="text-muted-foreground">Star important messages to find them easily later</p>
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="p-4 bg-orange-100 dark:bg-orange-900/30 rounded-full mb-4">
+                  <Star className="h-12 w-12 text-orange-500 dark:text-orange-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No starred messages yet</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm">
+                  Star important messages to save them here for quick access later
+                </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div 
+                className="p-4 space-y-3 max-h-[calc(85vh-120px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              >
                 {starredMessages.map((message) => (
-                  <div key={message.id} className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors">
+                  <div key={message.id} className="group relative p-4 rounded-xl border border-orange-200 dark:border-orange-700 bg-gradient-to-r from-white to-orange-50/30 dark:from-gray-800 dark:to-orange-900/10 hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-10 w-10 ring-2 ring-orange-200 dark:ring-orange-800">
                         <AvatarImage src={message.sender.profilePicture || ""} />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold">
                           {message.sender.displayName.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-foreground">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-semibold text-gray-900 dark:text-white">
                             {message.sender.displayName}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-full">
                             {formatTimestamp(message.timestamp)}
                           </span>
                         </div>
-                        <p className="text-sm text-foreground break-words">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 break-words leading-relaxed">
                           {message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`}
                         </p>
                         {message.messageType === "crypto" && (
-                          <Badge variant="secondary" className="mt-2">
+                          <Badge variant="secondary" className="mt-3 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
                             <MessageCircle className="h-3 w-3 mr-1" />
                             Crypto Transaction
                           </Badge>
@@ -219,18 +232,18 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        className="opacity-70 group-hover:opacity-100 p-2 h-9 w-9 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-full transition-all duration-200 hover:scale-110"
                         onClick={() => handleStarMessage(message)}
-                        title="Unstar"
+                        title="Unstar message"
                       >
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <Star className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
 
