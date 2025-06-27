@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video } from "lucide-react";
+import { Phone, PhoneOff, Volume2, VolumeX, Video } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -20,7 +20,6 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
     return null;
   }
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
-  const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
 
@@ -28,7 +27,6 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
     if (!isOpen) {
       setCallStatus("connecting");
       setCallDuration(0);
-      setIsMuted(false);
       setIsSpeakerOn(false);
       return;
     }
@@ -133,20 +131,6 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
             <div className="flex justify-center space-x-6">
               {callStatus === "connected" && (
                 <>
-                  {/* Mute Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className={`w-14 h-14 rounded-full border-2 transition-all duration-300 ${
-                      isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                  >
-                    {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
-                  </Button>
-
                   {/* Video Button */}
                   <Button
                     variant="outline"

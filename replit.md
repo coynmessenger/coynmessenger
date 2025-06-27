@@ -355,6 +355,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Moved crypto conversion to replace category display - relocated COYN conversion from details dropdown to main price area as orange badge, removed category badges from marketplace product cards, eliminated duplicate crypto conversion in details section for cleaner interface
 - June 27, 2025: Removed arrow button and details dropdown completely - eliminated expandable details section from marketplace product cards, removed arrow toggle button, cleaned up unused state variables, simplified product cards to show only essential information
 - June 27, 2025: Implemented comprehensive display name priority system - added signInName field to user schema, created priority logic (sign-in name → profile name → @id fallback), modified /api/user endpoints to return effective display names, ensured display names reflect user-provided names at sign-in with proper fallback hierarchy
+- June 27, 2025: Removed mute button from voice call modal - eliminated highlighted mute/unmute functionality, cleaned up unused state variables and imports, streamlined call controls to show only video switch, speaker, and end call buttons for cleaner interface
 
 ## User Preferences
 
