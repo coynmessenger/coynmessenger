@@ -1,5 +1,5 @@
 import { 
-  users, conversations, messages, walletBalances, favorites,
+  users, conversations, messages, walletBalances, favorites, groupMembers,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
@@ -23,6 +23,11 @@ export interface IStorage {
   findConversation(user1Id: number, user2Id: number): Promise<Conversation | undefined>;
   getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]>;
   createConversation(user1Id: number, user2Id: number): Promise<Conversation>;
+  
+  // Groups
+  createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation>;
+  leaveGroup(conversationId: number, userId: number): Promise<boolean>;
+  getGroupMembers(conversationId: number): Promise<User[]>;
 
   // Messages
   getMessage(id: number): Promise<Message | undefined>;
@@ -110,7 +115,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]> {
-    const userConversations = await db
+    // First get direct conversations (non-group)
+    const directConversations = await db
       .select({
         conversation: conversations,
         otherUser: users,
@@ -123,17 +129,50 @@ export class DatabaseStorage implements IStorage {
       ))
       .leftJoin(messages, eq(messages.conversationId, conversations.id))
       .where(
-        or(
-          eq(conversations.participant1Id, userId),
-          eq(conversations.participant2Id, userId)
+        and(
+          or(
+            eq(conversations.participant1Id, userId),
+            eq(conversations.participant2Id, userId)
+          ),
+          eq(conversations.isGroup, false)
         )
       )
       .orderBy(desc(conversations.lastMessageAt));
 
+    // Then get group conversations where user is a member
+    const groupConversationIds = await db
+      .select({ conversationId: groupMembers.conversationId })
+      .from(groupMembers)
+      .where(eq(groupMembers.userId, userId));
+
+    const groupConversations = await db
+      .select({
+        conversation: conversations,
+        lastMessage: messages
+      })
+      .from(conversations)
+      .leftJoin(messages, eq(messages.conversationId, conversations.id))
+      .where(
+        and(
+          inArray(conversations.id, groupConversationIds.map(g => g.conversationId)),
+          eq(conversations.isGroup, true)
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt));
+
+    // Combine results - for groups, we don't have otherUser, so we'll use a placeholder
+    const allConversations = [
+      ...directConversations,
+      ...groupConversations.map(gc => ({
+        ...gc,
+        otherUser: null as any // Groups don't have "other user", we'll handle display differently
+      }))
+    ];
+
     // Group by conversation and get the latest message
     const conversationMap = new Map();
-    for (const row of userConversations) {
-      if (!row.conversation || !row.otherUser) continue;
+    for (const row of allConversations) {
+      if (!row.conversation) continue;
       
       const key = row.conversation.id;
       if (!conversationMap.has(key)) {
@@ -162,6 +201,67 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return conversation;
+  }
+
+  async createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation> {
+    // Create the group conversation
+    const [conversation] = await db
+      .insert(conversations)
+      .values({
+        isGroup: true,
+        groupName,
+        createdBy,
+        lastMessageAt: new Date(),
+      })
+      .returning();
+
+    // Add all members to the group
+    const memberData = memberIds.map((userId: number) => ({
+      conversationId: conversation.id,
+      userId,
+      role: userId === createdBy ? "admin" : "member"
+    }));
+
+    // Ensure creator is also added as a member if not already in the list
+    if (!memberIds.includes(createdBy)) {
+      memberData.push({
+        conversationId: conversation.id,
+        userId: createdBy,
+        role: "admin"
+      });
+    }
+
+    await db.insert(groupMembers).values(memberData);
+
+    return conversation;
+  }
+
+  async leaveGroup(conversationId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(groupMembers)
+      .where(
+        and(
+          eq(groupMembers.conversationId, conversationId),
+          eq(groupMembers.userId, userId)
+        )
+      )
+      .returning();
+
+    // If the user was an admin, we should handle admin transition logic here
+    // For now, we'll just remove them
+    return result.length > 0;
+  }
+
+  async getGroupMembers(conversationId: number): Promise<User[]> {
+    const members = await db
+      .select({
+        user: users
+      })
+      .from(groupMembers)
+      .innerJoin(users, eq(users.id, groupMembers.userId))
+      .where(eq(groupMembers.conversationId, conversationId));
+
+    return members.map(m => m.user);
   }
 
   // Messages

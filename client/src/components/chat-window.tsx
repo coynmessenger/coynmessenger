@@ -187,6 +187,27 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     },
   });
 
+  const leaveGroupMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/groups/${conversation.id}/leave`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Left group",
+        description: "You have successfully left the group",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      onBack?.(); // Go back to conversation list
+    },
+    onError: () => {
+      toast({
+        title: "Failed to leave group",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Handle crypto button clicks
   const handleCryptoClick = (currency: string) => {
     setSelectedCrypto(currency);
@@ -593,15 +614,29 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             onClick={() => setShowUserProfile(true)}
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src={conversation.otherUser.profilePicture || ""} />
-              <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </AvatarFallback>
+              {conversation.isGroup ? (
+                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                  <Users className="w-5 h-5" />
+                </AvatarFallback>
+              ) : (
+                <>
+                  <AvatarImage src={conversation.otherUser?.profilePicture || ""} />
+                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                    <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  </AvatarFallback>
+                </>
+              )}
             </Avatar>
             <div className="text-left">
-              <h2 className="font-semibold text-foreground">{conversation.otherUser.displayName}</h2>
+              <h2 className="font-semibold text-foreground">
+                {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+              </h2>
               <div className="flex items-center space-x-2">
-                <p className="text-xs text-muted-foreground">{conversation.otherUser.walletAddress}</p>
+                {conversation.isGroup ? (
+                  <p className="text-xs text-muted-foreground">Group conversation</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{conversation.otherUser?.walletAddress}</p>
+                )}
                 {searchQuery && searchResultCount > 0 && (
                   <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
                     {searchResultCount} {searchResultCount === 1 ? 'match' : 'matches'}
@@ -614,24 +649,53 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
         {/* Call and Video Icons */}
         <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowVoiceCall(true)}
-            className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-            title="Voice call"
-          >
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowVideoCall(true)}
-            className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-            title="Video call"
-          >
-            <Video className="h-5 w-5" />
-          </Button>
+          {!conversation.isGroup && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceCall(true)}
+                className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                title="Voice call"
+              >
+                <Phone className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVideoCall(true)}
+                className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                title="Video call"
+              >
+                <Video className="h-5 w-5" />
+              </Button>
+            </>
+          )}
+          
+          {conversation.isGroup && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                  title="Group options"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => leaveGroupMutation.mutate()}
+                  disabled={leaveGroupMutation.isPending}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Leave Group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
       </div>

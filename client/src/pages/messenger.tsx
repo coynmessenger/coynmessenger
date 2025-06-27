@@ -14,7 +14,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home, User as UserIcon, Settings } from "lucide-react";
+import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -59,15 +59,23 @@ export default function MessengerPage() {
   // Filter out current user and users who already have conversations
   const availableContacts = allUsers.filter(contact => 
     contact.id !== user?.id && 
-    !conversations.some(conv => conv.otherUser.id === contact.id)
+    !conversations.some(conv => conv.otherUser?.id === contact.id)
   );
 
   // Filter conversations and contacts based on search query
-  const filteredConversations = conversations.filter(conversation =>
-    conversation.otherUser.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conversation.otherUser.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-  );
+  const filteredConversations = conversations.filter(conversation => {
+    const isGroup = conversation.isGroup;
+    if (isGroup) {
+      // For groups, search by group name
+      return conversation.groupName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    } else {
+      // For direct conversations, search by other user's name
+      return conversation.otherUser?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conversation.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    }
+  });
 
   const filteredContacts = availableContacts.filter(contact =>
     contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -221,22 +229,30 @@ export default function MessengerPage() {
                             <div className="flex items-center space-x-3">
                               <div className="relative">
                                 <Avatar className="w-12 h-12">
-                                  <AvatarImage 
-                                    src={conversation.otherUser.profilePicture || undefined} 
-                                    alt={conversation.otherUser.displayName}
-                                  />
-                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                    <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                  </AvatarFallback>
+                                  {conversation.isGroup ? (
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                      <Users className="w-6 h-6" />
+                                    </AvatarFallback>
+                                  ) : (
+                                    <>
+                                      <AvatarImage 
+                                        src={conversation.otherUser?.profilePicture || undefined} 
+                                        alt={conversation.otherUser?.displayName || "User"}
+                                      />
+                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                      </AvatarFallback>
+                                    </>
+                                  )}
                                 </Avatar>
-                                {conversation.otherUser.isOnline && (
+                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
                                   <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
                                   <h3 className="font-medium text-foreground truncate">
-                                    {conversation.otherUser.displayName}
+                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
                                   </h3>
                                   {conversation.lastMessage && conversation.lastMessage.timestamp && (
                                     <span className="text-xs text-muted-foreground">
@@ -485,22 +501,30 @@ export default function MessengerPage() {
                           <div className="flex items-center space-x-3">
                             <div className="relative">
                               <Avatar className="w-12 h-12">
-                                <AvatarImage 
-                                  src={conversation.otherUser.profilePicture || undefined} 
-                                  alt={conversation.otherUser.displayName}
-                                />
-                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                  <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                </AvatarFallback>
+                                {conversation.isGroup ? (
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                    <Users className="w-6 h-6" />
+                                  </AvatarFallback>
+                                ) : (
+                                  <>
+                                    <AvatarImage 
+                                      src={conversation.otherUser?.profilePicture || undefined} 
+                                      alt={conversation.otherUser?.displayName || "User"}
+                                    />
+                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    </AvatarFallback>
+                                  </>
+                                )}
                               </Avatar>
-                              {conversation.otherUser.isOnline && (
+                              {!conversation.isGroup && conversation.otherUser?.isOnline && (
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <h3 className="font-medium text-foreground truncate">
-                                  {conversation.otherUser.displayName}
+                                  {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
                                 </h3>
                                 {conversation.lastMessage && conversation.lastMessage.timestamp && (
                                   <span className="text-xs text-muted-foreground">

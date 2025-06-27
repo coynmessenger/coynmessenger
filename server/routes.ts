@@ -431,43 +431,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new group chat
   app.post("/api/groups", async (req, res) => {
     try {
-      const { groupName, memberIds, createdBy } = req.body;
+      const { groupName, memberIds } = req.body;
+      const createdBy = 5; // Current user
       
-      if (!groupName || !memberIds || memberIds.length < 2) {
-        return res.status(400).json({ message: "Group name and at least 2 members required" });
+      if (!groupName || !memberIds || memberIds.length < 1) {
+        return res.status(400).json({ message: "Group name and at least 1 member required" });
       }
       
-      // Create group conversation
-      const conversation = await db.insert(conversations).values({
-        isGroup: true,
-        groupName,
-        createdBy,
-        lastMessageAt: new Date(),
-      }).returning();
-      
-      const conversationId = conversation[0].id;
-      
-      // Add all members to the group
-      const memberData = memberIds.map((userId: number) => ({
-        conversationId,
-        userId,
-        role: userId === createdBy ? 'admin' : 'member',
-      }));
-      
-      await db.insert(groupMembers).values(memberData);
+      // Create group conversation using storage method
+      const conversation = await storage.createGroupConversation(groupName, memberIds, createdBy);
       
       // Send system message about group creation
-      await db.insert(messages).values({
-        conversationId,
+      await storage.createMessage({
+        conversationId: conversation.id,
         senderId: createdBy,
         content: `Group "${groupName}" was created`,
         messageType: "system",
       });
       
-      res.json({ id: conversationId, message: "Group created successfully" });
+      res.json({ 
+        id: conversation.id, 
+        conversation,
+        message: "Group created successfully" 
+      });
     } catch (error) {
       console.error("Failed to create group:", error);
       res.status(500).json({ message: "Failed to create group" });
+    }
+  });
+
+  // Leave a group
+  app.delete("/api/groups/:id/leave", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const userId = 5; // Current user
+      
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+      
+      // Check if conversation is a group
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation || !conversation.isGroup) {
+        return res.status(400).json({ message: "Not a group conversation" });
+      }
+      
+      // Leave the group
+      const success = await storage.leaveGroup(conversationId, userId);
+      if (!success) {
+        return res.status(404).json({ message: "User not found in group" });
+      }
+      
+      // Send system message about user leaving
+      const user = await storage.getUser(userId);
+      if (user) {
+        await storage.createMessage({
+          conversationId,
+          senderId: userId,
+          content: `${user.displayName} left the group`,
+          messageType: "system",
+        });
+      }
+      
+      res.json({ message: "Left group successfully" });
+    } catch (error) {
+      console.error("Failed to leave group:", error);
+      res.status(500).json({ message: "Failed to leave group" });
+    }
+  });
+
+  // Get group members
+  app.get("/api/groups/:id/members", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+      
+      const members = await storage.getGroupMembers(conversationId);
+      res.json(members);
+    } catch (error) {
+      console.error("Failed to get group members:", error);
+      res.status(500).json({ message: "Failed to get group members" });
     }
   });
 
