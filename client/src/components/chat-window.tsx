@@ -74,6 +74,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [hoveredMessage, setHoveredMessage] = useState<number | null>(null);
   const [showMessageOptions, setShowMessageOptions] = useState<number | null>(null);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [hoverLeaveTimer, setHoverLeaveTimer] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -119,6 +120,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showMessageOptions]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+      if (hoverLeaveTimer) {
+        clearTimeout(hoverLeaveTimer);
+      }
+    };
+  }, [longPressTimer, hoverLeaveTimer]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -380,15 +393,39 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Message hover and long press handlers
   const handleMessageHover = (messageId: number) => {
+    // Clear any pending hide timer
+    if (hoverLeaveTimer) {
+      clearTimeout(hoverLeaveTimer);
+      setHoverLeaveTimer(null);
+    }
     setHoveredMessage(messageId);
   };
 
   const handleMessageLeave = () => {
-    setHoveredMessage(null);
+    // Add delay before hiding options to allow user to move to options menu
+    const timer = setTimeout(() => {
+      setHoveredMessage(null);
+    }, 300); // 300ms delay
+    setHoverLeaveTimer(timer);
+    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
+  };
+
+  // Handler for when hovering over options menu itself
+  const handleOptionsHover = () => {
+    // Clear the hide timer when hovering over options
+    if (hoverLeaveTimer) {
+      clearTimeout(hoverLeaveTimer);
+      setHoverLeaveTimer(null);
+    }
+  };
+
+  const handleOptionsLeave = () => {
+    // Hide options immediately when leaving the options menu
+    setHoveredMessage(null);
   };
 
   const handleLongPressStart = (messageId: number) => {
@@ -717,7 +754,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div data-message-options className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20">
+                        <div 
+                          data-message-options 
+                          className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20"
+                          onMouseEnter={handleOptionsHover}
+                          onMouseLeave={handleOptionsLeave}
+                        >
                           <Button
                             variant="ghost"
                             size="sm"
@@ -868,7 +910,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div data-message-options className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20">
+                        <div 
+                          data-message-options 
+                          className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20"
+                          onMouseEnter={handleOptionsHover}
+                          onMouseLeave={handleOptionsLeave}
+                        >
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1046,7 +1093,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     
                     {/* Message Options Menu */}
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                      <div data-message-options className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20">
+                      <div 
+                        data-message-options 
+                        className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20"
+                        onMouseEnter={handleOptionsHover}
+                        onMouseLeave={handleOptionsLeave}
+                      >
                         <Button
                           variant="ghost"
                           size="sm"
