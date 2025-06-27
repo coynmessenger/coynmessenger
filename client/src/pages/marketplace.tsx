@@ -857,15 +857,12 @@ export default function MarketplacePage() {
                           <span className="text-lg font-bold text-foreground">
                             ${item.price}
                           </span>
-                          <Badge variant="secondary" className="text-xs">
-                            {item.category}
-                          </Badge>
+                          {isMarketplaceProduct && (
+                            <Badge variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
+                              ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
+                            </Badge>
+                          )}
                         </div>
-                        {isMarketplaceProduct && (
-                          <div className="text-xs text-muted-foreground">
-                            ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
-                          </div>
-                        )}
                       </div>
                       
                       <div className="flex gap-2">
@@ -948,20 +945,7 @@ export default function MarketplacePage() {
                           )}
                         </div>
                         
-                        <div className="pt-3 border-t border-gray-100 dark:border-slate-600">
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="text-right w-full">
-                              <div className="font-bold text-orange-500 dark:text-cyan-400">
-                                ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
-                              </div>
-                              {isMarketplaceProduct && (
-                                <div className="text-xs text-muted-foreground">
-                                  Instant conversion
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+
                         
 
                       </div>
