@@ -199,7 +199,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'review' | 'finalize'>('cart');
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'address' | 'review' | 'payment'>('cart');
   const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
@@ -355,7 +355,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
       // Clear cart after successful purchase
       setCartItems([]);
       setShowCheckoutModal(false);
-      setCheckoutStep('address');
+      setCheckoutStep('cart');
       setAgreedToTerms(false);
       onClose();
       
@@ -403,7 +403,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
   const handleClose = () => {
     setShowCheckoutModal(false);
-    setCheckoutStep('address');
+    setCheckoutStep('cart');
     setAgreedToTerms(false);
     onClose();
   };
@@ -411,92 +411,124 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background border-border">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-foreground">
-              <CreditCard className="h-5 w-5" />
-              Finalize Purchase ({cartItems.length} items)
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-background border-border">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-2 text-foreground text-xl">
+              <ShoppingCartIcon className="h-6 w-6" />
+              Shopping Cart ({cartItems.length} items)
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex flex-col h-full max-h-[calc(90vh-120px)]">
             {cartItems.length === 0 ? (
-              <div className="text-center py-8">
-                <ShoppingCartIcon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Your cart is empty</h3>
-                <p className="text-muted-foreground">Add some items from the marketplace to get started</p>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center py-12">
+                  <ShoppingCartIcon className="h-20 w-20 mx-auto text-muted-foreground mb-6" />
+                  <h3 className="text-xl font-medium text-foreground mb-3">Your cart is empty</h3>
+                  <p className="text-muted-foreground text-lg">Add some items from the marketplace to get started</p>
+                </div>
               </div>
             ) : (
               <>
-                {cartItems.map((item) => (
-                  <Card key={item.id} className="bg-card border-border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {item.imageUrl && (
-                          <img 
-                            src={item.imageUrl} 
-                            alt={item.title}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-foreground line-clamp-2">{item.title}</h4>
-                          <p className="text-lg font-bold text-orange-500 dark:text-cyan-400">
-                            ${item.price}
-                          </p>
+                {/* Cart Items List */}
+                <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+                  <div className="text-sm text-muted-foreground mb-4">
+                    {cartItems.length} item{cartItems.length > 1 ? 's' : ''} in your cart
+                  </div>
+                  
+                  {cartItems.map((item) => (
+                    <Card key={item.id} className="bg-card border-border hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-6">
+                          {item.imageUrl && (
+                            <div className="flex-shrink-0">
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.title}
+                                className="w-20 h-20 object-cover rounded-lg border border-border"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-foreground text-lg mb-2 line-clamp-2">
+                              {item.title}
+                            </h4>
+                            <p className="text-xl font-bold text-orange-500 dark:text-cyan-400 mb-4">
+                              ${item.price} each
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-9 w-9"
+                                  onClick={() => updateQuantity(item.id, -1)}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-12 text-center font-semibold text-lg text-foreground">
+                                  {item.quantity}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-9 w-9"
+                                  onClick={() => updateQuantity(item.id, 1)}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <p className="text-sm text-muted-foreground">Subtotal</p>
+                                  <p className="text-lg font-bold text-foreground">
+                                    ${(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity).toFixed(2)}
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  onClick={() => removeItem(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, -1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center font-medium text-foreground">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-600"
-                            onClick={() => removeItem(item.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
 
-                <Separator />
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-foreground">Total:</span>
-                    <span className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
-                      ${totalUSD.toFixed(2)} USD
-                    </span>
+                {/* Cart Summary */}
+                <div className="border-t border-border pt-6 mt-6 space-y-6">
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-center text-lg">
+                      <span className="font-medium text-foreground">Cart Total:</span>
+                      <span className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
+                        ${totalUSD.toFixed(2)} USD
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Shipping and taxes will be calculated at checkout
+                    </p>
                   </div>
 
                   <Button
-                    onClick={() => setShowCheckoutModal(true)}
-                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-medium py-3"
+                    onClick={() => {
+                      setCheckoutStep('address');
+                      setShowCheckoutModal(true);
+                    }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold py-4 text-lg"
                     size="lg"
                   >
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Complete Purchase
+                    <CreditCard className="h-5 w-5 mr-3" />
+                    Proceed to Checkout
                   </Button>
                 </div>
               </>
