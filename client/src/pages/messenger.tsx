@@ -10,6 +10,7 @@ import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
+import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings } from "lucide-react";
@@ -571,6 +572,11 @@ export default function MessengerPage() {
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
         otherUser={currentConversation?.otherUser}
+      />
+      <VoiceCallModal
+        isOpen={isVoiceCallOpen && !!currentConversation?.otherUser}
+        onClose={() => setIsVoiceCallOpen(false)}
+        user={currentConversation?.otherUser!}
       />
       <SettingsModal
         isOpen={isSettingsOpen}
