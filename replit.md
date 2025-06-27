@@ -333,6 +333,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Made checkout form ultra-compact for mobile - reduced modal height to 70vh, minimized step indicator with smaller icons and text-xs labels, compressed shipping section with h-8 input fields, eliminated all form spacing gaps, optimized all labels to text-xs, reduced overall padding to p-1 for maximum viewport compatibility without scrolling
 - June 27, 2025: Fixed shipping address display in checkout review step - corrected address pre-population logic to only trigger on address step entry (not review step), added proper country name lookup from country codes, enhanced address display with fallback text for missing fields, ensures user-entered shipping information persists correctly throughout checkout process
 - June 27, 2025: Fixed contact profile picture display throughout application - corrected field name inconsistencies from profileImage to profilePicture to match database schema, added proper Avatar components with AvatarImage support in product share modal and message share modal, enhanced profile picture fallback display with authentic user avatars when images are available
+- June 27, 2025: Fixed cryptocurrency conversion direction in purchase processing modal - corrected "Converting USD to BTC" to properly show "Converting BTC to USD" indicating user's cryptocurrency is being converted to USD for merchant payment, ensuring accurate representation of the payment flow where crypto is exchanged for USD to complete purchases
 
 ## User Preferences
 

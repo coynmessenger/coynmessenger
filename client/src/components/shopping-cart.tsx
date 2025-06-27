@@ -370,7 +370,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     // Simulate purchase processing
     toast({
       title: "Processing Purchase...",
-      description: `Converting ${total.toFixed(2)} USD to ${cryptoAmount} ${selectedCrypto}`
+      description: `Converting ${cryptoAmount} ${selectedCrypto} to ${total.toFixed(2)} USD`
     });
 
     // Simulate API call delay
