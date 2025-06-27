@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -11,9 +11,10 @@ interface VoiceCallModalProps {
   onClose: () => void;
   user?: User;
   callType?: "incoming" | "outgoing";
+  onSwitchToVideo?: () => void;
 }
 
-export default function VoiceCallModal({ isOpen, onClose, user, callType = "outgoing" }: VoiceCallModalProps) {
+export default function VoiceCallModal({ isOpen, onClose, user, callType = "outgoing", onSwitchToVideo }: VoiceCallModalProps) {
   // Early return if no user is provided
   if (!user) {
     return null;
@@ -144,6 +145,22 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
                     }`}
                   >
                     {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                  </Button>
+
+                  {/* Video Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      if (onSwitchToVideo) {
+                        onSwitchToVideo();
+                        onClose(); // Close voice call modal
+                      }
+                    }}
+                    className="w-14 h-14 rounded-full border-2 transition-all duration-300 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400"
+                    title="Switch to video call"
+                  >
+                    <Video className="h-6 w-6" />
                   </Button>
 
                   {/* Speaker Button */}

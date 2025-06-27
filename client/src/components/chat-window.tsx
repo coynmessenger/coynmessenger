@@ -15,6 +15,8 @@ import { apiRequest } from "@/lib/queryClient";
 
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
+import VoiceCallModal from "@/components/voice-call-modal";
+import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
@@ -25,14 +27,12 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ChatWindowProps {
   conversation: Conversation & { otherUser: User };
-  onOpenVideoCall: () => void;
-  onOpenVoiceCall?: () => void;
   onToggleSidebar: () => void;
   onBack?: () => void;
   searchQuery?: string;
 }
 
-export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceCall, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
+export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
@@ -47,6 +47,8 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [searchResultCount, setSearchResultCount] = useState(0);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -359,7 +361,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
           <Button
             variant="ghost"
             size="sm"
-            onClick={onOpenVoiceCall}
+            onClick={() => setShowVoiceCall(true)}
             className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
             title="Voice call"
           >
@@ -368,7 +370,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
           <Button
             variant="ghost"
             size="sm"
-            onClick={onOpenVideoCall}
+            onClick={() => setShowVideoCall(true)}
             className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
             title="Video call"
           >
@@ -840,12 +842,30 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
         }}
         onStartVideoCall={() => {
           setShowUserProfile(false);
-          onOpenVideoCall();
+          setShowVideoCall(true);
         }}
         onSendMessage={() => {
           setShowUserProfile(false);
           // Focus on message input - can be enhanced later
         }}
+      />
+
+      {/* Voice Call Modal */}
+      <VoiceCallModal
+        isOpen={showVoiceCall}
+        onClose={() => setShowVoiceCall(false)}
+        user={conversation.otherUser}
+        onSwitchToVideo={() => {
+          setShowVoiceCall(false);
+          setShowVideoCall(true);
+        }}
+      />
+
+      {/* Video Call Modal */}
+      <VideoCallModal
+        isOpen={showVideoCall}
+        onClose={() => setShowVideoCall(false)}
+        user={conversation.otherUser}
       />
     </div>
   );

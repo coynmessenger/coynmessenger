@@ -1,96 +1,255 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Monitor } from "lucide-react";
+import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
-import { Mic, Video, PhoneOff, Monitor } from "lucide-react";
 
 interface VideoCallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  otherUser?: User;
+  user?: User;
+  callType?: "incoming" | "outgoing";
 }
 
-export default function VideoCallModal({ isOpen, onClose, otherUser }: VideoCallModalProps) {
-  if (!otherUser) return null;
+export default function VideoCallModal({ isOpen, onClose, user, callType = "outgoing" }: VideoCallModalProps) {
+  // Early return if no user is provided
+  if (!user) {
+    return null;
+  }
+  
+  const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setCallStatus("connecting");
+      setCallDuration(0);
+      setIsMuted(false);
+      setIsVideoOff(false);
+      setIsScreenSharing(false);
+      return;
+    }
+
+    const timer1 = setTimeout(() => {
+      setCallStatus("ringing");
+    }, 1000);
+
+    const timer2 = setTimeout(() => {
+      setCallStatus("connected");
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (callStatus === "connected") {
+      interval = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [callStatus]);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleEndCall = () => {
+    setCallStatus("ended");
+    setTimeout(() => {
+      onClose();
+    }, 1000);
+  };
+
+  const getStatusText = () => {
+    switch (callStatus) {
+      case "connecting":
+        return "Connecting...";
+      case "ringing":
+        return callType === "incoming" ? "Incoming video call" : "Ringing...";
+      case "connected":
+        return formatDuration(callDuration);
+      case "ended":
+        return "Call ended";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (callStatus) {
+      case "connecting":
+        return "text-yellow-400";
+      case "ringing":
+        return "text-blue-400";
+      case "connected":
+        return "text-green-400";
+      case "ended":
+        return "text-red-400";
+      default:
+        return "text-gray-400";
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 bg-black border-0">
-        {/* Background video area */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900">
-          {/* Main video area showing other user */}
-          <img 
-            src={otherUser.profilePicture || ""} 
-            alt={`${otherUser.displayName} on video call`}
-            className="w-full h-full object-cover"
-          />
+      <DialogContent className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden">
+        <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
+        
+        {/* Video Area */}
+        <div className="relative aspect-video bg-slate-800">
+          {callStatus === "connected" && !isVideoOff ? (
+            // Simulated video feed
+            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
+                  <AvatarImage src={user.profilePicture || ""} />
+                  <AvatarFallback className="bg-slate-700 text-2xl">
+                    <UserAvatarIcon className="w-12 h-12 text-slate-400" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-white/60 text-sm">Video connected</div>
+              </div>
+            </div>
+          ) : (
+            // User avatar when video is off or not connected
+            <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+              <div className="text-center space-y-6">
+                <Avatar className="w-32 h-32 mx-auto border-4 border-white/20 shadow-xl">
+                  <AvatarImage src={user.profilePicture || ""} />
+                  <AvatarFallback className="bg-slate-700 text-4xl">
+                    <UserAvatarIcon className="w-16 h-16 text-slate-400" />
+                  </AvatarFallback>
+                </Avatar>
+                {callStatus === "connected" && isVideoOff && (
+                  <div className="text-white/60 text-sm">Camera is off</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Self view (small preview) */}
+          {callStatus === "connected" && (
+            <div className="absolute top-4 right-4 w-32 h-24 bg-slate-700 rounded-lg border-2 border-white/20 overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
+                <div className="text-white/40 text-xs">You</div>
+              </div>
+            </div>
+          )}
+
+          {/* Status overlay */}
+          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${
+                callStatus === "connected" ? "bg-green-400" : "bg-yellow-400"
+              } animate-pulse`}></div>
+              <span className={`text-sm font-medium ${getStatusColor()}`}>
+                {getStatusText()}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Call UI Overlay */}
-        <div className="absolute inset-0 bg-black/20">
-          {/* Top Bar */}
-          <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10 border-2 border-white">
-                  <AvatarImage src={otherUser.profilePicture || ""} />
-                  <AvatarFallback>{otherUser.displayName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="font-semibold text-white">{otherUser.displayName}</h2>
-                  <p className="text-xs text-white/80">{otherUser.walletAddress}</p>
-                </div>
-              </div>
-              <div className="text-white text-sm font-medium">
-                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
+        {/* User Info & Controls */}
+        <div className="p-6 space-y-6">
+          {/* User Name */}
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
           </div>
 
-          {/* Picture-in-Picture Self View */}
-          <div className="absolute top-20 right-4 w-32 h-24 bg-slate-800 rounded-xl overflow-hidden border-2 border-white/20">
-            {/* Self video placeholder */}
-            <div className="w-full h-full bg-slate-700 flex items-center justify-center">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=faces" />
-                <AvatarFallback>You</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
+          {/* Call Controls */}
+          {callStatus !== "ended" && (
+            <div className="flex justify-center space-x-4">
+              {callStatus === "connected" && (
+                <>
+                  {/* Mute Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsMuted(!isMuted)}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                      isMuted 
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                    }`}
+                    title={isMuted ? "Unmute" : "Mute"}
+                  >
+                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
 
-          {/* Bottom Controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
-            <div className="flex items-center justify-center space-x-6">
+                  {/* Video Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsVideoOff(!isVideoOff)}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                      isVideoOff 
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                    }`}
+                    title={isVideoOff ? "Turn on camera" : "Turn off camera"}
+                  >
+                    {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                  </Button>
+
+                  {/* Screen Share Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsScreenSharing(!isScreenSharing)}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                      isScreenSharing 
+                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                    }`}
+                    title={isScreenSharing ? "Stop sharing" : "Share screen"}
+                  >
+                    <Monitor className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
+
+              {/* End Call Button */}
               <Button
-                size="lg"
-                variant="secondary"
-                className="w-14 h-14 rounded-full bg-slate-600/80 hover:bg-slate-500"
+                onClick={handleEndCall}
+                className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
+                title="End call"
               >
-                <Mic className="h-6 w-6 text-white" />
-              </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="w-14 h-14 rounded-full bg-slate-600/80 hover:bg-slate-500"
-              >
-                <Video className="h-6 w-6 text-white" />
-              </Button>
-              <Button
-                size="lg"
-                onClick={onClose}
-                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400"
-              >
-                <PhoneOff className="h-6 w-6 text-white" />
-              </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="w-14 h-14 rounded-full bg-slate-600/80 hover:bg-slate-500"
-              >
-                <Monitor className="h-6 w-6 text-white" />
+                <PhoneOff className="h-5 w-5" />
               </Button>
             </div>
-          </div>
+          )}
+
+          {/* Incoming Call Actions */}
+          {callType === "incoming" && callStatus === "ringing" && (
+            <div className="flex justify-center space-x-8">
+              <Button
+                onClick={handleEndCall}
+                className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
+                title="Decline"
+              >
+                <PhoneOff className="h-6 w-6" />
+              </Button>
+              <Button
+                onClick={() => setCallStatus("connected")}
+                className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
+                title="Accept video call"
+              >
+                <Video className="h-6 w-6" />
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

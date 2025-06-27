@@ -145,8 +145,6 @@ export default function MessengerPage() {
             {selectedConversation && currentConversation ? (
               <ChatWindow
                 conversation={currentConversation}
-                onOpenVideoCall={() => setIsVideoCallOpen(true)}
-                onOpenVoiceCall={() => setIsVoiceCallOpen(true)}
                 onToggleSidebar={() => {}}
                 onBack={() => setSelectedConversation(null)}
                 searchQuery={searchQuery}
@@ -418,8 +416,6 @@ export default function MessengerPage() {
           {selectedConversation && currentConversation ? (
             <ChatWindow
               conversation={currentConversation}
-              onOpenVideoCall={() => setIsVideoCallOpen(true)}
-              onOpenVoiceCall={() => setIsVoiceCallOpen(true)}
               onToggleSidebar={() => setIsSidebarOpen(true)}
               onBack={() => setSelectedConversation(null)}
               searchQuery={searchQuery}
@@ -571,7 +567,7 @@ export default function MessengerPage() {
       <VideoCallModal
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
-        otherUser={currentConversation?.otherUser}
+        user={currentConversation?.otherUser}
       />
       <VoiceCallModal
         isOpen={isVoiceCallOpen}
