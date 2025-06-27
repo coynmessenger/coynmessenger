@@ -24,6 +24,7 @@ export default function MessengerPage() {
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,6 +145,7 @@ export default function MessengerPage() {
               <ChatWindow
                 conversation={currentConversation}
                 onOpenVideoCall={() => setIsVideoCallOpen(true)}
+                onOpenVoiceCall={() => setIsVoiceCallOpen(true)}
                 onToggleSidebar={() => {}}
                 onBack={() => setSelectedConversation(null)}
                 searchQuery={searchQuery}
@@ -416,6 +418,7 @@ export default function MessengerPage() {
             <ChatWindow
               conversation={currentConversation}
               onOpenVideoCall={() => setIsVideoCallOpen(true)}
+              onOpenVoiceCall={() => setIsVoiceCallOpen(true)}
               onToggleSidebar={() => setIsSidebarOpen(true)}
               onBack={() => setSelectedConversation(null)}
               searchQuery={searchQuery}

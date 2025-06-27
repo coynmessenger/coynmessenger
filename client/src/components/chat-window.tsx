@@ -26,12 +26,13 @@ import { formatDistanceToNow } from "date-fns";
 interface ChatWindowProps {
   conversation: Conversation & { otherUser: User };
   onOpenVideoCall: () => void;
+  onOpenVoiceCall?: () => void;
   onToggleSidebar: () => void;
   onBack?: () => void;
   searchQuery?: string;
 }
 
-export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
+export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceCall, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
@@ -360,6 +361,28 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                 )}
               </div>
             </div>
+          </Button>
+        </div>
+
+        {/* Call and Video Icons */}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenVoiceCall}
+            className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+            title="Voice call"
+          >
+            <Phone className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenVideoCall}
+            className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+            title="Video call"
+          >
+            <Video className="h-5 w-5" />
           </Button>
         </div>
 
