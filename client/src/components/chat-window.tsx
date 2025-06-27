@@ -668,7 +668,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 {conversation.isGroup ? (
                   <p className="text-xs text-muted-foreground">Group conversation</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">{conversation.otherUser?.walletAddress}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {conversation.otherUser?.walletAddress ? 
+                      `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
+                      ''
+                    }
+                  </p>
                 )}
                 {searchQuery && searchResultCount > 0 && (
                   <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
