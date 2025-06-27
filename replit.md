@@ -337,6 +337,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Created comprehensive purchase history system with dedicated /purchase-history page accessible from marketplace - includes detailed transaction list, statistics dashboard showing total orders/spending/shipping/delivery counts, advanced filtering by status/payment method/search, purchase history button in marketplace header, and detailed order view modal with complete transaction information
 - June 27, 2025: Fixed user profile modal ID display consistency - updated to show "@" + last 6 characters of wallet address (e.g., "@fa3501") instead of "@username" to match app's consistent pattern used throughout settings modal and other components
 - June 27, 2025: Fixed wallet address ID extraction to show all 6 hex characters - updated both user profile modal and settings modal to properly remove "0x" prefix before taking last 6 characters, ensuring full 6-character display (e.g., "@fa3501" instead of "@.3501")
+- June 27, 2025: Completed comprehensive wallet address display fix - updated all demo users (Chris, Jane, Daniel, G Stax) with proper full 42-character Ethereum wallet addresses, added React Query cache invalidation to user profile modal for fresh data loading, enhanced wallet address display with proper word wrapping and max-width constraints, verified full wallet addresses now display correctly without truncation throughout application
 
 ## User Preferences
 
