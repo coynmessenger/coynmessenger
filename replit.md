@@ -277,6 +277,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 26, 2025: Fixed display name synchronization between wallet connection and profile settings - modified `/api/user` endpoint to accept user ID parameter, updated settings modal to fetch current connected user data from localStorage, added proper React Query cache invalidation on wallet connection to ensure display name entered during sign-in reflects in profile settings
 - June 26, 2025: Fixed profile picture upload persistence issue - modified `/api/user/upload-avatar` endpoint to accept userId parameter, updated frontend to pass connected user ID in upload requests, enhanced cache invalidation to properly update both query variations, resolved issue where uploaded images weren't displaying in settings modal due to user ID mismatch between upload and display
 - June 27, 2025: Fixed delete message button light theme colors - updated dropdown menu backgrounds from dark slate to white, changed button hover states to light gray, updated delete menu item colors to proper red-600 for light theme with red-50 hover backgrounds, ensuring proper contrast and visibility in light mode
+- June 27, 2025: Removed redundant wallet connection prompt - conditionally hid "Connect your Web3 wallet to access COYN Messenger" message once user is connected, providing cleaner interface for connected users
 
 ## User Preferences
 

@@ -171,9 +171,11 @@ export default function HomePage() {
         <Card className="bg-card/80 border-border backdrop-blur-xl max-w-lg mx-auto">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
-            <p className="text-muted-foreground">
-              Connect your Web3 wallet to access COYN Messenger
-            </p>
+            {(!isConnected || !connectedUser) && (
+              <p className="text-muted-foreground">
+                Connect your Web3 wallet to access COYN Messenger
+              </p>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             {!isConnected || !connectedUser ? (
