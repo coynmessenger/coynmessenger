@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet } from "lucide-react";
+import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet, ChevronDown, Info } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import SettingsModal from "@/components/settings-modal";
 import MarketplaceCheckout from "@/components/marketplace-checkout";
@@ -702,6 +703,73 @@ export default function MarketplacePage() {
                             }`} 
                           />
                         </Button>
+                        
+                        {/* Details Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-accent"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-64">
+                            <div className="p-3 space-y-2">
+                              <div className="font-medium text-sm">{item.title}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {item.description || 'Premium quality product available for crypto purchase.'}
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <span>Rating:</span>
+                                <div className="flex items-center">
+                                  <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
+                                  <span>{item.rating}</span>
+                                  {isMarketplaceProduct && (item as any).reviewCount > 0 && (
+                                    <span className="text-muted-foreground ml-1">({(item as any).reviewCount})</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <span>Category:</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.category}
+                                </Badge>
+                              </div>
+                              {isMarketplaceProduct && (item as any).brand && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span>Brand:</span>
+                                  <span className="font-medium">{(item as any).brand}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between text-xs pt-2 border-t">
+                                <span>Price:</span>
+                                <div className="text-right">
+                                  <div className="font-bold">${item.price}</div>
+                                  {isMarketplaceProduct && (
+                                    <div className="text-xs text-muted-foreground">
+                                      ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
+                                setLocation(`/product/${productId}`);
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Package className="h-4 w-4 mr-2" />
+                              View Full Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        
                         {(isMarketplaceProduct || (item as any).featured) && (
                           <Badge className="bg-orange-500 text-white">
                             <Star className="h-3 w-3 mr-1" />
