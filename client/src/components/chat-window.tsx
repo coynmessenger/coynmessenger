@@ -1658,6 +1658,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         onCallStart={() => setIsVideoCallActive(true)}
         onCallEnd={() => setIsVideoCallActive(false)}
         user={conversation.otherUser}
+        isCallActive={isVideoCallActive}
       />
     </div>
   );

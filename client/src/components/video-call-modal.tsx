@@ -14,9 +14,10 @@ interface VideoCallModalProps {
   onCallEnd?: () => void;
   user?: User;
   callType?: "incoming" | "outgoing";
+  isCallActive?: boolean;
 }
 
-export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing" }: VideoCallModalProps) {
+export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing", isCallActive = false }: VideoCallModalProps) {
   // Early return if no user is provided
   if (!user) {
     return null;
@@ -30,14 +31,24 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
 
   useEffect(() => {
     if (!isOpen) {
-      setCallStatus("connecting");
-      setCallDuration(0);
-      setIsMuted(false);
-      setIsVideoOff(false);
-      setIsScreenSharing(false);
+      // Only reset if call is not active (completely ending the call)
+      if (!isCallActive) {
+        setCallStatus("connecting");
+        setCallDuration(0);
+        setIsMuted(false);
+        setIsVideoOff(false);
+        setIsScreenSharing(false);
+      }
       return;
     }
 
+    // If rejoining an active call, go directly to connected state
+    if (isCallActive) {
+      setCallStatus("connected");
+      return;
+    }
+
+    // Otherwise, go through normal connection process
     const timer1 = setTimeout(() => {
       setCallStatus("ringing");
     }, 1000);
@@ -53,7 +64,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, [isOpen]);
+  }, [isOpen, isCallActive, onCallStart]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
