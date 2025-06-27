@@ -120,7 +120,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
             <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Payment Process:</h4>
             <div className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
               <p>1. Your {selectedCrypto} will be converted to USD</p>
-              <p>2. Payment processed through Amazon</p>
+              <p>2. Payment processed securely</p>
               <p>3. Product shipped to your address</p>
               <p>4. Transaction secured via blockchain</p>
             </div>
@@ -630,11 +630,11 @@ export default function MarketplacePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedItems.map((item) => {
-              const isAmazonProduct = 'ASIN' in item;
-              const itemKey = isAmazonProduct ? item.ASIN : item.id;
-              const seller = isAmazonProduct ? 'Amazon' : item.seller;
-              const imageUrl = isAmazonProduct ? item.imageUrl : (item as any).image;
-              const images = isAmazonProduct && item.images ? item.images : [imageUrl].filter(Boolean);
+              const isMarketplaceProduct = 'ASIN' in item;
+              const itemKey = isMarketplaceProduct ? item.ASIN : item.id;
+              const seller = isMarketplaceProduct ? 'Marketplace' : item.seller;
+              const imageUrl = isMarketplaceProduct ? item.imageUrl : (item as any).image;
+              const images = isMarketplaceProduct && item.images ? item.images : [imageUrl].filter(Boolean);
               const currentImageIndex = imageIndexes.get(itemKey.toString()) || 0;
               
               return (
@@ -642,7 +642,7 @@ export default function MarketplacePage() {
                   key={itemKey} 
                   className="bg-white dark:bg-card border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
                   onClick={() => {
-                    const productId = isAmazonProduct ? (item as any).ASIN : (item as any).id;
+                    const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
                     setLocation(`/product/${productId}`);
                   }}
                 >
@@ -653,7 +653,7 @@ export default function MarketplacePage() {
                           {item.title}
                         </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
-                          by {isAmazonProduct ? item.brand || 'Amazon' : seller}
+                          by {isMarketplaceProduct ? (item as any).brand || 'Marketplace' : seller}
                         </p>
                         <div className="text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">
                           Click to view details →
@@ -677,10 +677,10 @@ export default function MarketplacePage() {
                             }`} 
                           />
                         </Button>
-                        {(isAmazonProduct || item.featured) && (
+                        {(isMarketplaceProduct || (item as any).featured) && (
                           <Badge className="bg-orange-500 text-white">
                             <Star className="h-3 w-3 mr-1" />
-                            {isAmazonProduct ? 'Amazon' : 'Featured'}
+                            {isMarketplaceProduct ? 'Marketplace' : 'Featured'}
                           </Badge>
                         )}
                       </div>
@@ -736,8 +736,8 @@ export default function MarketplacePage() {
                                   <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
                                   <span className="text-sm">{item.rating}</span>
                                 </div>
-                                {isAmazonProduct && item.reviewCount > 0 && (
-                                  <span className="text-sm text-muted-foreground">({item.reviewCount} reviews)</span>
+                                {isMarketplaceProduct && (item as any).reviewCount > 0 && (
+                                  <span className="text-sm text-muted-foreground">({(item as any).reviewCount} reviews)</span>
                                 )}
                               </div>
                             </div>
@@ -817,8 +817,8 @@ export default function MarketplacePage() {
                         <div className="flex items-center space-x-1">
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
                           <span className="text-sm font-medium">{item.rating}</span>
-                          {isAmazonProduct && item.reviewCount > 0 && (
-                            <span className="text-xs text-muted-foreground">({item.reviewCount})</span>
+                          {isMarketplaceProduct && (item as any).reviewCount > 0 && (
+                            <span className="text-xs text-muted-foreground">({(item as any).reviewCount})</span>
                           )}
                         </div>
                       </div>
@@ -835,10 +835,10 @@ export default function MarketplacePage() {
                           
                           {/* Product Details */}
                           <div className="grid grid-cols-2 gap-3 text-xs">
-                            {isAmazonProduct && item.brand && (
+                            {isMarketplaceProduct && (item as any).brand && (
                               <div>
                                 <span className="text-muted-foreground">Brand:</span>
-                                <span className="font-medium text-foreground ml-1">{item.brand}</span>
+                                <span className="font-medium text-foreground ml-1">{(item as any).brand}</span>
                               </div>
                             )}
                             <div>
@@ -849,16 +849,16 @@ export default function MarketplacePage() {
                               <span className="text-muted-foreground">Rating:</span>
                               <span className="font-medium text-foreground ml-1">{item.rating}/5 stars</span>
                             </div>
-                            {isAmazonProduct && item.reviewCount > 0 && (
+                            {isMarketplaceProduct && (item as any).reviewCount > 0 && (
                               <div>
                                 <span className="text-muted-foreground">Reviews:</span>
-                                <span className="font-medium text-foreground ml-1">{item.reviewCount} customer reviews</span>
+                                <span className="font-medium text-foreground ml-1">{(item as any).reviewCount} customer reviews</span>
                               </div>
                             )}
                           </div>
 
-                          {/* Mock Reviews for Amazon Products */}
-                          {isAmazonProduct && (
+                          {/* Mock Reviews for Products */}
+                          {isMarketplaceProduct && (
                             <div>
                               <h4 className="text-sm font-medium text-foreground mb-2">Recent Reviews</h4>
                               <div className="space-y-2">
@@ -906,7 +906,7 @@ export default function MarketplacePage() {
                             {item.category}
                           </Badge>
                         </div>
-                        {isAmazonProduct && (
+                        {isMarketplaceProduct && (
                           <div className="text-xs text-muted-foreground">
                             ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
                           </div>
@@ -917,8 +917,8 @@ export default function MarketplacePage() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isAmazonProduct) {
-                              const newCount = addToCart(item);
+                            if (isMarketplaceProduct) {
+                              const newCount = addToCart(item as any);
                               setCartCount(newCount);
                               toast({
                                 title: "Added to Cart",
@@ -931,7 +931,7 @@ export default function MarketplacePage() {
                           className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
-                          {isAmazonProduct ? 'Cart' : 'Contact'}
+                          {isMarketplaceProduct ? 'Cart' : 'Contact'}
                         </Button>
                       </div>
                     </div>
