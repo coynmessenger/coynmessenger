@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { MoreVertical, Settings, Star, Users, Plus, Search, MessageCircle, Crown, Shield } from "lucide-react";
 import type { User, Message } from "@shared/schema";
 
@@ -30,6 +31,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch starred messages
   const { data: starredMessages = [] } = useQuery<StarredMessage[]>({
@@ -104,6 +106,29 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleStarMessage = async (message: StarredMessage) => {
+    try {
+      await apiRequest(`/api/messages/${message.id}/star`, {
+        method: 'PATCH',
+        body: { starred: !message.starred }
+      });
+      
+      // Refresh starred messages list
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
+      
+      toast({
+        title: message.starred ? "Message unstarred" : "Message starred",
+        description: message.starred ? "Removed from starred messages" : "Added to starred messages",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to update message",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -183,7 +208,15 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                           </Badge>
                         )}
                       </div>
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        onClick={() => handleStarMessage(message)}
+                        title="Unstar"
+                      >
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                      </Button>
                     </div>
                   </div>
                 ))}
