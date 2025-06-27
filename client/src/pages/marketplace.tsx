@@ -868,29 +868,6 @@ export default function MarketplacePage() {
                         )}
                       </div>
                       
-                      {/* Details Toggle Button */}
-                      <div className="flex items-center justify-between mt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const currentState = expandedDetails.get(itemKey.toString()) || false;
-                            setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
-                          }}
-                          className="text-xs h-8"
-                        >
-                          <span>Details</span>
-                          <ChevronRight 
-                            className={`h-3 w-3 ml-1 transition-transform duration-200 ${
-                              expandedDetails.get(itemKey.toString()) ? 'rotate-90' : 'rotate-0'
-                            }`} 
-                          />
-                        </Button>
-                      </div>
-                      
-                      <div className="flex gap-2 mt-3">
-                      </div>
                       <div className="flex gap-2">
                         <Button 
                           size="sm"
@@ -907,12 +884,33 @@ export default function MarketplacePage() {
                               handleProductClick(item);
                             }
                           }}
-                          className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+                          className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
                           {isMarketplaceProduct ? 'Cart' : 'Contact'}
                         </Button>
                       </div>
+                    </div>
+
+                    {/* Details Toggle Button - Positioned below categories */}
+                    <div className="px-4 pb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const currentState = expandedDetails.get(itemKey.toString()) || false;
+                          setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
+                        }}
+                        className="w-full text-xs h-8 border-border hover:bg-accent"
+                      >
+                        <span>Details</span>
+                        <ChevronRight 
+                          className={`h-3 w-3 ml-1 transition-transform duration-200 ${
+                            expandedDetails.get(itemKey.toString()) ? 'rotate-90' : 'rotate-0'
+                          }`} 
+                        />
+                      </Button>
                     </div>
                   </CardContent>
                   
