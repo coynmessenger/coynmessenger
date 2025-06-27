@@ -924,7 +924,9 @@ export default function MarketplacePage() {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (isMarketplaceProduct) {
+                              console.log('Adding to cart:', item);
                               const newCount = addToCart(item as any);
+                              console.log('New cart count:', newCount);
                               setCartCount(newCount);
                               toast({
                                 title: "Added to Cart",

@@ -253,15 +253,18 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
   useEffect(() => {
     if (isOpen) {
       const savedCart = localStorage.getItem('shopping-cart');
+      console.log('MarketplaceCheckout: Loading cart from localStorage:', savedCart);
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart);
+          console.log('MarketplaceCheckout: Parsed cart items:', parsedCart);
           setCartItems(parsedCart);
         } catch (error) {
           console.error('Error loading cart:', error);
           setCartItems([]);
         }
       } else {
+        console.log('MarketplaceCheckout: No cart found in localStorage');
         setCartItems([]);
       }
     }
