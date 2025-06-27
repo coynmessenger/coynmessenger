@@ -33,6 +33,7 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
+  const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
   const [cryptoAmount, setCryptoAmount] = useState("");
@@ -120,7 +121,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   }, [showMessageOptions]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
 
   // Popular emojis for quick access - organized by categories
   const emojiCategories = {
@@ -981,6 +981,77 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
+                  </div>
+                </div>
+              ) : msg.messageType === "product_share" ? (
+                // Product sharing message
+                <div className="flex justify-center group mb-1">
+                  <div className="relative">
+                    <Card className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 max-w-sm shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
+                      onClick={() => {
+                        if (msg.productId) {
+                          setLocation(`/product/${msg.productId}`);
+                        }
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-center space-x-2 mb-3">
+                          <div className="h-8 w-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm">🛍️</span>
+                          </div>
+                          <span className="text-sm font-medium text-orange-500 dark:text-orange-400">Product Share</span>
+                        </div>
+                        
+                        {msg.productImage && (
+                          <div className="mb-3 flex justify-center">
+                            <img 
+                              src={msg.productImage} 
+                              alt={msg.productTitle || "Product"} 
+                              className="w-16 h-16 object-cover rounded-lg border border-orange-200 dark:border-orange-700"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="text-center">
+                          <div className="text-sm font-semibold text-foreground mb-1 line-clamp-2">
+                            {msg.productTitle}
+                          </div>
+                          {msg.productPrice && (
+                            <div className="text-lg font-bold text-orange-600 dark:text-orange-400 mb-2">
+                              ${msg.productPrice}
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground mb-2">
+                            Shared by {msg.sender.displayName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatTimestamp(msg.timestamp)}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    {msg.senderId === 5 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-300 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 dark:hover:bg-slate-700/20 rounded-full"
+                          >
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+                          <DropdownMenuItem
+                            onClick={() => deleteMessageMutation.mutate(msg.id)}
+                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 justify-center p-2 h-8 w-8 min-w-0"
+                            disabled={deleteMessageMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
               ) : null}

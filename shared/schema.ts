@@ -47,12 +47,17 @@ export const messages = pgTable("messages", {
   conversationId: integer("conversation_id").notNull(),
   senderId: integer("sender_id").notNull(),
   content: text("content"),
-  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice
+  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share
   cryptoAmount: decimal("crypto_amount", { precision: 18, scale: 8 }),
   cryptoCurrency: text("crypto_currency"),
   audioFilePath: text("audio_file_path"), // for voice messages
   transcription: text("transcription"), // AI transcribed text
   audioDuration: integer("audio_duration"), // duration in seconds
+  // Product sharing fields
+  productId: text("product_id"), // Product ASIN for shared products
+  productTitle: text("product_title"), // Product title for shared products
+  productPrice: text("product_price"), // Product price for shared products
+  productImage: text("product_image"), // Product image URL for shared products
   isStarred: boolean("is_starred").default(false),
   timestamp: timestamp("timestamp").defaultNow(),
 });
