@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { insertMessageSchema, insertUserSchema } from "@shared/schema";
 import { initializeDatabase } from "./db";
 import { z } from "zod";
+import { marketplaceAPI } from "./amazon-api";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -388,6 +389,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Upload error:", error);
       res.status(500).json({ message: "Failed to upload profile picture" });
+    }
+  });
+
+  // Enhanced Marketplace API routes
+  app.get("/api/marketplace/search", async (req, res) => {
+    try {
+      const { query = "", category = "", minPrice, maxPrice } = req.query;
+      const products = await marketplaceAPI.searchProducts(
+        query as string,
+        category as string,
+        minPrice ? parseFloat(minPrice as string) : undefined,
+        maxPrice ? parseFloat(maxPrice as string) : undefined
+      );
+      res.json(products);
+    } catch (error) {
+      console.error("[MARKETPLACE] Search error:", error);
+      res.status(500).json({ message: "Failed to search products" });
+    }
+  });
+
+  // Individual product details
+  app.get("/api/marketplace/product/:asin", async (req, res) => {
+    try {
+      const { asin } = req.params;
+      const product = await marketplaceAPI.getProductDetails(asin);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error("[MARKETPLACE] Product details error:", error);
+      res.status(500).json({ message: "Failed to fetch product details" });
+    }
+  });
+
+  // Purchase product with cryptocurrency
+  app.post("/api/marketplace/purchase", async (req, res) => {
+    try {
+      const { productId, quantity = 1, cryptoCurrency, cryptoAmount, shippingAddress } = req.body;
+      const userId = (req as any).session?.userId || 5; // Default to demo user
+
+      if (!productId || !cryptoCurrency || !cryptoAmount) {
+        return res.status(400).json({ message: "Missing required payment information" });
+      }
+
+      const result = await marketplaceAPI.processPayment(
+        productId,
+        quantity,
+        cryptoCurrency,
+        cryptoAmount,
+        userId
+      );
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      // Store purchase record (in real app, this would be in database)
+      console.log(`[PURCHASE] User ${userId} purchased ${quantity}x ${productId} with ${cryptoAmount} ${cryptoCurrency}`);
+      console.log(`[PURCHASE] Transaction ID: ${result.transactionId}`);
+      
+      res.json({
+        success: true,
+        transactionId: result.transactionId,
+        message: "Purchase completed successfully"
+      });
+    } catch (error) {
+      console.error("[MARKETPLACE] Purchase error:", error);
+      res.status(500).json({ message: "Purchase failed" });
     }
   });
 

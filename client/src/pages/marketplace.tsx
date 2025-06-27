@@ -642,7 +642,10 @@ export default function MarketplacePage() {
                 <Card 
                   key={itemKey} 
                   className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => isAmazonProduct ? setLocation(`/product/${item.ASIN}`) : handleProductClick(item)}
+                  onClick={() => {
+                    const productId = isAmazonProduct ? (item as any).ASIN : (item as any).id;
+                    setLocation(`/product/${productId}`);
+                  }}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">

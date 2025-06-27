@@ -154,6 +154,58 @@ class MarketplaceAPI {
     }));
   }
 
+  async getProductDetails(asin: string): Promise<Product | null> {
+    if (!this.accessKey || !this.secretKey || !this.associateTag) {
+      console.log('[AMAZON API] Missing credentials, returning mock product details');
+      return this.getMockProductDetails(asin);
+    }
+
+    const payload = {
+      ItemIds: [asin],
+      Resources: [
+        'Images.Primary.Large',
+        'Images.Variants.Large',
+        'ItemInfo.Title',
+        'ItemInfo.Features',
+        'ItemInfo.ProductInfo',
+        'ItemInfo.TechnicalInfo',
+        'Offers.Listings.Price',
+        'CustomerReviews.Count',
+        'CustomerReviews.StarRating'
+      ],
+      PartnerTag: this.associateTag,
+      PartnerType: 'Associates',
+      Marketplace: 'www.amazon.com'
+    };
+
+    try {
+      const payloadString = JSON.stringify(payload);
+      const headers = this.createAuthHeaders(payloadString);
+
+      const response = await fetch(`https://${this.endpoint}/paapi5/getitems`, {
+        method: 'POST',
+        headers,
+        body: payloadString
+      });
+
+      if (!response.ok) {
+        throw new Error(`Amazon API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const products = this.parseResponse(data);
+      return products[0] || null;
+    } catch (error) {
+      console.error('[AMAZON API] Get product details failed:', error);
+      return this.getMockProductDetails(asin);
+    }
+  }
+
+  private getMockProductDetails(asin: string): Product | null {
+    const products = this.getMockProducts('');
+    return products.find(p => p.ASIN === asin) || null;
+  }
+
   private getMockProducts(query: string): Product[] {
     const mockProducts: Product[] = [
       // Electronics
@@ -677,6 +729,51 @@ class MarketplaceAPI {
       USDT: usdAmount / cryptoRates.USDT,
       COYN: usdAmount / cryptoRates.COYN
     };
+  }
+
+  async processPayment(
+    productId: string, 
+    quantity: number, 
+    cryptoCurrency: string, 
+    cryptoAmount: number, 
+    userId: number
+  ): Promise<{ success: boolean; transactionId?: string; error?: string }> {
+    try {
+      // Get current crypto rates
+      const rates = await this.getCryptoRates();
+      const usdValue = cryptoAmount * rates[cryptoCurrency as keyof CryptoRates];
+
+      // Verify product exists and price
+      const product = await this.getProductDetails(productId);
+      if (!product) {
+        return { success: false, error: 'Product not found' };
+      }
+
+      const totalUSD = parseFloat(product.price) * quantity;
+      if (usdValue < totalUSD * 0.98) { // Allow 2% slippage
+        return { success: false, error: 'Insufficient payment amount' };
+      }
+
+      // Simulate payment processing
+      const transactionId = `amz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // In a real implementation, this would:
+      // 1. Deduct crypto from user's wallet
+      // 2. Convert to USD via exchange
+      // 3. Process Amazon purchase
+      // 4. Handle shipping/delivery
+
+      console.log(`[PAYMENT] Processing ${cryptoCurrency} ${cryptoAmount} for product ${productId}`);
+      console.log(`[PAYMENT] USD equivalent: $${usdValue.toFixed(2)}, Required: $${totalUSD.toFixed(2)}`);
+
+      return {
+        success: true,
+        transactionId
+      };
+    } catch (error) {
+      console.error('[PAYMENT] Processing failed:', error);
+      return { success: false, error: 'Payment processing failed' };
+    }
   }
 }
 
