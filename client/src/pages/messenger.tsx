@@ -114,15 +114,7 @@ export default function MessengerPage() {
             </h1>
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              onClick={() => setIsSettingsOpen(true)}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
+            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
             <Button
               onClick={() => setLocation("/")}
               variant="ghost"
