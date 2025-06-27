@@ -360,9 +360,8 @@ export default function MarketplacePage() {
 
   const handleProductClick = (item: any) => {
     if ('ASIN' in item) {
-      // Amazon product
-      setSelectedProduct(item);
-      setShowPurchaseModal(true);
+      // Navigate to individual product page
+      setLocation(`/product/${item.ASIN}`);
     } else {
       // Legacy marketplace item - show info
       alert(`This is a marketplace service. Contact ${item.seller} for details.`);
@@ -641,7 +640,7 @@ export default function MarketplacePage() {
               return (
                 <Card 
                   key={itemKey} 
-                  className="bg-white dark:bg-card border-border hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-white dark:bg-card border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
                   onClick={() => {
                     const productId = isAmazonProduct ? (item as any).ASIN : (item as any).id;
                     setLocation(`/product/${productId}`);
@@ -656,6 +655,9 @@ export default function MarketplacePage() {
                         <p className="text-sm text-muted-foreground mt-1">
                           by {isAmazonProduct ? item.brand || 'Amazon' : seller}
                         </p>
+                        <div className="text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">
+                          Click to view details →
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 ml-2 shrink-0">
                         <Button
