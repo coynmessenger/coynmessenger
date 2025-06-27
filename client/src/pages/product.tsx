@@ -252,11 +252,11 @@ export default function ProductPage() {
   const images = product.images || [product.imageUrl];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700 sticky top-0 z-40">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="icon"
@@ -265,14 +265,6 @@ export default function ProductPage() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold text-foreground truncate">
-                {product.title}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                by {product.brand || "Amazon"}
-              </p>
-            </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="hover:bg-accent">
                 <Heart className="h-5 w-5" />
@@ -286,11 +278,11 @@ export default function ProductPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Product Images */}
           <div className="space-y-3 sm:space-y-4">
-            <div className="relative aspect-square bg-white dark:bg-slate-800 rounded-lg overflow-hidden group shadow-lg">
+            <div className="relative aspect-square bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl overflow-hidden group shadow-xl border border-white/20 dark:border-slate-700/50">
               <img
                 src={images[currentImageIndex]}
                 alt={product.title}
@@ -348,7 +340,7 @@ export default function ProductPage() {
           </div>
 
           {/* Product Details */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-6 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-slate-700/50 shadow-xl">
             {/* Title & Rating */}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 leading-relaxed">{product.title}</h1>
@@ -376,7 +368,7 @@ export default function ProductPage() {
             </div>
 
             {/* Price */}
-            <div className="bg-gradient-to-r from-orange-50 to-cyan-50 dark:from-slate-800/50 dark:to-slate-700/50 p-6 rounded-lg border border-orange-200/50 dark:border-cyan-600/50">
+            <div className="bg-gradient-to-r from-orange-100/60 to-cyan-100/60 dark:from-slate-700/60 dark:to-slate-600/60 backdrop-blur-sm p-6 rounded-xl border border-orange-200/50 dark:border-cyan-600/50 shadow-lg">
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-orange-600 dark:text-cyan-400">
                   ${product.price}
