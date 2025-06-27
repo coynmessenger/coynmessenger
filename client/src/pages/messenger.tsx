@@ -158,7 +158,7 @@ export default function MessengerPage() {
             onSearchChange={setSearchQuery}
           />
 
-          <div className="flex-1 flex flex-col bg-slate-900">
+          <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
               <ChatWindow
                 conversation={currentConversation}
@@ -433,7 +433,7 @@ export default function MessengerPage() {
         )}
 
         {/* Mobile Main Content */}
-        <div className="flex-1 flex flex-col bg-slate-900">
+        <div className="flex-1 flex flex-col bg-background">
           {selectedConversation && currentConversation ? (
             <ChatWindow
               conversation={currentConversation}
