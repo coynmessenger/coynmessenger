@@ -17,7 +17,6 @@ import trustWalletLogo from "@assets/Trust-Wallet-Shield-Logo-Vector-Logo-Vector
 import coinbaseLogo from "@assets/coinbase-logo_1750925157167.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
-import { WalletConnectModal } from "@/components/wallet-connect-modal";
 import type { User } from "@shared/schema";
 
 // MetaMask type declarations
@@ -45,7 +44,6 @@ export default function HomePage() {
   });
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  const [showWalletConnectModal, setShowWalletConnectModal] = useState(false);
 
   // Fetch current user data if connected (to get updated display name)
   useEffect(() => {
@@ -245,7 +243,7 @@ export default function HomePage() {
 
                     {/* WalletConnect */}
                     <Button 
-                      onClick={() => setShowWalletConnectModal(true)}
+                      onClick={() => handleWeb3Connect('walletconnect')}
                       className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
@@ -467,12 +465,6 @@ export default function HomePage() {
       <PrivacyModal 
         isOpen={showPrivacyModal} 
         onClose={() => setShowPrivacyModal(false)} 
-      />
-      
-      {/* WalletConnect Modal */}
-      <WalletConnectModal 
-        isOpen={showWalletConnectModal} 
-        onClose={() => setShowWalletConnectModal(false)} 
       />
     </div>
   );
