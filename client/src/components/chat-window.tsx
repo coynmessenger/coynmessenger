@@ -1242,7 +1242,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <div className="sticky bottom-4 flex justify-end pr-4 pointer-events-none">
             <Button
               onClick={scrollToBottom}
-              className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:bg-gradient-to-r dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 backdrop-blur-sm border-2 border-white/30 dark:border-slate-800/30 pointer-events-auto"
+              className="w-10 h-10 rounded-full bg-black/20 dark:bg-white/20 hover:bg-black/30 dark:hover:bg-white/30 text-black/60 dark:text-white/60 hover:text-black/80 dark:hover:text-white/80 backdrop-blur-sm transition-all duration-200 pointer-events-auto border-none shadow-none"
               size="sm"
               title="Back to bottom"
             >
