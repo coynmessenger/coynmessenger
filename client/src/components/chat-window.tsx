@@ -242,18 +242,11 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       // Show button if we have scrollable content and not at the very bottom
-      const hasScrollableContent = scrollHeight > clientHeight + 50;
-      const isNearBottom = scrollTop >= scrollHeight - clientHeight - 10;
+      const hasScrollableContent = scrollHeight > clientHeight + 10;
+      const isNearBottom = scrollTop >= scrollHeight - clientHeight - 50;
       const shouldShow = hasScrollableContent && !isNearBottom;
       
-      console.log('Scroll Debug:', { 
-        scrollTop, 
-        scrollHeight, 
-        clientHeight, 
-        hasScrollableContent, 
-        isNearBottom, 
-        shouldShow 
-      });
+      // Debug removed - scroll detection working correctly
       
       setShowBackToTop(shouldShow);
     };
@@ -392,7 +385,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm"
+        className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)]"
       >
 
         
@@ -500,14 +493,16 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
 
         {/* Back to Top Button */}
         {showBackToTop && (
-          <Button
-            onClick={scrollToTop}
-            className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:bg-gradient-to-r dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 backdrop-blur-sm border-2 border-white/20 dark:border-slate-800/20"
-            size="sm"
-            title="Back to top"
-          >
-            <ArrowUp className="h-6 w-6" />
-          </Button>
+          <div className="sticky bottom-4 flex justify-end pr-4 pointer-events-none">
+            <Button
+              onClick={scrollToTop}
+              className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:bg-gradient-to-r dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 backdrop-blur-sm border-2 border-white/30 dark:border-slate-800/30 pointer-events-auto"
+              size="sm"
+              title="Back to top"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </div>
 
