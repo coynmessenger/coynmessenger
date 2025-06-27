@@ -701,7 +701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Purchase product with cryptocurrency
   app.post("/api/marketplace/purchase", async (req, res) => {
     try {
-      const { productId, quantity = 1, cryptoCurrency, cryptoAmount, shippingAddress } = req.body;
+      const { productId, quantity = 1, cryptoCurrency, cryptoAmount, shippingAddress, productTitle, totalValue } = req.body;
       const userId = (req as any).session?.userId || 5; // Default to demo user
 
       if (!productId || !cryptoCurrency || !cryptoAmount) {
@@ -720,18 +720,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: result.error });
       }
 
-      // Store purchase record (in real app, this would be in database)
+      // Create purchase record
+      const purchaseValue = parseFloat(totalValue) || parseFloat(cryptoAmount);
+      const purchase = await storage.createPurchase({
+        userId,
+        productId,
+        productTitle: productTitle || `Product ${productId}`,
+        quantity,
+        totalValue: purchaseValue.toString(),
+        currency: 'USD',
+        paymentMethod: cryptoCurrency,
+        transactionHash: result.transactionId,
+        status: 'confirmed',
+        shippingAddress: shippingAddress || '',
+        orderNotes: ''
+      });
+
+      // Check for NFT reward eligibility
+      const rewardTier = storage.checkRewardEligibility(purchaseValue);
+      if (rewardTier) {
+        await storage.createNFTReward({
+          userId,
+          tier: rewardTier,
+          productId,
+          productTitle: productTitle || `Product ${productId}`,
+          purchaseValue: purchaseValue.toString(),
+          currency: 'USD',
+          isRedeemed: false
+        });
+        
+        console.log(`[NFT REWARD] User ${userId} earned ${rewardTier} tier NFT reward for purchase of $${purchaseValue}`);
+      }
+
       console.log(`[PURCHASE] User ${userId} purchased ${quantity}x ${productId} with ${cryptoAmount} ${cryptoCurrency}`);
       console.log(`[PURCHASE] Transaction ID: ${result.transactionId}`);
       
       res.json({
         success: true,
         transactionId: result.transactionId,
-        message: "Purchase completed successfully"
+        message: "Purchase completed successfully",
+        nftReward: rewardTier ? { tier: rewardTier, earned: true } : null
       });
     } catch (error) {
       console.error("[MARKETPLACE] Purchase error:", error);
       res.status(500).json({ message: "Purchase failed" });
+    }
+  });
+
+  // NFT Rewards API
+  app.get("/api/nft-rewards", async (req, res) => {
+    try {
+      const userId = (req as any).session?.userId || 5;
+      const rewards = await storage.getNFTRewards(userId);
+      res.json(rewards);
+    } catch (error) {
+      console.error("[NFT REWARDS] Error fetching rewards:", error);
+      res.status(500).json({ message: "Failed to fetch NFT rewards" });
+    }
+  });
+
+  app.post("/api/nft-rewards/:id/redeem", async (req, res) => {
+    try {
+      const userId = (req as any).session?.userId || 5;
+      const rewardId = parseInt(req.params.id);
+      
+      const success = await storage.redeemNFTReward(rewardId, userId);
+      if (success) {
+        res.json({ 
+          success: true, 
+          message: "NFT reward redeemed successfully" 
+        });
+      } else {
+        res.status(400).json({ message: "Failed to redeem NFT reward" });
+      }
+    } catch (error) {
+      console.error("[NFT REWARDS] Error redeeming reward:", error);
+      res.status(500).json({ message: "Failed to redeem NFT reward" });
+    }
+  });
+
+  // Purchase history API
+  app.get("/api/purchases", async (req, res) => {
+    try {
+      const userId = (req as any).session?.userId || 5;
+      const purchases = await storage.getPurchases(userId);
+      res.json(purchases);
+    } catch (error) {
+      console.error("[PURCHASES] Error fetching purchases:", error);
+      res.status(500).json({ message: "Failed to fetch purchases" });
     }
   });
 

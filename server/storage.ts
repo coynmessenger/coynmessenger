@@ -1,10 +1,12 @@
 import { 
-  users, conversations, messages, walletBalances, favorites, groupMembers,
+  users, conversations, messages, walletBalances, favorites, groupMembers, nftRewards, purchases,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
   type WalletBalance, type InsertWalletBalance,
-  type Favorite, type InsertFavorite
+  type Favorite, type InsertFavorite,
+  type NFTReward, type InsertNFTReward,
+  type Purchase, type InsertPurchase
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
@@ -52,6 +54,17 @@ export interface IStorage {
   addToFavorites(userId: number, productId: string): Promise<Favorite>;
   removeFromFavorites(userId: number, productId: string): Promise<boolean>;
   toggleFavorite(userId: number, productId: string): Promise<boolean>;
+
+  // NFT Rewards
+  getNFTRewards(userId: number): Promise<NFTReward[]>;
+  createNFTReward(reward: InsertNFTReward): Promise<NFTReward>;
+  redeemNFTReward(rewardId: number, userId: number): Promise<boolean>;
+  checkRewardEligibility(purchaseValue: number): string; // returns tier
+
+  // Purchases
+  getPurchases(userId: number): Promise<Purchase[]>;
+  createPurchase(purchase: InsertPurchase): Promise<Purchase>;
+  updatePurchaseStatus(purchaseId: number, status: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -547,6 +560,76 @@ export class DatabaseStorage implements IStorage {
       await this.addToFavorites(userId, productId);
       return true;
     }
+  }
+
+  // NFT Rewards
+  async getNFTRewards(userId: number): Promise<NFTReward[]> {
+    const userRewards = await db
+      .select()
+      .from(nftRewards)
+      .where(eq(nftRewards.userId, userId))
+      .orderBy(desc(nftRewards.earnedAt));
+    return userRewards;
+  }
+
+  async createNFTReward(reward: InsertNFTReward): Promise<NFTReward> {
+    const [nftReward] = await db
+      .insert(nftRewards)
+      .values(reward)
+      .returning();
+    return nftReward;
+  }
+
+  async redeemNFTReward(rewardId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .update(nftRewards)
+      .set({ 
+        isRedeemed: true, 
+        redeemedAt: new Date(),
+        nftTokenId: `NFT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      })
+      .where(and(
+        eq(nftRewards.id, rewardId), 
+        eq(nftRewards.userId, userId),
+        eq(nftRewards.isRedeemed, false)
+      ))
+      .returning();
+    return result.length > 0;
+  }
+
+  checkRewardEligibility(purchaseValue: number): string {
+    if (purchaseValue >= 500) return 'diamond';
+    if (purchaseValue >= 200) return 'gold';
+    if (purchaseValue >= 100) return 'silver';
+    if (purchaseValue >= 50) return 'bronze';
+    return '';
+  }
+
+  // Purchases
+  async getPurchases(userId: number): Promise<Purchase[]> {
+    const userPurchases = await db
+      .select()
+      .from(purchases)
+      .where(eq(purchases.userId, userId))
+      .orderBy(desc(purchases.createdAt));
+    return userPurchases;
+  }
+
+  async createPurchase(purchase: InsertPurchase): Promise<Purchase> {
+    const [newPurchase] = await db
+      .insert(purchases)
+      .values(purchase)
+      .returning();
+    return newPurchase;
+  }
+
+  async updatePurchaseStatus(purchaseId: number, status: string): Promise<boolean> {
+    const result = await db
+      .update(purchases)
+      .set({ status })
+      .where(eq(purchases.id, purchaseId))
+      .returning();
+    return result.length > 0;
   }
 }
 

@@ -114,7 +114,46 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
   createdAt: true,
 });
 
+export const nftRewards = pgTable("nft_rewards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  tier: text("tier").notNull(), // bronze, silver, gold, diamond
+  productId: text("product_id").notNull(),
+  productTitle: text("product_title").notNull(),
+  purchaseValue: decimal("purchase_value", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull(),
+  nftTokenId: text("nft_token_id"),
+  isRedeemed: boolean("is_redeemed").default(false),
+  earnedAt: timestamp("earned_at").defaultNow(),
+  redeemedAt: timestamp("redeemed_at"),
+});
 
+export const purchases = pgTable("purchases", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  productId: text("product_id").notNull(),
+  productTitle: text("product_title").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  totalValue: decimal("total_value", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull(),
+  paymentMethod: text("payment_method").notNull(), // BTC, BNB, USDT, COYN
+  transactionHash: text("transaction_hash"),
+  status: text("status").notNull().default("pending"), // pending, confirmed, shipped, delivered
+  shippingAddress: text("shipping_address"),
+  orderNotes: text("order_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertNFTRewardSchema = createInsertSchema(nftRewards).omit({
+  id: true,
+  earnedAt: true,
+  redeemedAt: true,
+});
+
+export const insertPurchaseSchema = createInsertSchema(purchases).omit({
+  id: true,
+  createdAt: true,
+});
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -126,3 +165,7 @@ export type WalletBalance = typeof walletBalances.$inferSelect;
 export type InsertWalletBalance = z.infer<typeof insertWalletBalanceSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
+export type NFTReward = typeof nftRewards.$inferSelect;
+export type InsertNFTReward = z.infer<typeof insertNFTRewardSchema>;
+export type Purchase = typeof purchases.$inferSelect;
+export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;

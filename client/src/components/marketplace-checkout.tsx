@@ -364,7 +364,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
     setCurrentStep('finalize');
   };
 
-  const completePurchase = () => {
+  const completePurchase = async () => {
     if (!agreedToTerms) {
       toast({
         title: "Agreement Required",
@@ -374,17 +374,53 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
       return;
     }
 
-    // Simulate purchase completion
-    toast({
-      title: "Order Placed Successfully!",
-      description: `Your order of ${cartItems.length} item(s) has been confirmed. You'll receive a confirmation email shortly.`,
-    });
-    
-    // Clear cart and close
-    setCartItems([]);
-    localStorage.removeItem('shopping-cart');
-    setCurrentStep('cart');
-    onClose();
+    try {
+      // Process each item in the cart
+      for (const item of cartItems) {
+        const cryptoAmount = parseFloat(convertToCrypto(parseFloat(item.price.replace('$', '')) * item.quantity));
+        
+        const purchaseData = {
+          productId: item.id,
+          productTitle: item.title,
+          quantity: item.quantity,
+          totalValue: (parseFloat(item.price.replace('$', '')) * item.quantity).toString(),
+          cryptoCurrency: selectedCrypto,
+          cryptoAmount,
+          shippingAddress: `${shippingAddress.fullName}, ${shippingAddress.addressLine1}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}, ${shippingAddress.country}`,
+          orderNotes
+        };
+
+        const response = await fetch('/api/marketplace/purchase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(purchaseData),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to process purchase for ${item.title}`);
+        }
+      }
+
+      toast({
+        title: "Order Placed Successfully!",
+        description: `Your order of ${cartItems.length} item(s) has been confirmed. You may have earned NFT rewards!`,
+      });
+      
+      // Clear cart and close
+      setCartItems([]);
+      localStorage.removeItem('shopping-cart');
+      setCurrentStep('cart');
+      onClose();
+    } catch (error) {
+      console.error('Purchase error:', error);
+      toast({
+        title: "Purchase Failed",
+        description: error instanceof Error ? error.message : "An error occurred during purchase.",
+        variant: "destructive",
+      });
+    }
   };
 
   const goBackToCart = () => setCurrentStep('cart');
