@@ -434,12 +434,12 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg border-b border-white/20 dark:border-slate-700/50">
-        <div className="container mx-auto px-4 sm:px-4 py-3 sm:py-3">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 sm:space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <Button
                 onClick={() => setLocation('/')}
                 variant="ghost"
@@ -496,9 +496,9 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-6">
         {/* Advanced Search Engine */}
-        <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-6">
+        <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
           {/* Main Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 sm:h-5 sm:w-5" />
@@ -506,7 +506,7 @@ export default function MarketplacePage() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 sm:pl-12 h-14 sm:h-12 text-lg sm:text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation"
+              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation"
             />
             {searchQuery && (
               <Button
@@ -523,7 +523,7 @@ export default function MarketplacePage() {
 
 
           {/* Filters and Sort */}
-          <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
+          <div className="flex flex-col md:flex-row gap-2 sm:gap-3">
             <div className="flex gap-2 flex-1 overflow-x-auto">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-40 sm:w-48 h-10 sm:h-9">
@@ -613,7 +613,7 @@ export default function MarketplacePage() {
 
         {/* Marketplace Grid */}
         {isLoadingProducts ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="bg-white dark:bg-card border-border animate-pulse">
                 <CardHeader className="pb-3">
@@ -628,7 +628,7 @@ export default function MarketplacePage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {sortedItems.map((item) => {
               const isMarketplaceProduct = 'ASIN' in item;
               const itemKey = isMarketplaceProduct ? item.ASIN : item.id;
