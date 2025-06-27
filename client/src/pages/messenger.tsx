@@ -10,8 +10,9 @@ import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
+import SettingsModal from "@/components/settings-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home, User as UserIcon } from "lucide-react";
+import { Home, User as UserIcon, Settings } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -26,6 +27,7 @@ export default function MessengerPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
 
   const { data: user } = useQuery<User>({
@@ -100,15 +102,26 @@ export default function MessengerPage() {
               Messenger
             </h1>
           </div>
-          <Button
-            onClick={() => setLocation("/")}
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-primary hover:bg-muted"
-          >
-            <Home className="h-4 w-4 mr-2" />
-            Return to Home
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => setIsSettingsOpen(true)}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+            <Button
+              onClick={() => setLocation("/")}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Return to Home
+            </Button>
+          </div>
         </div>
 
         {/* Desktop Main Content */}
@@ -347,14 +360,23 @@ export default function MessengerPage() {
               <button 
                 className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
                 onClick={() => setIsWalletSidebarOpen(true)}
+                title="Wallet"
               >
                 <WalletIcon className="w-5 h-5" />
+              </button>
+              <button 
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
+                onClick={() => setIsSettingsOpen(true)}
+                title="Settings"
+              >
+                <Settings className="w-5 h-5" />
               </button>
               <Button
                 onClick={() => setLocation("/")}
                 variant="ghost"
                 size="sm"
                 className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
+                title="Home"
               >
                 <Home className="h-5 w-5" />
               </Button>
@@ -546,6 +568,11 @@ export default function MessengerPage() {
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
         otherUser={currentConversation?.otherUser}
+      />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        showShipping={false}
       />
       
       {/* Wallet Sidebar */}
