@@ -219,9 +219,11 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const queryClient = useQueryClient();
 
   // Fetch user data to pre-populate address - Get connected user from localStorage
-  const connectedUserId = localStorage.getItem('connectedUserId');
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
   const { data: user } = useQuery({
-    queryKey: connectedUserId ? ['/api/user', parseInt(connectedUserId)] : ['/api/user'],
+    queryKey: ['/api/user', connectedUser?.id],
+    enabled: !!connectedUser, // Only fetch when we have a connected user
     staleTime: 1000 * 60 * 5,
   });
 
@@ -272,10 +274,8 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     
     const handleDisplayNameUpdate = () => {
       // Invalidate user query to refresh display name in checkout forms
-      if (connectedUserId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/user', parseInt(connectedUserId)] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      if (connectedUser) {
+        queryClient.invalidateQueries({ queryKey: ['/api/user', connectedUser.id] });
       }
     };
     
@@ -286,7 +286,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate);
     };
-  }, [isOpen, connectedUserId, queryClient]); // Re-load when modal opens
+  }, [isOpen, connectedUser, queryClient]); // Re-load when modal opens
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
