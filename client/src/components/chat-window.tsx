@@ -419,8 +419,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const starMessageMutation = useMutation({
     mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/messages/${messageId}/star`, { isStarred });
-      return response.json();
+      return apiRequest("PATCH", `/api/messages/${messageId}/star`, { isStarred });
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
@@ -432,7 +431,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         duration: 1500,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Star message error:", error);
       toast({
         title: "Failed to update star",
         description: "Please try again",
