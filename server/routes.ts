@@ -71,11 +71,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all users
+  // Get all users - only return properly setup users for contact list
   app.get("/api/users", async (req, res) => {
     try {
       const users = await storage.getAllUsers();
-      res.json(users);
+      // Filter to only show properly setup users (demo users, not auto-created wallet users)
+      const setupUsers = users.filter(user => user.isSetup === true);
+      res.json(setupUsers);
     } catch (error) {
       res.status(500).json({ message: "Failed to get users" });
     }
@@ -107,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: walletAddress.slice(0, 8), // Use first 8 chars as username
         displayName: displayName || `User ${walletAddress.slice(-6)}`, // Use display name or fallback
         walletAddress: walletAddress,
-        isSetup: true, // Allow new users to appear in contact list
+        isSetup: false, // Don't show automatically created wallet users in contact list
         isOnline: true,
         profileImage: null
       };
