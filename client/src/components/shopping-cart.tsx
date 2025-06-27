@@ -231,9 +231,9 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     }
   }, [isOpen]);
 
-  // Pre-populate address from user data
+  // Pre-populate address from user data only when starting checkout
   useEffect(() => {
-    if (user && checkoutStep === 'review') {
+    if (user && checkoutStep === 'address' && !shippingAddress.fullName) {
       setShippingAddress(prev => ({
         ...prev,
         fullName: (user as any).fullName || (user as any).displayName || '',
@@ -242,7 +242,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         city: (user as any).city || '',
         state: (user as any).state || '',
         zipCode: (user as any).zipCode || '',
-        country: (user as any).country || 'United States'
+        country: (user as any).country || 'US'
       }));
     }
   }, [user, checkoutStep]);
@@ -732,11 +732,11 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="text-sm space-y-1">
-                      <p className="font-medium">{shippingAddress.fullName}</p>
-                      <p>{shippingAddress.addressLine1}</p>
+                      <p className="font-medium">{shippingAddress.fullName || "Name not provided"}</p>
+                      <p>{shippingAddress.addressLine1 || "Address not provided"}</p>
                       {shippingAddress.addressLine2 && <p>{shippingAddress.addressLine2}</p>}
-                      <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
-                      <p>{shippingAddress.country}</p>
+                      <p>{shippingAddress.city || "City"}, {shippingAddress.state || "State"} {shippingAddress.zipCode || "ZIP"}</p>
+                      <p>{COUNTRIES.find(c => c.code === shippingAddress.country)?.name || shippingAddress.country || "Country not selected"}</p>
                     </div>
                   </CardContent>
                 </Card>

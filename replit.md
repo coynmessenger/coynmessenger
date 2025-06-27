@@ -331,6 +331,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Eliminated checkout modal scrolling with comprehensive spacing optimization - reduced modal height to 75vh, minimized all form spacing to 0.5 gaps, compressed input heights to h-9, reduced textarea to 1 row minimum, optimized labels to text-xs, eliminated padding throughout form elements for complete mobile viewport compatibility without scrolling
 - June 27, 2025: Removed express shipping checkbox from checkout form - eliminated highlighted express shipping option to simplify checkout process and reduce form complexity
 - June 27, 2025: Made checkout form ultra-compact for mobile - reduced modal height to 70vh, minimized step indicator with smaller icons and text-xs labels, compressed shipping section with h-8 input fields, eliminated all form spacing gaps, optimized all labels to text-xs, reduced overall padding to p-1 for maximum viewport compatibility without scrolling
+- June 27, 2025: Fixed shipping address display in checkout review step - corrected address pre-population logic to only trigger on address step entry (not review step), added proper country name lookup from country codes, enhanced address display with fallback text for missing fields, ensures user-entered shipping information persists correctly throughout checkout process
 
 ## User Preferences
 
