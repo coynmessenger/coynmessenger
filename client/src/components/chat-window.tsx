@@ -501,59 +501,61 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with swipe-to-delete
-                  <div className="flex justify-end group relative" data-message-id={msg.id}>
-                    {/* Delete confirmation overlay */}
-                    {swipeState.showConfirm && swipeState.messageId === msg.id && (
-                      <div className="absolute right-0 top-0 h-full flex items-center space-x-2 px-4 bg-red-500/90 rounded-l-2xl backdrop-blur-sm z-10">
-                        <Button
-                          onClick={handleDeleteConfirm}
-                          className="bg-white text-red-500 hover:bg-red-50 px-3 py-1 h-8 text-sm font-medium rounded-lg shadow-sm"
-                        >
-                          Delete
-                        </Button>
-                        <Button
-                          onClick={handleDeleteCancel}
-                          variant="ghost"
-                          className="text-white hover:bg-white/20 px-3 py-1 h-8 text-sm rounded-lg"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    )}
-                    
-                    {/* Swipeable message */}
-                    <div 
-                      className="relative cursor-pointer touch-pan-y select-none"
-                      style={{
-                        transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
-                        transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                      onTouchStart={(e) => handleSwipeStart(e, msg.id)}
-                      onTouchMove={handleSwipeMove}
-                      onTouchEnd={handleSwipeEnd}
-                      onMouseDown={(e) => handleSwipeStart(e, msg.id)}
-                      onMouseMove={handleSwipeMove}
-                      onMouseUp={handleSwipeEnd}
-                      onMouseLeave={handleSwipeEnd}
-                    >
-                      <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-xs lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
-                        <p className="text-sm font-medium break-words">{highlightText(msg.content || "", searchQuery || "")}</p>
-                        <span className="text-xs text-primary-foreground/80 mt-1 block">
-                          {formatTimestamp(msg.timestamp)}
-                        </span>
-                      </div>
-                      
-                      {/* Visual hint */}
-                      {swipeState.messageId === msg.id && swipeState.offsetX > 20 && !swipeState.showConfirm && (
-                        <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-red-400 px-2">
-                          <Trash2 className="h-5 w-5" />
+                  <div className="flex justify-end mb-1" data-message-id={msg.id}>
+                    <div className="relative group max-w-xs lg:max-w-md">
+                      {/* Delete confirmation overlay */}
+                      {swipeState.showConfirm && swipeState.messageId === msg.id && (
+                        <div className="absolute right-0 top-0 h-full flex items-center space-x-2 px-4 bg-red-500/90 rounded-l-2xl backdrop-blur-sm z-10">
+                          <Button
+                            onClick={handleDeleteConfirm}
+                            className="bg-white text-red-500 hover:bg-red-50 px-3 py-1 h-8 text-sm font-medium rounded-lg shadow-sm"
+                          >
+                            Delete
+                          </Button>
+                          <Button
+                            onClick={handleDeleteCancel}
+                            variant="ghost"
+                            className="text-white hover:bg-white/20 px-3 py-1 h-8 text-sm rounded-lg"
+                          >
+                            Cancel
+                          </Button>
                         </div>
                       )}
+                      
+                      {/* Swipeable message */}
+                      <div 
+                        className="relative cursor-pointer touch-pan-y select-none"
+                        style={{
+                          transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
+                          transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                        onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                        onTouchMove={handleSwipeMove}
+                        onTouchEnd={handleSwipeEnd}
+                        onMouseDown={(e) => handleSwipeStart(e, msg.id)}
+                        onMouseMove={handleSwipeMove}
+                        onMouseUp={handleSwipeEnd}
+                        onMouseLeave={handleSwipeEnd}
+                      >
+                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
+                          <p className="text-sm font-medium break-words">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          <span className="text-xs text-primary-foreground/80 mt-1 block">
+                            {formatTimestamp(msg.timestamp)}
+                          </span>
+                        </div>
+                        
+                        {/* Visual hint */}
+                        {swipeState.messageId === msg.id && swipeState.offsetX > 20 && !swipeState.showConfirm && (
+                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-red-400 px-2">
+                            <Trash2 className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ) : (
                   // Received message
-                  <div className="flex items-start space-x-3" data-message-id={msg.id}>
+                  <div className="flex items-start space-x-3 mb-1" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
@@ -568,7 +570,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 )
               ) : msg.messageType === "crypto" ? (
                 // Crypto transaction message
-                <div className="flex justify-center group">
+                <div className="flex justify-center group mb-1">
                   <div className="relative">
                     <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-sm shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
                       <CardContent className="p-4">
