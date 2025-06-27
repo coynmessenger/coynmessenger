@@ -384,8 +384,15 @@ export default function ProductPage() {
                 <span className="text-lg text-muted-foreground">USD</span>
               </div>
               {cryptoRates && (
-                <div className="mt-2 text-sm text-muted-foreground">
-                  ≈ {(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)} COYN
+                <div className="mt-3 space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.BTC).toFixed(6)} BTC</span>
+                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.BNB).toFixed(3)} BNB</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.USDT).toFixed(2)} USDT</span>
+                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)} COYN</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -417,6 +424,47 @@ export default function ProductPage() {
                 ))}
               </div>
 
+            </div>
+
+            {/* Reviews Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Customer Reviews</h3>
+              <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {[
+                  { name: "Sarah M.", rating: 5, comment: "Excellent sound quality! The Alexa integration works perfectly and setup was incredibly easy.", verified: true },
+                  { name: "Mike R.", rating: 4, comment: "Great value for money. Compact design fits perfectly on my nightstand.", verified: true },
+                  { name: "Jennifer L.", rating: 5, comment: "Love how responsive it is. Voice recognition works even with background noise.", verified: false },
+                  { name: "David K.", rating: 4, comment: "Good product overall. Sound is clear and bass is surprisingly good for the size.", verified: true },
+                  { name: "Lisa P.", rating: 5, comment: "Perfect for controlling smart home devices. Very satisfied with this purchase!", verified: true }
+                ].map((review, index) => (
+                  <div key={index} className="flex-shrink-0 w-72 p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{review.name}</span>
+                        {review.verified && (
+                          <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                            Verified
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3 w-3 ${
+                              i < review.rating
+                                ? "text-yellow-500 fill-current"
+                                : "text-gray-300 dark:text-gray-600"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                    <p className="text-xs text-muted-foreground mt-2">Marketplace Verified Purchase</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Trust Indicators */}
