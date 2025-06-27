@@ -384,11 +384,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                         <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
                           <DropdownMenuItem
                             onClick={() => deleteMessageMutation.mutate(msg.id)}
-                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950"
+                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 justify-center"
                             disabled={deleteMessageMutation.isPending}
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Message
+                            <Trash2 className="h-4 w-4" />
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -446,11 +445,10 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                       <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
                         <DropdownMenuItem
                           onClick={() => deleteMessageMutation.mutate(msg.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 justify-center"
                           disabled={deleteMessageMutation.isPending}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Transaction
+                          <Trash2 className="h-4 w-4" />
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

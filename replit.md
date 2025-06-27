@@ -279,6 +279,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Fixed delete message button light theme colors - updated dropdown menu backgrounds from dark slate to white, changed button hover states to light gray, updated delete menu item colors to proper red-600 for light theme with red-50 hover backgrounds, ensuring proper contrast and visibility in light mode
 - June 27, 2025: Removed redundant wallet connection prompt - conditionally hid "Connect your Web3 wallet to access COYN Messenger" message once user is connected, providing cleaner interface for connected users
 - June 27, 2025: Fixed messenger header positioning - changed mobile navigation layout from justify-center to justify-between for proper alignment of logo/title on left and action buttons on right
+- June 27, 2025: Simplified delete message interface - removed "Delete Message" and "Delete Transaction" text labels from dropdown menus, keeping only trash icons with centered alignment for cleaner interface
 
 ## User Preferences
 
