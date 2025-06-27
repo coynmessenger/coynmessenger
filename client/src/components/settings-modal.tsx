@@ -210,10 +210,9 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const connectedUserId = getConnectedUserId();
 
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/user", connectedUserId],
+    queryKey: ["/api/user"],
     queryFn: async () => {
-      const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
-      const response = await fetch(url);
+      const response = await fetch("/api/user");
       if (!response.ok) {
         throw new Error('Failed to fetch user');
       }
@@ -265,9 +264,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       formData.append("profileImage", file);
       console.log("Uploading file:", file.name, file.size);
       
-      // Include user ID in the upload request
-      const url = connectedUserId ? `/api/user/upload-avatar?userId=${connectedUserId}` : "/api/user/upload-avatar";
-      const response = await fetch(url, {
+      // Upload avatar for current user
+      const response = await fetch("/api/user/upload-avatar", {
         method: "POST",
         body: formData,
       });
@@ -290,21 +288,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         return oldData;
       });
       
-      // Update cache for the specific user query with userId parameter
-      if (connectedUserId) {
-        queryClient.setQueryData(["/api/user", connectedUserId], (oldData: any) => {
-          if (oldData) {
-            return { ...oldData, profilePicture: response.profilePicture };
-          }
-          return oldData;
-        });
-      }
-      
-      // Also invalidate to ensure fresh data for both query types
+      // Invalidate to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      if (connectedUserId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
-      }
       
       toast({
         title: "Profile picture updated",
@@ -446,7 +431,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-black dark:text-foreground">{user?.displayName || 'User'}</h3>
-                  <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.username}</p>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.walletAddress?.slice(-6) || user?.username}</p>
                   <Button
                     onClick={triggerImageUpload}
                     disabled={uploadingImage}
