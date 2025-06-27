@@ -496,14 +496,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowMessageOptions(null);
   };
 
-  const handleEmojiReply = (message: Message, emoji: string) => {
-    // Quick emoji reply
-    sendMessageMutation.mutate({
-      content: emoji,
-      messageType: "text"
-    });
-    setShowMessageOptions(null);
-  };
+
 
   const deleteMessage = async (messageId: number) => {
     try {
@@ -977,18 +970,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 text-yellow-600 dark:text-yellow-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEmojiReply(msg, "👍");
-                            }}
-                            title="Quick React"
-                          >
-                            👍
-                          </Button>
+
                         </div>
                       )}
 
