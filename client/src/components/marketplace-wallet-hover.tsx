@@ -152,7 +152,7 @@ export default function MarketplaceWalletHover({
   return (
     <div
       id="marketplace-wallet-popup"
-      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-96 max-h-[80vh] overflow-hidden flex flex-col"
+      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-[95vw] sm:w-96 max-h-[80vh] overflow-hidden flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -199,11 +199,11 @@ export default function MarketplaceWalletHover({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 overflow-y-auto flex-1 min-h-0 p-4">
+      <CardContent className="space-y-4 overflow-y-auto flex-1 min-h-0 p-4 sm:p-6">
         {/* Total Value */}
-        <div className="text-center space-y-1 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 p-4 rounded-lg">
+        <div className="text-center space-y-2 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 p-4 sm:p-6 rounded-lg">
           <p className="text-sm text-muted-foreground">Available for purchases</p>
-          <p className="text-3xl font-bold text-orange-500 dark:text-cyan-400">
+          <p className="text-2xl sm:text-3xl font-bold text-orange-500 dark:text-cyan-400">
             {isBalanceVisible ? formatUSD(totalUSD) : "••••••"}
           </p>
           <p className="text-xs text-muted-foreground">Total purchasing power</p>
@@ -226,7 +226,7 @@ export default function MarketplaceWalletHover({
             const canPurchase = usdValue >= 5; // Minimum $5 per currency for small purchases
             
             return (
-              <div key={balance.currency} className={`flex items-center justify-between p-3 rounded-lg border ${
+              <div key={balance.currency} className={`flex items-center justify-between p-3 sm:p-4 rounded-lg border ${
                 canPurchase 
                   ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' 
                   : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
@@ -266,25 +266,25 @@ export default function MarketplaceWalletHover({
         <Separator />
 
         {/* Wallet Address for Deposits */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">Payment Address</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={copyAddress}
-              className="h-6 px-2 text-orange-500 hover:text-orange-600"
+              className="h-8 px-3 text-orange-500 hover:text-orange-600 touch-manipulation"
             >
               <Copy className="h-3 w-3 mr-1" />
               Copy
             </Button>
           </div>
-          <div className="bg-gray-100 dark:bg-slate-700 rounded p-2">
-            <code className="text-xs text-foreground break-all">
+          <div className="bg-gray-100 dark:bg-slate-700 rounded p-3">
+            <code className="text-xs sm:text-sm text-foreground break-all">
               {walletAddress}
             </code>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Send any supported cryptocurrency to this address to add funds
           </p>
         </div>
@@ -292,10 +292,10 @@ export default function MarketplaceWalletHover({
         <Separator />
 
         {/* Quick Actions */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Button
             variant="default"
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+            className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white touch-manipulation"
             onClick={() => {
               onClose();
               onProceedToCheckout?.();
@@ -306,11 +306,11 @@ export default function MarketplaceWalletHover({
             {isReadyToPurchase ? 'Proceed to Checkout' : 'Add Funds to Shop'}
           </Button>
           
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs h-10 touch-manipulation"
               onClick={() => {
                 if (walletAddress) {
                   window.open(`https://bscscan.com/address/${walletAddress}`, '_blank');
@@ -322,7 +322,7 @@ export default function MarketplaceWalletHover({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs h-10 touch-manipulation"
               onClick={() => {
                 toast({
                   title: "Payment Help",
