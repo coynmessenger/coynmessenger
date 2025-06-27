@@ -356,6 +356,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Removed arrow button and details dropdown completely - eliminated expandable details section from marketplace product cards, removed arrow toggle button, cleaned up unused state variables, simplified product cards to show only essential information
 - June 27, 2025: Implemented comprehensive display name priority system - added signInName field to user schema, created priority logic (sign-in name → profile name → @id fallback), modified /api/user endpoints to return effective display names, ensured display names reflect user-provided names at sign-in with proper fallback hierarchy
 - June 27, 2025: Restored mute button and aligned all voice call controls properly - implemented 2x2 grid layout for all 4 buttons (mute, video, speaker, end call), ensured proper alignment and spacing, restored complete mute functionality with state management and visual feedback
+- June 27, 2025: Fixed payment address readability in marketplace wallet modal - improved wallet address formatting by splitting at 20-character mark for better mobile display, replaced break-all with clean line breaks, enhanced readability with proper font-mono and leading for better user experience
 
 ## User Preferences
 

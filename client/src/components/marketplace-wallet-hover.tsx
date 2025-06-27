@@ -280,8 +280,13 @@ export default function MarketplaceWalletHover({
             </Button>
           </div>
           <div className="bg-gray-100 dark:bg-slate-700 rounded p-3">
-            <code className="text-xs sm:text-sm text-foreground break-all">
-              {walletAddress}
+            <code className="text-xs sm:text-sm text-foreground font-mono leading-relaxed word-break-normal">
+              <span className="block sm:inline">
+                {walletAddress ? `${walletAddress.slice(0, 20)}` : ''}
+              </span>
+              <span className="block sm:inline">
+                {walletAddress ? walletAddress.slice(20) : ''}
+              </span>
             </code>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
