@@ -287,14 +287,27 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           <div className="space-y-4">
             <div>
               <Label htmlFor="amount">Amount</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0.00"
-                value={sendAmount}
-                onChange={(e) => setSendAmount(e.target.value)}
-                className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50"
-              />
+              <div className="flex space-x-2">
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={sendAmount}
+                  onChange={(e) => setSendAmount(e.target.value)}
+                  className="flex-1 bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const maxBalance = walletBalances.find(b => b.currency === selectedCurrency)?.balance || "0";
+                    setSendAmount(maxBalance);
+                  }}
+                  className="px-3 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400"
+                >
+                  Max
+                </Button>
+              </div>
             </div>
             <div>
               <Label htmlFor="address">Recipient Address</Label>
