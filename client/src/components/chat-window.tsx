@@ -16,7 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, Reply, Share, Users } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -261,13 +261,6 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const scrollToTop = () => {
-    messagesContainerRef.current?.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
-
   // Function to highlight search text
   const highlightText = (text: string, searchTerm: string) => {
     if (!searchTerm || !text) return text;
@@ -491,16 +484,16 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
           ))}
         <div ref={messagesEndRef} className="h-4" />
 
-        {/* Back to Top Button */}
+        {/* Back to Bottom Button */}
         {showBackToTop && (
           <div className="sticky bottom-4 flex justify-end pr-4 pointer-events-none">
             <Button
-              onClick={scrollToTop}
+              onClick={scrollToBottom}
               className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:bg-gradient-to-r dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 backdrop-blur-sm border-2 border-white/30 dark:border-slate-800/30 pointer-events-auto"
               size="sm"
-              title="Back to top"
+              title="Back to bottom"
             >
-              <ArrowUp className="h-4 w-4" />
+              <ArrowDown className="h-4 w-4" />
             </Button>
           </div>
         )}
