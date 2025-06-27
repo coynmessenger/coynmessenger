@@ -284,6 +284,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Fixed marketplace wallet modal scroll issue - resolved conflicting height constraints by implementing proper flexbox layout, optimized overflow handling with flex-1 overflow-y-auto, reduced margins for better mobile compatibility, and improved viewport height management
 - June 27, 2025: Removed bottom action buttons from messenger wallet sidebar - eliminated "Receive" and "Send All" buttons for cleaner interface, keeping individual asset send/receive functionality through crypto card actions
 - June 27, 2025: Added functional "Max" button to wallet send modal - positioned next to amount input field, automatically fills maximum available balance for selected cryptocurrency with orange theme styling and proper light/dark mode support
+- June 27, 2025: Enhanced crypto send modal with sleek glassmorphism design - added gradient effects, backdrop blur, improved spacing, enhanced Max button with hover animations, and optimized COYN wallet asset cards for single-line display
+- June 27, 2025: Removed spinner arrows from number input field in crypto send modal for cleaner appearance using CSS appearance properties
 
 ## User Preferences
 

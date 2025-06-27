@@ -686,7 +686,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                       placeholder={`0.00000 ${selectedCrypto}`}
                       value={cryptoAmount}
                       onChange={(e) => setCryptoAmount(e.target.value)}
-                      className="h-14 text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-cyan-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+                      className="h-14 text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-cyan-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                       <Button
