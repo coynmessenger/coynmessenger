@@ -219,24 +219,60 @@ export default function MarketplacePage() {
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
     mutationFn: async (product: any) => {
-      const favoriteData = {
-        productId: product.ASIN,
-        productTitle: product.title,
-        productPrice: product.price,
-        productImage: product.imageUrl,
-        productCategory: product.category,
-        productRating: product.rating || 0
-      };
-      const res = await fetch("/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(favoriteData)
-      });
-      if (!res.ok) throw new Error("Failed to toggle favorite");
-      return res.json();
+      const isMarketplaceProduct = 'ASIN' in product;
+      const productId = isMarketplaceProduct ? product.ASIN : product.id.toString();
+      
+      // Check if product is already favorited
+      const isCurrentlyFavorited = isProductFavorited(productId);
+      
+      if (isCurrentlyFavorited) {
+        // Remove from favorites
+        const res = await fetch(`/api/favorites/${productId}`, {
+          method: "DELETE"
+        });
+        if (!res.ok) throw new Error("Failed to remove favorite");
+        return res.json();
+      } else {
+        // Add to favorites
+        const favoriteData = {
+          productId: productId,
+          productTitle: product.title,
+          productPrice: product.price.toString(),
+          productImage: isMarketplaceProduct ? product.imageUrl : (product as any).image || '',
+          productCategory: product.category,
+          productRating: product.rating || 0
+        };
+        const res = await fetch("/api/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(favoriteData)
+        });
+        if (!res.ok) throw new Error("Failed to add favorite");
+        return res.json();
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      
+      // The success message should be based on the action taken
+      const isMarketplaceProduct = 'ASIN' in variables;
+      const productId = isMarketplaceProduct ? variables.ASIN : variables.id.toString();
+      const wasRemoved = data?.action === 'removed' || data?.message?.includes('removed');
+      
+      toast({
+        title: wasRemoved ? "Removed from Favorites" : "Added to Favorites",
+        description: wasRemoved ? 
+          `${variables.title} has been removed from your favorites` : 
+          `${variables.title} has been added to your favorites`,
+      });
+    },
+    onError: (error) => {
+      console.error("Favorite toggle error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
