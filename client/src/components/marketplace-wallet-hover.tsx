@@ -50,19 +50,28 @@ export default function MarketplaceWalletHover({
   useEffect(() => {
     if (isVisible && anchorRef.current) {
       const rect = anchorRef.current.getBoundingClientRect();
-      const popupWidth = 380; // w-96 = 384px
-      const popupMaxHeight = window.innerHeight * 0.8;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
+      const isMobile = viewportWidth < 640; // sm breakpoint
       
-      // Calculate left position to keep popup in viewport
-      let leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
+      // For mobile, center the modal horizontally
+      const popupWidth = isMobile ? viewportWidth * 0.9 : 384; // 90% on mobile, 384px on desktop
+      const popupMaxHeight = viewportHeight * 0.8;
       
-      // Adjust if popup would go off-screen horizontally
-      if (leftPosition < 8) {
-        leftPosition = 8;
-      } else if (leftPosition + popupWidth > viewportWidth - 8) {
-        leftPosition = viewportWidth - popupWidth - 8;
+      let leftPosition;
+      if (isMobile) {
+        // Center horizontally on mobile
+        leftPosition = (viewportWidth - popupWidth) / 2;
+      } else {
+        // Desktop positioning relative to button
+        leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
+        
+        // Adjust if popup would go off-screen horizontally
+        if (leftPosition < 8) {
+          leftPosition = 8;
+        } else if (leftPosition + popupWidth > viewportWidth - 8) {
+          leftPosition = viewportWidth - popupWidth - 8;
+        }
       }
       
       // Calculate top position and adjust if it would go off-screen vertically
@@ -152,7 +161,7 @@ export default function MarketplaceWalletHover({
   return (
     <div
       id="marketplace-wallet-popup"
-      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-[95vw] sm:w-96 max-h-[80vh] overflow-hidden flex flex-col"
+      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-[90vw] sm:w-96 max-h-[80vh] overflow-hidden flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
