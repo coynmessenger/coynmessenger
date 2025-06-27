@@ -380,7 +380,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleSwipeEnd = () => {
     if (!swipeState.isDragging) return;
 
-    if (swipeState.offsetX > 60) { // Reduced threshold for more responsive triggering
+    if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
       // Trigger reply to message with haptic-like feedback
       const message = messages.find(m => m.id === swipeState.messageId);
       if (message) {

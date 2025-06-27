@@ -358,6 +358,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Restored mute button and aligned all voice call controls properly - implemented 2x2 grid layout for all 4 buttons (mute, video, speaker, end call), ensured proper alignment and spacing, restored complete mute functionality with state management and visual feedback
 - June 27, 2025: Fixed payment address readability in marketplace wallet modal - improved wallet address formatting by splitting at 20-character mark for better mobile display, replaced break-all with clean line breaks, enhanced readability with proper font-mono and leading for better user experience
 - June 27, 2025: Implemented comprehensive video call persistence system - enhanced video call button with green glow effects and pulse animation when call is active, added call state management with proper hide vs end call functionality, users can now close video call window without ending call and click green glowing button to rejoin ongoing calls, integrated onCallStart/onCallEnd handlers with isCallActive state tracking for seamless call continuity
+- June 27, 2025: Reduced swipe-to-reply sensitivity - increased swipe threshold from 60 pixels to 100 pixels to prevent accidental reply triggering during normal scrolling and gestures
 
 ## User Preferences
 
