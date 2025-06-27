@@ -544,7 +544,7 @@ export default function ProductPage() {
               </div>
               
               {/* Customer Reviews Preview */}
-              <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700">
+              <div className="p-4 bg-white/30 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-slate-700 animate-slide-in-right">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-foreground">Customer Reviews</h4>
                   <Button
@@ -558,7 +558,11 @@ export default function ProductPage() {
                 </div>
                 <div className="space-y-3">
                   {reviewsData.slice(0, 2).map((review, index) => (
-                    <div key={index} className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30">
+                    <div 
+                      key={index} 
+                      className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-gray-200/30 dark:border-slate-700/30 animate-slide-in-right"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm">{review.name}</span>

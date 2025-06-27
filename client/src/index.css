@@ -204,6 +204,21 @@
   50% { transform: translateY(-10px); }
 }
 
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out forwards;
+}
+
 /* Glow effects */
 .glow-orange {
   box-shadow: 0 0 20px rgba(251, 146, 60, 0.4);
