@@ -718,24 +718,7 @@ export default function MarketplacePage() {
                           />
                         </Button>
                         
-                        {/* Details Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2 hover:bg-accent"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const currentState = expandedDetails.get(itemKey.toString()) || false;
-                            setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
-                          }}
-                        >
-                          <span className="text-xs text-muted-foreground mr-1">Details</span>
-                          <ChevronDown 
-                            className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${
-                              expandedDetails.get(itemKey.toString()) ? 'rotate-180' : 'rotate-90'
-                            }`} 
-                          />
-                        </Button>
+
                         
 
                       </div>
@@ -883,6 +866,25 @@ export default function MarketplacePage() {
                             ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
                           </div>
                         )}
+                        
+                        {/* Details Button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 hover:bg-accent mt-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentState = expandedDetails.get(itemKey.toString()) || false;
+                            setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
+                          }}
+                        >
+                          <span className="text-xs text-muted-foreground mr-1">Details</span>
+                          <ChevronDown 
+                            className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${
+                              expandedDetails.get(itemKey.toString()) ? 'rotate-0' : '-rotate-90'
+                            }`} 
+                          />
+                        </Button>
                       </div>
                       <div className="flex gap-2">
                         <Button 
