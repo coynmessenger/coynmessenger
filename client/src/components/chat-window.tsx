@@ -1475,9 +1475,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       {/* Crypto Send Modal */}
       <Dialog open={showCryptoModal} onOpenChange={resetCryptoModal}>
-        <DialogContent className="w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] m-4 sm:m-6 p-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 flex flex-col rounded-2xl shadow-2xl">
-          <DialogHeader className="p-6 pb-0 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-t-2xl border-b border-gray-200/30 dark:border-slate-700/30">
-            <DialogTitle className="text-black dark:text-white text-lg font-bold flex items-center space-x-2">
+        <DialogContent className="w-[92vw] sm:w-[85vw] max-w-sm max-h-[85vh] m-3 sm:m-6 p-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 flex flex-col rounded-2xl shadow-2xl">
+          <DialogHeader className="p-4 sm:p-6 pb-0 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-t-2xl border-b border-gray-200/30 dark:border-slate-700/30">
+            <DialogTitle className="text-black dark:text-white text-lg sm:text-xl font-bold flex items-center space-x-2">
               <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
                 {cryptoStep === "amount" ? "Send" : "Confirm"}
               </span>
@@ -1493,11 +1493,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto p-6 pt-4 backdrop-blur-sm">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-3 sm:pt-4 backdrop-blur-sm">
             {cryptoStep === "amount" && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div className="relative">
-                  <Label htmlFor="crypto-amount" className="text-black dark:text-white text-sm font-medium mb-3 block">
+                  <Label htmlFor="crypto-amount" className="text-black dark:text-white text-sm sm:text-base font-medium mb-2 sm:mb-3 block">
                     Amount to send
                   </Label>
                   <div className="relative group">
@@ -1508,7 +1508,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       placeholder={`0.00000 ${selectedCrypto}`}
                       value={cryptoAmount}
                       onChange={(e) => setCryptoAmount(e.target.value)}
-                      className="h-14 text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-cyan-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="h-12 sm:h-14 text-base sm:text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-cyan-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-24 sm:pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                       <Button
@@ -1528,19 +1528,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-gray-50/80 to-gray-100/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 dark:border-slate-600/50 shadow-sm">
+                <div className="bg-gradient-to-r from-gray-50/80 to-gray-100/80 dark:from-slate-800/80 dark:to-slate-700/80 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-gray-200/50 dark:border-slate-600/50 shadow-sm">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
-                    <span className="text-sm font-semibold text-black dark:text-white bg-white/60 dark:bg-slate-900/60 px-3 py-1 rounded-lg">
+                    <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
+                    <span className="text-sm sm:text-base font-semibold text-black dark:text-white bg-white/60 dark:bg-slate-900/60 px-2 sm:px-3 py-1 rounded-lg">
                       {conversation.otherUser.displayName}
                     </span>
                   </div>
                 </div>
                 
-                <div className="flex space-x-3 pt-6">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6">
                   <Button
                     onClick={handleAmountConfirm}
-                    className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full h-11 sm:h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
                     disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
                   >
                     Continue
@@ -1548,7 +1548,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <Button
                     variant="outline"
                     onClick={resetCryptoModal}
-                    className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50/80 dark:hover:bg-slate-700/80 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
+                    className="w-full h-11 sm:h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50/80 dark:hover:bg-slate-700/80 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md text-sm sm:text-base"
                   >
                     Cancel
                   </Button>
