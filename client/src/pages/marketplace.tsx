@@ -770,12 +770,7 @@ export default function MarketplacePage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                         
-                        {(isMarketplaceProduct || (item as any).featured) && (
-                          <Badge className="bg-orange-500 text-white">
-                            <Star className="h-3 w-3 mr-1" />
-                            {isMarketplaceProduct ? 'Marketplace' : 'Featured'}
-                          </Badge>
-                        )}
+
                       </div>
                     </div>
                   </CardHeader>

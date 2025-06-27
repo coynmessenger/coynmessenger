@@ -449,7 +449,6 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 mb-4">
         <h3 className="text-lg sm:text-xl font-semibold">Shopping Cart ({cartItems.length} items)</h3>
-        {console.log('Marketplace checkout cartItems:', cartItems)}
       </div>
       
       {cartItems.length === 0 ? (
