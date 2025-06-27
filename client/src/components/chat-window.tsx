@@ -717,12 +717,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div data-message-options className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-10">
+                        <div data-message-options className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20">
                           <Button
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={() => handleCopyMessage(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyMessage(msg);
+                            }}
                             title="Copy"
                           >
                             <Copy className="h-4 w-4" />
@@ -731,7 +734,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={() => handleStarMessage(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStarMessage(msg);
+                            }}
                             title={msg.isStarred ? "Unstar" : "Star"}
                           >
                             <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
@@ -740,7 +746,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={() => handleForwardMessage(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleForwardMessage(msg);
+                            }}
                             title="Forward"
                           >
                             <Forward className="h-4 w-4" />
@@ -749,7 +758,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
-                            onClick={() => deleteMessage(msg.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMessage(msg.id);
+                            }}
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -773,12 +785,22 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           handleSwipeEnd();
                           handleLongPressEnd();
                         }}
-                        onMouseDown={(e) => handleSwipeStart(e, msg.id)}
-                        onMouseMove={handleSwipeMove}
-                        onMouseUp={handleSwipeEnd}
+                        onMouseDown={(e) => {
+                          // Only start swipe if not clicking on options menu
+                          if (!(e.target as Element).closest('[data-message-options]')) {
+                            handleSwipeStart(e, msg.id);
+                          }
+                        }}
+                        onMouseUp={() => {
+                          if (swipeState.isDragging) {
+                            handleSwipeEnd();
+                          }
+                        }}
                         onMouseEnter={() => handleMessageHover(msg.id)}
                         onMouseLeave={() => {
-                          handleSwipeEnd();
+                          if (swipeState.isDragging) {
+                            handleSwipeEnd();
+                          }
                           handleMessageLeave();
                         }}
                       >
@@ -846,12 +868,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div data-message-options className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-10">
+                        <div data-message-options className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-20">
                           <Button
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={() => handleCopyMessage(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyMessage(msg);
+                            }}
                             title="Copy"
                           >
                             <Copy className="h-4 w-4" />
@@ -860,7 +885,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={() => handleStarMessage(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStarMessage(msg);
+                            }}
                             title={msg.isStarred ? "Unstar" : "Star"}
                           >
                             <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
@@ -869,7 +897,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={() => handleForwardMessage(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleForwardMessage(msg);
+                            }}
                             title="Forward"
                           >
                             <Forward className="h-4 w-4" />
@@ -878,7 +909,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 text-yellow-600 dark:text-yellow-400"
-                            onClick={() => handleEmojiReply(msg, "👍")}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEmojiReply(msg, "👍");
+                            }}
                             title="Quick React"
                           >
                             👍
@@ -902,12 +936,22 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           handleSwipeEnd();
                           handleLongPressEnd();
                         }}
-                        onMouseDown={(e) => handleSwipeStart(e, msg.id)}
-                        onMouseMove={handleSwipeMove}
-                        onMouseUp={handleSwipeEnd}
+                        onMouseDown={(e) => {
+                          // Only start swipe if not clicking on options menu
+                          if (!(e.target as Element).closest('[data-message-options]')) {
+                            handleSwipeStart(e, msg.id);
+                          }
+                        }}
+                        onMouseUp={() => {
+                          if (swipeState.isDragging) {
+                            handleSwipeEnd();
+                          }
+                        }}
                         onMouseEnter={() => handleMessageHover(msg.id)}
                         onMouseLeave={() => {
-                          handleSwipeEnd();
+                          if (swipeState.isDragging) {
+                            handleSwipeEnd();
+                          }
                           handleMessageLeave();
                         }}
                       >
