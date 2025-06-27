@@ -384,15 +384,12 @@ export default function MessengerPage() {
                 </svg>
               </button>
               <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2 bg-orange-100 dark:bg-orange-100 rounded-md"
                 onClick={() => setIsWalletSidebarOpen(true)}
                 title="Wallet"
               >
                 <WalletIcon className="w-5 h-5" />
               </button>
-              <div className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors">
-                <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
-              </div>
               <Button
                 onClick={() => setLocation("/")}
                 variant="ghost"
