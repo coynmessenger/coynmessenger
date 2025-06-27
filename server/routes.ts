@@ -87,6 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
       const { walletAddress, displayName } = req.body;
+      console.log("Find-or-create request:", { walletAddress, displayName });
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -101,6 +102,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists
       const existingUser = await storage.getUserByWalletAddress(walletAddress);
       if (existingUser) {
+        // If display name was provided and it's different, update it
+        if (displayName && displayName !== existingUser.displayName) {
+          console.log(`Updating user ${existingUser.id} display name from "${existingUser.displayName}" to "${displayName}"`);
+          const updatedUser = await storage.updateUser(existingUser.id, {
+            displayName: displayName
+          });
+          console.log("Updated user:", updatedUser);
+          return res.json(updatedUser);
+        }
+        console.log(`User exists with same display name: "${existingUser.displayName}"`);
         return res.json(existingUser);
       }
 
