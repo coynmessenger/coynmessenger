@@ -964,19 +964,7 @@ export default function MarketplacePage() {
                           </div>
                         </div>
                         
-                        <Button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
-                            setLocation(`/product/${productId}`);
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-3"
-                        >
-                          <Package className="h-4 w-4 mr-2" />
-                          View Full Details
-                        </Button>
+
                       </div>
                     </div>
                   )}
