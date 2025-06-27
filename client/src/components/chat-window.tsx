@@ -376,15 +376,15 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute -top-1 -left-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 rounded-full"
+                            className="absolute -top-1 -left-8 h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-gray-100 dark:hover:bg-slate-700/20 rounded-full"
                           >
                             <MoreVertical className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                        <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
                           <DropdownMenuItem
                             onClick={() => deleteMessageMutation.mutate(msg.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950"
                             disabled={deleteMessageMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -438,15 +438,15 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 rounded-full"
+                          className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-300 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 dark:hover:bg-slate-700/20 rounded-full"
                         >
                           <MoreVertical className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                      <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
                         <DropdownMenuItem
                           onClick={() => deleteMessageMutation.mutate(msg.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950"
                           disabled={deleteMessageMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
