@@ -31,6 +31,8 @@ export interface IStorage {
   deleteMessage(messageId: number, userId: number): Promise<boolean>;
   searchMessages(query: string, userId: number): Promise<Message[]>;
   searchMessagesInConversation(query: string, conversationId: number): Promise<Message[]>;
+  getStarredMessages(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
+  toggleMessageStar(messageId: number, userId: number, isStarred: boolean): Promise<boolean>;
 
   // Wallet
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
@@ -249,6 +251,82 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(messages.timestamp));
 
     return searchResults;
+  }
+
+  async getStarredMessages(userId: number): Promise<(Message & { sender: User; conversationId: number })[]> {
+    // Get user's conversation IDs
+    const userConversationIds = await db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      );
+
+    const conversationIds = userConversationIds.map(c => c.id);
+    
+    if (conversationIds.length === 0) {
+      return [];
+    }
+
+    // Get starred messages from user's conversations
+    const starredMessages = await db
+      .select({
+        message: messages,
+        sender: users
+      })
+      .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
+      .where(
+        and(
+          inArray(messages.conversationId, conversationIds),
+          eq(messages.isStarred, true)
+        )
+      )
+      .orderBy(desc(messages.timestamp));
+
+    return starredMessages.map(row => ({
+      ...row.message,
+      sender: row.sender!,
+      conversationId: row.message.conversationId
+    }));
+  }
+
+  async toggleMessageStar(messageId: number, userId: number, isStarred: boolean): Promise<boolean> {
+    // Verify the user has access to this message
+    const messageWithConversation = await db
+      .select({
+        messageId: messages.id,
+        conversationId: messages.conversationId,
+        participant1Id: conversations.participant1Id,
+        participant2Id: conversations.participant2Id
+      })
+      .from(messages)
+      .leftJoin(conversations, eq(messages.conversationId, conversations.id))
+      .where(eq(messages.id, messageId))
+      .limit(1);
+
+    if (messageWithConversation.length === 0) {
+      return false;
+    }
+
+    const { participant1Id, participant2Id } = messageWithConversation[0];
+    
+    // Check if user is part of this conversation
+    if (participant1Id !== userId && participant2Id !== userId) {
+      return false;
+    }
+
+    // Update the star status
+    const result = await db
+      .update(messages)
+      .set({ isStarred })
+      .where(eq(messages.id, messageId))
+      .returning();
+
+    return result.length > 0;
   }
 
   // Wallet

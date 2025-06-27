@@ -12,6 +12,7 @@ import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
+import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -365,13 +366,9 @@ export default function MessengerPage() {
               >
                 <WalletIcon className="w-5 h-5" />
               </button>
-              <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
-                onClick={() => setIsSettingsOpen(true)}
-                title="Settings"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
+              <div className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors">
+                <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
+              </div>
               <Button
                 onClick={() => setLocation("/")}
                 variant="ghost"

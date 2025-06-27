@@ -39,6 +39,7 @@ export const messages = pgTable("messages", {
   audioFilePath: text("audio_file_path"), // for voice messages
   transcription: text("transcription"), // AI transcribed text
   audioDuration: integer("audio_duration"), // duration in seconds
+  isStarred: boolean("is_starred").default(false),
   timestamp: timestamp("timestamp").defaultNow(),
 });
 

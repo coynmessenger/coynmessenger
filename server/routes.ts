@@ -258,6 +258,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get starred messages
+  app.get("/api/messages/starred", async (req, res) => {
+    try {
+      const userId = 5; // Current user
+      const starredMessages = await storage.getStarredMessages(userId);
+      res.json(starredMessages);
+    } catch (error) {
+      console.error("Get starred messages error:", error);
+      res.status(500).json({ message: "Failed to get starred messages" });
+    }
+  });
+
+  // Toggle star on a message
+  app.patch("/api/messages/:id/star", async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const userId = 5; // Current user
+      const { isStarred } = req.body;
+
+      if (isNaN(messageId)) {
+        return res.status(400).json({ message: "Invalid message ID" });
+      }
+
+      const updated = await storage.toggleMessageStar(messageId, userId, isStarred);
+      if (!updated) {
+        return res.status(404).json({ message: "Message not found or unauthorized" });
+      }
+
+      res.json({ message: "Message star status updated", isStarred });
+    } catch (error) {
+      console.error("Toggle star error:", error);
+      res.status(500).json({ message: "Failed to update star status" });
+    }
+  });
+
   // Search messages
   app.get("/api/search", async (req, res) => {
     try {
