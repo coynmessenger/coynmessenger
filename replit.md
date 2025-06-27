@@ -304,6 +304,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Made customer reviews horizontally scrollable on product pages - converted reviews section from vertical stack to horizontal scroll layout, showing 5 reviews with flex-shrink-0 w-80 cards, hidden scrollbars for clean appearance, improved mobile user experience with touch-friendly horizontal swiping through customer reviews
 - June 27, 2025: Fixed product sharing message display in chat - added product_share message type handling to chat window component, enhanced database schema with productId/productTitle/productPrice/productImage fields, implemented visual product cards with orange gradient styling, clickable navigation to product pages, sender attribution, timestamp display, and delete functionality for shared product messages
 - June 27, 2025: Made product sharing messages fully clickable - ensured shared product cards navigate to correct product pages when clicked, verified product data persistence in database, removed incomplete legacy messages, implemented proper click handlers with setLocation navigation using product ASIN routing
+- June 27, 2025: Removed "Details & Reviews" expandable section from marketplace - eliminated expandable product details, mock reviews, and description panels from marketplace product cards for cleaner interface, removed associated state management and toggle functionality, updated imports to remove unused UI components
 
 ## User Preferences
 
