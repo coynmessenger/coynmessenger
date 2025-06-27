@@ -66,6 +66,8 @@ export default function ProductPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseStep, setPurchaseStep] = useState<"select" | "confirm" | "processing" | "success">("select");
   const [cryptoAmount, setCryptoAmount] = useState("");
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [showNFTRewards, setShowNFTRewards] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -358,6 +360,27 @@ export default function ProductPage() {
               </div>
             )}
 
+            {/* Color Variants */}
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Color</h3>
+              <div className="flex gap-3">
+                {["#1a1a1a", "#4a4a4a", "#8b4513", "#d2691e"].map((color, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedColor(index)}
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${
+                      selectedColor === index
+                        ? "border-orange-500 shadow-lg scale-110"
+                        : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
+                    }`}
+                    style={{ backgroundColor: color }}
+                    title={`Color variant ${index + 1}`}
+                  />
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">You might also like</p>
+            </div>
+
             {/* Trust Indicators */}
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
@@ -533,6 +556,61 @@ export default function ProductPage() {
           </Card>
         </div>
       )}
+
+      {/* Suggested Products */}
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold text-foreground mb-6">You might also like</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { title: "Gaming Headset", price: "79.99", image: "https://m.media-amazon.com/images/I/61CGHv6kmWL._AC_UX679_.jpg" },
+            { title: "iPad Pro 5th Generation", price: "649.00", image: "https://m.media-amazon.com/images/I/51F9d8h5TJL._AC_UX679_.jpg" },
+            { title: "Gaming Keyboard", price: "129.99", image: "https://m.media-amazon.com/images/I/61Tq-c2PwwL._AC_UX679_.jpg" },
+            { title: "MacBook Pro", price: "1999.00", image: "https://m.media-amazon.com/images/I/61RJn0ofUsL._AC_UX679_.jpg" }
+          ].map((item, index) => (
+            <Card key={index} className="group cursor-pointer hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-3">
+                <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-3 overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+                <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-1">{item.title}</h3>
+                <p className="font-bold text-orange-600 dark:text-cyan-400">${item.price}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* NFT Purchase Rewards */}
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold text-foreground mb-6">NFT Purchase Rewards</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { tier: "Bronze", value: "$50+", color: "from-amber-600 to-amber-700", reward: "Bronze NFT" },
+            { tier: "Silver", value: "$100+", color: "from-gray-400 to-gray-600", reward: "Silver NFT" },
+            { tier: "Gold", value: "$250+", color: "from-yellow-400 to-yellow-600", reward: "Gold NFT" },
+            { tier: "Diamond", value: "$500+", color: "from-cyan-400 to-blue-600", reward: "Diamond NFT" }
+          ].map((reward, index) => (
+            <Card key={index} className={`bg-gradient-to-br ${reward.color} text-white`}>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold mb-1">{reward.tier}</div>
+                <div className="text-sm opacity-90 mb-2">{reward.value} purchase value</div>
+                <div className="text-xs opacity-80">{reward.reward}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground mt-4 text-center">
+          Earn NFT rewards with crypto purchases valued $50+. Each NFT provides exclusive benefits, early access, and rewards including shopping discounts, VIP perks, and special offers.
+        </p>
+      </div>
     </div>
   );
 }
