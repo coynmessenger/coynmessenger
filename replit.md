@@ -360,7 +360,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Implemented comprehensive video call persistence system - enhanced video call button with green glow effects and pulse animation when call is active, added call state management with proper hide vs end call functionality, users can now close video call window without ending call and click green glowing button to rejoin ongoing calls, integrated onCallStart/onCallEnd handlers with isCallActive state tracking for seamless call continuity
 - June 27, 2025: Reduced swipe-to-reply sensitivity - increased swipe threshold from 60 pixels to 100 pixels to prevent accidental reply triggering during normal scrolling and gestures
 - June 27, 2025: Updated back to bottom button design - changed to transparent white background (60% opacity) with orange circular border for better visibility and cleaner minimal aesthetic
-- June 27, 2025: Fixed marketplace wallet modal positioning - centered wallet modal properly on mobile devices with 90% viewport width and centered horizontal positioning for better user experience
+- June 27, 2025: Fixed marketplace wallet modal positioning - aligned wallet modal to left edge of screen on mobile devices with full viewport width for better user experience
 
 ## User Preferences
 
