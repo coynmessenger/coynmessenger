@@ -1654,9 +1654,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       <VideoCallModal
         isOpen={showVideoCall}
         onClose={() => setShowVideoCall(false)}
+        onHide={() => setShowVideoCall(false)}
         onCallStart={() => setIsVideoCallActive(true)}
         onCallEnd={() => setIsVideoCallActive(false)}
-        recipientName={conversation.otherUser.displayName || conversation.otherUser.signInName || `@${conversation.otherUser.walletAddress?.slice(-6) || 'user'}`}
+        user={conversation.otherUser}
+        isCallActive={isVideoCallActive}
       />
     </div>
   );
