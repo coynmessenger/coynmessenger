@@ -56,6 +56,22 @@ export default function MessengerPage() {
     },
   });
 
+  // Handler for clicking on a contact - don't auto-create conversations
+  const handleContactClick = (contact: User) => {
+    // Check if conversation already exists
+    const existingConversation = conversations.find(conv => 
+      conv.otherUser?.id === contact.id
+    );
+    
+    if (existingConversation) {
+      // If conversation exists, open it
+      setSelectedConversation(existingConversation.id);
+    } else {
+      // If no conversation exists, create one only when user actually wants to chat
+      createConversationMutation.mutate(contact.id);
+    }
+  };
+
   // Filter out current user and users who already have conversations
   const availableContacts = allUsers.filter(contact => 
     contact.id !== user?.id && 
@@ -166,7 +182,7 @@ export default function MessengerPage() {
                         {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
                           <div
                             key={contact.id}
-                            onClick={() => createConversationMutation.mutate(contact.id)}
+                            onClick={() => handleContactClick(contact)}
                             className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
                           >
                             <div className="flex items-center space-x-3">
@@ -285,7 +301,7 @@ export default function MessengerPage() {
                             {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
                               <div
                                 key={contact.id}
-                                onClick={() => createConversationMutation.mutate(contact.id)}
+                                onClick={() => handleContactClick(contact)}
                                 className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
                               >
                                 <div className="flex items-center space-x-3">
