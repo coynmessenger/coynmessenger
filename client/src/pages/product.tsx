@@ -109,6 +109,44 @@ export default function ProductPage() {
     },
   });
 
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    const cartItem = {
+      asin: product.ASIN,
+      title: product.title,
+      price: product.price,
+      image: product.imageUrl,
+      quantity: quantity,
+      selectedColor: selectedColor
+    };
+    
+    // Get existing cart or create new one
+    const existingCart = JSON.parse(localStorage.getItem('shopping-cart') || '[]');
+    
+    // Check if item already exists in cart
+    const existingItemIndex = existingCart.findIndex((item: any) => 
+      item.asin === cartItem.asin && item.selectedColor === cartItem.selectedColor
+    );
+    
+    if (existingItemIndex >= 0) {
+      // Update quantity if item exists
+      existingCart[existingItemIndex].quantity += quantity;
+    } else {
+      // Add new item to cart
+      existingCart.push(cartItem);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('shopping-cart', JSON.stringify(existingCart));
+    
+    toast({
+      title: "Added to cart",
+      description: `${quantity} × ${product.title} added to your cart`,
+      duration: 2000,
+    });
+  };
+
   const nextImage = () => {
     if (product?.images && product.images.length > 1) {
       setCurrentImageIndex((prev) => (prev + 1) % product.images!.length);
@@ -313,7 +351,7 @@ export default function ProductPage() {
           <div className="space-y-6">
             {/* Title & Rating */}
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{product.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 leading-relaxed">{product.title}</h1>
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   <div className="flex">
@@ -433,19 +471,14 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowPurchaseModal(true)}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                  size="lg"
-                >
-                  <Wallet className="h-5 w-5 mr-2" />
-                  Buy with Crypto
-                </Button>
-                <Button variant="outline" size="lg" className="px-6">
-                  <ShoppingCart className="h-5 w-5" />
-                </Button>
-              </div>
+              <Button
+                onClick={handleAddToCart}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                size="lg"
+              >
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                Cart
+              </Button>
             </div>
           </div>
         </div>
