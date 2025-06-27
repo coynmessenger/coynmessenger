@@ -143,7 +143,7 @@ export default function MarketplaceWalletHover({
     }
   };
 
-  // Check if user has sufficient balance for typical purchases
+  // Check if user has sufficient funds for typical purchases
   const hasMinimumBalance = totalUSD >= 10; // Minimum $10 for purchases
   const isReadyToPurchase = hasMinimumBalance && balances.length > 0;
 
@@ -169,7 +169,7 @@ export default function MarketplaceWalletHover({
             size="sm"
             onClick={() => setIsBalanceVisible(!isBalanceVisible)}
             className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50"
-            title={isBalanceVisible ? "Hide balance" : "Show balance"}
+            title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
           >
             {isBalanceVisible ? (
               <Eye className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function MarketplaceWalletHover({
       </CardHeader>
 
       <CardContent className="space-y-4 overflow-y-auto flex-1 min-h-0 p-4">
-        {/* Total Balance */}
+        {/* Total Value */}
         <div className="text-center space-y-1 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 p-4 rounded-lg">
           <p className="text-sm text-muted-foreground">Available for purchases</p>
           <p className="text-3xl font-bold text-orange-500 dark:text-cyan-400">
@@ -253,7 +253,7 @@ export default function MarketplaceWalletHover({
                     ) : (
                       <>
                         <AlertCircle className="h-3 w-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">Low balance</span>
+                        <span className="text-xs text-gray-500">Low amount</span>
                       </>
                     )}
                   </div>
