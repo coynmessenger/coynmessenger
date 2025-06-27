@@ -58,7 +58,16 @@ export default function PurchaseHistoryPage() {
       case "USDT":
         return <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold">T</div>;
       case "COYN":
-        return <img src={coynLogoPath} alt="COYN" className="h-4 w-4 rounded-full" />;
+        return (
+          <img 
+            src={coynLogoPath} 
+            alt="COYN" 
+            className="h-4 w-4 rounded-full" 
+            loading="eager"
+            decoding="async"
+            style={{ imageRendering: 'auto' }}
+          />
+        );
       default:
         return <CreditCard className="h-4 w-4 text-gray-500" />;
     }

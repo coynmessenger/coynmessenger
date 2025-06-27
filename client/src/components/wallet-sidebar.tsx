@@ -97,7 +97,16 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       color: "text-green-500" 
     },
     COYN: { 
-      icon: <img src={coynLogoPath} alt="COYN" className="w-6 h-6" />, 
+      icon: (
+        <img 
+          src={coynLogoPath} 
+          alt="COYN" 
+          className="w-6 h-6" 
+          loading="eager"
+          decoding="async"
+          style={{ imageRendering: 'auto' }}
+        />
+      ), 
       name: "COYN Token", 
       color: "text-amber-500" 
     },

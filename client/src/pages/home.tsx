@@ -196,6 +196,10 @@ export default function HomePage() {
                 src={coynLogoPath} 
                 alt="COYN Logo" 
                 className="w-28 h-28 relative z-10 drop-shadow-[0_0_40px_rgba(251,146,60,0.8)] hover:drop-shadow-[0_0_60px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-110"
+                loading="eager"
+                decoding="async"
+                style={{ imageRendering: 'auto' }}
+                onLoad={() => console.log('COYN logo loaded')}
               />
             </div>
           </div>

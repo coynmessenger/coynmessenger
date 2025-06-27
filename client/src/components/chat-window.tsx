@@ -147,6 +147,31 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof emojiCategories>("faces");
 
+  // Cryptocurrency icon helper function with optimized rendering
+  const getCryptoIcon = (crypto: string) => {
+    switch (crypto) {
+      case 'BTC':
+        return <FaBitcoin className="w-5 h-5 text-orange-500" />;
+      case 'BNB':
+        return <SiBinance className="w-5 h-5 text-yellow-500" />;
+      case 'USDT':
+        return <SiTether className="w-5 h-5 text-green-500" />;
+      case 'COYN':
+        return (
+          <img 
+            src={coynLogoPath} 
+            alt="COYN" 
+            className="w-5 h-5" 
+            loading="eager"
+            decoding="async"
+            style={{ imageRendering: 'auto' }}
+          />
+        );
+      default:
+        return <Coins className="w-5 h-5" />;
+    }
+  };
+
   const { data: messages = [] } = useQuery<(Message & { sender: User })[]>({
     queryKey: ["/api/conversations", conversation.id, "messages"],
     queryFn: async () => {
@@ -1352,6 +1377,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     src={coynLogoPath} 
                     alt="COYN" 
                     className="w-4 h-4 rounded-full"
+                    loading="eager"
+                    decoding="async"
+                    style={{ imageRendering: 'auto' }}
                   />
                   <span>Send COYN</span>
                 </div>
@@ -1449,8 +1477,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       <Dialog open={showCryptoModal} onOpenChange={resetCryptoModal}>
         <DialogContent className="w-[90vw] sm:w-[85vw] max-w-md max-h-[90vh] m-4 sm:m-6 p-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 flex flex-col rounded-2xl shadow-2xl">
           <DialogHeader className="p-6 pb-0 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-t-2xl border-b border-gray-200/30 dark:border-slate-700/30">
-            <DialogTitle className="text-black dark:text-white text-lg font-bold bg-gradient-to-r from-orange-600 to-orange-500 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
-              {cryptoStep === "amount" ? `Send ${selectedCrypto}` : `Confirm ${selectedCrypto} Transfer`}
+            <DialogTitle className="text-black dark:text-white text-lg font-bold flex items-center space-x-2">
+              <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
+                {cryptoStep === "amount" ? "Send" : "Confirm"}
+              </span>
+              <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500 bg-clip-text text-transparent font-bold">
+                {selectedCrypto}
+              </span>
+              {getCryptoIcon(selectedCrypto)}
+              {cryptoStep === "confirm" && (
+                <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
+                  Transfer
+                </span>
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -1481,9 +1520,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       >
                         Max
                       </Button>
-                      <span className="text-sm font-semibold text-gray-700 dark:text-slate-300 bg-gray-100/80 dark:bg-slate-700/80 px-2 py-1 rounded-md">
-                        {selectedCrypto}
-                      </span>
+                      <div className="flex items-center space-x-1 text-sm font-semibold text-gray-700 dark:text-slate-300 bg-gray-100/80 dark:bg-slate-700/80 px-2 py-1 rounded-md">
+                        {getCryptoIcon(selectedCrypto)}
+                        <span>{selectedCrypto}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

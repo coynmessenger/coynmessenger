@@ -87,6 +87,9 @@ export default function Sidebar({
           src={coynLogoPath} 
           alt={currency} 
           className={`${sizeClasses[size]} drop-shadow-[0_0_8px_rgba(255,193,7,0.3)]`}
+          loading="eager"
+          decoding="async"
+          style={{ imageRendering: 'auto' }}
         />
       );
     }
