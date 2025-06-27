@@ -153,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get conversations for current user
   app.get("/api/conversations", async (req, res) => {
     try {
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5; // Use provided userId or default to 5
+      const userId = 5; // Current user
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -186,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const messageData = {
         conversationId,
-        senderId: req.body.senderId || 5, // Use provided senderId or default to 5
+        senderId: 5, // Current user
         content: req.body.content,
         messageType: req.body.messageType || "text",
         cryptoAmount: req.body.cryptoAmount,

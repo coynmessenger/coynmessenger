@@ -33,22 +33,12 @@ export default function MessengerPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
 
-  // Get connected user from localStorage
-  const connectedUserString = localStorage.getItem('connectedUser');
-  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
-  const currentUserId = connectedUser?.id || 5;
-
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
   });
 
   const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
     queryKey: ["/api/conversations"],
-    queryFn: async () => {
-      const res = await fetch(`/api/conversations?userId=${currentUserId}`);
-      if (!res.ok) throw new Error("Failed to fetch conversations");
-      return res.json();
-    },
   });
 
   const { data: allUsers = [] } = useQuery<User[]>({

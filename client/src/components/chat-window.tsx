@@ -135,11 +135,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get connected user from localStorage
-  const connectedUserString = localStorage.getItem('connectedUser');
-  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
-  const currentUserId = connectedUser?.id || 5;
-
   // Popular emojis for quick access - organized by categories
   const emojiCategories = {
     faces: ["😀", "😂", "🤣", "😊", "😍", "🥰", "😘", "😎", "🤔", "😮", "😤", "😔", "🥺", "😭", "😱", "🤗"],
@@ -187,11 +182,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageData: { content: string; messageType: string; senderId?: number }) => {
-      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-        ...messageData,
-        senderId: currentUserId
-      });
+    mutationFn: async (messageData: { content: string; messageType: string }) => {
+      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, messageData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
@@ -781,7 +773,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
-                msg.senderId === currentUserId ? (
+                msg.senderId === 5 ? (
                   // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
@@ -1084,10 +1076,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </div>
                       <div className="text-center">
                         <div className="text-lg font-bold text-cyan-400">
-                          {msg.senderId === currentUserId ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                          {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                         </div>
                         <div className="text-xs text-slate-400 break-all">
-                          {msg.senderId === currentUserId ? 'To' : 'From'}: {msg.sender.walletAddress}
+                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
                         </div>
                         <div className="text-xs text-slate-400">
                           {formatTimestamp(msg.timestamp)}
@@ -1095,7 +1087,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </div>
                     </CardContent>
                   </Card>
-                  {msg.senderId === currentUserId && (
+                  {msg.senderId === 5 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
