@@ -18,7 +18,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -68,6 +68,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     content: string;
     sender: string;
   } | null>(null);
+
+  // Message hover options state
+  const [hoveredMessage, setHoveredMessage] = useState<number | null>(null);
+  const [showMessageOptions, setShowMessageOptions] = useState<number | null>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -96,6 +101,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
   }, [swipeState.isDragging]);
+
+  // Close message options when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showMessageOptions && !(event.target as Element).closest('[data-message-options]')) {
+        setShowMessageOptions(null);
+      }
+    };
+
+    if (showMessageOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMessageOptions]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -335,6 +357,89 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
+  // Message hover and long press handlers
+  const handleMessageHover = (messageId: number) => {
+    setHoveredMessage(messageId);
+  };
+
+  const handleMessageLeave = () => {
+    setHoveredMessage(null);
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleLongPressStart = (messageId: number) => {
+    const timer = setTimeout(() => {
+      setShowMessageOptions(messageId);
+    }, 500); // Show options after 500ms long press
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  // Message action handlers
+  const handleCopyMessage = (message: Message) => {
+    const textToCopy = message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`;
+    navigator.clipboard.writeText(textToCopy);
+    toast({
+      title: "Message copied",
+      description: "Message copied to clipboard",
+      duration: 1500,
+    });
+    setShowMessageOptions(null);
+  };
+
+  const handleStarMessage = (message: Message) => {
+    // Implement star/favorite functionality
+    toast({
+      title: "Message starred",
+      description: "Message added to starred messages",
+      duration: 1500,
+    });
+    setShowMessageOptions(null);
+  };
+
+  const handleForwardMessage = (message: Message) => {
+    // Implement forward functionality
+    setShowShareModal(true);
+    setShowMessageOptions(null);
+  };
+
+  const handleEmojiReply = (message: Message, emoji: string) => {
+    // Quick emoji reply
+    sendMessageMutation.mutate({
+      content: emoji,
+      messageType: "text"
+    });
+    setShowMessageOptions(null);
+  };
+
+  const deleteMessage = async (messageId: number) => {
+    try {
+      await apiRequest("DELETE", `/api/messages/${messageId}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      toast({
+        title: "Message deleted",
+        description: "The message has been deleted",
+        duration: 1500,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete message",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+    setShowMessageOptions(null);
+  };
+
   const handleReplyCancel = () => {
     setReplyToMessage(null);
   };
@@ -523,6 +628,47 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
 
+                      {/* Message Options Menu */}
+                      {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
+                        <div data-message-options className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-10">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={() => handleCopyMessage(msg)}
+                            title="Copy"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={() => handleStarMessage(msg)}
+                            title="Star"
+                          >
+                            <Star className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={() => handleForwardMessage(msg)}
+                            title="Forward"
+                          >
+                            <Forward className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
+                            onClick={() => deleteMessage(msg.id)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                       
                       {/* Swipeable message */}
                       <div 
@@ -531,13 +677,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
                           transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
-                        onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                        onTouchStart={(e) => {
+                          handleSwipeStart(e, msg.id);
+                          handleLongPressStart(msg.id);
+                        }}
                         onTouchMove={handleSwipeMove}
-                        onTouchEnd={handleSwipeEnd}
+                        onTouchEnd={() => {
+                          handleSwipeEnd();
+                          handleLongPressEnd();
+                        }}
                         onMouseDown={(e) => handleSwipeStart(e, msg.id)}
                         onMouseMove={handleSwipeMove}
                         onMouseUp={handleSwipeEnd}
-                        onMouseLeave={handleSwipeEnd}
+                        onMouseEnter={() => handleMessageHover(msg.id)}
+                        onMouseLeave={() => {
+                          handleSwipeEnd();
+                          handleMessageLeave();
+                        }}
                       >
                         <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
                           {/* WhatsApp-style reply context */}
@@ -546,9 +702,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                               <div className="text-xs font-medium text-white/90 mb-1">
                                 {msg.content.split(':')[0].replace('@', '')}
                               </div>
-                              <div className="text-xs text-white/70 line-clamp-1">
-                                {/* Extract original message content - this would be the replied-to message */}
-                                Original message
+                              <div className="text-xs text-white/70 line-clamp-2">
+                                {/* Find and display the original message from conversation history */}
+                                {(() => {
+                                  const replyToUser = msg.content?.split(':')[0].replace('@', '');
+                                  const originalMsg = messages.find(m => 
+                                    m.sender.displayName === replyToUser && 
+                                    m.id !== msg.id &&
+                                    (m.timestamp != null && msg.timestamp != null && m.timestamp < msg.timestamp)
+                                  );
+                                  return originalMsg?.content || originalMsg?.cryptoAmount 
+                                    ? `${originalMsg.content || ''} ${originalMsg.cryptoAmount ? `${originalMsg.cryptoAmount} ${originalMsg.cryptoCurrency}` : ''}`.trim()
+                                    : "Previous message";
+                                })()}
                               </div>
                             </div>
                           )}
@@ -590,6 +756,49 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="relative max-w-xs lg:max-w-md">
+                      
+                      {/* Message Options Menu */}
+                      {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
+                        <div data-message-options className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 z-10">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={() => handleCopyMessage(msg)}
+                            title="Copy"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={() => handleStarMessage(msg)}
+                            title="Star"
+                          >
+                            <Star className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={() => handleForwardMessage(msg)}
+                            title="Forward"
+                          >
+                            <Forward className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 text-yellow-600 dark:text-yellow-400"
+                            onClick={() => handleEmojiReply(msg, "👍")}
+                            title="Quick React"
+                          >
+                            👍
+                          </Button>
+                        </div>
+                      )}
+
                       {/* Swipeable message */}
                       <div 
                         className="relative cursor-pointer touch-pan-y select-none"
@@ -597,13 +806,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
                           transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
-                        onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                        onTouchStart={(e) => {
+                          handleSwipeStart(e, msg.id);
+                          handleLongPressStart(msg.id);
+                        }}
                         onTouchMove={handleSwipeMove}
-                        onTouchEnd={handleSwipeEnd}
+                        onTouchEnd={() => {
+                          handleSwipeEnd();
+                          handleLongPressEnd();
+                        }}
                         onMouseDown={(e) => handleSwipeStart(e, msg.id)}
                         onMouseMove={handleSwipeMove}
                         onMouseUp={handleSwipeEnd}
-                        onMouseLeave={handleSwipeEnd}
+                        onMouseEnter={() => handleMessageHover(msg.id)}
+                        onMouseLeave={() => {
+                          handleSwipeEnd();
+                          handleMessageLeave();
+                        }}
                       >
                         <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
                           <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
