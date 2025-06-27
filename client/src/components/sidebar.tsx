@@ -5,13 +5,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { Search, Wallet, UserPlus, Settings, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
+import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import AddContactModal from "./add-contact-modal";
-import SettingsModal from "./settings-modal";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -39,7 +39,7 @@ export default function Sidebar({
   onSearchChange,
 }: SidebarProps) {
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   
   const queryClient = useQueryClient();
@@ -174,14 +174,7 @@ export default function Sidebar({
                 <h1 className="text-xl font-bold text-foreground">COYN Messenger</h1>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSettingsOpen(true)}
-              className="text-muted-foreground hover:text-primary h-10 w-10 sm:h-8 sm:w-8 touch-manipulation"
-            >
-              <Settings className="h-5 w-5 sm:h-4 sm:w-4" />
-            </Button>
+
           </div>
           {user && (
             <div className="mt-4 text-xs text-primary font-mono">
@@ -319,14 +312,7 @@ export default function Sidebar({
             >
               <UserPlus className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsSettingsOpen(true)}
-              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+
           </div>
         </div>
 
@@ -344,10 +330,7 @@ export default function Sidebar({
         isOpen={isAddContactOpen}
         onClose={() => setIsAddContactOpen(false)}
       />
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
+
     </>
   );
 }

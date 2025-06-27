@@ -348,31 +348,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onToggleSide
             </div>
           </Button>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-primary hover:bg-muted"
-            onClick={onOpenVideoCall}
-          >
-            <Video className="h-4 w-4" />
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-card border-border">
-              <DropdownMenuItem className="text-foreground hover:text-foreground hover:bg-muted">
-                📞 Call Options
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-foreground hover:text-foreground hover:bg-muted">
-                🔧 Settings
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+
       </div>
 
       {/* Chat Messages */}
