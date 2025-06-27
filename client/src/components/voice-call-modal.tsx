@@ -9,11 +9,15 @@ import type { User } from "@shared/schema";
 interface VoiceCallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: User;
+  user?: User;
   callType?: "incoming" | "outgoing";
 }
 
 export default function VoiceCallModal({ isOpen, onClose, user, callType = "outgoing" }: VoiceCallModalProps) {
+  // Early return if no user is provided
+  if (!user) {
+    return null;
+  }
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);

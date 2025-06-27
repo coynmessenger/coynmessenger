@@ -574,9 +574,9 @@ export default function MessengerPage() {
         otherUser={currentConversation?.otherUser}
       />
       <VoiceCallModal
-        isOpen={isVoiceCallOpen && !!currentConversation?.otherUser}
+        isOpen={isVoiceCallOpen}
         onClose={() => setIsVoiceCallOpen(false)}
-        user={currentConversation?.otherUser!}
+        user={currentConversation?.otherUser}
       />
       <SettingsModal
         isOpen={isSettingsOpen}
