@@ -866,25 +866,41 @@ export default function MarketplacePage() {
                             ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
                           </div>
                         )}
-                        
-                        {/* Details Button */}
+                      </div>
+                      
+                      {/* Creative Details Toggle - Floating Info Button with Tooltip */}
+                      <div className="absolute top-2 right-2 z-10 group">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 px-2 hover:bg-accent mt-1"
+                          className="h-8 w-8 rounded-full p-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-orange-200 dark:border-cyan-300 hover:bg-orange-50 dark:hover:bg-cyan-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 relative"
                           onClick={(e) => {
                             e.stopPropagation();
                             const currentState = expandedDetails.get(itemKey.toString()) || false;
                             setExpandedDetails(prev => new Map(prev.set(itemKey.toString(), !currentState)));
                           }}
                         >
-                          <span className="text-xs text-muted-foreground mr-1">Details</span>
-                          <ChevronDown 
-                            className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${
-                              expandedDetails.get(itemKey.toString()) ? 'rotate-0' : '-rotate-90'
-                            }`} 
-                          />
+                          <div className="relative">
+                            <Info 
+                              className={`h-4 w-4 text-orange-600 dark:text-cyan-400 transition-all duration-300 ${
+                                expandedDetails.get(itemKey.toString()) ? 'rotate-180 scale-110' : 'rotate-0'
+                              }`} 
+                            />
+                            {/* Animated pulse ring */}
+                            <div className={`absolute inset-0 rounded-full border-2 border-orange-400 dark:border-cyan-400 transition-all duration-500 ${
+                              expandedDetails.get(itemKey.toString()) ? 'scale-150 opacity-0' : 'scale-100 opacity-50'
+                            }`} />
+                          </div>
                         </Button>
+                        
+                        {/* Creative Tooltip */}
+                        <div className="absolute -top-10 right-0 bg-black/90 dark:bg-white/90 text-white dark:text-black text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap transform translate-y-2 group-hover:translate-y-0">
+                          {expandedDetails.get(itemKey.toString()) ? 'Hide Details' : 'Show Details'}
+                          <div className="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90 dark:border-t-white/90"></div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-3">
                       </div>
                       <div className="flex gap-2">
                         <Button 
@@ -911,70 +927,118 @@ export default function MarketplacePage() {
                     </div>
                   </CardContent>
                   
-                  {/* Collapsible Details Section */}
+                  {/* Enhanced Collapsible Details Section with Creative Animation */}
                   {expandedDetails.get(itemKey.toString()) && (
-                    <div className="border-t border-gray-200 dark:border-slate-700 px-4 py-4">
-                      <div className="space-y-3">
-                        <div className="text-sm text-muted-foreground">
-                          {item.description || 'Premium quality product available for crypto purchase.'}
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Rating:</span>
-                            <div className="flex items-center">
-                              <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
-                              <span>{item.rating}</span>
-                              {isMarketplaceProduct && (item as any).reviewCount > 0 && (
-                                <span className="text-muted-foreground ml-1 text-xs">({(item as any).reviewCount})</span>
-                              )}
+                    <div className="border-t border-gradient-to-r from-orange-200 via-yellow-200 to-orange-200 dark:from-cyan-300 dark:via-blue-300 dark:to-cyan-300 animate-in slide-in-from-top-2 duration-500">
+                      <div className="px-4 py-5 bg-gradient-to-br from-orange-50/50 via-white to-yellow-50/30 dark:from-cyan-900/10 dark:via-slate-800 dark:to-blue-900/10">
+                        <div className="space-y-4">
+                          {/* Product Description with Creative Styling */}
+                          <div className="relative">
+                            <div className="absolute -left-2 top-0 w-1 h-full bg-gradient-to-b from-orange-400 to-yellow-400 dark:from-cyan-400 dark:to-blue-400 rounded-full"></div>
+                            <div className="pl-4 text-sm text-muted-foreground leading-relaxed">
+                              {item.description || 'Premium quality product available for crypto purchase with instant delivery and secure payment processing.'}
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Category:</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {item.category}
-                            </Badge>
+                          {/* Enhanced Info Grid with Creative Icons */}
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/60 dark:bg-slate-700/30 border border-orange-100 dark:border-cyan-800">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+                                <Star className="h-4 w-4 text-white fill-current" />
+                              </div>
+                              <div>
+                                <span className="font-medium text-foreground block">Rating</span>
+                                <div className="flex items-center mt-1">
+                                  <span className="text-yellow-500 text-sm">★★★★★</span>
+                                  <span className="ml-2 text-muted-foreground">({item.rating})</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/60 dark:bg-slate-700/30 border border-orange-100 dark:border-cyan-800">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
+                                <Users className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <span className="font-medium text-foreground block">Reviews</span>
+                                <div className="text-muted-foreground mt-1">
+                                  {isMarketplaceProduct && (item as any).reviewCount 
+                                    ? (item as any).reviewCount.toLocaleString() 
+                                    : 'Premium'
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/60 dark:bg-slate-700/30 border border-orange-100 dark:border-cyan-800">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+                                <Package className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <span className="font-medium text-foreground block">Category</span>
+                                <div className="text-muted-foreground mt-1">{item.category}</div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/60 dark:bg-slate-700/30 border border-orange-100 dark:border-cyan-800">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center flex-shrink-0">
+                                <TrendingUp className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <span className="font-medium text-foreground block">Brand</span>
+                                <div className="text-muted-foreground mt-1">
+                                  {isMarketplaceProduct && (item as any).brand ? (item as any).brand : 'Premium'}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           
-                          {isMarketplaceProduct && (item as any).brand && (
-                            <div className="flex items-center justify-between col-span-2">
-                              <span className="text-muted-foreground">Brand:</span>
-                              <span className="font-medium">{(item as any).brand}</span>
+                          {/* Enhanced Crypto Conversion Section */}
+                          {isMarketplaceProduct && (
+                            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-orange-100 via-yellow-50 to-orange-100 dark:from-cyan-900/30 dark:via-blue-900/20 dark:to-cyan-900/30 p-4 border-2 border-orange-200/50 dark:border-cyan-300/30">
+                              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-300/20 to-yellow-300/20 dark:from-cyan-400/10 dark:to-blue-400/10 rounded-full -translate-y-16 translate-x-16"></div>
+                              <div className="relative">
+                                <div className="flex items-center space-x-2 mb-3">
+                                  <Coins className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
+                                  <span className="text-sm font-semibold text-orange-800 dark:text-cyan-300">Crypto Payment Options</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                  <div className="flex items-center justify-between p-2 bg-white/70 dark:bg-slate-800/50 rounded-lg">
+                                    <span className="font-medium text-orange-700 dark:text-cyan-300">COYN:</span>
+                                    <span className="text-muted-foreground">≈{(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between p-2 bg-white/70 dark:bg-slate-800/50 rounded-lg">
+                                    <span className="font-medium text-orange-700 dark:text-cyan-300">BTC:</span>
+                                    <span className="text-muted-foreground">≈{(parseFloat(item.price) / cryptoRates.BTC).toFixed(6)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between p-2 bg-white/70 dark:bg-slate-800/50 rounded-lg">
+                                    <span className="font-medium text-orange-700 dark:text-cyan-300">BNB:</span>
+                                    <span className="text-muted-foreground">≈{(parseFloat(item.price) / cryptoRates.BNB).toFixed(3)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between p-2 bg-white/70 dark:bg-slate-800/50 rounded-lg">
+                                    <span className="font-medium text-orange-700 dark:text-cyan-300">USDT:</span>
+                                    <span className="text-muted-foreground">≈{parseFloat(item.price).toFixed(2)}</span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           )}
+                          
+                          {/* Enhanced View Full Details Button */}
+                          <Button 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
+                              setLocation(`/product/${productId}`);
+                            }}
+                            className="w-full mt-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-600 dark:hover:to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group"
+                          >
+                            <Package className="h-4 w-4 mr-2" />
+                            <span>Explore Full Product Details</span>
+                            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Button>
                         </div>
-                        
-                        <div className="pt-3 border-t border-gray-100 dark:border-slate-600">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Crypto Equivalent:</span>
-                            <div className="text-right">
-                              <div className="font-bold text-orange-500 dark:text-cyan-400">
-                                ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
-                              </div>
-                              {isMarketplaceProduct && (
-                                <div className="text-xs text-muted-foreground">
-                                  Instant conversion
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <Button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
-                            setLocation(`/product/${productId}`);
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-3"
-                        >
-                          <Package className="h-4 w-4 mr-2" />
-                          View Full Details
-                        </Button>
                       </div>
                     </div>
                   )}
