@@ -101,6 +101,64 @@ export default function ProductPage() {
     queryKey: ["/api/crypto/rates"],
   });
 
+  // Fetch favorites
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['/api/favorites'],
+    queryFn: () => fetch('/api/favorites').then(res => res.json())
+  });
+
+  // Add favorite mutation
+  const addFavoriteMutation = useMutation({
+    mutationFn: (productData: any) => 
+      apiRequest('POST', '/api/favorites', productData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      toast({
+        title: "Added to favorites",
+        description: "Product has been added to your favorites",
+      });
+    }
+  });
+
+  // Remove favorite mutation
+  const removeFavoriteMutation = useMutation({
+    mutationFn: (productId: string) => 
+      apiRequest('DELETE', `/api/favorites/${productId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      toast({
+        title: "Removed from favorites",
+        description: "Product has been removed from your favorites",
+      });
+    }
+  });
+
+  // Helper function to check if product is favorited
+  const isProductFavorited = (productId: string): boolean => {
+    return favorites.some((fav: any) => fav.productId === productId);
+  };
+
+  // Toggle favorite function
+  const toggleFavorite = () => {
+    if (!product) return;
+    
+    const productData = {
+      productId: product.ASIN,
+      productTitle: product.title,
+      productPrice: product.price,
+      productImage: product.imageUrl,
+      productBrand: product.brand,
+      productCategory: product.category,
+      productRating: product.rating
+    };
+
+    if (isProductFavorited(product.ASIN)) {
+      removeFavoriteMutation.mutate(product.ASIN);
+    } else {
+      addFavoriteMutation.mutate(productData);
+    }
+  };
+
   // Purchase mutation
   const purchaseMutation = useMutation({
     mutationFn: async (purchaseData: {
@@ -284,8 +342,20 @@ export default function ProductPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="hover:bg-accent">
-                <Heart className="h-5 w-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-accent"
+                onClick={toggleFavorite}
+                disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+              >
+                <Heart 
+                  className={`h-5 w-5 ${
+                    isProductFavorited(product?.ASIN || '') 
+                      ? 'fill-red-500 text-red-500' 
+                      : 'text-muted-foreground hover:text-red-500'
+                  }`} 
+                />
               </Button>
               <Button variant="ghost" size="icon" className="hover:bg-accent">
                 <Share className="h-5 w-5" />
