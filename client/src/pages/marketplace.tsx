@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -177,6 +177,57 @@ export default function MarketplacePage() {
   const [imageIndexes, setImageIndexes] = useState<Map<string, number>>(new Map());
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
+
+  // Double tap to screenshot functionality
+  const [lastTap, setLastTap] = useState(0);
+  
+  const handleDoubleTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300; // milliseconds
+    
+    if (now - lastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected - take screenshot
+      e.preventDefault();
+      
+      // Use html2canvas to capture screenshot
+      import('html2canvas').then((html2canvas) => {
+        html2canvas.default(document.body, {
+          allowTaint: true,
+          useCORS: true,
+          scale: 1,
+          scrollX: 0,
+          scrollY: 0
+        }).then((canvas) => {
+          // Create download link
+          const link = document.createElement('a');
+          link.download = `marketplace-screenshot-${new Date().getTime()}.png`;
+          link.href = canvas.toDataURL();
+          link.click();
+          
+          toast({
+            title: "Screenshot Captured",
+            description: "Marketplace screenshot has been saved to your downloads",
+          });
+        }).catch((error) => {
+          console.error('Screenshot failed:', error);
+          toast({
+            title: "Screenshot Failed",
+            description: "Unable to capture screenshot. Please try again.",
+            variant: "destructive"
+          });
+        });
+      }).catch((error) => {
+        console.error('Failed to load html2canvas:', error);
+        toast({
+          title: "Screenshot Failed",
+          description: "Screenshot library not available.",
+          variant: "destructive"
+        });
+      });
+    }
+    
+    setLastTap(now);
+  }, [lastTap, toast]);
 
   // Fetch marketplace products with debounced search
   const { data: marketplaceProducts = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
@@ -468,7 +519,11 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10">
+    <div 
+      className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10"
+      onTouchEnd={handleDoubleTap}
+      onClick={handleDoubleTap}
+    >
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg border-b border-white/20 dark:border-slate-700/50">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">

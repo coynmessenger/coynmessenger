@@ -354,6 +354,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Removed "Crypto Equivalent:" label from marketplace product details - simplified crypto conversion display to show only the COYN amount and "Instant conversion" text without descriptive label
 - June 27, 2025: Moved crypto conversion to replace category display - relocated COYN conversion from details dropdown to main price area as orange badge, removed category badges from marketplace product cards, eliminated duplicate crypto conversion in details section for cleaner interface
 - June 27, 2025: Removed arrow button and details dropdown completely - eliminated expandable details section from marketplace product cards, removed arrow toggle button, cleaned up unused state variables, simplified product cards to show only essential information
+- June 27, 2025: Added double-tap screenshot functionality to marketplace page - implemented double-tap detection for both touch and mouse events, users can double-tap anywhere on marketplace to capture and download a screenshot using html2canvas library, includes toast notifications for success/error feedback
 
 ## User Preferences
 
