@@ -38,6 +38,7 @@ import {
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import ShoppingCartComponent from "@/components/shopping-cart";
 
 interface Product {
   ASIN: string;
@@ -73,9 +74,28 @@ export default function ProductPage() {
   const [showNFTRewards, setShowNFTRewards] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Get cart count for header badge
+  const getCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem('shopping-cart') || '[]');
+    return cart.reduce((total: number, item: any) => total + item.quantity, 0);
+  };
+
+  const [cartCount, setCartCount] = useState(getCartCount());
+
+  // Update cart count when cart changes
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      setCartCount(getCartCount());
+    };
+
+    window.addEventListener('storage', handleCartUpdate);
+    return () => window.removeEventListener('storage', handleCartUpdate);
+  }, []);
 
   // Sample reviews data - in real app would come from API
   const reviewsData = [
@@ -384,6 +404,19 @@ export default function ProductPage() {
                       : 'text-muted-foreground hover:text-red-500'
                   }`} 
                 />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-accent relative"
+                onClick={() => setShowCartModal(true)}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Button>
               <Button 
                 variant="ghost" 
@@ -915,6 +948,15 @@ export default function ProductPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Shopping Cart Modal */}
+      <ShoppingCartComponent 
+        isOpen={showCartModal} 
+        onClose={() => {
+          setShowCartModal(false);
+          setCartCount(getCartCount()); // Update cart count when closing
+        }} 
+      />
     </div>
   );
 }
