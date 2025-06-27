@@ -70,11 +70,22 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
     }
 
     try {
-      // API call to create group would go here
+      // Get current user ID from localStorage
+      const currentUserId = parseInt(localStorage.getItem('connectedUserId') || '5');
+      
+      await apiRequest("/api/groups", "POST", {
+        groupName: groupName.trim(),
+        memberIds: [...selectedUsers, currentUserId], // Include current user
+        createdBy: currentUserId,
+      });
+      
       toast({
         title: "Group created",
         description: `Successfully created group "${groupName}"`,
       });
+      
+      // Refresh conversations list
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       
       // Reset form
       setGroupName("");
@@ -110,17 +121,14 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
   const handleStarMessage = async (message: StarredMessage) => {
     try {
-      await apiRequest(`/api/messages/${message.id}/star`, {
-        method: 'PATCH',
-        body: { starred: !message.starred }
-      });
+      await apiRequest(`/api/messages/${message.id}/star`, 'PATCH', { starred: !message.isStarred });
       
       // Refresh starred messages list
       queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
       
       toast({
-        title: message.starred ? "Message unstarred" : "Message starred",
-        description: message.starred ? "Removed from starred messages" : "Added to starred messages",
+        title: message.isStarred ? "Message unstarred" : "Message starred",
+        description: message.isStarred ? "Removed from starred messages" : "Added to starred messages",
       });
     } catch (error) {
       toast({
@@ -228,15 +236,17 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* New Group Modal */}
       <Dialog open={showNewGroup} onOpenChange={setShowNewGroup}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
+        <DialogContent className="w-[95vw] sm:w-[450px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
               Create New Group
             </DialogTitle>
-          </DialogHeader>
+          </div>
 
-          <div className="flex-1 overflow-y-auto space-y-4">
+          <div className="flex flex-col h-full max-h-[calc(85vh-80px)]">
             {/* Group Info */}
             <div className="space-y-3">
               <div>
@@ -278,60 +288,63 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                 )}
 
                 {/* User list */}
-                <ScrollArea className="max-h-[200px]">
-                  <div className="space-y-2">
-                    {filteredUsers.map((user) => (
-                      <div
-                        key={user.id}
-                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                          selectedUsers.includes(user.id)
-                            ? "bg-primary/10 border border-primary/20"
-                            : "hover:bg-accent"
-                        }`}
-                        onClick={() => handleUserToggle(user.id)}
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.profilePicture || ""} />
-                          <AvatarFallback>
-                            {user.displayName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="font-medium text-foreground">
-                            {user.displayName}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            @{user.username}
-                          </div>
+                <div 
+                  className="max-h-[280px] overflow-y-auto space-y-3 pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                  onWheel={(e) => e.stopPropagation()}
+                >
+                  {filteredUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
+                        selectedUsers.includes(user.id)
+                          ? "bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 shadow-md"
+                          : "bg-gray-50 dark:bg-gray-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/10 border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
+                      }`}
+                      onClick={() => handleUserToggle(user.id)}
+                    >
+                      <Avatar className="h-12 w-12 ring-2 ring-orange-200 dark:ring-orange-800">
+                        <AvatarImage src={user.profilePicture || ""} />
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold text-lg">
+                          {user.displayName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 dark:text-white truncate text-base">
+                          {user.displayName}
                         </div>
-                        {selectedUsers.includes(user.id) && (
-                          <div className="h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                            <Plus className="h-2 w-2 text-primary-foreground rotate-45" />
-                          </div>
-                        )}
+                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          @{user.username}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                      {selectedUsers.includes(user.id) && (
+                        <div className="h-7 w-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0 shadow-lg">
+                          <Plus className="h-4 w-4 text-white rotate-45" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-4">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => setShowNewGroup(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700"
-                onClick={handleCreateGroup}
-                disabled={!groupName.trim() || selectedUsers.length < 2}
-              >
-                Create Group
-              </Button>
+            <div className="p-6 pt-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 rounded-b-2xl">
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold transition-all duration-200"
+                  onClick={() => setShowNewGroup(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  onClick={handleCreateGroup}
+                  disabled={!groupName.trim() || selectedUsers.length < 2}
+                >
+                  Create Group
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

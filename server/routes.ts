@@ -5,7 +5,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { insertMessageSchema, insertUserSchema } from "@shared/schema";
+import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers } from "@shared/schema";
+import { db } from "./db";
 import { initializeDatabase } from "./db";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
@@ -424,6 +425,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Upload error:", error);
       res.status(500).json({ message: "Failed to upload profile picture" });
+    }
+  });
+
+  // Create a new group chat
+  app.post("/api/groups", async (req, res) => {
+    try {
+      const { groupName, memberIds, createdBy } = req.body;
+      
+      if (!groupName || !memberIds || memberIds.length < 2) {
+        return res.status(400).json({ message: "Group name and at least 2 members required" });
+      }
+      
+      // Create group conversation
+      const conversation = await db.insert(conversations).values({
+        isGroup: true,
+        groupName,
+        createdBy,
+        lastMessageAt: new Date(),
+      }).returning();
+      
+      const conversationId = conversation[0].id;
+      
+      // Add all members to the group
+      const memberData = memberIds.map((userId: number) => ({
+        conversationId,
+        userId,
+        role: userId === createdBy ? 'admin' : 'member',
+      }));
+      
+      await db.insert(groupMembers).values(memberData);
+      
+      // Send system message about group creation
+      await db.insert(messages).values({
+        conversationId,
+        senderId: createdBy,
+        content: `Group "${groupName}" was created`,
+        messageType: "system",
+      });
+      
+      res.json({ id: conversationId, message: "Group created successfully" });
+    } catch (error) {
+      console.error("Failed to create group:", error);
+      res.status(500).json({ message: "Failed to create group" });
     }
   });
 

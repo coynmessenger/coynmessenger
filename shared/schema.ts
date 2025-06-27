@@ -23,10 +23,24 @@ export const users = pgTable("users", {
 
 export const conversations = pgTable("conversations", {
   id: serial("id").primaryKey(),
-  participant1Id: integer("participant1_id").notNull(),
-  participant2Id: integer("participant2_id").notNull(),
+  participant1Id: integer("participant1_id"),
+  participant2Id: integer("participant2_id"),
+  isGroup: boolean("is_group").default(false),
+  groupName: text("group_name"),
+  groupDescription: text("group_description"),
+  createdBy: integer("created_by"),
   lastMessageAt: timestamp("last_message_at").defaultNow(),
 });
+
+export const groupMembers = pgTable("group_members", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  userId: integer("user_id").notNull(),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  role: text("role").default("member"), // admin, member
+}, (table) => ({
+  unique: unique().on(table.conversationId, table.userId),
+}));
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
