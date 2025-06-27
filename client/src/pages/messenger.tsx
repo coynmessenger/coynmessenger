@@ -20,7 +20,7 @@ import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
-  useScrollToTop();
+  useScrollToTop(); // Clean contact list
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
