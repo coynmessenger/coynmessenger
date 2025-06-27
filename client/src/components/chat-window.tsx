@@ -241,10 +241,21 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
-      // Show button if we have scrollable content and not at the bottom
-      const hasScrollableContent = scrollHeight > clientHeight;
-      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 20;
-      setShowBackToTop(hasScrollableContent && isScrolledUp);
+      // Show button if we have scrollable content and not at the very bottom
+      const hasScrollableContent = scrollHeight > clientHeight + 50;
+      const isNearBottom = scrollTop >= scrollHeight - clientHeight - 10;
+      const shouldShow = hasScrollableContent && !isNearBottom;
+      
+      console.log('Scroll Debug:', { 
+        scrollTop, 
+        scrollHeight, 
+        clientHeight, 
+        hasScrollableContent, 
+        isNearBottom, 
+        shouldShow 
+      });
+      
+      setShowBackToTop(shouldShow);
     };
 
     container.addEventListener('scroll', handleScroll);
@@ -488,7 +499,7 @@ export default function ChatWindow({ conversation, onOpenVideoCall, onOpenVoiceC
         <div ref={messagesEndRef} className="h-4" />
 
         {/* Back to Top Button */}
-        {(showBackToTop || true) && (
+        {showBackToTop && (
           <Button
             onClick={scrollToTop}
             className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:bg-gradient-to-r dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 backdrop-blur-sm border-2 border-white/20 dark:border-slate-800/20"
