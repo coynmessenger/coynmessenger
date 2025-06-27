@@ -81,8 +81,18 @@ export default function HomePage() {
       // Store connection state in localStorage
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
+      localStorage.setItem('connectedUserId', user.id.toString());
       
-      // Invalidate user query cache to ensure fresh data in settings
+      // Store display name for other components
+      if (user.displayName) {
+        localStorage.setItem('userDisplayName', user.displayName);
+      }
+      
+      // Immediately update cache data for both query key patterns
+      queryClient.setQueryData(["/api/user"], user);
+      queryClient.setQueryData(["/api/user", user.id], user);
+      
+      // Invalidate user queries to ensure fresh data across all components
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user", user.id] });
       

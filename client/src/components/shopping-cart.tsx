@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
@@ -216,10 +216,12 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const [expressShipping, setExpressShipping] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
-  // Fetch user data to pre-populate address
+  // Fetch user data to pre-populate address - Get connected user from localStorage
+  const connectedUserId = localStorage.getItem('connectedUserId');
   const { data: user } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: connectedUserId ? ['/api/user', parseInt(connectedUserId)] : ['/api/user'],
     staleTime: 1000 * 60 * 5,
   });
 
@@ -263,17 +265,28 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
     loadCart(); // Load immediately
     
-    // Listen for cart updates
+    // Listen for cart updates and display name updates
     const handleCartUpdate = () => {
       loadCart();
     };
     
+    const handleDisplayNameUpdate = () => {
+      // Invalidate user query to refresh display name in checkout forms
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/user', parseInt(connectedUserId)] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      }
+    };
+    
     window.addEventListener('cartUpdated', handleCartUpdate);
+    window.addEventListener('displayNameUpdated', handleDisplayNameUpdate);
     
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate);
     };
-  }, [isOpen]); // Re-load when modal opens
+  }, [isOpen, connectedUserId, queryClient]); // Re-load when modal opens
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {

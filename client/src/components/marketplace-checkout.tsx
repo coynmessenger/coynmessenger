@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const COUNTRIES = [
   { code: "US", name: "United States" },
@@ -211,10 +211,12 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
   const [orderNotes, setOrderNotes] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch user data for address pre-population
+  // Fetch user data for address pre-population - Get connected user from localStorage
+  const connectedUserId = localStorage.getItem('connectedUserId');
   const { data: user } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: connectedUserId ? ['/api/user', parseInt(connectedUserId)] : ['/api/user'],
     staleTime: 1000 * 60 * 5,
   });
 
@@ -237,17 +239,28 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
 
     loadCart(); // Load immediately
 
-    // Listen for cart updates
+    // Listen for cart updates and display name updates
     const handleCartUpdate = () => {
       loadCart();
     };
+    
+    const handleDisplayNameUpdate = () => {
+      // Invalidate user query to refresh display name in checkout forms
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/user', parseInt(connectedUserId)] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      }
+    };
 
     window.addEventListener('cartUpdated', handleCartUpdate);
+    window.addEventListener('displayNameUpdated', handleDisplayNameUpdate);
 
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate);
     };
-  }, []);
+  }, [connectedUserId, queryClient]);
 
   // Refresh cart when dialog opens
   useEffect(() => {

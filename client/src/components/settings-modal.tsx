@@ -244,11 +244,39 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
       return apiRequest("PATCH", url, userData);
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
+      // Immediately update all cached user data
+      queryClient.setQueryData(["/api/user"], updatedUser);
+      if (connectedUserId) {
+        queryClient.setQueryData(["/api/user", parseInt(connectedUserId)], updatedUser);
+      }
+      
+      // Invalidate all user-related queries to trigger refetch across the app
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       if (connectedUserId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user", parseInt(connectedUserId)] });
       }
+      
+      // Update localStorage for homepage and other components
+      if (updatedUser && updatedUser.displayName) {
+        localStorage.setItem('userDisplayName', updatedUser.displayName);
+        // Update connected user data in localStorage
+        const currentConnectedUser = localStorage.getItem('connectedUser');
+        if (currentConnectedUser) {
+          const connectedUserData = JSON.parse(currentConnectedUser);
+          connectedUserData.displayName = updatedUser.displayName;
+          localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
+        }
+        
+        // Dispatch custom event to notify other components of display name change
+        window.dispatchEvent(new CustomEvent('displayNameUpdated', { 
+          detail: { 
+            displayName: updatedUser.displayName,
+            userId: connectedUserId || updatedUser.id 
+          } 
+        }));
+      }
+      
       toast({
         title: "Settings updated",
         description: "Your profile has been updated successfully."
@@ -295,7 +323,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       });
       
       if (connectedUserId) {
-        queryClient.setQueryData(["/api/user", connectedUserId], (oldData: any) => {
+        queryClient.setQueryData(["/api/user", parseInt(connectedUserId)], (oldData: any) => {
           if (oldData) {
             return { ...oldData, profilePicture: response.profilePicture };
           }
@@ -303,10 +331,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         });
       }
       
-      // Invalidate to ensure fresh data
+      // Invalidate to ensure fresh data across all components
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       if (connectedUserId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user", parseInt(connectedUserId)] });
       }
       
       toast({
