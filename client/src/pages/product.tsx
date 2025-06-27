@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation, Link } from "wouter";
+import { useParams, useLocation, Link, useRouter } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -804,14 +804,18 @@ export default function ProductPage() {
         <h2 className="text-xl font-bold text-foreground mb-4">You might also like</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {[
-            { title: "Gaming Headset", price: "79.99", image: "https://m.media-amazon.com/images/I/61CGHv6kmWL._AC_UX679_.jpg" },
-            { title: "iPad Pro 5th Generation", price: "649.00", image: "https://m.media-amazon.com/images/I/51F9d8h5TJL._AC_UX679_.jpg" },
-            { title: "Gaming Keyboard", price: "129.99", image: "https://m.media-amazon.com/images/I/61Tq-c2PwwL._AC_UX679_.jpg" },
-            { title: "MacBook Pro", price: "1999.00", image: "https://m.media-amazon.com/images/I/61RJn0ofUsL._AC_UX679_.jpg" },
-            { title: "Wireless Mouse", price: "49.99", image: "https://m.media-amazon.com/images/I/61mpMH5TzkL._AC_UX679_.jpg" },
-            { title: "USB-C Hub", price: "39.99", image: "https://m.media-amazon.com/images/I/61Bl8lWwJoL._AC_UX679_.jpg" }
+            { title: "Gaming Headset", price: "79.99", image: "https://m.media-amazon.com/images/I/61CGHv6kmWL._AC_UX679_.jpg", asin: "B07FZQJ8PY" },
+            { title: "iPad Pro 5th Generation", price: "649.00", image: "https://m.media-amazon.com/images/I/51F9d8h5TJL._AC_UX679_.jpg", asin: "B09G91LXFP" },
+            { title: "Gaming Keyboard", price: "129.99", image: "https://m.media-amazon.com/images/I/61Tq-c2PwwL._AC_UX679_.jpg", asin: "B07ZGDPT4M" },
+            { title: "MacBook Pro", price: "1999.00", image: "https://m.media-amazon.com/images/I/61RJn0ofUsL._AC_UX679_.jpg", asin: "B0BSHF7LLL" },
+            { title: "Wireless Mouse", price: "49.99", image: "https://m.media-amazon.com/images/I/61mpMH5TzkL._AC_UX679_.jpg", asin: "B08BHVS7VJ" },
+            { title: "USB-C Hub", price: "39.99", image: "https://m.media-amazon.com/images/I/61Bl8lWwJoL._AC_UX679_.jpg", asin: "B087QZVQJX" }
           ].map((item, index) => (
-            <Card key={index} className="flex-shrink-0 w-40 group cursor-pointer hover:shadow-lg transition-shadow duration-300">
+            <Card 
+              key={index} 
+              className="flex-shrink-0 w-40 group cursor-pointer hover:shadow-lg transition-shadow duration-300"
+              onClick={() => setLocation(`/product/${item.asin}`)}
+            >
               <CardContent className="p-3">
                 <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-3 overflow-hidden">
                   <img
