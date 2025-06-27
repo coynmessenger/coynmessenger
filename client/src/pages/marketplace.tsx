@@ -683,7 +683,7 @@ export default function MarketplacePage() {
               return (
                 <Card 
                   key={itemKey} 
-                  className="bg-white dark:bg-card border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
+                  className="relative bg-white dark:bg-card border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
                   onClick={() => {
                     const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
                     setLocation(`/product/${productId}`);
