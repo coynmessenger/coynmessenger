@@ -67,7 +67,6 @@ export default function ProductPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseStep, setPurchaseStep] = useState<"select" | "confirm" | "processing" | "success">("select");
   const [cryptoAmount, setCryptoAmount] = useState("");
-  const [selectedColor, setSelectedColor] = useState(0);
   const [showNFTRewards, setShowNFTRewards] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const { toast } = useToast();
@@ -385,21 +384,56 @@ export default function ProductPage() {
 
             {/* Price */}
             <div className="bg-gradient-to-r from-orange-100/60 to-cyan-100/60 dark:from-slate-700/60 dark:to-slate-600/60 backdrop-blur-sm p-6 rounded-xl border border-orange-200/50 dark:border-cyan-600/50 shadow-lg">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-4xl font-bold text-orange-600 dark:text-cyan-400">
                   ${product.price}
                 </span>
                 <span className="text-lg text-muted-foreground">USD</span>
               </div>
+              
               {cryptoRates && (
-                <div className="mt-3 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.BTC).toFixed(6)} BTC</span>
-                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.BNB).toFixed(3)} BNB</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.USDT).toFixed(2)} USDT</span>
-                    <span className="text-muted-foreground">≈ {(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)} COYN</span>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-foreground mb-2">Available in Crypto:</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
+                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">₿</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.BTC).toFixed(6)}</div>
+                        <div className="text-xs text-muted-foreground">BTC</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
+                      <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">B</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.BNB).toFixed(3)}</div>
+                        <div className="text-xs text-muted-foreground">BNB</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">₮</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.USDT).toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">USDT</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg border border-orange-200/30 dark:border-cyan-600/30">
+                      <div className="w-6 h-6 rounded-full overflow-hidden">
+                        <img src={coynLogoPath} alt="COYN" className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)}</div>
+                        <div className="text-xs text-muted-foreground">COYN</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -413,26 +447,7 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Color Variants */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">Color</h3>
-              <div className="flex gap-3">
-                {["#1a1a1a", "#4a4a4a", "#8b4513", "#d2691e"].map((color, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedColor(index)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${
-                      selectedColor === index
-                        ? "border-orange-500 shadow-lg scale-110"
-                        : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
-                    }`}
-                    style={{ backgroundColor: color }}
-                    title={`Color variant ${index + 1}`}
-                  />
-                ))}
-              </div>
 
-            </div>
 
             {/* Reviews Section */}
             <div>
