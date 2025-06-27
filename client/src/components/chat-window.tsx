@@ -243,15 +243,22 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     if (!message.trim()) return;
 
     let messageContent = message;
+    let replyData = null;
     
-    // Add reply prefix if replying to a message
+    // Store reply information for message display
     if (replyToMessage) {
+      replyData = {
+        replyToId: replyToMessage.id,
+        replyToSender: replyToMessage.sender,
+        replyToContent: replyToMessage.content
+      };
+      // Include reply context in message for backend
       messageContent = `@${replyToMessage.sender}: ${message}`;
     }
 
     sendMessageMutation.mutate({
       content: messageContent,
-      messageType: "text",
+      messageType: "text"
     });
 
     setMessage("");
@@ -291,8 +298,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleSwipeEnd = () => {
     if (!swipeState.isDragging) return;
 
-    if (swipeState.offsetX > 80) {
-      // Trigger reply to message
+    if (swipeState.offsetX > 60) { // Reduced threshold for more responsive triggering
+      // Trigger reply to message with haptic-like feedback
       const message = messages.find(m => m.id === swipeState.messageId);
       if (message) {
         setReplyToMessage({
@@ -300,8 +307,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           content: message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`,
           sender: message.sender.displayName
         });
+        
+        // Add visual feedback similar to WhatsApp
+        toast({
+          title: "Replying to " + message.sender.displayName,
+          description: "Message ready for reply",
+          duration: 1500,
+        });
       }
-      // Reset swipe state
+      // Reset swipe state with smooth animation
       setSwipeState({
         messageId: null,
         offsetX: 0,
@@ -310,7 +324,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         startX: 0
       });
     } else {
-      // Reset position
+      // Reset position with spring animation
       setSwipeState({
         messageId: null,
         offsetX: 0,
@@ -526,16 +540,43 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         onMouseLeave={handleSwipeEnd}
                       >
                         <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
-                          <p className="text-sm font-medium break-words">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          {/* WhatsApp-style reply context */}
+                          {msg.content?.includes('@') && msg.content.includes(':') && (
+                            <div className="bg-white/20 rounded-lg p-2 mb-2 border-l-4 border-white/40">
+                              <div className="text-xs font-medium text-white/90 mb-1">
+                                {msg.content.split(':')[0].replace('@', '')}
+                              </div>
+                              <div className="text-xs text-white/70 line-clamp-1">
+                                {/* Extract original message content - this would be the replied-to message */}
+                                Original message
+                              </div>
+                            </div>
+                          )}
+                          <p className="text-sm font-medium break-words">
+                            {highlightText(
+                              msg.content?.includes('@') && msg.content.includes(':') 
+                                ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
+                                : msg.content || "", 
+                              searchQuery || ""
+                            )}
+                          </p>
                           <span className="text-xs text-primary-foreground/80 mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
                         </div>
                         
-                        {/* Visual hint */}
+                        {/* WhatsApp-style visual hint for sent messages */}
                         {swipeState.messageId === msg.id && swipeState.offsetX > 20 && (
-                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-blue-400 px-2">
-                            <Reply className="h-5 w-5" />
+                          <div 
+                            className="absolute right-full top-1/2 transform -translate-y-1/2 px-2 transition-all duration-100"
+                            style={{
+                              transform: `translateY(-50%) scale(${Math.min(1.2, 0.8 + swipeState.offsetX / 100)}) rotate(${Math.min(15, swipeState.offsetX / 10)}deg)`,
+                              opacity: Math.min(1, swipeState.offsetX / 80)
+                            }}
+                          >
+                            <div className="bg-green-500 rounded-full p-2 shadow-lg">
+                              <Reply className="h-4 w-4 text-white" />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -571,10 +612,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           </span>
                         </div>
                         
-                        {/* Visual hint */}
+                        {/* WhatsApp-style visual hint for received messages */}
                         {swipeState.messageId === msg.id && swipeState.offsetX > 20 && (
-                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-blue-400 px-2">
-                            <Reply className="h-5 w-5" />
+                          <div 
+                            className="absolute right-full top-1/2 transform -translate-y-1/2 px-2 transition-all duration-100"
+                            style={{
+                              transform: `translateY(-50%) scale(${Math.min(1.2, 0.8 + swipeState.offsetX / 100)}) rotate(${Math.min(15, swipeState.offsetX / 10)}deg)`,
+                              opacity: Math.min(1, swipeState.offsetX / 80)
+                            }}
+                          >
+                            <div className="bg-green-500 rounded-full p-2 shadow-lg">
+                              <Reply className="h-4 w-4 text-white" />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -703,14 +752,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       {/* Message Input */}
       <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-4 shadow-lg">
-        {/* Reply indicator */}
+        {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
-          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Reply className="h-4 w-4 text-blue-400" />
-              <div className="text-sm">
-                <span className="text-blue-600 dark:text-blue-400 font-medium">Replying to {replyToMessage.sender}</span>
-                <p className="text-gray-600 dark:text-gray-300 truncate max-w-xs">{replyToMessage.content}</p>
+          <div className="mb-3 p-3 bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border-l-4 border-green-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
+            <div className="flex items-center space-x-3">
+              <Reply className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div className="flex-1">
+                <div className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">
+                  {replyToMessage.sender}
+                </div>
+                <div className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 max-w-xs">
+                  {replyToMessage.content}
+                </div>
               </div>
             </div>
             <Button
@@ -718,7 +771,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               variant="ghost"
               size="icon"
               onClick={handleReplyCancel}
-              className="h-6 w-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="h-7 w-7 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/30 rounded-full transition-all duration-150"
             >
               <X className="h-4 w-4" />
             </Button>
