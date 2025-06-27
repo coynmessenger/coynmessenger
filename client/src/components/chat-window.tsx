@@ -53,15 +53,21 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     messageId: number | null;
     offsetX: number;
     isDragging: boolean;
-    showConfirm: boolean;
+    showReply: boolean;
     startX: number;
   }>({
     messageId: null,
     offsetX: 0,
     isDragging: false,
-    showConfirm: false,
+    showReply: false,
     startX: 0
   });
+  
+  const [replyToMessage, setReplyToMessage] = useState<{
+    id: number;
+    content: string;
+    sender: string;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -236,12 +242,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     e.preventDefault();
     if (!message.trim()) return;
 
+    let messageContent = message;
+    
+    // Add reply prefix if replying to a message
+    if (replyToMessage) {
+      messageContent = `@${replyToMessage.sender}: ${message}`;
+    }
+
     sendMessageMutation.mutate({
-      content: message,
+      content: messageContent,
       messageType: "text",
     });
 
     setMessage("");
+    setReplyToMessage(null); // Clear reply state
     setShowEmojiPicker(false);
   };
 
@@ -250,14 +264,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowEmojiPicker(false);
   };
 
-  // Swipe-to-delete handlers
+  // Swipe-to-reply handlers
   const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     setSwipeState({
       messageId,
       offsetX: 0,
       isDragging: true,
-      showConfirm: false,
+      showReply: false,
       startX: clientX
     });
   };
@@ -278,46 +292,37 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     if (!swipeState.isDragging) return;
 
     if (swipeState.offsetX > 80) {
-      // Show delete confirmation
-      setSwipeState(prev => ({
-        ...prev,
+      // Trigger reply to message
+      const message = messages.find(m => m.id === swipeState.messageId);
+      if (message) {
+        setReplyToMessage({
+          id: message.id,
+          content: message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`,
+          sender: message.sender.displayName
+        });
+      }
+      // Reset swipe state
+      setSwipeState({
+        messageId: null,
+        offsetX: 0,
         isDragging: false,
-        showConfirm: true,
-        offsetX: 150
-      }));
+        showReply: false,
+        startX: 0
+      });
     } else {
       // Reset position
       setSwipeState({
         messageId: null,
         offsetX: 0,
         isDragging: false,
-        showConfirm: false,
+        showReply: false,
         startX: 0
       });
     }
   };
 
-  const handleDeleteConfirm = () => {
-    if (swipeState.messageId) {
-      deleteMessageMutation.mutate(swipeState.messageId);
-    }
-    setSwipeState({
-      messageId: null,
-      offsetX: 0,
-      isDragging: false,
-      showConfirm: false,
-      startX: 0
-    });
-  };
-
-  const handleDeleteCancel = () => {
-    setSwipeState({
-      messageId: null,
-      offsetX: 0,
-      isDragging: false,
-      showConfirm: false,
-      startX: 0
-    });
+  const handleReplyCancel = () => {
+    setReplyToMessage(null);
   };
 
   const handleQuickSend = (currency: string) => {
@@ -500,27 +505,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
             {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
-                  // Sent message (current user) - with swipe-to-delete
+                  // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
-                      {/* Delete confirmation overlay */}
-                      {swipeState.showConfirm && swipeState.messageId === msg.id && (
-                        <div className="absolute right-0 top-0 h-full flex items-center space-x-2 px-4 bg-red-500/90 rounded-l-2xl backdrop-blur-sm z-10">
-                          <Button
-                            onClick={handleDeleteConfirm}
-                            className="bg-white text-red-500 hover:bg-red-50 px-3 py-1 h-8 text-sm font-medium rounded-lg shadow-sm"
-                          >
-                            Delete
-                          </Button>
-                          <Button
-                            onClick={handleDeleteCancel}
-                            variant="ghost"
-                            className="text-white hover:bg-white/20 px-3 py-1 h-8 text-sm rounded-lg"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      )}
+
                       
                       {/* Swipeable message */}
                       <div 
@@ -545,26 +533,51 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         </div>
                         
                         {/* Visual hint */}
-                        {swipeState.messageId === msg.id && swipeState.offsetX > 20 && !swipeState.showConfirm && (
-                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-red-400 px-2">
-                            <Trash2 className="h-5 w-5" />
+                        {swipeState.messageId === msg.id && swipeState.offsetX > 20 && (
+                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-blue-400 px-2">
+                            <Reply className="h-5 w-5" />
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  // Received message
+                  // Received message - with swipe-to-reply
                   <div className="flex items-start space-x-3 mb-1" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
-                      <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
-                      <span className="text-xs text-muted-foreground mt-1 block">
-                        {formatTimestamp(msg.timestamp)}
-                      </span>
+                    <div className="relative max-w-xs lg:max-w-md">
+                      {/* Swipeable message */}
+                      <div 
+                        className="relative cursor-pointer touch-pan-y select-none"
+                        style={{
+                          transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
+                          transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                        onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                        onTouchMove={handleSwipeMove}
+                        onTouchEnd={handleSwipeEnd}
+                        onMouseDown={(e) => handleSwipeStart(e, msg.id)}
+                        onMouseMove={handleSwipeMove}
+                        onMouseUp={handleSwipeEnd}
+                        onMouseLeave={handleSwipeEnd}
+                      >
+                        <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
+                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          <span className="text-xs text-muted-foreground mt-1 block">
+                            {formatTimestamp(msg.timestamp)}
+                          </span>
+                        </div>
+                        
+                        {/* Visual hint */}
+                        {swipeState.messageId === msg.id && swipeState.offsetX > 20 && (
+                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 text-blue-400 px-2">
+                            <Reply className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
@@ -690,6 +703,28 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       {/* Message Input */}
       <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-4 shadow-lg">
+        {/* Reply indicator */}
+        {replyToMessage && (
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Reply className="h-4 w-4 text-blue-400" />
+              <div className="text-sm">
+                <span className="text-blue-600 dark:text-blue-400 font-medium">Replying to {replyToMessage.sender}</span>
+                <p className="text-gray-600 dark:text-gray-300 truncate max-w-xs">{replyToMessage.content}</p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleReplyCancel}
+              className="h-6 w-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
         <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
