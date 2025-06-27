@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 
@@ -214,6 +215,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [expressShipping, setExpressShipping] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Fetch user data to pre-populate address
   const { data: user } = useQuery({
@@ -347,6 +349,11 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     }
   };
 
+  const handleProductClick = (productId: string) => {
+    onClose(); // Close the cart modal
+    setLocation(`/product/${productId}`); // Navigate to product page
+  };
+
   const handleFinalizePurchase = async () => {
     if (!agreedToTerms) {
       toast({
@@ -457,7 +464,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       <CardContent className="p-2 sm:p-3">
                         <div className="flex items-start gap-2 sm:gap-3">
                           {item.imageUrl && (
-                            <div className="flex-shrink-0">
+                            <div 
+                              className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => handleProductClick(item.id)}
+                            >
                               <img 
                                 src={item.imageUrl} 
                                 alt={item.title}
@@ -467,7 +477,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                           )}
                           
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-foreground text-sm sm:text-base mb-1 line-clamp-2">
+                            <h4 
+                              className="font-semibold text-foreground text-sm sm:text-base mb-1 line-clamp-2 cursor-pointer hover:text-orange-500 dark:hover:text-cyan-400 transition-colors"
+                              onClick={() => handleProductClick(item.id)}
+                            >
                               {item.title}
                             </h4>
                             <p className="text-lg font-bold text-orange-500 dark:text-cyan-400 mb-2">
