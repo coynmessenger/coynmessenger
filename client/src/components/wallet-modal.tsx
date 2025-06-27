@@ -444,11 +444,11 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[80vw] sm:w-[75vw] max-w-md max-h-[95vh] m-10 sm:m-12 p-0 overflow-hidden">
+      <DialogContent className="w-[80vw] sm:w-[75vw] max-w-md max-h-[90vh] m-6 sm:m-8 p-0 flex flex-col">
         <DialogHeader className="sr-only">
           <DialogTitle>Wallet</DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto max-h-[95vh]">
+        <div className="flex-1 overflow-y-auto">
           {view === "main" && renderMainView()}
           {view === "send" && renderSendView()}
           {view === "qr" && renderQRView()}

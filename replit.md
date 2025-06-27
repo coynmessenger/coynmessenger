@@ -280,6 +280,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Removed redundant wallet connection prompt - conditionally hid "Connect your Web3 wallet to access COYN Messenger" message once user is connected, providing cleaner interface for connected users
 - June 27, 2025: Fixed messenger header positioning - changed mobile navigation layout from justify-center to justify-between for proper alignment of logo/title on left and action buttons on right
 - June 27, 2025: Simplified delete message interface - removed "Delete Message" and "Delete Transaction" text labels from dropdown menus, keeping only trash icons with centered alignment for cleaner interface
+- June 27, 2025: Created comprehensive wallet sidebar for messenger - implemented sleek semi-transparent sidebar with glassmorphism effects, full portfolio overview, individual crypto asset management, send/receive functionality, privacy toggles, and integrated access from both mobile and desktop interfaces
+- June 27, 2025: Fixed marketplace wallet modal scroll issue - resolved conflicting height constraints by implementing proper flexbox layout, optimized overflow handling with flex-1 overflow-y-auto, reduced margins for better mobile compatibility, and improved viewport height management
 
 ## User Preferences
 
