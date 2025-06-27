@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Monitor } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
@@ -16,16 +17,7 @@ interface VideoCallModalProps {
   isCallActive?: boolean;
 }
 
-export default function VideoCallModal({ 
-  isOpen, 
-  onClose, 
-  onHide, 
-  onCallStart, 
-  onCallEnd, 
-  user, 
-  callType = "outgoing", 
-  isCallActive = false 
-}: VideoCallModalProps) {
+export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing", isCallActive = false }: VideoCallModalProps) {
   // Early return if no user is provided
   if (!user) {
     return null;
@@ -118,7 +110,7 @@ export default function VideoCallModal({
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = 'none';
+      document.body.style.userSelect = 'none'; // Prevent text selection while dragging
     }
 
     return () => {
@@ -199,7 +191,7 @@ export default function VideoCallModal({
       {/* Draggable Video Call Modal */}
       <div
         ref={modalRef}
-        className="fixed z-[60] w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden transition-transform duration-200 select-none"
+        className="fixed z-50 w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden transition-transform duration-200"
         style={{
           left: `calc(50vw - 384px + ${position.x}px)`,
           top: `calc(50vh - 240px + ${position.y}px)`,
@@ -208,8 +200,10 @@ export default function VideoCallModal({
         }}
         onMouseDown={handleMouseDown}
       >
+        <div className="sr-only">Video Call with {user.displayName}</div>
+        
         {/* Video Area */}
-        <div className="relative aspect-video bg-slate-800" style={{ pointerEvents: 'none' }}>
+        <div className="relative aspect-video bg-slate-800">
           {callStatus === "connected" && !isVideoOff ? (
             // Simulated video feed
             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -263,7 +257,7 @@ export default function VideoCallModal({
         </div>
 
         {/* User Info & Controls */}
-        <div className="p-6 space-y-6" style={{ pointerEvents: 'auto' }}>
+        <div className="p-6 space-y-6">
           {/* User Name */}
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
