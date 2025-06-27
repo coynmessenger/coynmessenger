@@ -5,68 +5,58 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { enhancedEscrowManager } from "./escrow-enhanced";
-import { insertMessageSchema, insertEscrowSchema, insertUserSchema } from "@shared/schema";
+import { insertMessageSchema, insertUserSchema } from "@shared/schema";
 import { initializeDatabase } from "./db";
 import { z } from "zod";
-import { enhancedEscrowManager } from "./escrow-enhanced";
 
 // Configure multer for file uploads
-const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage_multer = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, `avatar-${uniqueSuffix}${extension}`);
-  }
-});
-
 const upload = multer({
-  storage: storage_multer,
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(process.cwd(), 'uploads/avatars');
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error('Only images are allowed'));
     }
   }
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize database connection
-  const dbConnected = await initializeDatabase();
-  if (!dbConnected) {
-    console.warn('Database connection failed, some features may not work');
-  }
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
-    setHeaders: (res) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    }
-  }));
+  // Initialize database
+  await initializeDatabase();
 
-  // Health check endpoint
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", database: dbConnected });
-  });
-
-  // Get current user (hardcoded as user ID 5 for demo)
+  // Get current user
   app.get("/api/user", async (req, res) => {
     try {
-      // Check for user ID in query parameter or default to demo user (5)
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      let userId = 5; // Default user
+      
+      // Check if there's a specific user ID in query (for wallet connections)
+      if (req.query.userId) {
+        userId = parseInt(req.query.userId as string);
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -77,45 +67,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user conversations
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get users" });
+    }
+  });
+
+  // Find or create user by wallet address
+  app.post("/api/users/find-or-create", async (req, res) => {
+    try {
+      const { walletAddress, displayName } = req.body;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+
+      // Only find existing users, don't create new ones
+      const existingUser = await storage.getUserByWalletAddress(walletAddress);
+      if (existingUser) {
+        return res.json(existingUser);
+      }
+
+      // Return error for unregistered addresses
+      return res.status(404).json({ 
+        message: "No user found with this wallet address. Please contact administrator to register your address." 
+      });
+    } catch (error) {
+      console.error("Find/create user error:", error);
+      res.status(500).json({ message: "Failed to find or create user" });
+    }
+  });
+
+  // Get conversations for current user
   app.get("/api/conversations", async (req, res) => {
     try {
-      const conversations = await storage.getUserConversations(5); // Current user
+      const userId = 5; // Current user
+      const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {
       res.status(500).json({ message: "Failed to get conversations" });
     }
   });
 
-  // Create new conversation
-  app.post("/api/conversations", async (req, res) => {
-    try {
-      const { otherUserId } = req.body;
-      const currentUserId = 5; // Current user
-      
-      if (!otherUserId) {
-        return res.status(400).json({ message: "Other user ID is required" });
-      }
-
-      // Check if conversation already exists
-      const existingConversation = await storage.getConversationByParticipants(currentUserId, otherUserId);
-      if (existingConversation) {
-        return res.json(existingConversation);
-      }
-
-      // Create new conversation
-      const newConversation = await storage.createConversation({
-        participant1Id: currentUserId,
-        participant2Id: otherUserId,
-      });
-
-      res.json(newConversation);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create conversation" });
-    }
-  });
-
-  // Get conversation messages
+  // Get messages for a conversation
   app.get("/api/conversations/:id/messages", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
@@ -130,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send message
+  // Send a message
   app.post("/api/conversations/:id/messages", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
@@ -138,86 +136,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid conversation ID" });
       }
 
-      const messageData = insertMessageSchema.parse({
-        ...req.body,
+      const messageData = {
         conversationId,
         senderId: 5, // Current user
-      });
-
-      const message = await storage.createMessage(messageData);
-      const messageWithSender = {
-        ...message,
-        sender: await storage.getUser(message.senderId),
+        content: req.body.content,
+        messageType: req.body.messageType || "text",
+        cryptoAmount: req.body.cryptoAmount,
+        cryptoCurrency: req.body.cryptoCurrency,
+        audioFilePath: req.body.audioFilePath,
+        transcription: req.body.transcription,
+        audioDuration: req.body.audioDuration
       };
 
-      res.json(messageWithSender);
+      const message = await storage.createMessage(messageData);
+      res.status(201).json(message);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid message data", errors: error.errors });
-      }
       res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // Create or get conversation
+  app.post("/api/conversations", async (req, res) => {
+    try {
+      const { otherUserId } = req.body;
+      const currentUserId = 5; // Current user
+
+      if (!otherUserId || otherUserId === currentUserId) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Check if conversation already exists
+      const existingConversation = await storage.findConversation(currentUserId, otherUserId);
+      if (existingConversation) {
+        return res.json(existingConversation);
+      }
+
+      // Create new conversation
+      const conversation = await storage.createConversation(currentUserId, otherUserId);
+      res.status(201).json(conversation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create conversation" });
     }
   });
 
   // Get wallet balances
   app.get("/api/wallet/balances", async (req, res) => {
     try {
-      const balances = await storage.getUserWalletBalances(5); // Current user
+      const userId = 5; // Current user
+      const balances = await storage.getUserWalletBalances(userId);
       res.json(balances);
     } catch (error) {
       res.status(500).json({ message: "Failed to get wallet balances" });
     }
   });
 
-  // Send crypto
+  // Send cryptocurrency
   app.post("/api/wallet/send", async (req, res) => {
     try {
       const { toUserId, currency, amount } = req.body;
-      
+      const fromUserId = 5; // Current user
+
       if (!toUserId || !currency || !amount) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // In a real app, this would handle actual crypto transactions
-      // For now, we'll just create a crypto message
-      const conversation = await storage.getConversationByParticipants(5, toUserId);
-      if (!conversation) {
-        return res.status(404).json({ message: "Conversation not found" });
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
       }
 
-      const message = await storage.createMessage({
-        conversationId: conversation.id,
-        senderId: 5,
-        content: "",
-        messageType: "crypto",
+      // Check if sender has sufficient balance
+      const senderBalance = await storage.getUserCurrencyBalance(fromUserId, currency);
+      if (!senderBalance || parseFloat(senderBalance.balance) < numAmount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      // Process the transfer
+      const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
+      if (!success) {
+        return res.status(500).json({ message: "Transfer failed" });
+      }
+
+      // Create transfer message
+      const transferMessage = {
+        conversationId: req.body.conversationId || 1, // Default conversation
+        senderId: fromUserId,
+        content: `Sent ${amount} ${currency}`,
+        messageType: "crypto_transfer" as const,
         cryptoAmount: amount,
-        cryptoCurrency: currency,
-      });
+        cryptoCurrency: currency
+      };
 
-      // Update wallet balance (mock)
-      const currentBalance = (await storage.getUserWalletBalances(5))
-        .find(b => b.currency === currency);
-      
-      if (currentBalance) {
-        const newBalance = (parseFloat(currentBalance.balance) - parseFloat(amount)).toString();
-        await storage.updateWalletBalance(5, currency, newBalance);
-      }
+      await storage.createMessage(transferMessage);
 
-      res.json({ message: "Crypto sent successfully", transactionId: message.id });
+      res.json({ message: "Transfer successful" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to send crypto" });
+      console.error("Crypto send error:", error);
+      res.status(500).json({ message: "Failed to send cryptocurrency" });
     }
   });
 
-  // Delete message
+  // Delete a message
   app.delete("/api/messages/:id", async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
+      const userId = 5; // Current user
+
       if (isNaN(messageId)) {
         return res.status(400).json({ message: "Invalid message ID" });
       }
 
-      const deleted = await storage.deleteMessage(messageId, 5); // Current user
+      const deleted = await storage.deleteMessage(messageId, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Message not found or unauthorized" });
       }
@@ -228,471 +257,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get conversation escrows
-  app.get("/api/conversations/:id/escrows", async (req, res) => {
+  // Search messages
+  app.get("/api/search", async (req, res) => {
     try {
-      const conversationId = parseInt(req.params.id);
-      if (isNaN(conversationId)) {
-        return res.status(400).json({ message: "Invalid conversation ID" });
-      }
-
-      const escrows = await storage.getConversationEscrows(conversationId);
-      res.json(escrows);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get escrows" });
-    }
-  });
-
-  // Get user escrows
-  app.get("/api/user/escrows", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const escrows = await storage.getUserEscrows(userId);
-      res.json(escrows);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get user escrows" });
-    }
-  });
-
-  // Enhanced Escrow Analytics - must be first to avoid route conflicts
-  app.get("/api/escrows/analytics", async (req, res) => {
-    try {
-      const userId = 5; // Current user (hardcoded for demo)
-      const escrows = await storage.getUserEscrows(userId);
+      const { q: query, conversationId } = req.query;
       
-      const analytics = {
-        total: escrows.length,
-        pending: escrows.filter(e => e.status === "pending").length,
-        active: escrows.filter(e => ["funded", "confirming"].includes(e.status)).length,
-        completed: escrows.filter(e => e.status === "released").length,
-        disputed: escrows.filter(e => e.status === "disputed").length,
-        cancelled: escrows.filter(e => e.status === "cancelled").length,
-        averageAmount: escrows.length > 0 ? 
-          escrows.reduce((sum, e) => sum + parseFloat(e.initiatorRequiredAmount), 0) / escrows.length : 0,
-        successRate: escrows.length > 0 ? 
-          (escrows.filter(e => e.status === "released").length / escrows.length) * 100 : 0,
-        recentActivity: escrows
-          .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-          .slice(0, 5)
-      };
-
-      res.json(analytics);
-    } catch (error) {
-      console.error("Analytics error:", error);
-      res.status(500).json({ message: "Failed to get escrow analytics" });
-    }
-  });
-
-  // Create escrow
-  app.post("/api/escrows", async (req, res) => {
-    try {
-      const escrowData = insertEscrowSchema.parse({
-        ...req.body,
-        initiatorId: 5, // Current user
-      });
-
-      const escrow = await storage.createEscrow(escrowData);
-      
-      // Send notification to both parties
-      await storage.sendEscrowNotification(escrow.id);
-      
-      // Create system message in conversation
-      const notificationMessage = {
-        conversationId: escrow.conversationId,
-        senderId: escrow.initiatorId,
-        type: "system" as const,
-        content: `🛡️ Escrow created: ${escrow.initiatorRequiredAmount} ${escrow.initiatorCurrency} ⇄ ${escrow.participantRequiredAmount} ${escrow.participantCurrency}. Both parties must fund the escrow before blockchain confirmation begins.`
-      };
-      
-      await storage.createMessage(notificationMessage);
-      
-      console.log(`[ESCROW] Created escrow ${escrow.id} between users ${escrow.initiatorId} and ${escrow.participantId}`);
-      res.json(escrow);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid escrow data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create escrow" });
-    }
-  });
-
-  // Add funds to escrow
-  app.post("/api/escrows/:id/fund", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      const { amount } = req.body;
-
-      if (isNaN(escrowId) || !amount) {
-        return res.status(400).json({ message: "Invalid escrow ID or amount" });
-      }
-
-      const escrow = await storage.addFundsToEscrow(escrowId, 5, amount); // Current user
-      if (!escrow) {
-        return res.status(404).json({ message: "Escrow not found or unauthorized" });
-      }
-
-      // Check if both parties have now funded
-      const initiatorFunded = parseFloat(escrow.initiatorAmount || "0");
-      const participantFunded = parseFloat(escrow.participantAmount || "0");
-      const initiatorRequired = parseFloat(escrow.initiatorRequiredAmount);
-      const participantRequired = parseFloat(escrow.participantRequiredAmount);
-
-      if (initiatorFunded >= initiatorRequired && participantFunded >= participantRequired && escrow.status === "funded") {
-        // Create funding complete notification
-        const fundingMessage = {
-          conversationId: escrow.conversationId,
-          senderId: 5,
-          type: "system" as const,
-          content: `✅ Escrow fully funded! Starting blockchain confirmation process (25 confirmations required). Funds will be automatically released when complete.`
-        };
-        
-        await storage.createMessage(fundingMessage);
-        console.log(`[ESCROW] Escrow ${escrowId} fully funded, starting blockchain confirmations`);
-      }
-
-      res.json(escrow);
-    } catch (error: any) {
-      if (error.message.includes("Insufficient")) {
-        return res.status(400).json({ message: error.message });
-      }
-      console.error("Escrow funding error:", error);
-      res.status(500).json({ message: "Failed to add funds to escrow" });
-    }
-  });
-
-  // Send release notification
-  app.post("/api/escrows/:id/notify-release", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      // Send notification message to the conversation
-      const notificationSent = await storage.sendEscrowNotification(escrowId);
-      if (!notificationSent) {
-        return res.status(404).json({ message: "Escrow not found" });
-      }
-
-      res.json({ message: "Release notification sent" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to send notification" });
-    }
-  });
-
-  // Release escrow
-  app.post("/api/escrows/:id/release", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const released = await storage.releaseEscrow(escrowId);
-      if (!released) {
-        return res.status(404).json({ message: "Escrow not found or already processed" });
-      }
-
-      res.json({ message: "Escrow released successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to release escrow" });
-    }
-  });
-
-  // Cancel escrow
-  app.post("/api/escrows/:id/cancel", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const cancelled = await storage.cancelEscrow(escrowId, 5); // Current user
-      if (!cancelled) {
-        return res.status(404).json({ message: "Escrow not found or unauthorized" });
-      }
-
-      res.json({ message: "Escrow cancelled successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to cancel escrow" });
-    }
-  });
-
-  // Enhanced Escrow Management Routes
-
-  // Get specific escrow details
-  app.get("/api/escrows/:id", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const escrow = await storage.getEscrow?.(escrowId);
-      if (!escrow) {
-        return res.status(404).json({ message: "Escrow not found" });
-      }
-
-      res.json(escrow);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get escrow details" });
-    }
-  });
-
-
-
-  // Update escrow
-  app.patch("/api/escrows/:id", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const updates = req.body;
-      const updatedEscrow = await storage.updateEscrow?.(escrowId, updates);
-      
-      if (!updatedEscrow) {
-        return res.status(404).json({ message: "Escrow not found" });
-      }
-
-      res.json(updatedEscrow);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update escrow" });
-    }
-  });
-
-  // Fund escrow
-  app.post("/api/escrows/:id/fund", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const { amount } = req.body;
-      if (!amount || parseFloat(amount) <= 0) {
-        return res.status(400).json({ message: "Invalid amount" });
+      if (!query || typeof query !== "string") {
+        return res.status(400).json({ message: "Search query is required" });
       }
 
       const userId = 5; // Current user
-      const result = await enhancedEscrowManager.processEscrowFunding(escrowId, userId, parseFloat(amount));
-      
-      if (result) {
-        res.json(result);
+      let results;
+
+      if (conversationId) {
+        const convId = parseInt(conversationId as string);
+        if (isNaN(convId)) {
+          return res.status(400).json({ message: "Invalid conversation ID" });
+        }
+        results = await storage.searchMessagesInConversation(query, convId);
       } else {
-        res.status(400).json({ message: "Failed to fund escrow" });
+        results = await storage.searchMessages(query, userId);
       }
+
+      res.json(results);
     } catch (error) {
-      console.error("Fund escrow error:", error);
-      res.status(500).json({ message: "Failed to fund escrow" });
+      res.status(500).json({ message: "Search failed" });
     }
   });
 
-  // Release escrow
-  app.post("/api/escrows/:id/release", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const escrow = await storage.getEscrow?.(escrowId);
-      if (!escrow) {
-        return res.status(404).json({ message: "Escrow not found" });
-      }
-
-      if (escrow.status !== "funded") {
-        return res.status(400).json({ message: "Escrow must be funded to release" });
-      }
-
-      const updatedEscrow = await storage.updateEscrow?.(escrowId, { 
-        status: "confirming",
-        confirmationCount: 0,
-        requiredConfirmations: 25
-      });
-      
-      if (updatedEscrow) {
-        // Start blockchain confirmation simulation
-        setTimeout(async () => {
-          try {
-            await storage.updateEscrow?.(escrowId, { 
-              status: "released",
-              confirmationCount: 25,
-              releasedAt: new Date()
-            });
-          } catch (error) {
-            console.error("Auto-release error:", error);
-          }
-        }, 30000); // 30 seconds for demo
-
-        res.json(updatedEscrow);
-      } else {
-        res.status(500).json({ message: "Failed to release escrow" });
-      }
-    } catch (error) {
-      console.error("Release escrow error:", error);
-      res.status(500).json({ message: "Failed to release escrow" });
-    }
-  });
-
-  // Request release notification
-  app.post("/api/escrows/:id/request-release", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const escrow = await storage.getEscrow?.(escrowId);
-      if (!escrow) {
-        return res.status(404).json({ message: "Escrow not found" });
-      }
-
-      // Send notification message to conversation
-      const notificationMessage = `🔔 Release request for escrow trade: ${escrow.initiatorRequiredAmount} ${escrow.initiatorCurrency} ⇄ ${escrow.participantRequiredAmount} ${escrow.participantCurrency}. Please confirm when ready.`;
-      
-      const message = await storage.createMessage({
-        conversationId: escrow.conversationId,
-        senderId: 5, // System message
-        content: notificationMessage,
-        messageType: "text"
-      });
-
-      res.json({ message: "Release request sent", notification: message });
-    } catch (error) {
-      console.error("Request release error:", error);
-      res.status(500).json({ message: "Failed to request release" });
-    }
-  });
-
-  // Create and manage escrow disputes
-  app.post("/api/escrows/:id/disputes", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const disputeData = { 
-        ...req.body, 
-        escrowId,
-        initiatorId: 5 // Current user
-      };
-      
-      const dispute = await storage.createDispute?.(disputeData);
-      if (dispute) {
-        res.status(201).json(dispute);
-      } else {
-        res.status(500).json({ message: "Failed to create dispute" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create dispute" });
-    }
-  });
-
-  // Get escrow disputes
-  app.get("/api/escrows/:id/disputes", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      if (isNaN(escrowId)) {
-        return res.status(400).json({ message: "Invalid escrow ID" });
-      }
-
-      const disputes = await storage.getEscrowDisputes?.(escrowId) || [];
-      res.json(disputes);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get disputes" });
-    }
-  });
-
-  // Get user disputes
-  app.get("/api/user/disputes", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const disputes = await storage.getUserDisputes?.(userId) || [];
-      res.json(disputes);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get user disputes" });
-    }
-  });
-
-  // Enhanced Escrow System Endpoints
-  
-  // Enhanced funding with blockchain simulation
-  app.post("/api/escrows/:id/fund-enhanced", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      const { amount } = req.body;
-
-      if (isNaN(escrowId) || !amount) {
-        return res.status(400).json({ message: "Invalid escrow ID or amount" });
-      }
-
-      const escrow = await enhancedEscrowManager.processEscrowFunding(escrowId, 5, amount);
-      if (!escrow) {
-        return res.status(404).json({ message: "Escrow not found or unauthorized" });
-      }
-
-      res.json(escrow);
-    } catch (error) {
-      console.error("Enhanced funding error:", error);
-      res.status(500).json({ message: "Failed to process enhanced funding" });
-    }
-  });
-
-  // Smart dispute initiation
-  app.post("/api/escrows/:id/smart-dispute", async (req, res) => {
-    try {
-      const escrowId = parseInt(req.params.id);
-      const { reason, evidence = [] } = req.body;
-
-      if (isNaN(escrowId) || !reason) {
-        return res.status(400).json({ message: "Invalid escrow ID or missing reason" });
-      }
-
-      await enhancedEscrowManager.initiateSmartDispute(escrowId, reason, evidence, 5);
-      res.json({ message: "Smart dispute initiated successfully" });
-    } catch (error) {
-      console.error("Smart dispute error:", error);
-      res.status(500).json({ message: "Failed to initiate smart dispute" });
-    }
-  });
-
-  // Marketplace API routes
-  app.get("/api/marketplace/search", async (req, res) => {
-    try {
-      const { q: query = '', category, minPrice, maxPrice } = req.query;
-      const { marketplaceAPI } = await import('./amazon-api');
-      
-      const products = await marketplaceAPI.searchProducts(
-        query as string, 
-        category as string, 
-        minPrice ? parseFloat(minPrice as string) : undefined,
-        maxPrice ? parseFloat(maxPrice as string) : undefined
-      );
-      
-      res.json(products);
-    } catch (error) {
-      console.error("Marketplace search error:", error);
-      res.status(500).json({ error: "Failed to search marketplace products" });
-    }
-  });
-
-  // Crypto rates API
-  app.get("/api/crypto/rates", async (req, res) => {
-    try {
-      const { marketplaceAPI } = await import('./amazon-api');
-      const rates = await marketplaceAPI.getCryptoRates();
-      res.json(rates);
-    } catch (error) {
-      console.error("Crypto rates error:", error);
-      res.status(500).json({ error: "Failed to fetch crypto rates" });
-    }
-  });
-
-  // Find or create user by wallet address (with validation)
-  app.post("/api/users/find-or-create", async (req, res) => {
+  // Add contact
+  app.post("/api/contacts", async (req, res) => {
     try {
       const { walletAddress, displayName } = req.body;
       
@@ -700,88 +294,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Wallet address is required" });
       }
 
-      // Validate wallet address format (basic validation)
-      const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(walletAddress);
-      if (!isValidAddress) {
-        return res.status(400).json({ 
-          message: "Invalid wallet address format" 
-        });
-      }
-
-      // Check if user already exists
+      // Check if user exists
       let user = await storage.getUserByWalletAddress(walletAddress);
       
       if (!user) {
-        // Create new user for valid wallet addresses (not setup yet)
-        const userData = insertUserSchema.parse({
+        // Create new user
+        const newUser = {
           username: `user_${Date.now()}`,
-          displayName: displayName?.trim() || `User ${walletAddress.slice(-6)}`,
+          displayName: displayName || "New User",
           walletAddress,
-          profilePicture: null,
-          isOnline: true,
-          isSetup: false
-        });
+          isSetup: false // Mark as not setup so they don't appear in contact list until configured
+        };
         
-        user = await storage.createUser(userData);
-      } else if (displayName && displayName.trim() !== user.displayName) {
-        // Update display name if provided and user exists
-        user = await storage.updateUser(user.id, { displayName: displayName.trim() });
+        user = await storage.createUser(newUser);
       }
-      
+
       res.json(user);
     } catch (error) {
-      console.error("Error finding/creating user:", error);
-      res.status(500).json({ message: "Failed to find or create user" });
-    }
-  });
-
-  // Admin endpoint to register new wallet addresses (for controlled user creation)
-  app.post("/api/admin/users/register", async (req, res) => {
-    try {
-      const { walletAddress, displayName, username } = req.body;
-      
-      if (!walletAddress) {
-        return res.status(400).json({ message: "Wallet address is required" });
-      }
-
-      // Check if user already exists
-      const existingUser = await storage.getUserByWalletAddress(walletAddress);
-      if (existingUser) {
-        return res.status(409).json({ message: "Wallet address already registered" });
-      }
-
-      // Create new user with provided data
-      const userData = insertUserSchema.parse({
-        username: username || `user_${Date.now()}`,
-        displayName: displayName || `User ${walletAddress.slice(-6)}`,
-        walletAddress,
-        profilePicture: null,
-        isOnline: true
-      });
-      
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error("Error registering user:", error);
-      res.status(500).json({ message: "Failed to register user" });
+      console.error("Add contact error:", error);
+      res.status(500).json({ message: "Failed to add contact" });
     }
   });
 
   // Update user profile
-  app.put("/api/users/:id", async (req, res) => {
+  app.patch("/api/user", async (req, res) => {
     try {
-      const userId = parseInt(req.params.id);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
+      // Get user ID from query parameter or default to session user (5)
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      
+      // Simple validation for user update
+      const allowedFields = ['displayName', 'fullName', 'email', 'addressLine1', 'addressLine2', 'city', 'state', 'zipCode', 'country', 'profilePicture'];
+      const updates: any = {};
+      
+      for (const [key, value] of Object.entries(req.body)) {
+        if (allowedFields.includes(key)) {
+          updates[key] = value;
+        }
       }
 
-      console.log("Update request for user:", userId, "with data:", req.body);
-
-      // Create a partial update schema that allows any subset of user fields
-      const updateSchema = insertUserSchema.partial();
-      const updates = updateSchema.parse(req.body);
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ 
+          message: "No valid fields to update" 
+        });
+      }
       
-      console.log("Parsed updates:", updates);
+      console.log("Updating user", userId, "with data:", updates);
       
       const user = await storage.updateUser(userId, updates);
       
@@ -823,115 +380,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      console.log("Avatar upload successful:", profilePicture);
-      res.json({ profilePicture });
+      res.json({ 
+        message: "Profile picture uploaded successfully",
+        profilePicture,
+        user
+      });
     } catch (error) {
-      console.error("Error uploading avatar:", error);
-      res.status(500).json({ message: "Failed to upload avatar" });
-    }
-  });
-
-  // Get all users (for adding contacts)
-  app.get("/api/users", async (req, res) => {
-    try {
-      const users = await storage.getAllUsers();
-      res.json(users);
-    } catch (error) {
-      console.error("Error getting users:", error);
-      res.status(500).json({ message: "Failed to get users" });
-    }
-  });
-
-  // Get user favorites
-  app.get("/api/favorites", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const favorites = await storage.getUserFavorites(userId);
-      res.json(favorites);
-    } catch (error) {
-      console.error("Error getting favorites:", error);
-      res.status(500).json({ message: "Failed to get favorites" });
-    }
-  });
-
-  // Toggle product in favorites (add if not exists, remove if exists)
-  app.post("/api/favorites", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const { productId, productTitle, productPrice, productImage, productCategory, productRating } = req.body;
-      
-      if (!productId) {
-        return res.status(400).json({ message: "Product ID is required" });
-      }
-
-      // Check if product is already in favorites
-      const isAlreadyFavorite = await storage.isFavorite(userId, productId);
-      
-      if (isAlreadyFavorite) {
-        // Remove from favorites
-        const removed = await storage.removeFromFavorites(userId, productId);
-        res.json({ action: "removed", isFavorite: false });
-      } else {
-        // Validate required fields for adding to favorites
-        if (!productTitle || !productPrice || !productImage || !productCategory || productRating === undefined) {
-          return res.status(400).json({ 
-            message: "Missing required product information",
-            required: ["productTitle", "productPrice", "productImage", "productCategory", "productRating"]
-          });
-        }
-
-        // Add to favorites
-        const favoriteData = {
-          userId,
-          productId,
-          productTitle,
-          productPrice,
-          productImage,
-          productCategory,
-          productRating: Number(productRating),
-        };
-        const favorite = await storage.addToFavorites(favoriteData);
-        res.json({ action: "added", isFavorite: true, favorite });
-      }
-    } catch (error) {
-      console.error("Error toggling favorites:", error);
-      res.status(500).json({ message: "Failed to update favorites" });
-    }
-  });
-
-  // Remove product from favorites
-  app.delete("/api/favorites/:productId", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const productId = req.params.productId;
-      
-      const removed = await storage.removeFromFavorites(userId, productId);
-      if (!removed) {
-        return res.status(404).json({ message: "Favorite not found" });
-      }
-      
-      res.json({ message: "Removed from favorites" });
-    } catch (error) {
-      console.error("Error removing from favorites:", error);
-      res.status(500).json({ message: "Failed to remove from favorites" });
-    }
-  });
-
-  // Check if product is favorite
-  app.get("/api/favorites/status", async (req, res) => {
-    try {
-      const userId = 5; // Current user
-      const productId = req.query.productId as string;
-      
-      if (!productId) {
-        return res.status(400).json({ message: "Product ID is required" });
-      }
-      
-      const isFavorite = await storage.isFavorite(userId, productId);
-      res.json({ isFavorite });
-    } catch (error) {
-      console.error("Error checking favorite status:", error);
-      res.status(500).json({ message: "Failed to check favorite status" });
+      console.error("Upload error:", error);
+      res.status(500).json({ message: "Failed to upload profile picture" });
     }
   });
 
