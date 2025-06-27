@@ -27,7 +27,6 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
   const [showNewGroup, setShowNewGroup] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [groupDescription, setGroupDescription] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
@@ -77,7 +76,6 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
       
       // Reset form
       setGroupName("");
-      setGroupDescription("");
       setSelectedUsers([]);
       setShowNewGroup(false);
     } catch (error) {
@@ -197,15 +195,15 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* New Group Modal */}
       <Dialog open={showNewGroup} onOpenChange={setShowNewGroup}>
-        <DialogContent className="max-w-md max-h-[80vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blue-500" />
               Create New Group
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-4">
             {/* Group Info */}
             <div className="space-y-3">
               <div>
@@ -219,16 +217,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                 />
               </div>
               
-              <div>
-                <Label htmlFor="groupDescription">Description (Optional)</Label>
-                <Textarea
-                  id="groupDescription"
-                  value={groupDescription}
-                  onChange={(e) => setGroupDescription(e.target.value)}
-                  placeholder="What's this group about?"
-                  className="mt-1 min-h-[60px]"
-                />
-              </div>
+
             </div>
 
             <Separator />
