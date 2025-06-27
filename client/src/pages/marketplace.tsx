@@ -950,8 +950,7 @@ export default function MarketplacePage() {
                         
                         <div className="pt-3 border-t border-gray-100 dark:border-slate-600">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Crypto Equivalent:</span>
-                            <div className="text-right">
+                            <div className="text-right w-full">
                               <div className="font-bold text-orange-500 dark:text-cyan-400">
                                 ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
                               </div>

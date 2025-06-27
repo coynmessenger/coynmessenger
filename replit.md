@@ -351,6 +351,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Reverted Details dropdown to original simple design - removed creative floating info button and enhanced styling, restored clean Details button with rotating arrow below price information, returned to simple collapsible section with basic product information display
 - June 27, 2025: Redesigned Details button to minimal arrow icon - positioned small centered arrow button below categories section, reduced to single character icon (6x6 size) that rotates from right to down when clicked, removed "Details" text for ultra-clean minimal design
 - June 27, 2025: Removed "View Full Details" button from marketplace product details dropdown - simplified details section to show only product information without navigation button for cleaner interface
+- June 27, 2025: Removed "Crypto Equivalent:" label from marketplace product details - simplified crypto conversion display to show only the COYN amount and "Instant conversion" text without descriptive label
 
 ## User Preferences
 
