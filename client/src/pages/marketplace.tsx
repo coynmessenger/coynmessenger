@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, Heart, Wallet, ChevronDown, Info } from "lucide-react";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import SettingsModal from "@/components/settings-modal";
-import { addToCart } from "@/components/shopping-cart";
+import { addToCart, getCartCount } from "@/components/shopping-cart";
+import ShoppingCartComponent from "@/components/shopping-cart";
 import MarketplaceWalletHover from "@/components/marketplace-wallet-hover";
 import WalletModal from "@/components/wallet-modal";
 
@@ -157,6 +158,8 @@ export default function MarketplacePage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   const [showWalletHover, setShowWalletHover] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
@@ -431,6 +434,30 @@ export default function MarketplacePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Initialize cart count on page load
+  useEffect(() => {
+    setCartCount(getCartCount());
+  }, []);
+
+  // Listen for cart updates across components
+  useEffect(() => {
+    const handleCartUpdate = (event: CustomEvent) => {
+      setCartCount(event.detail.count);
+    };
+
+    const handleStorageUpdate = () => {
+      setCartCount(getCartCount());
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+    window.addEventListener('storage', handleStorageUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
+  }, []);
+
 
 
   const scrollToTop = () => {
@@ -475,6 +502,20 @@ export default function MarketplacePage() {
               </Button>
             </div>
             <div className="flex items-center gap-2 sm:gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
+                onClick={() => setShowCartModal(true)}
+              >
+                <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 sm:h-4 sm:w-4 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </Button>
+
               <Button
                 onClick={() => setShowSettingsModal(true)}
                 variant="ghost"
@@ -886,7 +927,8 @@ export default function MarketplacePage() {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (isMarketplaceProduct) {
-                              addToCart(item as any);
+                              const newCount = addToCart(item as any);
+                              setCartCount(newCount);
                               toast({
                                 title: "Added to Cart",
                                 description: `${item.title} has been added to your cart`
@@ -1012,6 +1054,15 @@ export default function MarketplacePage() {
           <ArrowUp className="h-5 w-5" />
         </Button>
       )}
+
+      {/* Shopping Cart Modal */}
+      <ShoppingCartComponent 
+        isOpen={showCartModal} 
+        onClose={() => {
+          setShowCartModal(false);
+          setCartCount(getCartCount()); // Update cart count when closing
+        }} 
+      />
     </div>
   );
 }
