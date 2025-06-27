@@ -175,19 +175,19 @@ export default function MessengerPage() {
                   {/* Available Contacts - Primary Display */}
                   {availableContacts.length > 0 && (
                     <div>
-                      <div className="p-3 bg-muted/30 border-b border-border">
-                        <h3 className="text-sm font-medium text-muted-foreground">Start New Conversation</h3>
+                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
+                        <h3 className="text-xs font-medium text-muted-foreground">Start New Conversation</h3>
                       </div>
                       <div className="divide-y divide-border">
                         {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
                           <div
                             key={contact.id}
                             onClick={() => handleContactClick(contact)}
-                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                            className="px-3 py-2.5 sm:px-4 sm:py-3 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
                           >
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2.5 sm:space-x-3">
                               <div className="relative">
-                                <Avatar className="w-12 h-12">
+                                <Avatar className="w-10 h-10 sm:w-12 sm:h-12">
                                   <AvatarImage 
                                     src={contact.username === 'jane' ? undefined : (contact.profilePicture || undefined)} 
                                     alt={contact.displayName}
@@ -196,18 +196,18 @@ export default function MessengerPage() {
                                     }}
                                   />
                                   <AvatarFallback className="bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                    <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    <UserAvatarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400" />
                                   </AvatarFallback>
                                 </Avatar>
                                 {contact.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-medium text-foreground truncate">
+                                <h3 className="text-sm sm:text-base font-medium text-foreground truncate">
                                   {contact.displayName}
                                 </h3>
-                                <p className="text-sm text-muted-foreground truncate">
+                                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                   @{contact.username}
                                 </p>
                               </div>

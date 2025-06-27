@@ -47,33 +47,30 @@ export default function UserProfileModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border">
-        <div className="py-2 bg-white dark:bg-card">
-        </div>
-        
-        <div className="space-y-6">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Profile Picture and Basic Info */}
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center space-y-3">
             <div className="relative">
-              <Avatar className="h-24 w-24">
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
                 <AvatarImage src={user.profilePicture || ""} />
                 <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                  <UserAvatarIcon className="w-12 h-12 text-gray-500 dark:text-gray-400" />
+                  <UserAvatarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 dark:text-gray-400" />
                 </AvatarFallback>
               </Avatar>
               {user.isOnline && (
-                <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-3 border-white dark:border-card rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
                 </div>
               )}
             </div>
             
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-black dark:text-foreground">{user.displayName}</h2>
-              <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user.walletAddress?.replace(/^0x/, '').slice(-6) || user.username}</p>
+            <div className="text-center space-y-1">
+              <h2 className="text-lg sm:text-xl font-semibold text-black dark:text-foreground">{user.displayName}</h2>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">@{user.walletAddress?.replace(/^0x/, '').slice(-6) || user.username}</p>
               <Badge 
                 variant={user.isOnline ? "default" : "secondary"} 
-                className={`mt-2 ${user.isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'}`}
+                className={`mt-1 text-xs ${user.isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'}`}
               >
                 {user.isOnline ? "Online" : "Offline"}
               </Badge>
@@ -81,21 +78,21 @@ export default function UserProfileModal({
           </div>
 
           {/* Wallet Information */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-black dark:text-foreground flex items-center">
-              <Wallet className="h-4 w-4 mr-2" />
+          <div className="space-y-2">
+            <h3 className="font-medium text-black dark:text-foreground flex items-center text-sm">
+              <Wallet className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
               Wallet Address
             </h3>
-            <div className="bg-gray-50 dark:bg-muted rounded-lg p-3 border border-border">
-              <div className="flex items-center justify-between">
-                <code className="text-xs text-gray-700 dark:text-muted-foreground font-mono break-all max-w-[200px] sm:max-w-[300px]">
+            <div className="bg-gray-50 dark:bg-muted rounded-lg p-2 sm:p-3 border border-border">
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-xs text-gray-700 dark:text-muted-foreground font-mono break-all flex-1 min-w-0">
                   {user.walletAddress}
                 </code>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={copyWalletAddress}
-                  className="ml-2 h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-muted"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0 hover:bg-gray-200 dark:hover:bg-muted"
                 >
                   <Copy className="h-3 w-3" />
                 </Button>
@@ -104,26 +101,26 @@ export default function UserProfileModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 gap-3">
+          <div className="space-y-2">
             {onSendMessage && (
               <Button 
                 onClick={onSendMessage}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="w-full h-9 sm:h-10 bg-orange-500 hover:bg-orange-600 text-white"
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Send Message
+                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
+                <span className="text-sm">Send Message</span>
               </Button>
             )}
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {onStartCall && (
                 <Button 
                   onClick={onStartCall}
                   variant="outline"
-                  className="bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground"
+                  className="h-9 sm:h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground"
                 >
-                  <Phone className="h-4 w-4 mr-2" />
-                  Call
+                  <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="text-xs sm:text-sm">Call</span>
                 </Button>
               )}
               
@@ -131,10 +128,10 @@ export default function UserProfileModal({
                 <Button 
                   onClick={onStartVideoCall}
                   variant="outline"
-                  className="bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground"
+                  className="h-9 sm:h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground"
                 >
-                  <Video className="h-4 w-4 mr-2" />
-                  Video
+                  <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="text-xs sm:text-sm">Video</span>
                 </Button>
               )}
             </div>

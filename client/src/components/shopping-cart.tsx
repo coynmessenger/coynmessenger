@@ -434,15 +434,15 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[85vh] max-h-[85vh] bg-background border-border p-3 sm:p-4">
-          <DialogHeader className="pb-2 border-b border-border">
-            <DialogTitle className="flex items-center gap-2 text-foreground text-base sm:text-lg">
-              <ShoppingCartIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-              Shopping Cart ({cartItems.length} items)
+        <DialogContent className="w-[95vw] max-w-4xl h-[85vh] max-h-[85vh] bg-background border-border p-2 sm:p-3">
+          <DialogHeader className="pb-1.5 border-b border-border">
+            <DialogTitle className="flex items-center gap-1.5 text-foreground text-sm sm:text-base">
+              <ShoppingCartIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+              Cart ({cartItems.length})
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col h-full max-h-[calc(85vh-80px)] overflow-hidden">
+          <div className="flex flex-col h-full max-h-[calc(85vh-60px)] overflow-hidden">
             {cartItems.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center py-12">
@@ -461,8 +461,8 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   
                   {cartItems.map((item) => (
                     <Card key={item.id} className="bg-card border-border hover:shadow-md transition-shadow">
-                      <CardContent className="p-2 sm:p-3">
-                        <div className="flex items-start gap-2 sm:gap-3">
+                      <CardContent className="p-1.5 sm:p-2">
+                        <div className="flex items-start gap-2">
                           {item.imageUrl && (
                             <div 
                               className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
@@ -471,19 +471,19 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                               <img 
                                 src={item.imageUrl} 
                                 alt={item.title}
-                                className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg border border-border"
+                                className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg border border-border"
                               />
                             </div>
                           )}
                           
                           <div className="flex-1 min-w-0">
                             <h4 
-                              className="font-semibold text-foreground text-sm sm:text-base mb-1 line-clamp-2 cursor-pointer hover:text-orange-500 dark:hover:text-cyan-400 transition-colors"
+                              className="font-semibold text-foreground text-xs sm:text-sm mb-0.5 line-clamp-2 cursor-pointer hover:text-orange-500 dark:hover:text-cyan-400 transition-colors"
                               onClick={() => handleProductClick(item.id)}
                             >
                               {item.title}
                             </h4>
-                            <p className="text-lg font-bold text-orange-500 dark:text-cyan-400 mb-2">
+                            <p className="text-sm sm:text-base font-bold text-orange-500 dark:text-cyan-400 mb-1">
                               ${item.price} each
                             </p>
                             
@@ -534,16 +534,16 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                 </div>
 
                 {/* Cart Summary */}
-                <div className="border-t border-border pt-2 mt-2 space-y-3 flex-shrink-0">
-                  <div className="bg-muted/50 rounded-lg p-2 sm:p-3 space-y-1">
+                <div className="border-t border-border pt-1.5 mt-1.5 space-y-2 flex-shrink-0">
+                  <div className="bg-muted/50 rounded-lg p-1.5 sm:p-2 space-y-0.5">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-foreground text-sm sm:text-base">Cart Total:</span>
-                      <span className="text-lg sm:text-xl font-bold text-orange-500 dark:text-cyan-400">
-                        ${totalUSD.toFixed(2)} USD
+                      <span className="font-medium text-foreground text-xs sm:text-sm">Total:</span>
+                      <span className="text-sm sm:text-base font-bold text-orange-500 dark:text-cyan-400">
+                        ${totalUSD.toFixed(2)}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Shipping and taxes will be calculated at checkout
+                      + shipping & taxes
                     </p>
                   </div>
 
@@ -552,11 +552,10 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       setCheckoutStep('address');
                       setShowCheckoutModal(true);
                     }}
-                    className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold py-2 sm:py-3 text-sm sm:text-base"
-                    size="lg"
+                    className="w-full h-9 sm:h-10 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold text-xs sm:text-sm"
                   >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Proceed to Checkout
+                    <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
+                    Checkout
                   </Button>
                 </div>
               </>

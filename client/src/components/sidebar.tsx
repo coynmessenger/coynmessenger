@@ -164,19 +164,19 @@ export default function Sidebar({
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         {/* Logo Header */}
-        <div className="p-6 border-b border-white/20 dark:border-slate-700/50 hidden lg:block bg-gradient-to-r from-white/80 to-orange-50/60 dark:from-slate-900/80 dark:to-slate-800/60 backdrop-blur-sm">
+        <div className="px-4 py-3 border-b border-white/20 dark:border-slate-700/50 hidden lg:block bg-gradient-to-r from-white/80 to-orange-50/60 dark:from-slate-900/80 dark:to-slate-800/60 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2.5">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 blur-lg opacity-20 animate-pulse"></div>
                 <img 
                   src={coynLogoPath} 
                   alt="COYN Logo" 
-                  className="w-12 h-12 relative z-10 drop-shadow-[0_0_20px_rgba(251,146,60,0.6)] hover:drop-shadow-[0_0_30px_rgba(251,146,60,0.8)] transition-all duration-300"
+                  className="w-10 h-10 relative z-10 drop-shadow-[0_0_20px_rgba(251,146,60,0.6)] hover:drop-shadow-[0_0_30px_rgba(251,146,60,0.8)] transition-all duration-300"
                 />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent">COYN Messenger</h1>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent">COYN Messenger</h1>
               </div>
             </div>
 
@@ -211,13 +211,13 @@ export default function Sidebar({
         </div>
 
         {/* Enhanced Wallet Overview - Mobile Optimized */}
-        <div className="mx-2 sm:mx-3 mb-2">
+        <div className="mx-2 mb-2">
           {/* Total Balance Header */}
           <div 
-            className="p-3 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm mb-2"
+            className="p-2.5 bg-white dark:bg-gradient-to-br dark:from-card dark:to-muted rounded-lg border border-gray-200 dark:border-border cursor-pointer hover:border-gray-300 dark:hover:border-primary transition-all duration-200 shadow-sm mb-1.5"
             onClick={() => onOpenWallet()}
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">Total Balance</span>
               <div className="flex items-center space-x-2">
                 <Button
@@ -244,7 +244,7 @@ export default function Sidebar({
           </div>
 
           {/* Asset Breakdown */}
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {walletBalances.map((balance) => {
               const changePercent = parseFloat(balance.changePercent || "0");
               const isPositive = changePercent >= 0;
@@ -252,7 +252,7 @@ export default function Sidebar({
               
               return (
                 <Card key={balance.id} className="bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors cursor-pointer" onClick={() => onOpenWallet(balance.currency)}>
-                  <CardContent className="p-2">
+                  <CardContent className="p-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <div className="w-6 h-6 flex items-center justify-center">
@@ -299,23 +299,23 @@ export default function Sidebar({
         </div>
 
         {/* Mobile Settings - only visible on mobile */}
-        <div className="lg:hidden p-4 border-t border-border bg-white dark:bg-card">
+        <div className="lg:hidden px-3 py-2.5 border-t border-border bg-white dark:bg-card">
           <div className="flex gap-2">
             <Button 
               onClick={() => onOpenWalletSidebar?.()}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              className="flex-1 h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
-              <Wallet className="h-4 w-4 mr-2" />
-              Wallet
+              <Wallet className="h-3 w-3 mr-1.5" />
+              <span className="text-sm">Wallet</span>
             </Button>
             <Button
               onClick={() => setIsAddContactOpen(true)}
               variant="outline"
               size="icon"
-              className="text-muted-foreground hover:text-primary border-border hover:border-primary"
+              className="h-9 w-9 text-muted-foreground hover:text-primary border-border hover:border-primary"
               title="Add Contact"
             >
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="h-3 w-3" />
             </Button>
 
           </div>
