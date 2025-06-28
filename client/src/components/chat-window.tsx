@@ -1481,7 +1481,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {/* Attachment bubble */}
                     <div 
                       className={`
-                        rounded-2xl p-3 shadow-lg backdrop-blur-xl border max-w-xs
+                        rounded-2xl p-3 shadow-lg backdrop-blur-xl border max-w-xs break-words
                         ${msg.senderId === 5 
                           ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
                           : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
@@ -1492,11 +1492,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     >
                       {/* Image Preview */}
                       {msg.attachmentType === 'image' && msg.attachmentUrl && (
-                        <div className="mb-2">
+                        <div className="mb-2 max-w-full overflow-hidden">
                           <img 
                             src={msg.attachmentUrl} 
                             alt={msg.attachmentName || "Image"} 
-                            className="w-full h-auto max-h-64 object-cover rounded-lg"
+                            className="w-full h-auto max-h-48 object-cover rounded-lg max-w-full"
                             loading="lazy"
                           />
                         </div>
@@ -1504,11 +1504,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       
                       {/* Video Preview */}
                       {msg.attachmentType === 'video' && msg.attachmentUrl && (
-                        <div className="mb-2">
+                        <div className="mb-2 max-w-full overflow-hidden">
                           <video 
                             src={msg.attachmentUrl} 
                             controls 
-                            className="w-full h-auto max-h-64 rounded-lg"
+                            className="w-full h-auto max-h-48 rounded-lg max-w-full"
                             preload="metadata"
                           >
                             Your browser does not support the video tag.
