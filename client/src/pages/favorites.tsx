@@ -111,8 +111,9 @@ export default function FavoritesPage() {
 
     localStorage.setItem('shopping-cart', JSON.stringify(existingCart));
     
-    // Dispatch custom event to update cart count
-    window.dispatchEvent(new CustomEvent('cartUpdated'));
+    // Calculate new cart count and dispatch event
+    const totalItems = existingCart.reduce((total: number, item: any) => total + item.quantity, 0);
+    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: totalItems } }));
     
     toast({
       title: "Added to Cart",

@@ -445,7 +445,9 @@ export default function MarketplacePage() {
   // Listen for cart updates across components
   useEffect(() => {
     const handleCartUpdate = (event: CustomEvent) => {
-      setCartCount(event.detail.count);
+      // Safe access to event detail with fallback
+      const count = event.detail?.count ?? getCartCount();
+      setCartCount(count);
     };
 
     const handleStorageUpdate = () => {
