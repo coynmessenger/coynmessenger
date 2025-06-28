@@ -564,48 +564,36 @@ export default function MarketplacePage() {
 
 
 
-          {/* Filters and Sort */}
-          <div className="flex flex-col md:flex-row gap-2 sm:gap-3">
-            <div className="flex gap-2 flex-1 overflow-x-auto">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-40 sm:w-48 h-10 sm:h-9">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      <div className="flex items-center">
-                        <category.icon className="h-4 w-4 mr-2" />
-                        {category.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured Items</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Search Stats */}
-            <div className="flex items-center text-sm text-muted-foreground">
-              {isLoadingProducts ? (
-                <span>Searching...</span>
-              ) : (
-                <span>{sortedItems.length} products found</span>
-              )}
-            </div>
+          {/* Filters */}
+          <div className="flex gap-3">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="featured">Featured</SelectItem>
+                <SelectItem value="price-low">Low to High</SelectItem>
+                <SelectItem value="price-high">High to Low</SelectItem>
+                <SelectItem value="rating">Top Rated</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <span className="text-sm text-muted-foreground self-center">
+              {sortedItems.length} items
+            </span>
           </div>
 
           {/* Active Filters Display */}
