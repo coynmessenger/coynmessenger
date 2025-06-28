@@ -375,6 +375,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Enhanced emoji picker alignment - reduced padding (p-3), tighter spacing (space-y-2), compact grid layout (gap-0.5), properly centered emoji buttons (h-8 w-8), smaller text size (text-lg), and optimized dimensions for cleaner, more organized appearance
 - June 28, 2025: Fixed emoji picker unnecessary scroll - removed max-height and overflow constraints to eliminate unwanted scrollbars and display all emojis naturally without forced scroll containers
 - June 28, 2025: Changed "crypto" to "finance" in emoji categories - updated emoji picker category from "crypto" to "finance" for broader financial terminology appeal
+- June 28, 2025: Added food and travel emoji categories - expanded emoji picker with two new categories containing 16 food emojis (pizza, burger, sushi, etc.) and 16 travel emojis (plane, car, landmarks, etc.) for enhanced messaging expression
 
 ## User Preferences
 
