@@ -350,7 +350,7 @@ export default function MarketplacePage() {
   ];
 
   const categories = [
-    { value: "all", label: "Categories", icon: Package },
+    { value: "all", label: "All Categories", icon: Package },
     { value: "electronics", label: "Electronics", icon: Zap },
     { value: "home-garden", label: "Home & Garden", icon: Home },
     { value: "clothing", label: "Clothing & Fashion", icon: Star },
