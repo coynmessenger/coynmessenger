@@ -1433,7 +1433,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-4 shadow-lg">
+      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-3 sm:p-4 shadow-lg">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border-l-4 border-green-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -1460,16 +1460,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
+        <form onSubmit={handleSendMessage} className="flex items-center space-x-2 sm:space-x-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl"
+                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
@@ -1530,9 +1530,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl"
+                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
               >
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
@@ -1578,7 +1578,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="pr-20 h-12 sm:h-10 text-base sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
+              className="pr-16 sm:pr-20 h-11 sm:h-10 text-sm sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
             />
             
             {/* GIF Picker */}
@@ -1588,9 +1588,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-11 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-10 w-10 sm:h-8 sm:w-8 touch-manipulation"
+                  className="absolute right-8 sm:right-11 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
                 >
-                  <Image className="h-5 w-5 sm:h-4 sm:w-4" />
+                  <Image className="h-4 w-4 sm:h-4 sm:w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
@@ -1650,9 +1650,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-10 w-10 sm:h-8 sm:w-8 touch-manipulation"
+                  className="absolute right-1 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
                 >
-                  <Smile className="h-5 w-5 sm:h-4 sm:w-4" />
+                  <Smile className="h-4 w-4 sm:h-4 sm:w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
@@ -1703,10 +1703,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <Button 
             type="submit"
             size="icon"
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white h-12 w-12 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white h-10 w-10 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <Send className="h-5 w-5 sm:h-4 sm:w-4" />
+            <Send className="h-4 w-4 sm:h-4 sm:w-4" />
           </Button>
         </form>
       </div>
