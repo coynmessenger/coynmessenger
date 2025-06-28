@@ -1179,7 +1179,41 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'} w-full overflow-hidden`}>
             {msg.messageType === "text" ? (
-                msg.senderId === 5 ? (
+              // Check if this is an escrow system message
+              (msg.content?.includes('🛡️ Escrow created:') || msg.content?.includes('🔔 Release Request:') || msg.content?.includes('🎉 Blockchain confirmations complete!')) ? (
+                // Escrow system message
+                <div className="flex justify-center mb-3" data-message-id={msg.id}>
+                  <div className="bg-orange-500/90 backdrop-blur-sm text-white rounded-xl p-3 sm:p-4 max-w-[90%] sm:max-w-md shadow-lg border border-orange-400/30">
+                    <div className="flex items-start space-x-2">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {msg.content?.includes('🛡️ Escrow created:') && '🛡️'}
+                        {msg.content?.includes('🔔 Release Request:') && '🔔'}
+                        {msg.content?.includes('🎉 Blockchain confirmations complete!') && '🎉'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium leading-relaxed break-words">
+                          {highlightText(
+                            // Format the message content to be more readable
+                            msg.content
+                              ?.replace(/(\d+)\.(\d{8})/g, (match, whole, decimal) => {
+                                // Reduce decimal places from 8 to 4 for better readability
+                                const cleanDecimal = decimal.substring(0, 4).replace(/0+$/, '') || '0';
+                                return `${whole}.${cleanDecimal}`;
+                              })
+                              ?.replace(/🛡️ Escrow created: /, '')
+                              ?.replace(/🔔 Release Request: /, '')
+                              ?.replace(/🎉 Blockchain confirmations complete! /, '') || '',
+                            searchQuery || ''
+                          )}
+                        </div>
+                        <div className="text-xs text-orange-100 mt-2 opacity-80">
+                          {formatTimestamp(msg.timestamp)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : msg.senderId === 5 ? (
                   // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
