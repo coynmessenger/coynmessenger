@@ -441,3 +441,37 @@ mark:hover {
 .animate-fade-out {
   animation: fade-out 0.15s ease-in forwards;
 }
+
+/* Mobile Viewport Fix */
+@media (max-width: 768px) {
+  body {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow-x: hidden;
+  }
+  
+  /* Ensure content doesn't extend beyond viewport */
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Fix mobile bottom navigation cutoff */
+  .mobile-safe-area {
+    padding-bottom: max(env(safe-area-inset-bottom), 80px);
+  }
+  
+  /* Purchase history mobile layout fixes */
+  .purchase-history-mobile {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}

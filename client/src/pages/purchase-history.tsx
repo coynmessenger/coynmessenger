@@ -133,9 +133,9 @@ export default function PurchaseHistoryPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
+    <div className="min-h-screen max-h-screen purchase-history-mobile bg-gradient-to-br from-gray-50 via-orange-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-slate-700/50 sticky top-0 z-40">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-slate-700/50 sticky top-0 z-40 flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -165,8 +165,9 @@ export default function PurchaseHistoryPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6 pb-20">
-        {/* Statistics Cards */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 py-6 space-y-6 pb-40 md:pb-20">
+          {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="glass-card">
             <CardContent className="p-4">
@@ -356,7 +357,7 @@ export default function PurchaseHistoryPage() {
 
         {/* Purchase Details Modal */}
         <Dialog open={showDetails} onOpenChange={setShowDetails}>
-          <DialogContent className="max-w-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50">
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto w-[calc(100vw-2rem)] md:w-auto m-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
@@ -457,6 +458,7 @@ export default function PurchaseHistoryPage() {
             )}
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
   );
