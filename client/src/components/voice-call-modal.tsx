@@ -29,10 +29,6 @@ export default function VoiceCallModal({
   onSwitchToVideo,
   isCallActive = false 
 }: VoiceCallModalProps) {
-  // Early return if no user is provided
-  if (!user) {
-    return null;
-  }
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
@@ -337,6 +333,10 @@ export default function VoiceCallModal({
         return "text-gray-400";
     }
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>

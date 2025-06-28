@@ -328,6 +328,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   };
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
