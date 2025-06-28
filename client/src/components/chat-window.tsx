@@ -1481,7 +1481,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {/* Attachment bubble */}
                     <div 
                       className={`
-                        rounded-2xl p-3 shadow-lg backdrop-blur-xl border max-w-xs break-words
+                        rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
                         ${msg.senderId === 5 
                           ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
                           : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
@@ -1492,11 +1492,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     >
                       {/* Image Preview */}
                       {msg.attachmentType === 'image' && msg.attachmentUrl && (
-                        <div className="mb-2 max-w-full overflow-hidden">
+                        <div className="mb-2 w-full max-w-[200px] overflow-hidden">
                           <img 
                             src={msg.attachmentUrl} 
                             alt={msg.attachmentName || "Image"} 
-                            className="w-full h-auto max-h-48 object-cover rounded-lg max-w-full"
+                            className="w-full h-auto max-h-32 object-cover rounded-lg"
                             loading="lazy"
                           />
                         </div>
@@ -1504,11 +1504,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       
                       {/* Video Preview */}
                       {msg.attachmentType === 'video' && msg.attachmentUrl && (
-                        <div className="mb-2 max-w-full overflow-hidden">
+                        <div className="mb-2 w-full max-w-[200px] overflow-hidden">
                           <video 
                             src={msg.attachmentUrl} 
                             controls 
-                            className="w-full h-auto max-h-48 rounded-lg max-w-full"
+                            className="w-full h-auto max-h-32 rounded-lg"
                             preload="metadata"
                           >
                             Your browser does not support the video tag.
@@ -1538,10 +1538,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         <a 
                           href={msg.attachmentUrl} 
                           download={msg.attachmentName}
-                          className="flex items-center space-x-2 text-sm opacity-80 hover:opacity-100 transition-opacity"
+                          className="flex items-center space-x-1 text-xs opacity-80 hover:opacity-100 transition-opacity truncate"
                         >
-                          <Download className="h-4 w-4" />
-                          <span>{msg.attachmentName || "Download"}</span>
+                          <Download className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate max-w-[150px]">{msg.attachmentName || "Download"}</span>
                         </a>
                       )}
                       
