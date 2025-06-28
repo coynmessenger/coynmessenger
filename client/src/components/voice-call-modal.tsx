@@ -45,6 +45,12 @@ export default function VoiceCallModal({
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
+  // Floating controls state
+  const [showFloatingControls, setShowFloatingControls] = useState(false);
+  const [gestureStart, setGestureStart] = useState({ x: 0, y: 0 });
+  const [isGesturing, setIsGesturing] = useState(false);
+  const gestureRef = useRef<HTMLDivElement>(null);
+
   // Function to center the modal
   const centerModal = () => {
     const viewportWidth = window.innerWidth;
@@ -85,6 +91,65 @@ export default function VoiceCallModal({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
+
+  // Gesture handlers for floating controls
+  const handleGestureStart = (e: React.TouchEvent | React.MouseEvent) => {
+    if (isDragging) return; // Don't interfere with dragging
+    
+    setIsGesturing(true);
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setGestureStart({ x: clientX, y: clientY });
+  };
+
+  const handleGestureMove = (e: TouchEvent | MouseEvent) => {
+    if (!isGesturing || isDragging) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const deltaX = clientX - gestureStart.x;
+    const deltaY = clientY - gestureStart.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Show floating controls on upward swipe (> 50px)
+    if (deltaY < -50 && Math.abs(deltaX) < 50 && distance > 50) {
+      setShowFloatingControls(true);
+      setIsGesturing(false);
+    }
+    // Hide floating controls on downward swipe
+    else if (deltaY > 50 && Math.abs(deltaX) < 50 && distance > 50) {
+      setShowFloatingControls(false);
+      setIsGesturing(false);
+    }
+  };
+
+  const handleGestureEnd = () => {
+    setIsGesturing(false);
+  };
+
+  // Add gesture event listeners
+  useEffect(() => {
+    if (isGesturing && !isDragging) {
+      const handleMouseMove = (e: MouseEvent) => handleGestureMove(e);
+      const handleTouchMove = (e: TouchEvent) => {
+        e.preventDefault();
+        handleGestureMove(e);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('mouseup', handleGestureEnd);
+      document.addEventListener('touchend', handleGestureEnd);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('mouseup', handleGestureEnd);
+        document.removeEventListener('touchend', handleGestureEnd);
+      };
+    }
+  }, [isGesturing, isDragging]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -337,7 +402,12 @@ export default function VoiceCallModal({
       >
         <DialogTitle className="sr-only">Voice Call with {user.displayName}</DialogTitle>
 
-        <div className="p-8 space-y-8">
+        <div 
+          className="p-8 space-y-8"
+          onMouseDown={handleGestureStart}
+          onTouchStart={handleGestureStart}
+          ref={gestureRef}
+        >
           {/* User Avatar */}
           <div className="flex justify-center">
             <div className="relative">
@@ -382,76 +452,24 @@ export default function VoiceCallModal({
             </div>
           </div>
 
-          {/* Call Controls */}
-          {callStatus !== "ended" && (
+          {/* Gesture Hint */}
+          {callStatus === "connected" && !showFloatingControls && (
+            <div className="text-center">
+              <p className="text-slate-400 text-sm animate-pulse">
+                Swipe up for controls
+              </p>
+            </div>
+          )}
+
+          {/* Single End Call Button for non-connected states */}
+          {callStatus !== "ended" && callStatus !== "connected" && callType !== "incoming" && (
             <div className="flex justify-center">
-              {callStatus === "connected" && (
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Top Row */}
-                  {/* Mute Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className={`w-14 h-14 rounded-full border-2 transition-all duration-300 ${
-                      isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                  >
-                    {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
-                  </Button>
-
-                  {/* Video Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      if (onSwitchToVideo) {
-                        onSwitchToVideo();
-                        onClose(); // Close voice call modal
-                      }
-                    }}
-                    className="w-14 h-14 rounded-full border-2 transition-all duration-300 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400"
-                    title="Switch to video call"
-                  >
-                    <Video className="h-6 w-6" />
-                  </Button>
-
-                  {/* Bottom Row */}
-                  {/* Speaker Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsSpeakerOn(!isSpeakerOn)}
-                    className={`w-14 h-14 rounded-full border-2 transition-all duration-300 ${
-                      isSpeakerOn 
-                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                  >
-                    {isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
-                  </Button>
-
-                  {/* End Call Button */}
-                  <Button
-                    onClick={handleEndCall}
-                    className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
-                  >
-                    <PhoneOff className="h-6 w-6" />
-                  </Button>
-                </div>
-              )}
-
-              {/* Single End Call Button for non-connected states */}
-              {callStatus !== "connected" && (
-                <Button
-                  onClick={handleEndCall}
-                  className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
-                >
-                  <PhoneOff className="h-6 w-6" />
-                </Button>
-              )}
+              <Button
+                onClick={handleEndCall}
+                className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
+              >
+                <PhoneOff className="h-6 w-6" />
+              </Button>
             </div>
           )}
 
@@ -473,6 +491,72 @@ export default function VoiceCallModal({
             </div>
           )}
         </div>
+
+        {/* Floating Call Controls */}
+        {callStatus === "connected" && showFloatingControls && (
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center px-4">
+            <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-2xl animate-slide-up">
+              <div className="grid grid-cols-4 gap-3">
+                {/* Mute Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsMuted(!isMuted)}
+                  className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                    isMuted 
+                      ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
+                      : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                  }`}
+                >
+                  {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
+
+                {/* Video Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    if (onSwitchToVideo) {
+                      onSwitchToVideo();
+                      onClose();
+                    }
+                  }}
+                  className="w-12 h-12 rounded-full border-2 transition-all duration-300 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400"
+                  title="Switch to video call"
+                >
+                  <Video className="h-5 w-5" />
+                </Button>
+
+                {/* Speaker Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsSpeakerOn(!isSpeakerOn)}
+                  className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                    isSpeakerOn 
+                      ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30" 
+                      : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                  }`}
+                >
+                  {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                </Button>
+
+                {/* End Call Button */}
+                <Button
+                  onClick={handleEndCall}
+                  className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
+                >
+                  <PhoneOff className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              {/* Hide Controls Hint */}
+              <div className="text-center mt-2">
+                <p className="text-slate-400 text-xs">Swipe down to hide</p>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
