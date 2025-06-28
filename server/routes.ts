@@ -938,6 +938,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new purchase record
+  app.post("/api/purchases", async (req, res) => {
+    try {
+      // Handle both single item and multiple items
+      const items = req.body.items || [];
+      const purchases = [];
+
+      if (items.length > 0) {
+        // Multiple items (from shopping cart)
+        for (const item of items) {
+          const purchaseData = {
+            userId: req.body.userId,
+            productId: item.id,
+            productTitle: item.title,
+            quantity: item.quantity,
+            totalValue: (parseFloat(item.price.replace('$', '')) * item.quantity).toString(),
+            currency: 'USD',
+            paymentMethod: req.body.cryptoCurrency,
+            transactionHash: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            status: req.body.status || 'confirmed',
+            shippingAddress: typeof req.body.shippingAddress === 'object' 
+              ? `${req.body.shippingAddress.fullName}, ${req.body.shippingAddress.addressLine1}, ${req.body.shippingAddress.city}, ${req.body.shippingAddress.state} ${req.body.shippingAddress.zipCode}, ${req.body.shippingAddress.country}`
+              : req.body.shippingAddress,
+            orderNotes: req.body.orderNotes
+          };
+
+          const purchase = await storage.createPurchase(purchaseData);
+          purchases.push(purchase);
+        }
+      } else {
+        // Single item (from product page)
+        const purchaseData = {
+          userId: req.body.userId,
+          productId: req.body.productId,
+          productTitle: req.body.productTitle,
+          quantity: req.body.quantity || 1,
+          totalValue: req.body.totalValue,
+          currency: 'USD',
+          paymentMethod: req.body.cryptoCurrency,
+          transactionHash: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          status: req.body.status || 'confirmed',
+          shippingAddress: req.body.shippingAddress,
+          orderNotes: req.body.orderNotes
+        };
+
+        const purchase = await storage.createPurchase(purchaseData);
+        purchases.push(purchase);
+      }
+
+      res.status(201).json({
+        success: true,
+        purchases,
+        orderNumber: req.body.orderNumber,
+        estimatedDelivery: req.body.estimatedDelivery
+      });
+    } catch (error) {
+      console.error("[PURCHASES] Error creating purchase:", error);
+      res.status(500).json({ message: "Failed to create purchase" });
+    }
+  });
+
   // Crypto rates endpoint
   app.get("/api/crypto/rates", async (req, res) => {
     try {

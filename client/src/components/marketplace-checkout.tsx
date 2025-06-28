@@ -393,54 +393,82 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
       return;
     }
 
+    if (!connectedUser) {
+      toast({
+        title: "User Required",
+        description: "Please sign in to complete purchase",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      // Process each item in the cart
-      for (const item of cartItems) {
-        const cryptoAmount = parseFloat(convertToCrypto(parseFloat(item.price.replace('$', '')) * item.quantity));
-        
-        const purchaseData = {
-          productId: item.id,
-          productTitle: item.title,
-          quantity: item.quantity,
-          totalValue: (parseFloat(item.price.replace('$', '')) * item.quantity).toString(),
-          cryptoCurrency: selectedCrypto,
-          cryptoAmount,
-          userId: connectedUser?.id || 5, // Add the connected user's ID
-          shippingAddress: `${shippingAddress.fullName}, ${shippingAddress.addressLine1}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}, ${shippingAddress.country}`,
-          orderNotes
-        };
+      const total = calculateTotal();
+      const totalCryptoAmount = parseFloat(convertToCrypto(total));
 
-        const response = await fetch('/api/marketplace/purchase', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(purchaseData),
-        });
+      // Create unified purchase record
+      const purchaseData = {
+        userId: connectedUser.id,
+        totalAmount: total,
+        cryptoCurrency: selectedCrypto,
+        cryptoAmount: totalCryptoAmount,
+        items: cartItems,
+        shippingAddress: shippingAddress,
+        orderNotes: orderNotes,
+        status: 'confirmed',
+        orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
+        estimatedDelivery: shippingOption === 'express' ? '1-2 business days' : '3-5 business days'
+      };
 
-        if (!response.ok) {
-          throw new Error(`Failed to process purchase for ${item.title}`);
-        }
+      const response = await fetch('/api/purchases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(purchaseData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record purchase');
       }
 
+      const result = await response.json();
+
       toast({
-        title: "Order Placed Successfully!",
-        description: `Your order of ${cartItems.length} item(s) has been confirmed. You may have earned NFT rewards!`,
+        title: "Order Confirmed!",
+        description: `Order #${result.orderNumber} placed successfully. Estimated delivery: ${result.estimatedDelivery}`,
       });
+      
+      // Clear cart only after successful purchase recording
+      setCartItems([]);
+      localStorage.setItem('shopping-cart', JSON.stringify([]));
+      
+      // Emit cart update event
+      window.dispatchEvent(new Event('cartUpdated'));
       
       // Invalidate purchase history cache to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
       
-      // Clear cart and close
-      setCartItems([]);
-      localStorage.removeItem('shopping-cart');
+      // Reset form and close
       setCurrentStep('cart');
+      setAgreedToTerms(false);
+      setShippingAddress({
+        fullName: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'United States'
+      });
+      setOrderNotes('');
       onClose();
+      
     } catch (error) {
       console.error('Purchase error:', error);
       toast({
         title: "Purchase Failed",
-        description: error instanceof Error ? error.message : "An error occurred during purchase.",
+        description: "There was an error processing your order. Please try again.",
         variant: "destructive",
       });
     }

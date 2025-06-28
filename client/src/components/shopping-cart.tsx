@@ -383,29 +383,93 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
       return;
     }
 
+    if (!connectedUser) {
+      toast({
+        title: "User Required",
+        description: "Please sign in to complete purchase",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const total = calculateTotalWithExtras();
     const cryptoAmount = convertToCrypto(total, selectedCrypto);
 
-    // Simulate purchase processing
+    // Show processing message
     toast({
       title: "Processing Purchase...",
       description: `Converting ${cryptoAmount} ${selectedCrypto} to ${total.toFixed(2)} USD`
     });
 
-    // Simulate API call delay
-    setTimeout(() => {
-      // Clear cart after successful purchase
+    try {
+      // Create purchase record in database
+      const purchaseData = {
+        userId: connectedUser.id,
+        totalAmount: total,
+        cryptoCurrency: selectedCrypto,
+        cryptoAmount: parseFloat(cryptoAmount),
+        items: cartItems,
+        shippingAddress: shippingAddress,
+        orderNotes: orderNotes,
+        status: 'confirmed',
+        orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
+        estimatedDelivery: expressShipping ? '1-2 business days' : '3-5 business days'
+      };
+
+      const response = await fetch('/api/purchases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(purchaseData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record purchase');
+      }
+
+      const purchase = await response.json();
+
+      // Clear cart only after successful purchase recording
       setCartItems([]);
+      localStorage.setItem('shopping-cart', JSON.stringify([]));
+      
+      // Emit cart update event
+      window.dispatchEvent(new Event('cartUpdated'));
+      
+      // Reset form state
       setShowCheckoutModal(false);
       setCheckoutStep('cart');
       setAgreedToTerms(false);
+      setShippingAddress({
+        fullName: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'United States'
+      });
+      setOrderNotes('');
+      
       onClose();
       
       toast({
         title: "Order Confirmed!",
-        description: `Order #${Date.now().toString().slice(-6)} placed successfully. Estimated delivery: ${expressShipping ? '1-2' : '3-5'} business days.`,
+        description: `Order #${purchase.orderNumber} placed successfully. Estimated delivery: ${purchase.estimatedDelivery}`,
       });
-    }, 2000);
+
+      // Invalidate purchase history to show new purchase
+      queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
+
+    } catch (error) {
+      console.error('Purchase error:', error);
+      toast({
+        title: "Purchase Failed",
+        description: "There was an error processing your order. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const renderStepIndicator = () => (
