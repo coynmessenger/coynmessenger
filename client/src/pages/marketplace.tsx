@@ -726,61 +726,40 @@ export default function MarketplacePage() {
                   <CardContent className="space-y-4">
                     {/* Product Image Carousel */}
                     <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden group">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-slate-700">
-                              {images[currentImageIndex] && images[currentImageIndex].trim() !== '' ? (
-                                <img
-                                  src={images[currentImageIndex]}
-                                  alt={`${item.title} - Image ${currentImageIndex + 1}`}
-                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                  loading="lazy"
-                                  onLoad={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'block';
-                                  }}
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    // Try next image if available
-                                    const nextIndex = (currentImageIndex + 1) % images.length;
-                                    if (nextIndex !== currentImageIndex && images[nextIndex]) {
-                                      setImageIndexes(prev => new Map(prev.set(itemKey.toString(), nextIndex)));
-                                    }
-                                  }}
-                                  style={{ display: 'block' }}
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                  <div className="text-center p-4">
-                                    <div className="w-16 h-16 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
-                                      <Package className="w-8 h-8" />
-                                    </div>
-                                    <p className="text-sm font-medium">{item.title}</p>
-                                    <p className="text-xs text-muted-foreground mt-1">Image not available</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="right" className="max-w-xs">
-                            <div className="space-y-2">
-                              <p className="font-medium">{item.title}</p>
-                              <p className="text-sm text-muted-foreground">{item.description || 'Premium quality product available for crypto purchase.'}</p>
-                              <div className="flex items-center space-x-2">
-                                <div className="flex items-center">
-                                  <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                                  <span className="text-sm">{item.rating}</span>
-                                </div>
-                                {isMarketplaceProduct && (item as any).reviewCount > 0 && (
-                                  <span className="text-sm text-muted-foreground">({(item as any).reviewCount} reviews)</span>
-                                )}
+                      <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-slate-700">
+                        {images[currentImageIndex] && images[currentImageIndex].trim() !== '' ? (
+                          <img
+                            src={images[currentImageIndex]}
+                            alt={`${item.title} - Image ${currentImageIndex + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                            onLoad={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'block';
+                            }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              // Try next image if available
+                              const nextIndex = (currentImageIndex + 1) % images.length;
+                              if (nextIndex !== currentImageIndex && images[nextIndex]) {
+                                setImageIndexes(prev => new Map(prev.set(itemKey.toString(), nextIndex)));
+                              }
+                            }}
+                            style={{ display: 'block' }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            <div className="text-center p-4">
+                              <div className="w-16 h-16 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
+                                <Package className="w-8 h-8" />
                               </div>
+                              <p className="text-sm font-medium">{item.title}</p>
+                              <p className="text-xs text-muted-foreground mt-1">Image not available</p>
                             </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                          </div>
+                        )}
+                      </div>
 
                       {/* Navigation Arrows - Only show if multiple images */}
                       {images.length > 1 && (
