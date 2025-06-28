@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -23,6 +23,12 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  
+  // Dragging state
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<HTMLDivElement>(null);
+  const dragStartRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!isOpen) {
@@ -70,6 +76,56 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
     }, 1000);
   };
 
+  // Dragging functionality
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragStartRef.current.x;
+    const newY = e.clientY - dragStartRef.current.y;
+    
+    // Keep modal within viewport bounds
+    const maxX = window.innerWidth - 400; // Approximate modal width
+    const maxY = window.innerHeight - 500; // Approximate modal height
+    
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'grabbing';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isDragging]);
+
   const getStatusText = () => {
     switch (callStatus) {
       case "connecting":
@@ -102,9 +158,28 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-8 text-center rounded-3xl shadow-2xl">
+      <DialogContent 
+        ref={dragRef}
+        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none"
+        style={{
+          position: 'fixed',
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          transform: 'none',
+          margin: 0
+        }}
+      >
         <DialogTitle className="sr-only">Voice Call with {user.displayName}</DialogTitle>
-        <div className="space-y-8">
+        
+        {/* Draggable Header */}
+        <div 
+          className="flex items-center justify-center p-4 cursor-grab active:cursor-grabbing rounded-t-3xl bg-slate-800/50 border-b border-slate-700/50"
+          onMouseDown={handleMouseDown}
+        >
+          <Move className="h-4 w-4 text-slate-400" />
+        </div>
+
+        <div className="p-8 space-y-8">
           {/* User Avatar */}
           <div className="flex justify-center">
             <div className="relative">
