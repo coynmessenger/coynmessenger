@@ -19,7 +19,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -81,6 +81,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     name?: string;
     size?: number;
   } | null>(null);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [searchResults, setSearchResults] = useState<Message[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     offsetX: number;
@@ -786,53 +789,170 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Function to highlight search text
+  // Enhanced search functionality with fuzzy matching
+  const performAdvancedSearch = (query: string, messageList: (Message & { sender: User })[]) => {
+    if (!query || query.length < 1) return [];
+    
+    const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    
+    return messageList.filter(msg => {
+      // Search in message content
+      const content = (msg.content || '').toLowerCase();
+      const senderName = getEffectiveDisplayName(msg.sender).toLowerCase();
+      const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleDateString().toLowerCase() : '';
+      
+      // Advanced search criteria - build searchable text
+      const searchParts = [content, senderName, timestamp];
+      
+      // Check if message contains attachment info
+      if (msg.attachmentName) {
+        searchParts.push(msg.attachmentName.toLowerCase());
+      }
+      
+      // Check if message is crypto transaction
+      if (msg.messageType === 'crypto' && msg.cryptoCurrency) {
+        searchParts.push(`${msg.cryptoCurrency.toLowerCase()} crypto payment transaction`);
+      }
+      
+      // Check if message is product share
+      if (msg.messageType === 'product_share' && msg.productTitle) {
+        searchParts.push(`${msg.productTitle.toLowerCase()} product`);
+      }
+      
+      const searchableText = searchParts.join(' ');
+      
+      // Fuzzy search - match if any search term is found
+      return searchTerms.some(term => {
+        // Exact match
+        if (searchableText.includes(term)) return true;
+        
+        // Partial word matching for better results
+        return searchableText.split(/\s+/).some(word => 
+          word.includes(term) || term.includes(word)
+        );
+      });
+    });
+  };
+
+  // Enhanced text highlighting with multiple search terms
   const highlightText = (text: string, searchTerm: string) => {
     if (!searchTerm || !text) return text;
     
-    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const searchTerms = searchTerm.split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return text;
+    
+    // Create regex that matches any of the search terms
+    const regexPattern = searchTerms
+      .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+    
+    const regex = new RegExp(`(${regexPattern})`, 'gi');
     const parts = text.split(regex);
     
-    return parts.map((part, index) => 
-      regex.test(part) ? (
-        <mark key={index} className="bg-yellow-300 dark:bg-yellow-600 text-black dark:text-white px-1 rounded-md font-semibold">
-          {part}
-        </mark>
-      ) : part
-    );
-  };
-
-  // Auto-scroll to first search result and update count
-  useEffect(() => {
-    if (searchQuery && searchQuery.length >= 2 && messages?.length) {
-      const searchResults = messages.filter(msg => 
-        msg.content?.toLowerCase().includes(searchQuery.toLowerCase())
+    return parts.map((part, index) => {
+      const isMatch = searchTerms.some(term => 
+        part.toLowerCase().includes(term.toLowerCase())
       );
       
-      setSearchResultCount(searchResults.length);
-      
-      if (searchResults.length > 0) {
-        // Use setTimeout to ensure DOM is updated after highlighting
+      return isMatch ? (
+        <mark key={index} className="bg-gradient-to-r from-yellow-200 to-orange-200 dark:from-yellow-500/60 dark:to-orange-500/60 text-black dark:text-white px-1.5 py-0.5 rounded-md font-semibold shadow-sm border border-yellow-300 dark:border-yellow-400/50 animate-pulse">
+          {part}
+        </mark>
+      ) : part;
+    });
+  };
+
+  // Navigation functions for search results
+  const navigateToSearchResult = (index: number) => {
+    if (searchResults.length === 0) return;
+    
+    const resultIndex = Math.max(0, Math.min(index, searchResults.length - 1));
+    setCurrentSearchIndex(resultIndex);
+    
+    const messageId = searchResults[resultIndex].id;
+    setTimeout(() => {
+      const element = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        
+        // Enhanced highlight animation
+        element.classList.add('search-result-focus');
         setTimeout(() => {
-          const firstResultElement = document.querySelector(`[data-message-id="${searchResults[0].id}"]`);
-          if (firstResultElement) {
-            firstResultElement.scrollIntoView({ 
-              behavior: 'smooth',
-              block: 'center'
-            });
-            
-            // Add a temporary highlight animation to the scrolled-to message
-            firstResultElement.classList.add('search-highlight-pulse');
-            setTimeout(() => {
-              firstResultElement.classList.remove('search-highlight-pulse');
-            }, 2000);
-          }
-        }, 100);
+          element.classList.remove('search-result-focus');
+        }, 3000);
       }
+    }, 100);
+  };
+
+  const goToNextResult = () => {
+    if (searchResults.length === 0) return;
+    const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+    navigateToSearchResult(nextIndex);
+  };
+
+  const goToPreviousResult = () => {
+    if (searchResults.length === 0) return;
+    const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+    navigateToSearchResult(prevIndex);
+  };
+
+  // Enhanced search effect with advanced functionality
+  useEffect(() => {
+    if (searchQuery && searchQuery.length >= 1 && messages?.length) {
+      setIsSearching(true);
+      
+      // Debounce search for better performance
+      const searchTimeout = setTimeout(() => {
+        const results = performAdvancedSearch(searchQuery, messages);
+        setSearchResults(results);
+        setSearchResultCount(results.length);
+        setCurrentSearchIndex(0);
+        
+        if (results.length > 0) {
+          // Navigate to first result
+          navigateToSearchResult(0);
+        }
+        
+        setIsSearching(false);
+      }, 200); // Reduced debounce for more responsive search
+      
+      return () => clearTimeout(searchTimeout);
     } else {
+      setSearchResults([]);
       setSearchResultCount(0);
+      setCurrentSearchIndex(0);
+      setIsSearching(false);
     }
   }, [searchQuery, messages]);
+
+  // Keyboard shortcuts for search navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (searchQuery && searchResults.length > 0) {
+        // Enter key - go to next result
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          goToNextResult();
+        }
+        // Shift+Enter - go to previous result
+        else if (e.key === 'Enter' && e.shiftKey) {
+          e.preventDefault();
+          goToPreviousResult();
+        }
+        // Escape key - clear search (if implemented in parent)
+        else if (e.key === 'Escape') {
+          // This would need to be handled by the parent component
+          // Can be extended to clear search
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchQuery, searchResults]);
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -886,10 +1006,46 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </p>
                 )}
                 {searchQuery && searchResultCount > 0 && (
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
-                    {searchResultCount} {searchResultCount === 1 ? 'match' : 'matches'}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/60 dark:to-orange-900/60 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 shadow-sm">
+                      {isSearching ? (
+                        <div className="flex items-center space-x-1">
+                          <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
+                          <span>Searching...</span>
+                        </div>
+                      ) : (
+                        <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount} results</span>
+                      )}
+                    </Badge>
+                    {!isSearching && searchResults.length > 1 && (
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 p-0 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200"
+                          onClick={goToPreviousResult}
+                          title="Previous result (Shift+Enter)"
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 p-0 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200"
+                          onClick={goToNextResult}
+                          title="Next result (Enter)"
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 )}
+              {searchQuery && searchResultCount === 0 && !isSearching && (
+                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                  No results found
+                </Badge>
+              )}
               </div>
             </div>
           </Button>

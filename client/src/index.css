@@ -246,6 +246,73 @@
   background: rgba(34, 211, 238, 0.5);
 }
 
+/* Enhanced Search Animations */
+@keyframes search-highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(251, 146, 60, 0.2);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes search-result-focus {
+  0% {
+    background: rgba(251, 146, 60, 0.1);
+    border-left: 4px solid rgba(251, 146, 60, 0.8);
+  }
+  50% {
+    background: rgba(251, 146, 60, 0.2);
+    border-left: 4px solid rgba(251, 146, 60, 1);
+  }
+  100% {
+    background: rgba(251, 146, 60, 0.1);
+    border-left: 4px solid rgba(251, 146, 60, 0.8);
+  }
+}
+
+@keyframes highlight-fade-in {
+  0% {
+    background: transparent;
+    transform: scale(1);
+  }
+  50% {
+    background: rgba(251, 146, 60, 0.3);
+    transform: scale(1.05);
+  }
+  100% {
+    background: rgba(251, 191, 36, 0.2);
+    transform: scale(1);
+  }
+}
+
+.search-result-focus {
+  animation: search-result-focus 3s ease-in-out;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-highlight-pulse {
+  animation: search-highlight-pulse 2s ease-out;
+}
+
+/* Search highlighting with enhanced visibility */
+mark {
+  animation: highlight-fade-in 0.5s ease-out;
+  transition: all 0.2s ease;
+}
+
+mark:hover {
+  background: rgba(251, 146, 60, 0.4) !important;
+  transform: scale(1.05);
+}
+
 /* Animation delay utilities for loading screens */
 .animation-delay-200 {
   animation-delay: 200ms;
