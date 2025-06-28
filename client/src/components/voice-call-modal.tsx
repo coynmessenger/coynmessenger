@@ -9,12 +9,26 @@ import type { User } from "@shared/schema";
 interface VoiceCallModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onHide?: () => void;
+  onCallStart?: () => void;
+  onCallEnd?: () => void;
   user?: User;
   callType?: "incoming" | "outgoing";
   onSwitchToVideo?: () => void;
+  isCallActive?: boolean;
 }
 
-export default function VoiceCallModal({ isOpen, onClose, user, callType = "outgoing", onSwitchToVideo }: VoiceCallModalProps) {
+export default function VoiceCallModal({ 
+  isOpen, 
+  onClose, 
+  onHide, 
+  onCallStart, 
+  onCallEnd, 
+  user, 
+  callType = "outgoing", 
+  onSwitchToVideo,
+  isCallActive = false 
+}: VoiceCallModalProps) {
   // Early return if no user is provided
   if (!user) {
     return null;
@@ -48,10 +62,19 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
 
   useEffect(() => {
     if (!isOpen) {
-      setCallStatus("connecting");
-      setCallDuration(0);
-      setIsMuted(false);
-      setIsSpeakerOn(false);
+      // Only reset if call is not active (completely ending the call)
+      if (!isCallActive) {
+        setCallStatus("connecting");
+        setCallDuration(0);
+        setIsMuted(false);
+        setIsSpeakerOn(false);
+      }
+      return;
+    }
+
+    // If rejoining an active call, go directly to connected state
+    if (isCallActive) {
+      setCallStatus("connected");
       return;
     }
 
@@ -61,13 +84,14 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
 
     const timer2 = setTimeout(() => {
       setCallStatus("connected");
+      if (onCallStart) onCallStart();
     }, 3000);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, [isOpen]);
+  }, [isOpen, isCallActive, onCallStart]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -87,9 +111,20 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
 
   const handleEndCall = () => {
     setCallStatus("ended");
+    if (onCallEnd) onCallEnd();
     setTimeout(() => {
       onClose();
     }, 1000);
+  };
+  
+  const handleCloseModal = () => {
+    // If call is active, just hide the modal without ending the call
+    if (isCallActive && callStatus === "connected") {
+      if (onHide) onHide();
+    } else {
+      // If call is not active or not connected, end the call normally
+      handleEndCall();
+    }
   };
 
   // Dragging functionality
@@ -180,7 +215,7 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
         ref={dragRef}
         className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none"

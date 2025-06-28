@@ -71,6 +71,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
+  const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     offsetX: number;
@@ -840,8 +841,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowVoiceCall(true)}
-                className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-                title="Voice call"
+                className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                  isVoiceCallActive 
+                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={isVoiceCallActive ? "Join active call" : "Voice call"}
               >
                 <Phone className="h-5 w-5" />
               </Button>
@@ -1880,7 +1885,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       <VoiceCallModal
         isOpen={showVoiceCall}
         onClose={() => setShowVoiceCall(false)}
+        onHide={() => setShowVoiceCall(false)}
+        onCallStart={() => setIsVoiceCallActive(true)}
+        onCallEnd={() => setIsVoiceCallActive(false)}
         user={conversation.otherUser}
+        isCallActive={isVoiceCallActive}
         onSwitchToVideo={() => {
           setShowVoiceCall(false);
           setShowVideoCall(true);
