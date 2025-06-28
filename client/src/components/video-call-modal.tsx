@@ -34,8 +34,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [animationType, setAnimationType] = useState<'appear' | 'disappear' | null>(null);
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
@@ -58,25 +56,13 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     });
   };
 
-  // Center modal when it opens and trigger appear animation
+  // Center modal when it opens
   useEffect(() => {
     if (isOpen && !isInitialized) {
       centerModal();
       setIsInitialized(true);
-      setAnimationType('appear');
-      setIsAnimating(true);
-      
-      // Reset animation after it completes
-      const timer = setTimeout(() => {
-        setIsAnimating(false);
-        setAnimationType(null);
-      }, 600);
-      
-      return () => clearTimeout(timer);
     } else if (!isOpen) {
       setIsInitialized(false);
-      setIsAnimating(false);
-      setAnimationType(null);
     }
   }, [isOpen, isInitialized]);
 
@@ -327,31 +313,19 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   };
 
-  const handleModalClose = (open: boolean) => {
-    if (!open) {
-      if (callStatus === "connected") {
-        // If call is connected, hide instead of closing
-        if (onHide) onHide();
-      } else {
-        // Trigger disappear animation before closing
-        setAnimationType('disappear');
-        setIsAnimating(true);
-        
-        setTimeout(() => {
-          onClose();
-        }, 400); // Match disappear animation duration
-      }
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleModalClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open && callStatus === "connected") {
+        // If call is connected, hide instead of closing
+        handleHideCall();
+      } else {
+        // If not connected, close normally
+        onClose();
+      }
+    }}>
       <DialogContent 
         ref={dragRef}
-        className={`w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none touch-manipulation ${
-          isAnimating && animationType === 'appear' ? 'animate-modal-appear' :
-          isAnimating && animationType === 'disappear' ? 'animate-modal-disappear' : ''
-        } ${callStatus === 'connected' ? 'animate-modal-glow' : ''}`}
+        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none touch-manipulation"
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         style={{
