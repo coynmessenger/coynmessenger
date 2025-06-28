@@ -378,6 +378,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Added food and travel emoji categories - expanded emoji picker with two new categories containing 16 food emojis (pizza, burger, sushi, etc.) and 16 travel emojis (plane, car, landmarks, etc.) for enhanced messaging expression
 - June 28, 2025: Added GIF picker with searchable selection - implemented GIF icon button next to emoji picker featuring searchable GIF library with trending, reactions, and celebration categories, users can search and select GIFs that insert into messages
 - June 28, 2025: Enhanced GIF picker with intelligent contextual suggestions - analyzes recent conversation messages to automatically suggest relevant GIFs based on keywords (celebration, reactions, greetings), displays "Smart suggestions" indicator and contextual hints for better user experience
+- June 28, 2025: Added attachment functionality with file upload capabilities - implemented Paperclip icon button next to + button featuring dropdown menu with "File" and "Image/Video" options, users can select and attach any file type or specifically images/videos to messages with proper file type detection and preview text
 
 ## User Preferences
 

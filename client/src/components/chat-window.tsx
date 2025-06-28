@@ -18,7 +18,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -61,6 +61,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [gifSearchQuery, setGifSearchQuery] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
@@ -200,6 +201,28 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleGifSelect = (gif: any) => {
     setMessage(prev => prev + ` [GIF: ${gif.title}] `);
     setShowGifPicker(false);
+  };
+
+  // File upload handlers
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setMessage(prev => prev + ` [File: ${file.name}] `);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const handleImageVideoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const fileType = file.type.startsWith('image/') ? 'Image' : 'Video';
+      setMessage(prev => prev + ` [${fileType}: ${file.name}] `);
+      // Reset file input
+      event.target.value = '';
+    }
   };
 
   // Analyze conversation context to suggest relevant GIFs
@@ -1494,6 +1517,57 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Attachment Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-gray-500 dark:text-slate-400 hover:bg-gray-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl"
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+              <DropdownMenuItem
+                onClick={() => document.getElementById('file-upload')?.click()}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-blue-500" />
+                  <span>File</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => document.getElementById('image-video-upload')?.click()}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <Image className="w-4 h-4 text-green-500" />
+                  <span>Image/Video</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Hidden file inputs */}
+          <input
+            id="file-upload"
+            type="file"
+            accept="*/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <input
+            id="image-video-upload"
+            type="file"
+            accept="image/*,video/*"
+            onChange={handleImageVideoSelect}
+            className="hidden"
+          />
+
           <div className="flex-1 relative">
             <Input
               value={message}
