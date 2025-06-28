@@ -62,6 +62,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [gifSearchQuery, setGifSearchQuery] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageVideoInputRef = useRef<HTMLInputElement>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
@@ -213,7 +215,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       // Reset file input
       event.target.value = '';
     }
+  }
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
+
+  const triggerImageVideoUpload = () => {
+    imageVideoInputRef.current?.click();
+  };;
 
   const handleImageVideoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1537,7 +1547,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
               <DropdownMenuItem
-                onClick={() => document.getElementById('file-upload')?.click()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  triggerFileUpload();
+                }}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
@@ -1546,7 +1560,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => document.getElementById('image-video-upload')?.click()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  triggerImageVideoUpload();
+                }}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
@@ -1559,18 +1577,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
           {/* Hidden file inputs */}
           <input
-            id="file-upload"
+            ref={fileInputRef}
             type="file"
             accept="*/*"
             onChange={handleFileSelect}
             className="hidden"
+            style={{ display: 'none' }}
           />
           <input
-            id="image-video-upload"
+            ref={imageVideoInputRef}
             type="file"
             accept="image/*,video/*"
             onChange={handleImageVideoSelect}
             className="hidden"
+            style={{ display: 'none' }}
           />
 
           <div className="flex-1 relative">
