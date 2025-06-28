@@ -218,7 +218,8 @@ export default function VoiceCallModal({
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
         ref={dragRef}
-        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none"
+        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none cursor-move"
+        onMouseDown={handleMouseDown}
         style={{
           position: 'fixed',
           left: `${position.x}px`,
@@ -228,14 +229,6 @@ export default function VoiceCallModal({
         }}
       >
         <DialogTitle className="sr-only">Voice Call with {user.displayName}</DialogTitle>
-        
-        {/* Draggable Header */}
-        <div 
-          className="flex items-center justify-center p-4 cursor-grab active:cursor-grabbing rounded-t-3xl bg-slate-800/50 border-b border-slate-700/50"
-          onMouseDown={handleMouseDown}
-        >
-          <Move className="h-4 w-4 text-slate-400" />
-        </div>
 
         <div className="p-8 space-y-8">
           {/* User Avatar */}

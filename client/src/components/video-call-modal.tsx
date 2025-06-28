@@ -219,7 +219,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }}>
       <DialogContent 
         ref={dragRef}
-        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none"
+        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none cursor-move"
+        onMouseDown={handleMouseDown}
         style={{
           position: 'fixed',
           left: `${position.x}px`,
@@ -229,14 +230,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         }}
       >
         <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
-        
-        {/* Draggable Header */}
-        <div 
-          className="absolute top-0 left-0 right-0 z-10 flex items-center justify-center p-4 cursor-grab active:cursor-grabbing bg-slate-800/50 backdrop-blur-sm border-b border-slate-700/50"
-          onMouseDown={handleMouseDown}
-        >
-          <Move className="h-4 w-4 text-slate-400" />
-        </div>
         
         {/* Video Area */}
         <div className="relative aspect-video bg-slate-800">

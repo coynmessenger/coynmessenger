@@ -383,6 +383,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Updated voice call modal boundaries to allow partial off-screen positioning - modal can now slide beyond left, right, and bottom borders while keeping at least 100px visible for re-grabbing
 - June 28, 2025: Implemented voice call persistence - clicking X button now hides modal without ending call, voice call button glows green during active calls, users can rejoin active calls by clicking the glowing button
 - June 28, 2025: Made video call modal draggable - added Move icon handle with glassmorphism styling, modal opens centered and can be moved beyond side/bottom borders while keeping 100px visible
+- June 28, 2025: Removed visible drag handle bars from both voice and video call modals - modals now draggable by clicking anywhere on them with cursor-move indicator for cleaner interface
 
 ## User Preferences
 
