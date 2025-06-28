@@ -947,12 +947,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)]"
+        className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)]"
       >
 
         
         {messages.map((msg, index) => (
-          <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'}`}>
+          <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'} w-full overflow-hidden`}>
             {msg.messageType === "text" ? (
                 msg.senderId === 5 ? (
                   // Sent message (current user) - with swipe-to-reply
@@ -1250,7 +1250,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 // Crypto transaction message
                 <div className="flex justify-center group mb-1">
                   <div className="relative">
-                    <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-sm shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
+                    <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
                       <CardContent className="p-4">
                       <div className="flex items-center justify-center space-x-2 mb-2">
                         <Coins className="h-4 w-4 text-cyan-400" />
@@ -1260,7 +1260,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         <div className="text-lg font-bold text-cyan-400">
                           {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                         </div>
-                        <div className="text-xs text-slate-400 break-all">
+                        <div className="text-xs text-slate-400 break-all max-w-full overflow-hidden">
                           {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
                         </div>
                         <div className="text-xs text-slate-400">
@@ -1362,7 +1362,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </div>
                     )}
 
-                    <Card className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 max-w-sm shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
+                    <Card className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
                       onClick={() => {
                         if (msg.productId) {
                           setLocation(`/product/${msg.productId}`);
