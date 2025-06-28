@@ -18,7 +18,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -206,16 +206,56 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowGifPicker(false);
   };
 
+  // File upload function
+  const uploadFile = async (file: File, textContent?: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (textContent?.trim()) {
+        formData.append('content', textContent.trim());
+      }
+
+      const response = await fetch(`/api/conversations/${conversation.id}/messages/attachment`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file');
+      }
+
+      // Refresh messages to show the new attachment
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/conversations", conversation.id, "messages"] 
+      });
+
+      toast({
+        title: "File uploaded",
+        description: "Your file has been sent successfully",
+        duration: 2000,
+      });
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  };
+
   // File upload handlers
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      setMessage(prev => prev + ` [File: ${file.name}] `);
-      // Reset file input
+      // Upload file immediately
+      await uploadFile(file, message);
+      // Reset file input and message
       event.target.value = '';
+      setMessage('');
     }
-  }
+  };
 
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
@@ -223,16 +263,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const triggerImageVideoUpload = () => {
     imageVideoInputRef.current?.click();
-  };;
+  };
 
-  const handleImageVideoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageVideoSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      const fileType = file.type.startsWith('image/') ? 'Image' : 'Video';
-      setMessage(prev => prev + ` [${fileType}: ${file.name}] `);
-      // Reset file input
+      // Upload file immediately
+      await uploadFile(file, message);
+      // Reset file input and message
       event.target.value = '';
+      setMessage('');
     }
   };
 
@@ -1367,6 +1407,158 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         </div>
                       </CardContent>
                     </Card>
+                  </div>
+                </div>
+              ) : msg.messageType === "attachment" ? (
+                // File attachment message
+                <div className={`flex ${msg.senderId === 5 ? 'justify-end' : 'justify-start'} group mb-1`} data-message-id={msg.id}>
+                  <div className="relative max-w-xs lg:max-w-md">
+                    
+                    {/* Message Options Menu */}
+                    {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
+                      <div 
+                        data-message-options 
+                        className={`absolute -top-10 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1`}
+                        style={{ 
+                          pointerEvents: 'all', 
+                          zIndex: 9999,
+                          position: 'absolute'
+                        }}
+                        onMouseEnter={handleOptionsHover}
+                        onMouseLeave={handleOptionsLeave}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyMessage(msg);
+                          }}
+                          title="Copy"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStarMessage(msg);
+                          }}
+                          title={msg.isStarred ? "Unstar" : "Star"}
+                        >
+                          <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleForwardMessage(msg);
+                          }}
+                          title="Forward"
+                        >
+                          <Forward className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteMessageMutation.mutate(msg.id);
+                          }}
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Attachment bubble */}
+                    <div 
+                      className={`
+                        rounded-2xl p-3 shadow-lg backdrop-blur-xl border max-w-xs
+                        ${msg.senderId === 5 
+                          ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
+                          : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
+                        }
+                      `}
+                      onMouseEnter={() => handleMessageHover(msg.id)}
+                      onMouseLeave={handleMessageLeave}
+                    >
+                      {/* Image Preview */}
+                      {msg.attachmentType === 'image' && msg.attachmentUrl && (
+                        <div className="mb-2">
+                          <img 
+                            src={msg.attachmentUrl} 
+                            alt={msg.attachmentName || "Image"} 
+                            className="w-full h-auto max-h-64 object-cover rounded-lg"
+                            loading="lazy"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Video Preview */}
+                      {msg.attachmentType === 'video' && msg.attachmentUrl && (
+                        <div className="mb-2">
+                          <video 
+                            src={msg.attachmentUrl} 
+                            controls 
+                            className="w-full h-auto max-h-64 rounded-lg"
+                            preload="metadata"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      )}
+                      
+                      {/* File Preview */}
+                      {msg.attachmentType === 'file' && (
+                        <div className="flex items-center space-x-3 mb-2 p-3 bg-white/10 dark:bg-slate-700/30 rounded-lg">
+                          <File className="h-8 w-8 text-blue-400" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">
+                              {msg.attachmentName || "File"}
+                            </div>
+                            {msg.attachmentSize && (
+                              <div className="text-xs opacity-70">
+                                {(msg.attachmentSize / 1024 / 1024).toFixed(1)} MB
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Download button for all attachments */}
+                      {msg.attachmentUrl && (
+                        <a 
+                          href={msg.attachmentUrl} 
+                          download={msg.attachmentName}
+                          className="flex items-center space-x-2 text-sm opacity-80 hover:opacity-100 transition-opacity"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>{msg.attachmentName || "Download"}</span>
+                        </a>
+                      )}
+                      
+                      {/* Optional text content */}
+                      {msg.content && (
+                        <div className="mt-2 pt-2 border-t border-white/20 dark:border-slate-600/20">
+                          <p className="text-sm break-words">
+                            {highlightText(msg.content, searchQuery || "")}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Timestamp */}
+                      <div className={`text-xs mt-2 ${msg.senderId === 5 ? 'text-white/70' : 'text-muted-foreground'}`}>
+                        {formatTimestamp(msg.timestamp)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : null}

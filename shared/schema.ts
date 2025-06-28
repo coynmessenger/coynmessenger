@@ -48,7 +48,7 @@ export const messages = pgTable("messages", {
   conversationId: integer("conversation_id").notNull(),
   senderId: integer("sender_id").notNull(),
   content: text("content"),
-  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share
+  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share, attachment
   cryptoAmount: decimal("crypto_amount", { precision: 18, scale: 8 }),
   cryptoCurrency: text("crypto_currency"),
   audioFilePath: text("audio_file_path"), // for voice messages
@@ -59,6 +59,11 @@ export const messages = pgTable("messages", {
   productTitle: text("product_title"), // Product title for shared products
   productPrice: text("product_price"), // Product price for shared products
   productImage: text("product_image"), // Product image URL for shared products
+  // File attachment fields
+  attachmentUrl: text("attachment_url"), // File URL in uploads folder
+  attachmentType: text("attachment_type"), // image, video, file
+  attachmentName: text("attachment_name"), // Original filename
+  attachmentSize: integer("attachment_size"), // File size in bytes
   isStarred: boolean("is_starred").default(false),
   timestamp: timestamp("timestamp").defaultNow(),
 });

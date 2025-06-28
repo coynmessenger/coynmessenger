@@ -14,7 +14,7 @@ import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 
-// Configure multer for file uploads
+// Configure multer for avatar uploads
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -41,6 +41,49 @@ const upload = multer({
       return cb(null, true);
     } else {
       cb(new Error('Only images are allowed'));
+    }
+  }
+});
+
+// Configure multer for message attachments
+const attachmentUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(process.cwd(), 'uploads/attachments');
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for attachments
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow all common file types
+    const allowedTypes = [
+      // Images
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+      // Videos
+      'video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm',
+      // Documents
+      'application/pdf', 'text/plain', 'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      // Archives
+      'application/zip', 'application/x-rar-compressed',
+      // Audio
+      'audio/mpeg', 'audio/wav', 'audio/ogg'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(null, false);
     }
   }
 });
@@ -260,6 +303,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(message);
     } catch (error) {
       res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // Upload attachment and send message
+  app.post("/api/conversations/:id/messages/attachment", attachmentUpload.single('file'), async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const senderId = 5; // Current user
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Determine attachment type
+      let attachmentType = 'file';
+      if (file.mimetype.startsWith('image/')) {
+        attachmentType = 'image';
+      } else if (file.mimetype.startsWith('video/')) {
+        attachmentType = 'video';
+      }
+
+      // Create the attachment URL (relative path)
+      const attachmentUrl = `/uploads/attachments/${file.filename}`;
+
+      // Create message with attachment
+      const messageData = {
+        conversationId,
+        senderId,
+        content: req.body.content || null, // Optional text content with the file
+        messageType: "attachment" as const,
+        attachmentUrl,
+        attachmentType,
+        attachmentName: file.originalname,
+        attachmentSize: file.size
+      };
+
+      const message = await storage.createMessage(messageData);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("File upload error:", error);
+      res.status(500).json({ message: "Failed to upload file" });
     }
   });
 
