@@ -365,6 +365,9 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 27, 2025: Made COYN logo clickable in messenger - clicking the COYN logo in both desktop and mobile headers now opens the wallet sidebar for quick access to wallet features
 - June 27, 2025: Swapped header layout positioning - moved COYN logo to right side where home button was, moved home button to left side where logo was, creating new layout arrangement for messenger header
 - June 27, 2025: Fixed infinite loop issues in ShoppingCartComponent and MarketplaceCheckout by storing connected user in useState instead of recreating object from localStorage on every render, stabilized useEffect dependencies to prevent maximum update depth errors, ensured favorites functionality works correctly with proper API error handling
+- June 28, 2025: Updated categories dropdown to show "All Categories" instead of "Categories" for clearer interface
+- June 28, 2025: Simplified marketplace categories and featured items to ultra-minimal icon-only design with Filter and TrendingUp icons
+- June 28, 2025: Fixed wallet address display to maintain proper checksum case formatting (mixed uppercase/lowercase) instead of forcing all uppercase, preserving original Ethereum address format for accurate display
 
 ## User Preferences
 
