@@ -113,8 +113,10 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
     const maxX = window.innerWidth - minVisibleWidth;
     const minX = -(modalWidth - minVisibleWidth);
     
-    // Keep full modal visible vertically
-    const maxY = window.innerHeight - 500; // Approximate modal height
+    // Allow modal to go beyond bottom border but keep at least 100px visible
+    const modalHeight = 500; // Approximate modal height
+    const minVisibleHeight = 100;
+    const maxY = window.innerHeight - minVisibleHeight;
     
     setPosition({
       x: Math.max(minX, Math.min(newX, maxX)),
