@@ -80,7 +80,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByWalletAddress(walletAddress: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress));
+    // Use case-insensitive lookup for wallet addresses since they can have mixed case
+    const [user] = await db.select().from(users).where(sql`LOWER(${users.walletAddress}) = LOWER(${walletAddress})`);
     return user || undefined;
   }
 
