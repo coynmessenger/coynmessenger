@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize database
   await initializeDatabase();
 
-  // Get current user
+  // Get current user - optimized with caching
   app.get("/api/user", async (req, res) => {
     try {
       let userId = 5; // Default user
@@ -73,6 +73,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.userId) {
         userId = parseInt(req.query.userId as string);
       }
+      
+      // Set cache headers for better performance
+      res.set({
+        'Cache-Control': 'public, max-age=120', // Cache for 2 minutes
+        'ETag': `user-${userId}-${Date.now()}` // Simple ETag
+      });
       
       const user = await storage.getUser(userId);
       if (!user) {

@@ -178,7 +178,7 @@ export default function MarketplacePage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
 
-  // Fetch marketplace products with debounced search
+  // Fetch marketplace products with debounced search - optimized caching
   const { data: marketplaceProducts = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ["/api/marketplace/search", searchQuery, selectedCategory],
     queryFn: async () => {
@@ -191,8 +191,11 @@ export default function MarketplacePage() {
       return res.json();
     },
     enabled: searchQuery.length >= 3 || searchQuery.length === 0 || selectedCategory !== 'all',
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    refetchOnWindowFocus: false
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false
   });
 
   // Fetch crypto rates

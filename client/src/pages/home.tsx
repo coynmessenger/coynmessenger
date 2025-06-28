@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,25 +45,22 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Fetch current user data if connected (to get updated display name)
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      if (isConnected && connectedUser?.id) {
-        try {
-          const currentUser = await apiRequest("GET", `/api/user?userId=${connectedUser.id}`);
-          if (currentUser && currentUser.displayName !== connectedUser.displayName) {
-            // Update localStorage and state with current user data
-            localStorage.setItem('connectedUser', JSON.stringify(currentUser));
-            setConnectedUser(currentUser);
-          }
-        } catch (error) {
-          console.error("Failed to fetch current user:", error);
-        }
-      }
-    };
+  // Optimized user data fetching with React Query
+  const { data: currentUserData } = useQuery({
+    queryKey: ["/api/user", { userId: connectedUser?.id }],
+    queryFn: () => connectedUser ? apiRequest("GET", `/api/user?userId=${connectedUser.id}`) : null,
+    enabled: !!(isConnected && connectedUser?.id),
+    staleTime: 2 * 60 * 1000, // Fresh for 2 minutes
+    gcTime: 10 * 60 * 1000, // Cache for 10 minutes
+  });
 
-    fetchCurrentUser();
-  }, [isConnected, connectedUser?.id]);
+  // Update connected user when data changes
+  useEffect(() => {
+    if (currentUserData && currentUserData.displayName !== connectedUser?.displayName) {
+      localStorage.setItem('connectedUser', JSON.stringify(currentUserData));
+      setConnectedUser(currentUserData);
+    }
+  }, [currentUserData, connectedUser]);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
