@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Monitor } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Monitor, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -28,6 +28,28 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  
+  // Dragging state
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isInitialized, setIsInitialized] = useState(false);
+  const dragRef = useRef<HTMLDivElement>(null);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
+  // Center modal when it opens
+  useEffect(() => {
+    if (isOpen && !isInitialized) {
+      const centerX = (window.innerWidth - 672) / 2; // 672 is approximate modal width (max-w-2xl)
+      const centerY = (window.innerHeight - 600) / 2; // 600 is approximate modal height
+      setPosition({
+        x: Math.max(0, centerX),
+        y: Math.max(0, centerY)
+      });
+      setIsInitialized(true);
+    } else if (!isOpen) {
+      setIsInitialized(false);
+    }
+  }, [isOpen, isInitialized]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -98,6 +120,63 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   };
 
+  // Dragging functionality
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragStartRef.current.x;
+    const newY = e.clientY - dragStartRef.current.y;
+    
+    // Allow modal to go beyond side borders but keep at least 100px visible
+    const modalWidth = 672; // Approximate modal width (max-w-2xl)
+    const minVisibleWidth = 100;
+    const maxX = window.innerWidth - minVisibleWidth;
+    const minX = -(modalWidth - minVisibleWidth);
+    
+    // Allow modal to go beyond bottom border but keep at least 100px visible
+    const modalHeight = 600; // Approximate modal height
+    const minVisibleHeight = 100;
+    const maxY = window.innerHeight - minVisibleHeight;
+    
+    setPosition({
+      x: Math.max(minX, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'grabbing';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isDragging]);
+
   const getStatusText = () => {
     switch (callStatus) {
       case "connecting":
@@ -138,8 +217,26 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         onClose();
       }
     }}>
-      <DialogContent className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden">
+      <DialogContent 
+        ref={dragRef}
+        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none"
+        style={{
+          position: 'fixed',
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          transform: 'none',
+          margin: 0
+        }}
+      >
         <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
+        
+        {/* Draggable Header */}
+        <div 
+          className="absolute top-0 left-0 right-0 z-10 flex items-center justify-center p-4 cursor-grab active:cursor-grabbing bg-slate-800/50 backdrop-blur-sm border-b border-slate-700/50"
+          onMouseDown={handleMouseDown}
+        >
+          <Move className="h-4 w-4 text-slate-400" />
+        </div>
         
         {/* Video Area */}
         <div className="relative aspect-video bg-slate-800">
