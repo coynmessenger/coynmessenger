@@ -734,7 +734,7 @@ export default function MarketplacePage() {
                                 <img
                                   src={images[currentImageIndex]}
                                   alt={`${item.title} - Image ${currentImageIndex + 1}`}
-                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-help"
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                   loading="lazy"
                                   onLoad={(e) => {
                                     const target = e.target as HTMLImageElement;
