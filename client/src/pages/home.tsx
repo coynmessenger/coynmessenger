@@ -361,7 +361,7 @@ export default function HomePage() {
                 <div>
                   <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to COYN Network</h3>
                   <p className="text-black dark:text-foreground mb-2">Welcome to COYN, {connectedUser?.displayName}!</p>
-                  <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
+                  <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4 uppercase">
                     {connectedUser?.walletAddress}
                   </p>
                   <div className="space-y-3 mt-6">
