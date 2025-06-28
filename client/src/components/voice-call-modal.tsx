@@ -42,6 +42,8 @@ export default function VoiceCallModal({
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationType, setAnimationType] = useState<'appear' | 'disappear' | null>(null);
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
@@ -64,13 +66,25 @@ export default function VoiceCallModal({
     });
   };
 
-  // Center modal when it opens
+  // Center modal when it opens and trigger appear animation
   useEffect(() => {
     if (isOpen && !isInitialized) {
       centerModal();
       setIsInitialized(true);
+      setAnimationType('appear');
+      setIsAnimating(true);
+      
+      // Reset animation after it completes
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+        setAnimationType(null);
+      }, 600);
+      
+      return () => clearTimeout(timer);
     } else if (!isOpen) {
       setIsInitialized(false);
+      setIsAnimating(false);
+      setAnimationType(null);
     }
   }, [isOpen, isInitialized]);
 
@@ -143,15 +157,7 @@ export default function VoiceCallModal({
     }, 1000);
   };
   
-  const handleCloseModal = () => {
-    // If call is active, just hide the modal without ending the call
-    if (isCallActive && callStatus === "connected") {
-      if (onHide) onHide();
-    } else {
-      // If call is not active or not connected, end the call normally
-      handleEndCall();
-    }
-  };
+
 
   // Dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -319,11 +325,31 @@ export default function VoiceCallModal({
     }
   };
 
+  const handleModalClose = (open: boolean) => {
+    if (!open) {
+      if (callStatus === "connected") {
+        // If call is connected, hide instead of closing
+        if (onHide) onHide();
+      } else {
+        // Trigger disappear animation before closing
+        setAnimationType('disappear');
+        setIsAnimating(true);
+        
+        setTimeout(() => {
+          onClose();
+        }, 400); // Match disappear animation duration
+      }
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
+    <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent 
         ref={dragRef}
-        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none touch-manipulation"
+        className={`w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none touch-manipulation ${
+          isAnimating && animationType === 'appear' ? 'animate-modal-appear' :
+          isAnimating && animationType === 'disappear' ? 'animate-modal-disappear' : ''
+        } ${callStatus === 'connected' ? 'animate-modal-glow' : ''}`}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         style={{
