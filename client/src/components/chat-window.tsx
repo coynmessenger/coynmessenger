@@ -17,6 +17,7 @@ import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
+import ImagePreviewModal from "@/components/image-preview-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
@@ -74,6 +75,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{
+    url: string;
+    name?: string;
+    size?: number;
+  } | null>(null);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     offsetX: number;
@@ -641,6 +648,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
+  };
+
+  const handleImagePreview = (imageUrl: string, imageName?: string, imageSize?: number) => {
+    setPreviewImage({ url: imageUrl, name: imageName, size: imageSize });
+    setShowImagePreview(true);
   };
 
   // Message action handlers
@@ -1496,8 +1508,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <img 
                             src={msg.attachmentUrl} 
                             alt={msg.attachmentName || "Image"} 
-                            className="w-full h-auto max-h-32 object-cover rounded-lg"
+                            className="w-full h-auto max-h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             loading="lazy"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleImagePreview(
+                                msg.attachmentUrl!, 
+                                msg.attachmentName ?? undefined, 
+                                msg.attachmentSize ?? undefined
+                              );
+                            }}
                           />
                         </div>
                       )}
@@ -2118,6 +2138,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         isCallActive={isVideoCallActive}
       />
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <ImagePreviewModal
+          isOpen={showImagePreview}
+          onClose={() => setShowImagePreview(false)}
+          imageUrl={previewImage.url}
+          imageName={previewImage.name}
+          imageSize={previewImage.size}
+        />
+      )}
     </div>
   );
 }
