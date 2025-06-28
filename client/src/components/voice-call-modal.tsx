@@ -81,24 +81,35 @@ export default function VoiceCallModal({
       }, 600);
       
       return () => clearTimeout(timer);
-    } else if (!isOpen) {
+    } else if (!isOpen && isInitialized) {
       setIsInitialized(false);
       setIsAnimating(false);
       setAnimationType(null);
     }
-  }, [isOpen, isInitialized]);
+  }, [isOpen]);
 
-  // Re-center on window resize
+  // Re-center on window resize (debounced)
   useEffect(() => {
+    let resizeTimer: NodeJS.Timeout;
+    
     const handleResize = () => {
-      if (isOpen) {
-        centerModal();
-      }
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (isOpen && isInitialized) {
+          centerModal();
+        }
+      }, 100);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen]);
+    if (isOpen) {
+      window.addEventListener('resize', handleResize);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+    };
+  }, [isOpen, isInitialized]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -161,9 +172,9 @@ export default function VoiceCallModal({
 
   // Dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't start dragging if clicking on a button or interactive element
+    // Don't start dragging if clicking on a button, interactive element, or during animation
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="button"]')) {
+    if (target.closest('button') || target.closest('[role="button"]') || isAnimating) {
       return;
     }
     
@@ -192,7 +203,7 @@ export default function VoiceCallModal({
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || isAnimating) return;
     
     const newX = e.clientX - dragStartRef.current.x;
     const newY = e.clientY - dragStartRef.current.y;
@@ -201,7 +212,7 @@ export default function VoiceCallModal({
   };
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || isAnimating) return;
     
     e.preventDefault(); // Prevent scrolling while dragging
     const touch = e.touches[0];
