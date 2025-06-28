@@ -138,6 +138,34 @@
   }
 }
 
+/* Custom select dropdown styling - remove orange highlights */
+[data-radix-select-content] [data-radix-select-item] {
+  outline: none !important;
+}
+
+[data-radix-select-content] [data-radix-select-item][data-highlighted] {
+  background-color: hsl(210, 40%, 96%) !important; /* Light gray for light mode */
+  color: hsl(0, 0%, 0%) !important;
+}
+
+.dark [data-radix-select-content] [data-radix-select-item][data-highlighted] {
+  background-color: hsl(215, 25%, 27%) !important; /* Dark gray for dark mode */
+  color: hsl(213, 31%, 91%) !important;
+}
+
+/* Override focus ring for select items */
+[data-radix-select-content] [data-radix-select-item]:focus,
+[data-radix-select-content] [data-radix-select-item]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: hsl(210, 40%, 96%) !important;
+}
+
+.dark [data-radix-select-content] [data-radix-select-item]:focus,
+.dark [data-radix-select-content] [data-radix-select-item]:focus-visible {
+  background-color: hsl(215, 25%, 27%) !important;
+}
+
 /* Sleek glassmorphism effects */
 .glass-card {
   background: rgba(255, 255, 255, 0.8);
