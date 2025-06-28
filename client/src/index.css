@@ -139,31 +139,77 @@
 }
 
 /* Custom select dropdown styling - remove orange highlights */
-[data-radix-select-content] [data-radix-select-item] {
-  outline: none !important;
-}
-
-[data-radix-select-content] [data-radix-select-item][data-highlighted] {
-  background-color: hsl(210, 40%, 96%) !important; /* Light gray for light mode */
+.select-item,
+.select-item[data-highlighted],
+.select-item[data-state="checked"],
+[data-radix-select-item],
+[data-radix-select-item][data-highlighted],
+[data-radix-select-item][data-state="checked"],
+[data-radix-collection-item],
+[data-radix-collection-item][data-highlighted] {
+  background-color: hsl(210, 40%, 96%) !important;
   color: hsl(0, 0%, 0%) !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-.dark [data-radix-select-content] [data-radix-select-item][data-highlighted] {
-  background-color: hsl(215, 25%, 27%) !important; /* Dark gray for dark mode */
+.dark .select-item,
+.dark .select-item[data-highlighted],
+.dark .select-item[data-state="checked"],
+.dark [data-radix-select-item],
+.dark [data-radix-select-item][data-highlighted],
+.dark [data-radix-select-item][data-state="checked"],
+.dark [data-radix-collection-item],
+.dark [data-radix-collection-item][data-highlighted] {
+  background-color: hsl(215, 25%, 27%) !important;
   color: hsl(213, 31%, 91%) !important;
 }
 
-/* Override focus ring for select items */
-[data-radix-select-content] [data-radix-select-item]:focus,
-[data-radix-select-content] [data-radix-select-item]:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
+/* Additional overrides for any remaining orange states */
+.select-item:hover,
+.select-item:focus,
+[data-radix-select-item]:hover,
+[data-radix-select-item]:focus,
+[data-radix-collection-item]:hover,
+[data-radix-collection-item]:focus {
   background-color: hsl(210, 40%, 96%) !important;
+  color: hsl(0, 0%, 0%) !important;
 }
 
-.dark [data-radix-select-content] [data-radix-select-item]:focus,
-.dark [data-radix-select-content] [data-radix-select-item]:focus-visible {
+.dark .select-item:hover,
+.dark .select-item:focus,
+.dark [data-radix-select-item]:hover,
+.dark [data-radix-select-item]:focus,
+.dark [data-radix-collection-item]:hover,
+.dark [data-radix-collection-item]:focus {
   background-color: hsl(215, 25%, 27%) !important;
+  color: hsl(213, 31%, 91%) !important;
+}
+
+/* Override Shadcn/UI Select component orange highlighting */
+.select-content .select-item {
+  background-color: transparent !important;
+}
+
+.select-content .select-item[data-highlighted] {
+  background-color: hsl(210, 40%, 96%) !important;
+  color: hsl(0, 0%, 0%) !important;
+}
+
+.dark .select-content .select-item[data-highlighted] {
+  background-color: hsl(215, 25%, 27%) !important;
+  color: hsl(213, 31%, 91%) !important;
+}
+
+/* Target specific Radix UI select classes */
+[data-radix-select-content] {
+  --radix-select-item-background-active: hsl(210, 40%, 96%) !important;
+  --radix-select-item-color-active: hsl(0, 0%, 0%) !important;
+}
+
+.dark [data-radix-select-content] {
+  --radix-select-item-background-active: hsl(215, 25%, 27%) !important;
+  --radix-select-item-color-active: hsl(213, 31%, 91%) !important;
 }
 
 /* Sleek glassmorphism effects */

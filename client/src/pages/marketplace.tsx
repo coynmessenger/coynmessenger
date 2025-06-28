@@ -572,9 +572,13 @@ export default function MarketplacePage() {
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600">
                   {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
+                    <SelectItem 
+                      key={category.value} 
+                      value={category.value}
+                      className="hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-slate-700"
+                    >
                       <div className="flex items-center">
                         <category.icon className="h-4 w-4 mr-2" />
                         {category.label}
@@ -589,11 +593,11 @@ export default function MarketplacePage() {
                   <TrendingUp className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured Items</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600">
+                  <SelectItem value="featured" className="hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-slate-700">Featured Items</SelectItem>
+                  <SelectItem value="price-low" className="hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-slate-700">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high" className="hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-slate-700">Price: High to Low</SelectItem>
+                  <SelectItem value="rating" className="hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-slate-700">Highest Rated</SelectItem>
                 </SelectContent>
               </Select>
             </div>
