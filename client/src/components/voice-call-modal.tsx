@@ -45,6 +45,10 @@ export default function VoiceCallModal({
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
+  // Animation state
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationType, setAnimationType] = useState<'enter' | 'exit'>('enter');
+
   // Function to center the modal
   const centerModal = () => {
     const viewportWidth = window.innerWidth;
@@ -64,11 +68,20 @@ export default function VoiceCallModal({
     });
   };
 
-  // Center modal when it opens
+  // Center modal when it opens and trigger entrance animation
   useEffect(() => {
     if (isOpen && !isInitialized) {
       centerModal();
       setIsInitialized(true);
+      setAnimationType('enter');
+      setIsAnimating(true);
+      
+      // Remove animation class after animation completes
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 300);
+      
+      return () => clearTimeout(timer);
     } else if (!isOpen) {
       setIsInitialized(false);
     }
@@ -148,8 +161,14 @@ export default function VoiceCallModal({
     if (isCallActive && callStatus === "connected") {
       if (onHide) onHide();
     } else {
-      // If call is not active or not connected, end the call normally
-      handleEndCall();
+      // If call is not active or not connected, trigger exit animation then end call
+      setAnimationType('exit');
+      setIsAnimating(true);
+      
+      setTimeout(() => {
+        handleEndCall();
+        setIsAnimating(false);
+      }, 200);
     }
   };
 
@@ -323,7 +342,13 @@ export default function VoiceCallModal({
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
         ref={dragRef}
-        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none touch-manipulation"
+        className={`w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none touch-manipulation ${
+          isAnimating 
+            ? animationType === 'enter' 
+              ? 'animate-modal-enter' 
+              : 'animate-modal-exit'
+            : ''
+        }`}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         style={{
