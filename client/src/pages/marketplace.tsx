@@ -567,32 +567,55 @@ export default function MarketplacePage() {
           {/* Filters */}
           <div className="flex gap-3">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
+              <SelectTrigger className="w-12">
+                <Filter className="h-4 w-4" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                    <div className="flex items-center">
+                      <category.icon className="h-4 w-4 mr-2" />
+                      {category.label}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
+              <SelectTrigger className="w-12">
+                <TrendingUp className="h-4 w-4" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="featured">Featured</SelectItem>
-                <SelectItem value="price-low">Low to High</SelectItem>
-                <SelectItem value="price-high">High to Low</SelectItem>
-                <SelectItem value="rating">Top Rated</SelectItem>
+                <SelectItem value="featured">
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 mr-2" />
+                    Featured
+                  </div>
+                </SelectItem>
+                <SelectItem value="price-low">
+                  <div className="flex items-center">
+                    <ArrowUp className="h-4 w-4 mr-2" />
+                    Low to High
+                  </div>
+                </SelectItem>
+                <SelectItem value="price-high">
+                  <div className="flex items-center">
+                    <ArrowDown className="h-4 w-4 mr-2" />
+                    High to Low
+                  </div>
+                </SelectItem>
+                <SelectItem value="rating">
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 mr-2" />
+                    Top Rated
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
             
             <span className="text-sm text-muted-foreground self-center">
-              {sortedItems.length} items
+              {sortedItems.length}
             </span>
           </div>
 
