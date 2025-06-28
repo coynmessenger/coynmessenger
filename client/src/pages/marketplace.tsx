@@ -564,93 +564,47 @@ export default function MarketplacePage() {
 
 
 
-          {/* Enhanced Categories Section */}
-          <div className="bg-gradient-to-r from-white via-orange-50 to-orange-100 dark:from-slate-800 dark:via-orange-900/10 dark:to-orange-800/20 rounded-xl p-6 border border-orange-200/50 dark:border-orange-700/30 shadow-lg backdrop-blur-sm">
-            <div className="flex items-center mb-4">
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 dark:from-cyan-500 dark:to-cyan-600 rounded-lg p-2 mr-3">
-                <Filter className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Browse Categories</h3>
+          {/* Filters and Sort */}
+          <div className="flex flex-col md:flex-row gap-2 sm:gap-3">
+            <div className="flex gap-2 flex-1 overflow-x-auto">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-40 sm:w-48 h-10 sm:h-9">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      <div className="flex items-center">
+                        <category.icon className="h-4 w-4 mr-2" />
+                        {category.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Featured Items</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex gap-3 flex-1 overflow-x-auto pb-2">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-48 sm:w-56 h-12 bg-white dark:bg-slate-700 border-2 border-orange-200 dark:border-orange-700 hover:border-orange-400 dark:hover:border-orange-500 transition-colors shadow-md">
-                    <Filter className="h-5 w-5 mr-3 text-orange-600 dark:text-orange-400" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-slate-800 border-orange-200 dark:border-orange-700">
-                    {categories.map((category) => (
-                      <SelectItem key={category.value} value={category.value} className="hover:bg-orange-50 dark:hover:bg-orange-900/20">
-                        <div className="flex items-center py-1">
-                          <div className="bg-gradient-to-r from-orange-500 to-orange-600 dark:from-cyan-500 dark:to-cyan-600 rounded-md p-1 mr-3">
-                            <category.icon className="h-3 w-3 text-white" />
-                          </div>
-                          <span className="font-medium">{category.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-52 sm:w-60 h-12 bg-white dark:bg-slate-700 border-2 border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors shadow-md">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600 rounded-md p-1 mr-3">
-                      <TrendingUp className="h-3 w-3 text-white" />
-                    </div>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-slate-800 border-blue-200 dark:border-blue-700">
-                    <SelectItem value="featured" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                      <div className="flex items-center py-1">
-                        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-md p-1 mr-3">
-                          <Star className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="font-medium">Featured Items</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="price-low" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                      <div className="flex items-center py-1">
-                        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-md p-1 mr-3">
-                          <ArrowUp className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="font-medium">Price: Low to High</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="price-high" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                      <div className="flex items-center py-1">
-                        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-md p-1 mr-3">
-                          <ArrowDown className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="font-medium">Price: High to Low</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="rating" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                      <div className="flex items-center py-1">
-                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-md p-1 mr-3">
-                          <Star className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="font-medium">Highest Rated</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {/* Enhanced Search Stats */}
-              <div className="flex items-center bg-white dark:bg-slate-700 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-600 shadow-sm">
-                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-md p-1 mr-3">
-                  <Package className="h-4 w-4 text-white" />
-                </div>
-                <div className="text-sm font-medium text-foreground">
-                  {isLoadingProducts ? (
-                    <span className="text-orange-600 dark:text-orange-400">Searching products...</span>
-                  ) : (
-                    <span className="text-emerald-600 dark:text-emerald-400">{sortedItems.length} products found</span>
-                  )}
-                </div>
-              </div>
+            {/* Search Stats */}
+            <div className="flex items-center text-sm text-muted-foreground">
+              {isLoadingProducts ? (
+                <span>Searching...</span>
+              ) : (
+                <span>{sortedItems.length} products found</span>
+              )}
             </div>
           </div>
 
