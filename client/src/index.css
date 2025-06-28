@@ -321,21 +321,33 @@ body {
   animation: search-result-focus 3s ease-in-out;
   border-radius: 8px;
   transition: all 0.3s ease;
+  margin: 2px 0;
+  padding: 4px 8px;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .search-highlight-pulse {
   animation: search-highlight-pulse 2s ease-out;
 }
 
-/* Search highlighting with enhanced visibility */
+/* Search highlighting with enhanced visibility and proper containment */
 mark {
   animation: highlight-fade-in 0.5s ease-out;
   transition: all 0.2s ease;
+  display: inline;
+  padding: 2px 4px;
+  margin: 0 1px;
+  border-radius: 3px;
+  max-width: 100%;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 
 mark:hover {
   background: rgba(251, 146, 60, 0.4) !important;
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 /* Animation delay utilities for loading screens */
@@ -473,5 +485,26 @@ mark:hover {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+  
+  /* Fix search highlighting spacing issues on mobile */
+  .chat-header, .chat-header * {
+    overflow: hidden;
+  }
+  
+  .chat-header mark {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  
+  /* Prevent search highlighting from breaking mobile layout */
+  .search-result-container {
+    max-width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
   }
 }

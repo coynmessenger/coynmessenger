@@ -855,7 +855,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       );
       
       return isMatch ? (
-        <mark key={index} className="bg-gradient-to-r from-yellow-200 to-orange-200 dark:from-yellow-500/60 dark:to-orange-500/60 text-black dark:text-white px-1.5 py-0.5 rounded-md font-semibold shadow-sm border border-yellow-300 dark:border-yellow-400/50 animate-pulse">
+        <mark key={index} className="search-result-container bg-gradient-to-r from-yellow-200 to-orange-200 dark:from-yellow-500/60 dark:to-orange-500/60 text-black dark:text-white px-1 py-0.5 rounded-md font-medium shadow-sm border border-yellow-300 dark:border-yellow-400/50">
           {part}
         </mark>
       ) : part;
@@ -976,7 +976,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
-      <div className="bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between">
+      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
