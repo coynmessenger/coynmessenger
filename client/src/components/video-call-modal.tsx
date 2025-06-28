@@ -73,35 +73,24 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       }, 600);
       
       return () => clearTimeout(timer);
-    } else if (!isOpen && isInitialized) {
+    } else if (!isOpen) {
       setIsInitialized(false);
       setIsAnimating(false);
       setAnimationType(null);
     }
-  }, [isOpen]);
-
-  // Re-center on window resize (debounced)
-  useEffect(() => {
-    let resizeTimer: NodeJS.Timeout;
-    
-    const handleResize = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        if (isOpen && isInitialized) {
-          centerModal();
-        }
-      }, 100);
-    };
-
-    if (isOpen) {
-      window.addEventListener('resize', handleResize);
-    }
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(resizeTimer);
-    };
   }, [isOpen, isInitialized]);
+
+  // Re-center on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen) {
+        centerModal();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -174,9 +163,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
 
   // Dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't start dragging if clicking on a button, interactive element, or during animation
+    // Don't start dragging if clicking on a button or interactive element
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="button"]') || isAnimating) {
+    if (target.closest('button') || target.closest('[role="button"]')) {
       return;
     }
     
@@ -205,7 +194,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || isAnimating) return;
+    if (!isDragging) return;
     
     const newX = e.clientX - dragStartRef.current.x;
     const newY = e.clientY - dragStartRef.current.y;
@@ -214,7 +203,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   };
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (!isDragging || isAnimating) return;
+    if (!isDragging) return;
     
     e.preventDefault(); // Prevent scrolling while dragging
     const touch = e.touches[0];
