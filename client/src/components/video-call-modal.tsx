@@ -240,10 +240,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       >
         <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
         
-        {/* Video Area */}
+        {/* Video Area - Always shows the other person (Chris) */}
         <div className="relative aspect-video bg-slate-800">
-          {callStatus === "connected" && !isVideoOff ? (
-            // Simulated video feed
+          {callStatus === "connected" ? (
+            // Other person's video feed (Chris)
             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
               <div className="text-center space-y-4">
                 <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
@@ -252,11 +252,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                     <UserAvatarIcon className="w-12 h-12 text-slate-400" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-white/60 text-sm">Video connected</div>
+                <div className="text-white/60 text-sm">{user.displayName}</div>
               </div>
             </div>
           ) : (
-            // User avatar when video is off or not connected
+            // Connecting state - show other person's avatar
             <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
               <div className="text-center space-y-6">
                 <Avatar className="w-32 h-32 mx-auto border-4 border-white/20 shadow-xl">
@@ -265,14 +265,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                     <UserAvatarIcon className="w-16 h-16 text-slate-400" />
                   </AvatarFallback>
                 </Avatar>
-                {callStatus === "connected" && isVideoOff && (
-                  <div className="text-white/60 text-sm">Camera is off</div>
-                )}
               </div>
             </div>
           )}
 
-          {/* Self view (small preview) */}
+          {/* Self view (small preview) - YOUR camera */}
           {callStatus === "connected" && !isSelfViewExpanded && (
             <div 
               className="absolute top-4 right-4 w-32 h-24 bg-slate-700 rounded-lg border-2 border-white/20 overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105"
@@ -280,12 +277,19 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               title="Click to expand your view"
             >
               <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
-                <div className="text-white/40 text-xs">You</div>
+                {isVideoOff ? (
+                  <div className="text-center">
+                    <div className="text-white/40 text-xs">You</div>
+                    <div className="text-red-400/80 text-xs mt-1">Camera off</div>
+                  </div>
+                ) : (
+                  <div className="text-white/40 text-xs">You</div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Expanded self view (full screen) */}
+          {/* Expanded self view (full screen) - YOUR camera */}
           {callStatus === "connected" && isSelfViewExpanded && (
             <div 
               className="absolute inset-0 bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center cursor-pointer z-20"
@@ -294,6 +298,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             >
               <div className="text-center space-y-4">
                 <div className="text-white text-2xl font-medium">Your Camera</div>
+                {isVideoOff ? (
+                  <div className="text-red-400 text-lg">Camera is off</div>
+                ) : (
+                  <div className="text-green-400 text-lg">Camera is on</div>
+                )}
                 <div className="text-white/60 text-sm">Click anywhere to return</div>
               </div>
               

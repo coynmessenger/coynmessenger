@@ -389,6 +389,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Enhanced call modal dragging boundaries - both voice and video call modals can now be dragged beyond top border in addition to side and bottom borders while maintaining 100px minimum visibility
 - June 28, 2025: Removed drag cursor indicators from call modals - both voice and video call modals now show normal mouse cursor instead of move cursor for cleaner interface while maintaining full dragging functionality
 - June 28, 2025: Clarified video call camera control tooltips - updated tooltip text to specify "your camera" instead of just "camera" to make clear the button controls the current user's camera, not the other person's
+- June 28, 2025: Fixed video call camera control logic - main video area now always shows other person (Chris), self-view area shows YOUR camera status, camera button correctly controls YOUR camera with proper visual indicators in self-view area
 
 ## User Preferences
 
