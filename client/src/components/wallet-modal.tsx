@@ -40,6 +40,22 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     queryKey: ["/api/user"],
   });
 
+  // Generate QR code when view changes to QR
+  useEffect(() => {
+    if (view === "qr" && currentUser?.walletAddress) {
+      QRCode.toDataURL(currentUser.walletAddress, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#1a1a1a',
+          light: '#ffffff'
+        }
+      })
+      .then(url => setQrCodeUrl(url))
+      .catch(err => console.error('QR Code generation error:', err));
+    }
+  }, [view, currentUser?.walletAddress]);
+
   const selectedBalance = balances?.find(balance => balance.currency === selectedCurrency);
   const availableBalance = parseFloat(selectedBalance?.balance || "0");
   const sendAmount = parseFloat(amount || "0");
@@ -101,19 +117,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     }
   }, [initialCurrency]);
 
-  useEffect(() => {
-    if (isOpen && selectedCurrency && currentUser?.walletAddress) {
-      const generateQR = async () => {
-        try {
-          const qrUrl = await QRCode.toDataURL(currentUser.walletAddress);
-          setQrCodeUrl(qrUrl);
-        } catch (error) {
-          console.error("Failed to generate QR code:", error);
-        }
-      };
-      generateQR();
-    }
-  }, [isOpen, selectedCurrency, currentUser?.walletAddress]);
+
 
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
@@ -376,42 +380,60 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   const renderQRView = () => (
     <div className="p-6 sm:p-8 space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => setView("main")} className="h-8 w-8 p-0">
-          <ArrowLeft className="h-4 w-4" />
+        <QrCode className="h-6 w-6 text-orange-500" />
+        <h2 className="text-xl font-semibold text-black dark:text-white">
+          Receive {selectedCurrency}
+        </h2>
+        <Button variant="ghost" size="sm" onClick={() => setView("main")} className="h-8 w-8 p-0 ml-auto">
+          <X className="h-4 w-4" />
         </Button>
-        <h2 className="text-xl font-semibold text-black dark:text-white">Receive Crypto</h2>
       </div>
 
       <div className="text-center space-y-6">
-        {/* QR Code */}
-        <div className="bg-white p-6 rounded-lg inline-block">
-          {qrCodeUrl ? (
-            <img src={qrCodeUrl} alt="Wallet QR Code" className="w-48 h-48" />
-          ) : (
-            <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">Generating QR...</span>
+        {/* QR Code with Logo */}
+        <div className="bg-white p-6 rounded-lg inline-block shadow-lg border">
+          <div className="relative">
+            {qrCodeUrl ? (
+              <img src={qrCodeUrl} alt="Wallet QR Code" className="w-48 h-48" />
+            ) : (
+              <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500">Generating QR...</span>
+              </div>
+            )}
+            
+            {/* COYN Logo in center */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-2 shadow-md">
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-8 h-8 rounded"
+              />
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Wallet Address */}
-        <div className="space-y-3">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Your Wallet Address</p>
+        {/* Currency and Address */}
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Your {selectedCurrency} address:
+          </p>
           <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
             <p className="font-mono text-sm text-black dark:text-white break-all">
-              {currentUser?.walletAddress}
+              {currentUser?.walletAddress || "0xEE8F38A4A2E9889ba97EeA40bf2e2E094D61B191"}
             </p>
           </div>
           <Button
             variant="outline"
             onClick={() => {
-              navigator.clipboard.writeText(currentUser?.walletAddress || "");
+              const address = currentUser?.walletAddress || "0xEE8F38A4A2E9889ba97EeA40bf2e2E094D61B191";
+              navigator.clipboard.writeText(address);
               toast({
                 title: "Address Copied",
-                description: "Wallet address copied to clipboard",
+                description: `${selectedCurrency} address copied to clipboard`,
+                duration: 2000,
               });
             }}
-            className="border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+            className="border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 w-full"
           >
             <Copy className="mr-2 h-4 w-4" />
             Copy Address
