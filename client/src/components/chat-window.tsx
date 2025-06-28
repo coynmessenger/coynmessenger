@@ -869,7 +869,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const resultIndex = Math.max(0, Math.min(index, searchResults.length - 1));
     setCurrentSearchIndex(resultIndex);
     
-    const messageId = searchResults[resultIndex].id;
+    const message = searchResults[resultIndex];
+    const messageId = message.id;
+    
     setTimeout(() => {
       const element = document.querySelector(`[data-message-id="${messageId}"]`);
       if (element) {
@@ -883,6 +885,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         setTimeout(() => {
           element.classList.remove('search-result-focus');
         }, 3000);
+      } else {
+        // Fallback: scroll to message by ID in the messages container
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+          const messageElements = messagesContainer.querySelectorAll('[data-message-id]');
+          for (let i = 0; i < messageElements.length; i++) {
+            const msgEl = messageElements[i];
+            if (msgEl.getAttribute('data-message-id') === messageId.toString()) {
+              msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              msgEl.classList.add('search-result-focus');
+              setTimeout(() => {
+                msgEl.classList.remove('search-result-focus');
+              }, 3000);
+              break;
+            }
+          }
+        }
       }
     }, 100);
   };
@@ -1029,7 +1048,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 p-0.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200 rounded-sm"
-                      onClick={goToPreviousResult}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        goToPreviousResult();
+                      }}
                       title="Previous result (Shift+Enter)"
                     >
                       <ChevronUp className="h-3 w-3" />
@@ -1038,7 +1061,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 p-0.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200 rounded-sm"
-                      onClick={goToNextResult}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        goToNextResult();
+                      }}
                       title="Next result (Enter)"
                     >
                       <ChevronDown className="h-3 w-3" />
