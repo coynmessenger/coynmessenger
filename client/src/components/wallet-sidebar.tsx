@@ -201,9 +201,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                     <Wallet className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent">COYN Wallet</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Portfolio Overview</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap">COYN Wallet</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Portfolio Overview</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
