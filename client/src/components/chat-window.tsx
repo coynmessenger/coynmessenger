@@ -169,26 +169,31 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof emojiCategories>("faces");
 
-  // Mock GIF data with popular categories
+  // Mock GIF data with expanded contextual categories
   const mockGifs = {
     trending: [
-      { id: 1, url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", title: "Funny Cat" },
-      { id: 2, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Dancing" },
-      { id: 3, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Celebrate" },
+      { id: 1, url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", title: "Hello Wave" },
+      { id: 2, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Thank You" },
+      { id: 3, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Good Morning" },
       { id: 4, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Thumbs Up" },
-      { id: 5, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Heart Eyes" },
-      { id: 6, url: "https://media.giphy.com/media/l0HlPystfePnAI3G8/giphy.gif", title: "Mind Blown" }
+      { id: 5, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Goodbye" },
+      { id: 6, url: "https://media.giphy.com/media/l0HlPystfePnAI3G8/giphy.gif", title: "See You Later" }
     ],
     reactions: [
-      { id: 7, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "OMG" },
-      { id: 8, url: "https://media.giphy.com/media/26tn6jEVRIelPhdJC/giphy.gif", title: "Shocked" },
-      { id: 9, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Love" },
-      { id: 10, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "Laughing" }
+      { id: 7, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "OMG Surprised" },
+      { id: 8, url: "https://media.giphy.com/media/26tn6jEVRIelPhdJC/giphy.gif", title: "Mind Blown" },
+      { id: 9, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Love Heart" },
+      { id: 10, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "LOL Laughing" },
+      { id: 14, url: "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif", title: "Wow Amazing" },
+      { id: 15, url: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif", title: "Funny Reaction" }
     ],
     celebration: [
-      { id: 11, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Party" },
-      { id: 12, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Success" },
-      { id: 13, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Winner" }
+      { id: 11, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Party Time" },
+      { id: 12, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Success Dance" },
+      { id: 13, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Winner Champion" },
+      { id: 16, url: "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif", title: "Congratulations" },
+      { id: 17, url: "https://media.giphy.com/media/3o6fIShUdNpuOaWWha/giphy.gif", title: "Great Job" },
+      { id: 18, url: "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif", title: "Awesome Win" }
     ]
   };
 
@@ -197,10 +202,40 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowGifPicker(false);
   };
 
-  // Filter GIFs based on search query
+  // Analyze conversation context to suggest relevant GIFs
+  const getContextualGifs = () => {
+    const recentMessages = messages.slice(-5); // Last 5 messages
+    const messageText = recentMessages
+      .filter(m => m.content)
+      .map(m => m.content!.toLowerCase())
+      .join(' ');
+    
+    // Keywords that trigger specific GIF categories
+    const contextKeywords = {
+      celebration: ['congrats', 'celebration', 'party', 'awesome', 'great', 'amazing', 'win', 'success', 'good job', 'well done', 'fantastic', 'excellent'],
+      reactions: ['wow', 'omg', 'shocked', 'surprised', 'love', 'heart', 'like', 'funny', 'lol', 'haha', 'laugh'],
+      trending: ['hello', 'hi', 'thanks', 'thank you', 'bye', 'goodbye', 'see you', 'good morning', 'good night']
+    };
+    
+    // Check which category has the most keyword matches
+    let bestCategory = 'trending';
+    let maxMatches = 0;
+    
+    Object.entries(contextKeywords).forEach(([category, keywords]) => {
+      const matches = keywords.filter(keyword => messageText.includes(keyword)).length;
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        bestCategory = category;
+      }
+    });
+    
+    return mockGifs[bestCategory as keyof typeof mockGifs] || mockGifs.trending;
+  };
+
+  // Filter GIFs based on search query or context
   const getFilteredGifs = () => {
     if (!gifSearchQuery.trim()) {
-      return mockGifs.trending;
+      return getContextualGifs();
     }
     
     const allGifs = [...mockGifs.trending, ...mockGifs.reactions, ...mockGifs.celebration];
@@ -1481,7 +1516,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </PopoverTrigger>
               <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
                 <div className="space-y-2">
-                  <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">GIFs</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">GIFs</h3>
+                    {!gifSearchQuery.trim() && (
+                      <span className="text-xs text-orange-600 dark:text-cyan-400 bg-orange-50 dark:bg-cyan-900/30 px-2 py-1 rounded-full">
+                        ✨ Smart suggestions
+                      </span>
+                    )}
+                  </div>
                   
                   {/* Search Bar */}
                   <div className="relative">
@@ -1492,6 +1534,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       className="h-8 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400"
                     />
                   </div>
+
+                  {/* Context indicator when showing smart suggestions */}
+                  {!gifSearchQuery.trim() && (
+                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-cyan-900/20 dark:to-cyan-800/20 rounded-lg p-2 border border-orange-200 dark:border-cyan-700/50">
+                      <p className="text-xs text-orange-700 dark:text-cyan-300 font-medium">
+                        🎯 Showing GIFs relevant to your conversation
+                      </p>
+                    </div>
+                  )}
 
                   {/* GIF Grid */}
                   <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
@@ -1513,7 +1564,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   
                   <div className="pt-1.5 border-t border-gray-200 dark:border-slate-700">
                     <p className="text-xs text-gray-500 dark:text-slate-400">
-                      {getFilteredGifs().length} GIFs available
+                      {getFilteredGifs().length} GIFs {gifSearchQuery.trim() ? 'found' : 'suggested'}
                     </p>
                   </div>
                 </div>
