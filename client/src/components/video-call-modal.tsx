@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move, Monitor } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -36,12 +36,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isInitialized, setIsInitialized] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
-
-  // Floating controls state
-  const [showFloatingControls, setShowFloatingControls] = useState(false);
-  const [gestureStart, setGestureStart] = useState({ x: 0, y: 0 });
-  const [isGesturing, setIsGesturing] = useState(false);
-  const gestureRef = useRef<HTMLDivElement>(null);
 
   // Function to center the modal
   const centerModal = () => {
@@ -83,65 +77,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
-
-  // Gesture handlers for floating controls
-  const handleGestureStart = (e: React.TouchEvent | React.MouseEvent) => {
-    if (isDragging) return; // Don't interfere with dragging
-    
-    setIsGesturing(true);
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    setGestureStart({ x: clientX, y: clientY });
-  };
-
-  const handleGestureMove = (e: TouchEvent | MouseEvent) => {
-    if (!isGesturing || isDragging) return;
-    
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    
-    const deltaX = clientX - gestureStart.x;
-    const deltaY = clientY - gestureStart.y;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
-    // Show floating controls on upward swipe (> 50px)
-    if (deltaY < -50 && Math.abs(deltaX) < 50 && distance > 50) {
-      setShowFloatingControls(true);
-      setIsGesturing(false);
-    }
-    // Hide floating controls on downward swipe
-    else if (deltaY > 50 && Math.abs(deltaX) < 50 && distance > 50) {
-      setShowFloatingControls(false);
-      setIsGesturing(false);
-    }
-  };
-
-  const handleGestureEnd = () => {
-    setIsGesturing(false);
-  };
-
-  // Add gesture event listeners
-  useEffect(() => {
-    if (isGesturing && !isDragging) {
-      const handleMouseMove = (e: MouseEvent) => handleGestureMove(e);
-      const handleTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        handleGestureMove(e);
-      };
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('touchmove', handleTouchMove, { passive: false });
-      document.addEventListener('mouseup', handleGestureEnd);
-      document.addEventListener('touchend', handleGestureEnd);
-      
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('mouseup', handleGestureEnd);
-        document.removeEventListener('touchend', handleGestureEnd);
-      };
-    }
-  }, [isGesturing, isDragging]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -535,29 +470,50 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         </div>
 
         {/* User Info & Controls */}
-        <div 
-          className="p-6 space-y-6"
-          onMouseDown={handleGestureStart}
-          onTouchStart={handleGestureStart}
-          ref={gestureRef}
-        >
+        <div className="p-6 space-y-6">
           {/* User Name */}
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
           </div>
 
-          {/* Gesture Hint */}
-          {callStatus === "connected" && !showFloatingControls && (
-            <div className="text-center">
-              <p className="text-slate-400 text-sm animate-pulse">
-                Swipe up for controls
-              </p>
-            </div>
-          )}
+          {/* Call Controls */}
+          {callStatus !== "ended" && (
+            <div className="flex justify-center space-x-4">
+              {callStatus === "connected" && (
+                <>
+                  {/* Mute Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsMuted(!isMuted)}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                      isMuted 
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                    }`}
+                    title={isMuted ? "Unmute" : "Mute"}
+                  >
+                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
 
-          {/* Single End Call Button for non-connected states */}
-          {callStatus !== "ended" && callStatus !== "connected" && callType !== "incoming" && (
-            <div className="flex justify-center">
+                  {/* Video Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsVideoOff(!isVideoOff)}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                      isVideoOff 
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                    }`}
+                    title={isVideoOff ? "Turn on your camera" : "Turn off your camera"}
+                  >
+                    {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                  </Button>
+                </>
+              )}
+
+              {/* End Call Button */}
               <Button
                 onClick={handleEndCall}
                 className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
@@ -588,69 +544,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             </div>
           )}
         </div>
-
-        {/* Floating Call Controls */}
-        {callStatus === "connected" && showFloatingControls && (
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center px-4">
-            <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-2xl animate-slide-up">
-              <div className="grid grid-cols-4 gap-3">
-                {/* Mute Button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsMuted(!isMuted)}
-                  className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                    isMuted 
-                      ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                      : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                  }`}
-                  title={isMuted ? "Unmute" : "Mute"}
-                >
-                  {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                </Button>
-
-                {/* Video Button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsVideoOff(!isVideoOff)}
-                  className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                    isVideoOff 
-                      ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                      : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                  }`}
-                  title={isVideoOff ? "Turn on your camera" : "Turn off your camera"}
-                >
-                  {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                </Button>
-
-                {/* Screen Share Button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-12 h-12 rounded-full border-2 transition-all duration-300 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-400"
-                  title="Screen share"
-                >
-                  <Monitor className="h-5 w-5" />
-                </Button>
-
-                {/* End Call Button */}
-                <Button
-                  onClick={handleEndCall}
-                  className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
-                  title="End call"
-                >
-                  <PhoneOff className="h-5 w-5" />
-                </Button>
-              </div>
-              
-              {/* Hide Controls Hint */}
-              <div className="text-center mt-2">
-                <p className="text-slate-400 text-xs">Swipe down to hide</p>
-              </div>
-            </div>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
