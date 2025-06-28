@@ -1535,14 +1535,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     />
                   </div>
 
-                  {/* Context indicator when showing smart suggestions */}
-                  {!gifSearchQuery.trim() && (
-                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-cyan-900/20 dark:to-cyan-800/20 rounded-lg p-2 border border-orange-200 dark:border-cyan-700/50">
-                      <p className="text-xs text-orange-700 dark:text-cyan-300 font-medium">
-                        🎯 Showing GIFs relevant to your conversation
-                      </p>
-                    </div>
-                  )}
+                  
 
                   {/* GIF Grid */}
                   <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
