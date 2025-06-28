@@ -18,7 +18,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -59,6 +59,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [gifSearchQuery, setGifSearchQuery] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
@@ -166,6 +168,46 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof emojiCategories>("faces");
+
+  // Mock GIF data with popular categories
+  const mockGifs = {
+    trending: [
+      { id: 1, url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", title: "Funny Cat" },
+      { id: 2, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Dancing" },
+      { id: 3, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Celebrate" },
+      { id: 4, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Thumbs Up" },
+      { id: 5, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Heart Eyes" },
+      { id: 6, url: "https://media.giphy.com/media/l0HlPystfePnAI3G8/giphy.gif", title: "Mind Blown" }
+    ],
+    reactions: [
+      { id: 7, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "OMG" },
+      { id: 8, url: "https://media.giphy.com/media/26tn6jEVRIelPhdJC/giphy.gif", title: "Shocked" },
+      { id: 9, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Love" },
+      { id: 10, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "Laughing" }
+    ],
+    celebration: [
+      { id: 11, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Party" },
+      { id: 12, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Success" },
+      { id: 13, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Winner" }
+    ]
+  };
+
+  const handleGifSelect = (gif: any) => {
+    setMessage(prev => prev + ` [GIF: ${gif.title}] `);
+    setShowGifPicker(false);
+  };
+
+  // Filter GIFs based on search query
+  const getFilteredGifs = () => {
+    if (!gifSearchQuery.trim()) {
+      return mockGifs.trending;
+    }
+    
+    const allGifs = [...mockGifs.trending, ...mockGifs.reactions, ...mockGifs.celebration];
+    return allGifs.filter(gif => 
+      gif.title.toLowerCase().includes(gifSearchQuery.toLowerCase())
+    );
+  };
 
   // Cryptocurrency icon helper function with optimized rendering
   const getCryptoIcon = (crypto: string) => {
@@ -1422,8 +1464,63 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="pr-12 h-12 sm:h-10 text-base sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
+              className="pr-20 h-12 sm:h-10 text-base sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
             />
+            
+            {/* GIF Picker */}
+            <Popover open={showGifPicker} onOpenChange={setShowGifPicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-11 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-10 w-10 sm:h-8 sm:w-8 touch-manipulation"
+                >
+                  <Image className="h-5 w-5 sm:h-4 sm:w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
+                <div className="space-y-2">
+                  <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">GIFs</h3>
+                  
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Input
+                      placeholder="Search GIFs..."
+                      value={gifSearchQuery}
+                      onChange={(e) => setGifSearchQuery(e.target.value)}
+                      className="h-8 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400"
+                    />
+                  </div>
+
+                  {/* GIF Grid */}
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                    {getFilteredGifs().map((gif) => (
+                      <button
+                        key={gif.id}
+                        type="button"
+                        onClick={() => handleGifSelect(gif)}
+                        className="relative aspect-square bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden hover:bg-orange-100 dark:hover:bg-slate-600 transition-colors group"
+                      >
+                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 dark:from-slate-600 dark:to-slate-700 flex items-center justify-center">
+                          <span className="text-xs text-gray-600 dark:text-slate-300 text-center p-2 group-hover:text-orange-600 dark:group-hover:text-cyan-300">
+                            {gif.title}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-1.5 border-t border-gray-200 dark:border-slate-700">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      {getFilteredGifs().length} GIFs available
+                    </p>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Emoji Picker */}
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <Button
