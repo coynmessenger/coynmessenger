@@ -369,6 +369,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Simplified marketplace categories and featured items to ultra-minimal icon-only design with Filter and TrendingUp icons
 - June 28, 2025: Fixed wallet address display to maintain proper checksum case formatting (mixed uppercase/lowercase) instead of forcing all uppercase, preserving original Ethereum address format for accurate display
 - June 28, 2025: Implemented comprehensive performance optimizations - enhanced React Query caching with optimized staleTime and gcTime settings, added HTTP cache headers to API endpoints, improved database query performance with case-insensitive wallet address lookups, optimized marketplace product caching (10 minutes stale time, 30 minutes cache), reduced API call frequency, and enhanced query client configuration for faster loading across entire application
+- June 28, 2025: Fixed user name display priority system throughout chat interface - implemented proper display name logic (sign-in name → profile name → @id fallback) for reply indicators, swipe-to-reply functionality, chat headers, and message context displays, ensuring consistent name representation across all messaging features
 
 ## User Preferences
 

@@ -25,6 +25,23 @@ import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { formatDistanceToNow } from "date-fns";
 
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
+  if (user.signInName) {
+    return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username;
+}
+
 interface ChatWindowProps {
   conversation: Conversation & { otherUser: User };
   onToggleSidebar: () => void;
@@ -384,15 +401,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       // Trigger reply to message with haptic-like feedback
       const message = messages.find(m => m.id === swipeState.messageId);
       if (message) {
+        // Use the effective display name from enhanced message data or calculate it
+        const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
         setReplyToMessage({
           id: message.id,
           content: message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`,
-          sender: message.sender.displayName
+          sender: effectiveName
         });
         
         // Add visual feedback similar to WhatsApp
         toast({
-          title: "Replying to " + message.sender.displayName,
+          title: "Replying to " + effectiveName,
           description: "Message ready for reply",
           duration: 1500,
         });
@@ -893,11 +912,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                                 {/* Find and display the original message from conversation history */}
                                 {(() => {
                                   const replyToUser = msg.content?.split(':')[0].replace('@', '');
-                                  const originalMsg = messages.find(m => 
-                                    m.sender.displayName === replyToUser && 
-                                    m.id !== msg.id &&
-                                    (m.timestamp != null && msg.timestamp != null && m.timestamp < msg.timestamp)
-                                  );
+                                  const originalMsg = messages.find(m => {
+                                    const effectiveName = (m.sender as any).effectiveDisplayName || getEffectiveDisplayName(m.sender);
+                                    return effectiveName === replyToUser && 
+                                      m.id !== msg.id &&
+                                      (m.timestamp != null && msg.timestamp != null && m.timestamp < msg.timestamp);
+                                  });
                                   return originalMsg?.content || originalMsg?.cryptoAmount 
                                     ? `${originalMsg.content || ''} ${originalMsg.cryptoAmount ? `${originalMsg.cryptoAmount} ${originalMsg.cryptoCurrency}` : ''}`.trim()
                                     : "Previous message";
