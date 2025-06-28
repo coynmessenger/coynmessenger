@@ -45,20 +45,46 @@ export default function VoiceCallModal({
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
+  // Function to center the modal
+  const centerModal = () => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Modal dimensions (matching the CSS classes)
+    const modalWidth = Math.min(viewportWidth * 0.9, 384); // max-w-sm is 384px
+    const modalHeight = 450; // Approximate height
+    
+    // Calculate center position
+    const centerX = (viewportWidth - modalWidth) / 2;
+    const centerY = (viewportHeight - modalHeight) / 2;
+    
+    setPosition({
+      x: Math.max(0, centerX),
+      y: Math.max(0, centerY)
+    });
+  };
+
   // Center modal when it opens
   useEffect(() => {
     if (isOpen && !isInitialized) {
-      const centerX = (window.innerWidth - 400) / 2; // 400 is approximate modal width
-      const centerY = (window.innerHeight - 500) / 2; // 500 is approximate modal height
-      setPosition({
-        x: Math.max(0, centerX),
-        y: Math.max(0, centerY)
-      });
+      centerModal();
       setIsInitialized(true);
     } else if (!isOpen) {
       setIsInitialized(false);
     }
   }, [isOpen, isInitialized]);
+
+  // Re-center on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen) {
+        centerModal();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {

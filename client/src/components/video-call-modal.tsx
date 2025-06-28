@@ -37,20 +37,46 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
+  // Function to center the modal
+  const centerModal = () => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Modal dimensions (matching the CSS classes)
+    const modalWidth = Math.min(viewportWidth * 0.95, 672); // max-w-2xl is 672px
+    const modalHeight = 500; // Approximate height for video calls
+    
+    // Calculate center position
+    const centerX = (viewportWidth - modalWidth) / 2;
+    const centerY = (viewportHeight - modalHeight) / 2;
+    
+    setPosition({
+      x: Math.max(0, centerX),
+      y: Math.max(0, centerY)
+    });
+  };
+
   // Center modal when it opens
   useEffect(() => {
     if (isOpen && !isInitialized) {
-      const centerX = (window.innerWidth - 672) / 2; // 672 is approximate modal width (max-w-2xl)
-      const centerY = (window.innerHeight - 600) / 2; // 600 is approximate modal height
-      setPosition({
-        x: Math.max(0, centerX),
-        y: Math.max(0, centerY)
-      });
+      centerModal();
       setIsInitialized(true);
     } else if (!isOpen) {
       setIsInitialized(false);
     }
   }, [isOpen, isInitialized]);
+
+  // Re-center on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen) {
+        centerModal();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
