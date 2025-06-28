@@ -35,6 +35,11 @@ export default function PurchaseHistoryPage() {
   const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Auto-scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   // Get connected user from localStorage
   const connectedUserString = localStorage.getItem('connectedUser');
   const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
@@ -128,7 +133,7 @@ export default function PurchaseHistoryPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-slate-700/50 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3">
@@ -160,7 +165,7 @@ export default function PurchaseHistoryPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-4 py-6 space-y-6 pb-20">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="glass-card">

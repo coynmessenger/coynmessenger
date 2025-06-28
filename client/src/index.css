@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure proper scrolling behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+}
+
+/* Fix for mobile viewport scrolling */
+@media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Ensure containers don't exceed viewport */
+  .container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
 :root {
   /* Light theme - Orange/white design */
   --background: hsl(0, 0%, 100%);
