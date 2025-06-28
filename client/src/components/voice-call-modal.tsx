@@ -27,8 +27,24 @@ export default function VoiceCallModal({ isOpen, onClose, user, callType = "outg
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isInitialized, setIsInitialized] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
+
+  // Center modal when it opens
+  useEffect(() => {
+    if (isOpen && !isInitialized) {
+      const centerX = (window.innerWidth - 400) / 2; // 400 is approximate modal width
+      const centerY = (window.innerHeight - 500) / 2; // 500 is approximate modal height
+      setPosition({
+        x: Math.max(0, centerX),
+        y: Math.max(0, centerY)
+      });
+      setIsInitialized(true);
+    } else if (!isOpen) {
+      setIsInitialized(false);
+    }
+  }, [isOpen, isInitialized]);
 
   useEffect(() => {
     if (!isOpen) {
