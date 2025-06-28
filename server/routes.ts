@@ -12,6 +12,7 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
+import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -1030,5 +1031,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Initialize encrypted WebRTC signaling server
+  const webrtcSignaling = new EncryptedWebRTCSignaling(httpServer);
+  console.log('Encrypted WebRTC signaling server initialized');
+  
   return httpServer;
 }
