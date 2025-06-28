@@ -371,6 +371,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Implemented comprehensive performance optimizations - enhanced React Query caching with optimized staleTime and gcTime settings, added HTTP cache headers to API endpoints, improved database query performance with case-insensitive wallet address lookups, optimized marketplace product caching (10 minutes stale time, 30 minutes cache), reduced API call frequency, and enhanced query client configuration for faster loading across entire application
 - June 28, 2025: Fixed user name display priority system throughout chat interface - implemented proper display name logic (sign-in name → profile name → @id fallback) for reply indicators, swipe-to-reply functionality, chat headers, and message context displays, ensuring consistent name representation across all messaging features
 - June 28, 2025: Fixed wallet sidebar header text wrapping - added whitespace-nowrap and proper flex container styling to ensure "COYN Wallet" and "Portfolio Overview" text stays contained within single lines across all screen sizes
+- June 28, 2025: Improved wallet sidebar header alignment - optimized spacing with tighter padding (px-5 py-4), proportional icon sizing (w-11 h-11), adjusted typography hierarchy (text-lg title, text-xs subtitle), reduced button spacing, and enhanced flex container properties for better visual balance
 
 ## User Preferences
 

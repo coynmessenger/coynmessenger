@@ -192,21 +192,21 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-cyan-900/20 transition-shadow duration-500">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-6 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
+          <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 blur-lg opacity-30 animate-pulse rounded-xl"></div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-300 relative z-10">
-                    <Wallet className="w-6 h-6 text-white" />
+                  <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-300 relative z-10">
+                    <Wallet className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap">COYN Wallet</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Portfolio Overview</p>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap leading-tight">COYN Wallet</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap leading-tight">Portfolio Overview</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 flex-shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
