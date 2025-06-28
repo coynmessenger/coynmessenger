@@ -18,10 +18,6 @@ interface VideoCallModalProps {
 }
 
 export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing", isCallActive = false }: VideoCallModalProps) {
-  // Early return if no user is provided
-  if (!user) {
-    return null;
-  }
   
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
