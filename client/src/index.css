@@ -245,3 +245,49 @@
 .dark ::-webkit-scrollbar-thumb {
   background: rgba(34, 211, 238, 0.5);
 }
+
+/* Animation delay utilities for loading screens */
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+/* Enhanced loading animations for call states */
+@keyframes loading-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-loading-pulse {
+  animation: loading-pulse 2s infinite;
+}
+
+.animate-loading-spin {
+  animation: loading-spin 3s linear infinite;
+}

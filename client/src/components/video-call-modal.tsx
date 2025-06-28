@@ -259,9 +259,36 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const getStatusText = () => {
     switch (callStatus) {
       case "connecting":
-        return "Connecting...";
+        return (
+          <span className="flex items-center justify-center gap-1">
+            Connecting
+            <span className="flex gap-1">
+              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"></span>
+              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce animation-delay-200"></span>
+              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce animation-delay-500"></span>
+            </span>
+          </span>
+        );
       case "ringing":
-        return callType === "incoming" ? "Incoming video call" : "Ringing...";
+        return callType === "incoming" ? (
+          <span className="flex items-center justify-center gap-1">
+            Incoming video call
+            <span className="flex gap-1">
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse animation-delay-300"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse animation-delay-600"></span>
+            </span>
+          </span>
+        ) : (
+          <span className="flex items-center justify-center gap-1">
+            Ringing
+            <span className="flex gap-1">
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce animation-delay-200"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce animation-delay-500"></span>
+            </span>
+          </span>
+        );
       case "connected":
         return formatDuration(callDuration);
       case "ended":
@@ -314,6 +341,17 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         
         {/* Video Area - Always shows the other person (Chris) */}
         <div className="relative aspect-video bg-slate-800">
+          {/* Loading overlay for connecting/ringing states */}
+          {(callStatus === "connecting" || callStatus === "ringing") && (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce animation-delay-200"></div>
+                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce animation-delay-500"></div>
+              </div>
+            </div>
+          )}
+          
           {callStatus === "connected" ? (
             // Other person's video feed (Chris)
             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -328,15 +366,41 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               </div>
             </div>
           ) : (
-            // Connecting state - show other person's avatar
+            // Connecting/Ringing state - show other person's avatar with animations
             <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
               <div className="text-center space-y-6">
-                <Avatar className="w-32 h-32 mx-auto border-4 border-white/20 shadow-xl">
-                  <AvatarImage src={user.profilePicture || ""} />
-                  <AvatarFallback className="bg-slate-700 text-4xl">
-                    <UserAvatarIcon className="w-16 h-16 text-slate-400" />
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className={`w-32 h-32 mx-auto border-4 border-white/20 shadow-xl ${
+                    callStatus === "connecting" || callStatus === "ringing" ? "animate-loading-pulse" : ""
+                  }`}>
+                    <AvatarImage src={user.profilePicture || ""} />
+                    <AvatarFallback className="bg-slate-700 text-4xl">
+                      <UserAvatarIcon className="w-16 h-16 text-slate-400" />
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* Animated loading rings for connecting state */}
+                  {callStatus === "connecting" && (
+                    <>
+                      <div className="absolute inset-0 rounded-full border-4 border-yellow-400/40 animate-ping"></div>
+                      <div className="absolute inset-0 rounded-full border-4 border-yellow-400/60 animate-pulse animation-delay-200"></div>
+                      <div className="absolute inset-[-8px] rounded-full border-2 border-yellow-400/20 animate-spin animation-delay-500"></div>
+                    </>
+                  )}
+                  
+                  {/* Pulsing ring for ringing state */}
+                  {callStatus === "ringing" && (
+                    <>
+                      <div className="absolute inset-0 rounded-full border-4 border-blue-400/60 animate-pulse"></div>
+                      <div className="absolute inset-[-8px] rounded-full border-2 border-blue-400/40 animate-ping"></div>
+                    </>
+                  )}
+                </div>
+                
+                {/* Status text with animated dots */}
+                <div className={`text-lg font-medium ${getStatusColor()}`}>
+                  {getStatusText()}
+                </div>
               </div>
             </div>
           )}

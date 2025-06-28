@@ -265,9 +265,36 @@ export default function VoiceCallModal({
   const getStatusText = () => {
     switch (callStatus) {
       case "connecting":
-        return "Connecting...";
+        return (
+          <span className="flex items-center justify-center gap-1">
+            Connecting
+            <span className="flex gap-1">
+              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"></span>
+              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce animation-delay-200"></span>
+              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce animation-delay-500"></span>
+            </span>
+          </span>
+        );
       case "ringing":
-        return callType === "incoming" ? "Incoming call" : "Ringing...";
+        return callType === "incoming" ? (
+          <span className="flex items-center justify-center gap-1">
+            Incoming call
+            <span className="flex gap-1">
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse animation-delay-300"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse animation-delay-600"></span>
+            </span>
+          </span>
+        ) : (
+          <span className="flex items-center justify-center gap-1">
+            Ringing
+            <span className="flex gap-1">
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce animation-delay-200"></span>
+              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce animation-delay-500"></span>
+            </span>
+          </span>
+        );
       case "connected":
         return formatDuration(callDuration);
       case "ended":
@@ -314,12 +341,33 @@ export default function VoiceCallModal({
           {/* User Avatar */}
           <div className="flex justify-center">
             <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-white/20 shadow-xl">
+              <Avatar className={`w-32 h-32 border-4 border-white/20 shadow-xl ${
+                callStatus === "connecting" || callStatus === "ringing" ? "animate-loading-pulse" : ""
+              }`}>
                 <AvatarImage src={user.profilePicture || ""} />
                 <AvatarFallback className="bg-slate-700 text-4xl">
                   <UserAvatarIcon className="w-16 h-16 text-slate-400" />
                 </AvatarFallback>
               </Avatar>
+              
+              {/* Animated loading rings for connecting state */}
+              {callStatus === "connecting" && (
+                <>
+                  <div className="absolute inset-0 rounded-full border-4 border-yellow-400/40 animate-ping"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-yellow-400/60 animate-pulse animation-delay-200"></div>
+                  <div className="absolute inset-[-8px] rounded-full border-2 border-yellow-400/20 animate-spin animation-delay-500"></div>
+                </>
+              )}
+              
+              {/* Pulsing ring for ringing state */}
+              {callStatus === "ringing" && (
+                <>
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-400/60 animate-pulse"></div>
+                  <div className="absolute inset-[-8px] rounded-full border-2 border-blue-400/40 animate-ping"></div>
+                </>
+              )}
+              
+              {/* Connected state animation */}
               {callStatus === "connected" && (
                 <div className="absolute inset-0 rounded-full border-4 border-green-400/60 animate-pulse"></div>
               )}
@@ -329,9 +377,9 @@ export default function VoiceCallModal({
           {/* User Info */}
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
-            <p className={`text-lg font-medium ${getStatusColor()}`}>
+            <div className={`text-lg font-medium ${getStatusColor()}`}>
               {getStatusText()}
-            </p>
+            </div>
           </div>
 
           {/* Call Controls */}
