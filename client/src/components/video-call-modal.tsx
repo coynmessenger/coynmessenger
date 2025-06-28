@@ -26,6 +26,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isSelfViewExpanded, setIsSelfViewExpanded] = useState(false);
   
   const [callDuration, setCallDuration] = useState(0);
   
@@ -271,10 +272,40 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           )}
 
           {/* Self view (small preview) */}
-          {callStatus === "connected" && (
-            <div className="absolute top-4 right-4 w-32 h-24 bg-slate-700 rounded-lg border-2 border-white/20 overflow-hidden">
+          {callStatus === "connected" && !isSelfViewExpanded && (
+            <div 
+              className="absolute top-4 right-4 w-32 h-24 bg-slate-700 rounded-lg border-2 border-white/20 overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105"
+              onClick={() => setIsSelfViewExpanded(true)}
+              title="Click to expand your view"
+            >
               <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
                 <div className="text-white/40 text-xs">You</div>
+              </div>
+            </div>
+          )}
+
+          {/* Expanded self view (full screen) */}
+          {callStatus === "connected" && isSelfViewExpanded && (
+            <div 
+              className="absolute inset-0 bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center cursor-pointer z-20"
+              onClick={() => setIsSelfViewExpanded(false)}
+              title="Click to return to normal view"
+            >
+              <div className="text-center space-y-4">
+                <div className="text-white text-2xl font-medium">Your Camera</div>
+                <div className="text-white/60 text-sm">Click anywhere to return</div>
+              </div>
+              
+              {/* Small other user preview in corner when expanded */}
+              <div className="absolute bottom-4 right-4 w-32 h-24 bg-slate-800 rounded-lg border-2 border-white/20 overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                  <Avatar className="w-12 h-12 border-2 border-white/20">
+                    <AvatarImage src={user.profilePicture || ""} />
+                    <AvatarFallback className="bg-slate-700 text-xs">
+                      <UserAvatarIcon className="w-6 h-6 text-slate-400" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
               </div>
             </div>
           )}
@@ -333,8 +364,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                   >
                     {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                   </Button>
-
-                  
                 </>
               )}
 

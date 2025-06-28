@@ -385,6 +385,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Made video call modal draggable - added Move icon handle with glassmorphism styling, modal opens centered and can be moved beyond side/bottom borders while keeping 100px visible
 - June 28, 2025: Removed visible drag handle bars from both voice and video call modals - modals now draggable by clicking anywhere on them with cursor-move indicator for cleaner interface
 - June 28, 2025: Fixed voice call modal dragging functionality - added button click detection to prevent dragging interference, modals now properly draggable by clicking non-interactive areas
+- June 28, 2025: Enhanced video call modal with expandable self-view - removed screen share button, added clickable self-view preview that expands to full screen with picture-in-picture mode showing other user in corner
 
 ## User Preferences
 
