@@ -228,7 +228,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }}>
       <DialogContent 
         ref={dragRef}
-        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none cursor-move"
+        className="w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none"
         onMouseDown={handleMouseDown}
         style={{
           position: 'fixed',

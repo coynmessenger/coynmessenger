@@ -226,7 +226,7 @@ export default function VoiceCallModal({
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
         ref={dragRef}
-        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none cursor-move"
+        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none"
         onMouseDown={handleMouseDown}
         style={{
           position: 'fixed',
