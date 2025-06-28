@@ -1456,7 +1456,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
 
                   {/* Emoji Grid */}
-                  <div className="grid grid-cols-8 gap-0.5 max-h-44 overflow-y-auto">
+                  <div className="grid grid-cols-8 gap-0.5">
                     {emojiCategories[selectedEmojiCategory].map((emoji, index) => (
                       <button
                         key={index}
