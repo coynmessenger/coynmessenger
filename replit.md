@@ -392,6 +392,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Fixed video call camera control logic - main video area now always shows other person (Chris), self-view area shows YOUR camera status, camera button correctly controls YOUR camera with proper visual indicators in self-view area
 - June 28, 2025: Optimized mobile chat input area spacing - reduced action button sizes from 40px to 32px on mobile, decreased spacing between buttons, adjusted input field height to 44px, repositioned emoji/GIF buttons closer to input edge, reduced overall padding for more comfortable typing space and less cramped interface
 - June 28, 2025: Updated Chris's profile picture to Chuck Norris image - replaced existing profile image with professional headshot for enhanced demo user experience
+- June 28, 2025: Fixed Chris's profile picture display - corrected duplicate image issue with G Stax and set unique, reliable image URL for proper display throughout messenger interface
 
 ## User Preferences
 
