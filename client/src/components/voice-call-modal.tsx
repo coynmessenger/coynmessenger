@@ -129,6 +129,13 @@ export default function VoiceCallModal({
 
   // Dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
+    // Don't start dragging if clicking on a button or interactive element
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="button"]')) {
+      return;
+    }
+    
+    e.preventDefault();
     setIsDragging(true);
     dragStartRef.current = {
       x: e.clientX - position.x,
