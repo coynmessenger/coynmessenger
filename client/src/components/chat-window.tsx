@@ -855,7 +855,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       );
       
       return isMatch ? (
-        <mark key={index} className="search-result-container bg-gradient-to-r from-yellow-200 to-orange-200 dark:from-yellow-500/60 dark:to-orange-500/60 text-black dark:text-white px-1 py-0.5 rounded-md font-medium shadow-sm border border-yellow-300 dark:border-yellow-400/50">
+        <mark key={index} className="search-result-container bg-yellow-200 dark:bg-yellow-500/60 text-black dark:text-white px-1 py-0.5 rounded font-medium border border-yellow-300 dark:border-yellow-400/50 inline-block max-w-fit">
           {part}
         </mark>
       ) : part;
@@ -873,35 +873,51 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const messageId = message.id;
     
     setTimeout(() => {
-      const element = document.querySelector(`[data-message-id="${messageId}"]`);
+      // Find the message container specifically
+      const messagesContainer = document.querySelector('.overflow-y-auto');
+      let element = null;
+      
+      if (messagesContainer) {
+        // Look for the exact element within the messages container
+        element = messagesContainer.querySelector(`[data-message-id="${messageId}"]`);
+      }
+      
+      // Fallback to global search if not found in container
+      if (!element) {
+        element = document.querySelector(`[data-message-id="${messageId}"]`);
+      }
+      
       if (element) {
+        // Scroll to the element with better positioning
         element.scrollIntoView({ 
           behavior: 'smooth', 
-          block: 'center' 
+          block: 'center',
+          inline: 'nearest'
         });
         
-        // Enhanced highlight animation
+        // Add focus animation with better visual feedback
         element.classList.add('search-result-focus');
+        
+        // Remove animation after 3 seconds
         setTimeout(() => {
-          element.classList.remove('search-result-focus');
+          element?.classList.remove('search-result-focus');
         }, 3000);
+        
+        // Enhanced highlight animation for search terms
+        const highlightElements = element.querySelectorAll('mark');
+        highlightElements.forEach((mark, i) => {
+          setTimeout(() => {
+            mark.classList.add('search-highlight-pulse');
+            setTimeout(() => {
+              mark.classList.remove('search-highlight-pulse');
+            }, 2000);
+          }, i * 100); // Staggered animation
+        });
       } else {
-        // Fallback: scroll to message by ID in the messages container
-        const messagesContainer = document.querySelector('.messages-container');
-        if (messagesContainer) {
-          const messageElements = messagesContainer.querySelectorAll('[data-message-id]');
-          for (let i = 0; i < messageElements.length; i++) {
-            const msgEl = messageElements[i];
-            if (msgEl.getAttribute('data-message-id') === messageId.toString()) {
-              msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              msgEl.classList.add('search-result-focus');
-              setTimeout(() => {
-                msgEl.classList.remove('search-result-focus');
-              }, 3000);
-              break;
-            }
-          }
-        }
+        console.warn(`Could not find message element with ID: ${messageId}`);
+        // Debug: log all available message IDs
+        const allMessages = document.querySelectorAll('[data-message-id]');
+        console.log('Available message IDs:', Array.from(allMessages).map(el => el.getAttribute('data-message-id')));
       }
     }, 100);
   };
@@ -1446,7 +1462,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 )
               ) : msg.messageType === "crypto" ? (
                 // Crypto transaction message
-                <div className="flex justify-center group mb-1">
+                <div className="flex justify-center group mb-1" data-message-id={msg.id}>
                   <div className="relative">
                     <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
                       <CardContent className="p-4">
