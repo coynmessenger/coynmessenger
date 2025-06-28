@@ -1433,9 +1433,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <Smile className="h-5 w-5 sm:h-4 sm:w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-900 dark:text-slate-200">Emojis</h3>
+              <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
+                <div className="space-y-2">
+                  <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">Emojis</h3>
                   
                   {/* Category Tabs */}
                   <div className="flex flex-wrap gap-1 border-b border-gray-200 dark:border-slate-700 pb-2">
@@ -1456,20 +1456,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
 
                   {/* Emoji Grid */}
-                  <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+                  <div className="grid grid-cols-8 gap-0.5 max-h-44 overflow-y-auto">
                     {emojiCategories[selectedEmojiCategory].map((emoji, index) => (
                       <button
                         key={index}
                         type="button"
                         onClick={() => handleEmojiSelect(emoji)}
-                        className="text-xl hover:bg-orange-100 dark:hover:bg-slate-700 rounded p-2 transition-colors duration-200 hover:scale-110 active:scale-95"
+                        className="text-lg hover:bg-orange-100 dark:hover:bg-slate-700 rounded p-1.5 transition-colors duration-200 hover:scale-110 active:scale-95 flex items-center justify-center h-8 w-8"
                       >
                         {emoji}
                       </button>
                     ))}
                   </div>
                   
-                  <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
+                  <div className="pt-1.5 border-t border-gray-200 dark:border-slate-700">
                     <p className="text-xs text-gray-500 dark:text-slate-400">
                       Tip: You can also type emojis directly!
                     </p>

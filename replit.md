@@ -372,6 +372,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Fixed user name display priority system throughout chat interface - implemented proper display name logic (sign-in name → profile name → @id fallback) for reply indicators, swipe-to-reply functionality, chat headers, and message context displays, ensuring consistent name representation across all messaging features
 - June 28, 2025: Fixed wallet sidebar header text wrapping - added whitespace-nowrap and proper flex container styling to ensure "COYN Wallet" and "Portfolio Overview" text stays contained within single lines across all screen sizes
 - June 28, 2025: Improved wallet sidebar header alignment - optimized spacing with tighter padding (px-5 py-4), proportional icon sizing (w-11 h-11), adjusted typography hierarchy (text-lg title, text-xs subtitle), reduced button spacing, and enhanced flex container properties for better visual balance
+- June 28, 2025: Enhanced emoji picker alignment - reduced padding (p-3), tighter spacing (space-y-2), compact grid layout (gap-0.5), properly centered emoji buttons (h-8 w-8), smaller text size (text-lg), and optimized dimensions for cleaner, more organized appearance
 
 ## User Preferences
 
