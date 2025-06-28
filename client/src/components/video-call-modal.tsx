@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Monitor, Move } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -26,7 +26,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  
   const [callDuration, setCallDuration] = useState(0);
   
   // Dragging state
@@ -59,7 +59,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setCallDuration(0);
         setIsMuted(false);
         setIsVideoOff(false);
-        setIsScreenSharing(false);
+        
       }
       return;
     }
@@ -334,20 +334,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                     {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                   </Button>
 
-                  {/* Screen Share Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsScreenSharing(!isScreenSharing)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                      isScreenSharing 
-                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                    title={isScreenSharing ? "Stop sharing" : "Share screen"}
-                  >
-                    <Monitor className="h-5 w-5" />
-                  </Button>
+                  
                 </>
               )}
 
