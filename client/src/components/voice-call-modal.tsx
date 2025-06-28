@@ -143,12 +143,43 @@ export default function VoiceCallModal({
     };
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Don't start dragging if touching a button or interactive element
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="button"]')) {
+      return;
+    }
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y
+    };
+  };
+
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
     
     const newX = e.clientX - dragStartRef.current.x;
     const newY = e.clientY - dragStartRef.current.y;
     
+    updatePosition(newX, newY);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging) return;
+    
+    e.preventDefault(); // Prevent scrolling while dragging
+    const touch = e.touches[0];
+    const newX = touch.clientX - dragStartRef.current.x;
+    const newY = touch.clientY - dragStartRef.current.y;
+    
+    updatePosition(newX, newY);
+  };
+
+  const updatePosition = (newX: number, newY: number) => {
     // Allow modal to go beyond side borders but keep at least 100px visible
     const modalWidth = 400; // Approximate modal width
     const minVisibleWidth = 100;
@@ -171,24 +202,37 @@ export default function VoiceCallModal({
     setIsDragging(false);
   };
 
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'grabbing';
+      document.body.style.touchAction = 'none'; // Prevent scrolling on mobile
     } else {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
+      document.body.style.touchAction = '';
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
+      document.body.style.touchAction = '';
     };
   }, [isDragging]);
 
@@ -226,14 +270,16 @@ export default function VoiceCallModal({
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
         ref={dragRef}
-        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none"
+        className="w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none touch-manipulation"
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         style={{
           position: 'fixed',
           left: `${position.x}px`,
           top: `${position.y}px`,
           transform: 'none',
-          margin: 0
+          margin: 0,
+          touchAction: 'none'
         }}
       >
         <DialogTitle className="sr-only">Voice Call with {user.displayName}</DialogTitle>

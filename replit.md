@@ -395,6 +395,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Fixed Chris's profile picture display - corrected duplicate image issue with G Stax and set unique, reliable image URL for proper display throughout messenger interface
 - June 28, 2025: Fixed marketplace cart count error - resolved "Cannot read properties of undefined (reading 'count')" JavaScript error by adding safe access operators to cart event handling and ensuring all cart update events include proper detail objects with count data
 - June 28, 2025: Fixed attachment functionality file picker issue - resolved file selection not opening by replacing document.getElementById approach with React refs, added proper event handling with preventDefault/stopPropagation, and enhanced click handlers to properly trigger native file picker for both File and Image/Video options
+- June 28, 2025: Enhanced voice and video call modals with comprehensive mobile touch support - added touch event handlers (touchstart, touchmove, touchend), implemented touch-friendly dragging with proper event prevention, added touch-manipulation CSS classes, optimized mobile positioning boundaries, and ensured smooth dragging experience across both desktop and mobile devices
 
 ## User Preferences
 
