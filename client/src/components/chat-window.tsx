@@ -994,62 +994,65 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               <h2 className="font-semibold text-foreground">
                 {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
               </h2>
-              <div className="flex items-center space-x-2">
-                {conversation.isGroup ? (
-                  <p className="text-xs text-muted-foreground">Group conversation</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    {conversation.otherUser?.walletAddress ? 
-                      `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
-                      ''
-                    }
-                  </p>
-                )}
-                {searchQuery && searchResultCount > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/60 dark:to-orange-900/60 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 shadow-sm">
-                      {isSearching ? (
-                        <div className="flex items-center space-x-1">
-                          <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
-                          <span>Searching...</span>
-                        </div>
-                      ) : (
-                        <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount} results</span>
-                      )}
-                    </Badge>
-                    {!isSearching && searchResults.length > 1 && (
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 p-0 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200"
-                          onClick={goToPreviousResult}
-                          title="Previous result (Shift+Enter)"
-                        >
-                          <ChevronUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 p-0 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200"
-                          onClick={goToNextResult}
-                          title="Next result (Enter)"
-                        >
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              {searchQuery && searchResultCount === 0 && !isSearching && (
-                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                  No results found
-                </Badge>
+              {conversation.isGroup ? (
+                <p className="text-xs text-muted-foreground">Group conversation</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {conversation.otherUser?.walletAddress ? 
+                    `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
+                    ''
+                  }
+                </p>
               )}
-              </div>
             </div>
           </Button>
         </div>
+
+        {/* Search Results Bar */}
+        {searchQuery && (
+          <div className="flex items-center space-x-2">
+            {searchResultCount > 0 ? (
+              <>
+                <Badge variant="secondary" className="text-xs px-2 py-1 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/60 dark:to-orange-900/60 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 shadow-sm whitespace-nowrap">
+                  {isSearching ? (
+                    <div className="flex items-center space-x-1">
+                      <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
+                      <span>Searching...</span>
+                    </div>
+                  ) : (
+                    <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount}</span>
+                  )}
+                </Badge>
+                {!isSearching && searchResults.length > 1 && (
+                  <div className="flex items-center space-x-0.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200 rounded-sm"
+                      onClick={goToPreviousResult}
+                      title="Previous result (Shift+Enter)"
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors duration-200 rounded-sm"
+                      onClick={goToNextResult}
+                      title="Next result (Enter)"
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : !isSearching ? (
+              <Badge variant="secondary" className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                No results
+              </Badge>
+            ) : null}
+          </div>
+        )}
 
         {/* Call and Video Icons */}
         <div className="flex items-center space-x-2">
