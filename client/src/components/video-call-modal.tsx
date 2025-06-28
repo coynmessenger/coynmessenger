@@ -361,7 +361,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                         ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
                         : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
                     }`}
-                    title={isVideoOff ? "Turn on camera" : "Turn off camera"}
+                    title={isVideoOff ? "Turn on your camera" : "Turn off your camera"}
                   >
                     {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                   </Button>
