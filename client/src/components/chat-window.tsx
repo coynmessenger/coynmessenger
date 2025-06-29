@@ -694,6 +694,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     const timer = setTimeout(() => {
       console.log("Long press timer triggered for message:", messageId);
+      console.log("Setting showMessageOptions to:", messageId);
       setShowMessageOptions(messageId);
       setHoveredMessage(messageId);
       
@@ -704,6 +705,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       
       // Auto-hide after 8 seconds on mobile for better UX
       setTimeout(() => {
+        console.log("Auto-hiding options for message:", messageId);
         setShowMessageOptions(null);
         setHoveredMessage(null);
       }, 8000);
@@ -713,10 +715,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const handleMessageLongPressEnd = () => {
     console.log("Long press ended");
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
+    // Don't clear the timer immediately - let it complete if it hasn't already
+    // This prevents interrupting the 250ms timer that shows the options
   };
 
   const handleImagePreview = (imageUrl: string, imageName?: string, imageSize?: number) => {
@@ -1311,7 +1311,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
-                          onTouchStart={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            console.log("Touch on hover options for message:", msg.id);
+                          }}
                         >
                           <Button
                             variant="ghost"
