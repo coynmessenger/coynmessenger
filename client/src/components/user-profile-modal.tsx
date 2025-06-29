@@ -9,6 +9,7 @@ import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { getEffectiveDisplayName } from "@/lib/profile-sync";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -36,6 +37,24 @@ export default function UserProfileModal({
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     }
   }, [isOpen, queryClient]);
+
+  // Listen for profile updates and refresh user data
+  useEffect(() => {
+    const handleProfileUpdate = (event: CustomEvent) => {
+      console.log("User profile modal received profile update:", event.detail);
+      // Invalidate queries to refresh user data in modal
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+      
+      return () => {
+        window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+      };
+    }
+  }, [queryClient]);
 
   // Early return if user is null
   if (!user) {
@@ -106,7 +125,7 @@ export default function UserProfileModal({
             </div>
             
             <div className="text-center space-y-1">
-              <h2 className="text-lg sm:text-xl font-semibold text-black dark:text-foreground">{user.displayName}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-black dark:text-foreground">{getEffectiveDisplayName(user)}</h2>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">@{user.walletAddress?.replace(/^0x/, '').slice(-6) || user.username}</p>
               <Badge 
                 variant={user.isOnline ? "default" : "secondary"} 

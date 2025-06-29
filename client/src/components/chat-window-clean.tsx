@@ -115,6 +115,25 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, [swipeState.isDragging]);
 
+  // Listen for profile updates and refresh conversation data
+  useEffect(() => {
+    const handleProfileUpdate = (event: CustomEvent) => {
+      console.log("Chat window received profile update:", event.detail);
+      // Invalidate queries to refresh conversation and user data
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversation.id}/messages`] });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+      
+      return () => {
+        window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+      };
+    }
+  }, [queryClient, conversation.id]);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -195,15 +214,178 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   });
 
-  // Rest of component implementation continues...
-  // This is just the beginning of the clean version without hover options
-  
+  // Simple swipe handlers without hover options
+  const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    setSwipeState({
+      isDragging: true,
+      startX: clientX,
+      startY: clientY,
+      offsetX: 0,
+      messageId
+    });
+  };
+
+  const handleSwipeMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!swipeState.isDragging) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const deltaX = clientX - swipeState.startX;
+    
+    if (deltaX > 0 && deltaX < 100) {
+      setSwipeState(prev => ({ ...prev, offsetX: deltaX }));
+    }
+  };
+
+  const handleSwipeEnd = () => {
+    if (swipeState.offsetX > 80 && swipeState.messageId) {
+      // Trigger reply
+      const message = messages?.find(m => m.id === swipeState.messageId);
+      if (message) {
+        setReplyToMessage({
+          id: message.id,
+          content: message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`,
+          sender: getEffectiveDisplayName(message.sender)
+        });
+        toast({
+          title: "Reply mode activated",
+          description: `Replying to ${getEffectiveDisplayName(message.sender)}`,
+          duration: 1500,
+        });
+      }
+    }
+    
+    setSwipeState({
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      offsetX: 0,
+      messageId: null
+    });
+  };
+
+  // Fetch messages for this conversation
+  const { data: messages } = useQuery({
+    queryKey: ["/api/conversations", conversation.id, "messages"],
+    enabled: !!conversation.id,
+  });
+
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-slate-800">
-      {/* Chat content will be implemented here without hover options */}
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-muted-foreground">Clean chat window (work in progress)</p>
+      {/* Chat header */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {onBack && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBack}
+                className="lg:hidden"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={conversation.otherUser?.profilePicture || ""} />
+              <AvatarFallback>
+                <UserAvatarIcon />
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-medium text-foreground">
+                {conversation.otherUser ? getEffectiveDisplayName(conversation.otherUser) : "Unknown User"}
+              </h3>
+              <p className="text-sm text-muted-foreground">Online</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVoiceCall(true)}
+              className="h-10 w-10 p-0"
+              title="Voice call"
+            >
+              <Phone className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVideoCall(true)}
+              className="h-10 w-10 p-0"
+              title="Video call"
+            >
+              <Video className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages?.map((msg) => (
+          <div key={msg.id} className="flex items-start space-x-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={msg.sender.profilePicture || ""} />
+              <AvatarFallback>
+                <UserAvatarIcon />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 max-w-xs lg:max-w-md">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm">
+                <p className="text-sm">{msg.content}</p>
+                <span className="text-xs text-muted-foreground mt-1 block">
+                  {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Message input */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl">
+        <div className="flex items-center space-x-2">
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1"
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                // Handle send message
+              }
+            }}
+          />
+          <Button size="sm" className="shrink-0">
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {showVoiceCall && (
+        <VoiceCallModal
+          otherUser={conversation.otherUser}
+          onClose={() => setShowVoiceCall(false)}
+          onCallStart={() => setIsCallActive(true)}
+          onCallEnd={() => setIsCallActive(false)}
+        />
+      )}
+
+      {showVideoCall && (
+        <VideoCallModal
+          otherUser={conversation.otherUser}
+          onClose={() => setShowVideoCall(false)}
+          onCallStart={() => setIsCallActive(true)}
+          onCallEnd={() => setIsCallActive(false)}
+        />
+      )}
     </div>
   );
 }
