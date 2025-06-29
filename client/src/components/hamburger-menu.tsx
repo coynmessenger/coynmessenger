@@ -81,21 +81,13 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
     if (!groupName.trim()) {
       console.log("Group name validation failed");
-      toast({
-        title: "Group name required",
-        description: "Please enter a name for the group",
-        variant: "destructive"
-      });
+      alert("Group name required");
       return;
     }
 
     if (selectedUsers.length < 2) {
       console.log("Member selection validation failed");
-      toast({
-        title: "Select members",
-        description: "Please select at least 2 members for the group",
-        variant: "destructive"
-      });
+      alert("Please select at least 2 members for the group");
       return;
     }
 
@@ -118,10 +110,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
       
       console.log("Group creation response:", response);
       
-      toast({
-        title: "Group created",
-        description: `Successfully created group "${groupName}"`,
-      });
+      alert(`Successfully created group "${groupName}"`);
       
       // Refresh conversations list
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
@@ -141,11 +130,8 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
         onExternalGroupCreateClose();
       }
     } catch (error) {
-      toast({
-        title: "Failed to create group",
-        description: "Please try again",
-        variant: "destructive"
-      });
+      console.error("Group creation error:", error);
+      alert("Failed to create group. Please try again.");
     }
   };
 
