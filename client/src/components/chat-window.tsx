@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useMessagingWebSocket } from "@/hooks/use-messaging-websocket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -19,7 +18,6 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
-import SimpleGroupInfoModal from "@/components/simple-group-info-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
@@ -29,9 +27,7 @@ import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { formatDistanceToNow } from "date-fns";
 
 // Utility function to get effective display name (mirrors backend logic)
-function getEffectiveDisplayName(user: User | null): string {
-  if (!user) return "Unknown User";
-  
+function getEffectiveDisplayName(user: User): string {
   // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
   if (user.signInName) {
     return user.signInName;
@@ -44,7 +40,7 @@ function getEffectiveDisplayName(user: User | null): string {
     return `@${user.walletAddress.slice(-6)}`;
   }
   // Ultimate fallback
-  return user.displayName || user.username || "Unknown User";
+  return user.displayName || user.username;
 }
 
 interface ChatWindowProps {
@@ -55,10 +51,6 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
-  // Early return if conversation or otherUser is null to prevent crashes
-  if (!conversation || (!conversation.isGroup && !conversation.otherUser)) {
-    return <div className="flex-1 flex items-center justify-center text-muted-foreground">Loading conversation...</div>;
-  }
   const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
@@ -83,9 +75,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
-  const [showGroupInfo, setShowGroupInfo] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<User | null>(null);
-  const [showMemberProfile, setShowMemberProfile] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<{
     url: string;
@@ -373,17 +362,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     },
   });
 
-  // Fetch group members if this is a group conversation
-  const { data: groupMembers = [] } = useQuery<User[]>({
-    queryKey: ["/api/conversations", conversation.id, "members"],
-    queryFn: async () => {
-      const res = await fetch(`/api/conversations/${conversation.id}/members`);
-      if (!res.ok) throw new Error("Failed to fetch group members");
-      return res.json();
-    },
-    enabled: conversation?.isGroup === true,
-  });
-
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
       return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, messageData);
@@ -416,7 +394,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       setCryptoStep("amount");
       toast({
         title: "Crypto sent successfully",
-        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser?.displayName || 'user'}`,
+        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
       });
     },
     onError: () => {
@@ -473,7 +451,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Handle final send confirmation
   const handleSendConfirm = () => {
     sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser?.id || 0,
+      toUserId: conversation.otherUser.id,
       currency: selectedCrypto,
       amount: cryptoAmount,
     });
@@ -582,7 +560,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleSwipeEnd = () => {
     if (!swipeState.isDragging) return;
 
-    if (swipeState.offsetX > 60) { // Reduced threshold for more sensitive triggering
+    if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
       // Trigger reply to message with haptic-like feedback
       const message = messages.find(m => m.id === swipeState.messageId);
       if (message) {
@@ -601,16 +579,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           duration: 1500,
         });
       }
+      // Reset swipe state with smooth animation
+      setSwipeState({
+        messageId: null,
+        offsetX: 0,
+        isDragging: false,
+        showReply: false,
+        startX: 0
+      });
+    } else {
+      // Reset position with spring animation
+      setSwipeState({
+        messageId: null,
+        offsetX: 0,
+        isDragging: false,
+        showReply: false,
+        startX: 0
+      });
     }
-    
-    // Always reset swipe state
-    setSwipeState({
-      messageId: null,
-      offsetX: 0,
-      isDragging: false,
-      showReply: false,
-      startX: 0
-    });
   };
 
   // Message hover and long press handlers
@@ -627,7 +613,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 200); // Reduced delay for better responsiveness
+    }, 300); // 300ms delay
     setHoverLeaveTimer(timer);
     
     if (longPressTimer) {
@@ -649,7 +635,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add small delay when leaving options menu too
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 100); // Shorter delay for options menu
+    }, 150); // Shorter delay for options menu
     setHoverLeaveTimer(timer);
   };
 
@@ -751,7 +737,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleQuickSend = (currency: string) => {
     const amount = "0.01"; // Default quick send amount
     sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser?.id || 0,
+      toUserId: conversation.otherUser.id,
       currency,
       amount
     });
@@ -762,7 +748,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     if (!cryptoAmount || parseFloat(cryptoAmount) <= 0) return;
 
     sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser?.id || 0,
+      toUserId: conversation.otherUser.id,
       currency: "COYN",
       amount: cryptoAmount,
     });
@@ -1023,7 +1009,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <Button
             variant="ghost"
             className="p-0 h-auto hover:bg-transparent flex items-center space-x-3"
-            onClick={() => conversation.isGroup ? setShowGroupInfo(true) : setShowUserProfile(true)}
+            onClick={() => setShowUserProfile(true)}
           >
             <Avatar className="h-10 w-10">
               {conversation.isGroup ? (
@@ -1390,7 +1376,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex items-start space-x-3 mb-1" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender.profilePicture || ""} />
-                      <AvatarFallback>{getEffectiveDisplayName(msg.sender).charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="relative max-w-xs lg:max-w-md">
                       
@@ -1495,44 +1481,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
-                          {/* Show sender name for group messages */}
-                          {conversation.isGroup && (
-                            <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">
-                              {getEffectiveDisplayName(msg.sender)}
-                            </p>
-                          )}
-                          
-                          {/* Reply indicator for WhatsApp-style replies */}
-                          {replyingTo && msg.content?.includes('@') && msg.content.includes(':') && (
-                            <div className="mb-2 p-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg border-l-4 border-orange-400">
-                              <div className="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                                {msg.content.split(':')[0].replace('@', '')}
-                              </div>
-                              <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                                {(() => {
-                                  const replyToUser = msg.content?.split(':')[0].replace('@', '');
-                                  const originalMsg = messages.find(m => {
-                                    const effectiveName = getEffectiveDisplayName(m.sender);
-                                    return effectiveName === replyToUser && 
-                                      m.id !== msg.id &&
-                                      (m.timestamp != null && msg.timestamp != null && m.timestamp < msg.timestamp);
-                                  });
-                                  return originalMsg?.content || originalMsg?.cryptoAmount 
-                                    ? `${originalMsg.content || ''} ${originalMsg.cryptoAmount ? `${originalMsg.cryptoAmount} ${originalMsg.cryptoCurrency}` : ''}`.trim()
-                                    : "Previous message";
-                                })()}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <p className="text-sm break-words text-foreground">
-                            {highlightText(
-                              msg.content?.includes('@') && msg.content.includes(':') 
-                                ? msg.content.split(':').slice(1).join(':').trim() 
-                                : msg.content || "", 
-                              searchQuery || ""
-                            )}
-                          </p>
+                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
@@ -1571,7 +1520,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                         </div>
                         <div className="text-xs text-slate-400 break-all max-w-full overflow-hidden">
-                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender?.walletAddress || 'Unknown address'}
+                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
                         </div>
                         <div className="text-xs text-slate-400">
                           {formatTimestamp(msg.timestamp)}
@@ -1709,7 +1658,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                           )}
                           <div className="text-xs text-muted-foreground mb-2">
-                            Shared by {getEffectiveDisplayName(msg.sender)}
+                            Shared by {msg.sender.displayName}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {formatTimestamp(msg.timestamp)}
@@ -1981,18 +1930,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         )}
         
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2 sm:space-x-3">
-          {!conversation.isGroup && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
-                >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                </Button>
-              </DropdownMenuTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
               <DropdownMenuItem
                 onClick={() => handleCryptoClick('BTC')}
@@ -2042,8 +1990,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </div>
 
             </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          </DropdownMenu>
 
           {/* Attachment Button */}
           <DropdownMenu>
@@ -2311,7 +2258,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center">
                     <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm sm:text-base font-semibold text-black dark:text-white bg-white/60 dark:bg-slate-900/60 px-2 sm:px-3 py-1 rounded-lg">
-                      {getEffectiveDisplayName(conversation.otherUser)}
+                      {conversation.otherUser.displayName}
                     </span>
                   </div>
                 </div>
@@ -2347,16 +2294,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm font-semibold text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {getEffectiveDisplayName(conversation.otherUser)}
+                      {conversation.otherUser.displayName}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Wallet Address:</span>
                     <span className="text-xs font-mono text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {conversation.otherUser?.walletAddress ? 
-                        `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
-                        'No address'
-                      }
+                      {conversation.otherUser.walletAddress.slice(0, 6)}...{conversation.otherUser.walletAddress.slice(-4)}
                     </span>
                   </div>
                 </div>
@@ -2404,7 +2348,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         onStartCall={() => {
           setShowUserProfile(false);
-          setShowVoiceCall(true);
+          // Phone call functionality can be added here
         }}
         onStartVideoCall={() => {
           setShowUserProfile(false);
@@ -2441,28 +2385,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         isCallActive={isVideoCallActive}
       />
-
-      {/* Group Info Modal */}
-      {conversation.isGroup && (
-        <SimpleGroupInfoModal
-          isOpen={showGroupInfo}
-          onClose={() => setShowGroupInfo(false)}
-          conversationId={conversation.id}
-          currentUserId={5} // TODO: Get from actual user context
-        />
-      )}
-
-      {/* Member Profile Modal */}
-      {selectedMember && (
-        <UserProfileModal
-          isOpen={showMemberProfile}
-          onClose={() => {
-            setShowMemberProfile(false);
-            setSelectedMember(null);
-          }}
-          user={selectedMember}
-        />
-      )}
 
       {/* Image Preview Modal */}
       {previewImage && (

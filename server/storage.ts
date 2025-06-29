@@ -1,5 +1,5 @@
 import { 
-  users, conversations, messages, walletBalances, favorites, groupMembers, nftRewards, purchases, hiddenConversations,
+  users, conversations, messages, walletBalances, favorites, groupMembers, nftRewards, purchases,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
@@ -9,7 +9,7 @@ import {
   type Purchase, type InsertPurchase
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, sql, inArray, notInArray } from "drizzle-orm";
+import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -18,7 +18,6 @@ export interface IStorage {
   getUserByWalletAddress(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
-  updateUserOnlineStatus(userId: number, isOnline: boolean): Promise<void>;
   getAllUsers(): Promise<User[]>;
 
   // Conversations
@@ -30,17 +29,7 @@ export interface IStorage {
   // Groups
   createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation>;
   leaveGroup(conversationId: number, userId: number): Promise<boolean>;
-  getGroupMembers(conversationId: number): Promise<Array<{
-    id: number;
-    userId: number;
-    user: User;
-    role: string;
-    joinedAt: string;
-    addedBy?: number;
-  }>>;
-  getGroupMemberCount(conversationId: number): Promise<number>;
-  updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string; groupIcon?: string }): Promise<Conversation>;
-  removeGroupMember(conversationId: number, userId: number): Promise<void>;
+  getGroupMembers(conversationId: number): Promise<User[]>;
 
   // Messages
   getMessage(id: number): Promise<Message | undefined>;
@@ -116,16 +105,6 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async updateUserOnlineStatus(userId: number, isOnline: boolean): Promise<void> {
-    await db
-      .update(users)
-      .set({ 
-        isOnline, 
-        lastSeen: isOnline ? undefined : new Date() 
-      })
-      .where(eq(users.id, userId));
-  }
-
   async getAllUsers(): Promise<User[]> {
     const allUsers = await db.select().from(users).where(eq(users.isSetup, true));
     return allUsers;
@@ -151,13 +130,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]> {
-    // Get hidden conversation IDs for this user
-    const hiddenConvos = await db
-      .select({ conversationId: hiddenConversations.conversationId })
-      .from(hiddenConversations)
-      .where(eq(hiddenConversations.userId, userId));
-    const hiddenIds = hiddenConvos.map(h => h.conversationId);
-
     // First get direct conversations (non-group)
     const directConversations = await db
       .select({
@@ -188,23 +160,20 @@ export class DatabaseStorage implements IStorage {
       .from(groupMembers)
       .where(eq(groupMembers.userId, userId));
 
-    let groupConversations: any[] = [];
-    if (groupConversationIds.length > 0) {
-      groupConversations = await db
-        .select({
-          conversation: conversations,
-          lastMessage: messages
-        })
-        .from(conversations)
-        .leftJoin(messages, eq(messages.conversationId, conversations.id))
-        .where(
-          and(
-            inArray(conversations.id, groupConversationIds.map(g => g.conversationId)),
-            eq(conversations.isGroup, true)
-          )
+    const groupConversations = await db
+      .select({
+        conversation: conversations,
+        lastMessage: messages
+      })
+      .from(conversations)
+      .leftJoin(messages, eq(messages.conversationId, conversations.id))
+      .where(
+        and(
+          inArray(conversations.id, groupConversationIds.map(g => g.conversationId)),
+          eq(conversations.isGroup, true)
         )
-        .orderBy(desc(conversations.lastMessageAt));
-    }
+      )
+      .orderBy(desc(conversations.lastMessageAt));
 
     // Combine results - for groups, we don't have otherUser, so we'll use a placeholder
     const allConversations = [
@@ -235,12 +204,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    // Filter out hidden conversations
-    const visibleConversations = Array.from(conversationMap.values()).filter(
-      conv => !hiddenIds.includes(conv.id)
-    );
-    
-    return visibleConversations;
+    return Array.from(conversationMap.values());
   }
 
   async createConversation(user1Id: number, user2Id: number): Promise<Conversation> {
@@ -303,66 +267,16 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  async getGroupMembers(conversationId: number): Promise<Array<{
-    id: number;
-    userId: number;
-    user: User;
-    role: string;
-    joinedAt: string;
-    addedBy?: number;
-  }>> {
+  async getGroupMembers(conversationId: number): Promise<User[]> {
     const members = await db
       .select({
-        member: groupMembers,
         user: users
       })
       .from(groupMembers)
       .innerJoin(users, eq(users.id, groupMembers.userId))
-      .where(and(eq(groupMembers.conversationId, conversationId), eq(groupMembers.isActive, true)));
+      .where(eq(groupMembers.conversationId, conversationId));
 
-    return members.map(m => ({
-      id: m.member.id,
-      userId: m.member.userId,
-      user: m.user,
-      role: m.member.role || "member",
-      joinedAt: m.member.joinedAt?.toISOString() || new Date().toISOString(),
-      addedBy: m.member.addedBy || undefined
-    }));
-  }
-
-  async getGroupMemberCount(conversationId: number): Promise<number> {
-    const result = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(groupMembers)
-      .where(and(
-        eq(groupMembers.conversationId, conversationId),
-        eq(groupMembers.isActive, true)
-      ));
-    
-    return result[0]?.count || 0;
-  }
-
-  async updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string; groupIcon?: string }): Promise<Conversation> {
-    const [updatedConversation] = await db
-      .update(conversations)
-      .set(updates)
-      .where(eq(conversations.id, conversationId))
-      .returning();
-      
-    return updatedConversation;
-  }
-
-  async removeGroupMember(conversationId: number, userId: number): Promise<void> {
-    await db
-      .update(groupMembers)
-      .set({ 
-        isActive: false,
-        leftAt: new Date()
-      })
-      .where(and(
-        eq(groupMembers.conversationId, conversationId),
-        eq(groupMembers.userId, userId)
-      ));
+    return members.map(m => m.user);
   }
 
   // Messages
@@ -717,14 +631,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchases.id, purchaseId))
       .returning();
     return result.length > 0;
-  }
-
-  // Hide conversation when user leaves group
-  async hideConversation(conversationId: number, userId: number): Promise<void> {
-    await db
-      .insert(hiddenConversations)
-      .values({ userId, conversationId })
-      .onConflictDoNothing();
   }
 }
 

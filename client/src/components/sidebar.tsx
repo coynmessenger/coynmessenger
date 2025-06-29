@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon, Users } from "lucide-react";
+import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { formatDistanceToNow } from "date-fns";
@@ -14,69 +14,6 @@ import AddContactModal from "./add-contact-modal";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-
-// Helper function to get effective display name
-function getEffectiveDisplayName(user: User | null): string {
-  if (!user) return "Unknown";
-  
-  // Priority: signInName > displayName > @username fallback
-  if (user.signInName && user.signInName.trim()) {
-    return user.signInName;
-  }
-  if (user.displayName && user.displayName.trim()) {
-    return user.displayName;
-  }
-  
-  // Fallback to @id format using last 6 characters of wallet address
-  if (user.walletAddress) {
-    return `@${user.walletAddress.slice(-6)}`;
-  }
-  
-  return user.username || "Unknown";
-}
-
-// Helper function to safely format timestamp
-function formatTimestamp(date: Date | null): string {
-  if (!date) return "";
-  
-  try {
-    const now = new Date();
-    const messageDate = new Date(date);
-    const diffInSeconds = Math.floor((now.getTime() - messageDate.getTime()) / 1000);
-    
-    // Less than 1 minute
-    if (diffInSeconds < 60) {
-      return "now";
-    }
-    
-    // Less than 1 hour
-    if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes}m`;
-    }
-    
-    // Less than 24 hours
-    if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours}h`;
-    }
-    
-    // Less than 7 days
-    if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days}d`;
-    }
-    
-    // Format as date
-    return messageDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  } catch (error) {
-    console.error('Error formatting timestamp:', error);
-    return "";
-  }
-}
 
 interface SidebarProps {
   user?: User;
@@ -220,7 +157,9 @@ export default function Sidebar({
     return message.content || "";
   };
 
-  // Use the global formatTimestamp function instead
+  const formatTimestamp = (date: Date) => {
+    return formatDistanceToNow(new Date(date), { addSuffix: false });
+  };
 
   return (
     <>
@@ -357,146 +296,9 @@ export default function Sidebar({
 
         {/* Contact List and Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">
-          {/* Start New Conversation - Available Contacts */}
-          {allUsers.filter(contact => 
-            contact.id !== user?.id && 
-            contact.isSetup && 
-            !conversations.some(conv => !conv.isGroup && conv.otherUser?.id === contact.id)
-          ).length > 0 && (
-            <div className="mb-2">
-              <div className="px-3 py-2 bg-muted/30 border-b border-border">
-                <h3 className="text-xs font-medium text-muted-foreground">Start New Conversation</h3>
-              </div>
-              <div className="divide-y divide-border">
-                {allUsers.filter(contact => 
-                  contact.id !== user?.id && 
-                  contact.isSetup && 
-                  !conversations.some(conv => !conv.isGroup && conv.otherUser?.id === contact.id) &&
-                  (searchQuery ? 
-                    contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    contact.username.toLowerCase().includes(searchQuery.toLowerCase()) 
-                    : true)
-                ).map((contact) => (
-                  <div
-                    key={contact.id}
-                    onClick={() => {
-                      // Create new conversation with this contact
-                      fetch('/api/conversations', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ otherUserId: contact.id })
-                      }).then(() => {
-                        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-                      });
-                    }}
-                    className="px-3 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="relative">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={contact.profilePicture || ""} />
-                          <AvatarFallback>
-                            <UserAvatarIcon className="w-5 h-5 text-gray-400" />
-                          </AvatarFallback>
-                        </Avatar>
-                        {contact.isOnline && (
-                          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-black dark:text-white truncate">
-                          {contact.displayName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {contact.isOnline ? "Online" : "Offline"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Removed Start New Conversation section */}
 
-          {/* Existing Conversations */}
-          {conversations.filter(conv => 
-            searchQuery ? (
-              conv.isGroup 
-                ? conv.groupName?.toLowerCase().includes(searchQuery.toLowerCase())
-                : conv.otherUser?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  conv.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase())
-            ) : true
-          ).length > 0 && (
-            <div>
-              <div className="px-3 py-2 bg-muted/30 border-b border-border">
-                <h3 className="text-xs font-medium text-muted-foreground">Conversations</h3>
-              </div>
-              <div className="divide-y divide-border">
-                {conversations.filter(conv => 
-                  searchQuery ? (
-                    conv.isGroup 
-                      ? conv.groupName?.toLowerCase().includes(searchQuery.toLowerCase())
-                      : conv.otherUser?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        conv.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase())
-                  ) : true
-                ).map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    onClick={() => {
-                      onSelectConversation(conversation.id);
-                      onClose();
-                    }}
-                    className={`px-3 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 ${
-                      selectedConversation === conversation.id
-                        ? "border-orange-500 bg-accent/50"
-                        : "border-transparent hover:border-orange-500"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="relative">
-                        <Avatar className="w-8 h-8">
-                          {conversation.isGroup ? (
-                            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                              <Users className="w-4 h-4" />
-                            </AvatarFallback>
-                          ) : (
-                            <>
-                              <AvatarImage src={conversation.otherUser?.profilePicture || ""} />
-                              <AvatarFallback>
-                                <UserAvatarIcon className="w-5 h-5 text-gray-400" />
-                              </AvatarFallback>
-                            </>
-                          )}
-                        </Avatar>
-                        {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between">
-                          <p className="text-xs font-medium text-black dark:text-white truncate">
-                            {conversation.isGroup 
-                              ? conversation.groupName 
-                              : getEffectiveDisplayName(conversation.otherUser)}
-                          </p>
-                          {conversation.lastMessage && (
-                            <span className="text-xs text-muted-foreground">
-                              {formatTimestamp(conversation.lastMessage.timestamp ? new Date(conversation.lastMessage.timestamp) : null)}
-                            </span>
-                          )}
-                        </div>
-                        {conversation.lastMessage && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {conversation.lastMessage.content || "Photo"}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Mobile Settings - only visible on mobile */}

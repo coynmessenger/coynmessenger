@@ -29,9 +29,7 @@ export const conversations = pgTable("conversations", {
   isGroup: boolean("is_group").default(false),
   groupName: text("group_name"),
   groupDescription: text("group_description"),
-  groupIcon: text("group_icon"),
   createdBy: integer("created_by"),
-  createdAt: timestamp("created_at").defaultNow(),
   lastMessageAt: timestamp("last_message_at").defaultNow(),
 });
 
@@ -41,21 +39,8 @@ export const groupMembers = pgTable("group_members", {
   userId: integer("user_id").notNull(),
   joinedAt: timestamp("joined_at").defaultNow(),
   role: text("role").default("member"), // admin, member
-  addedBy: integer("added_by"),
-  leftAt: timestamp("left_at"),
-  isActive: boolean("is_active").default(true),
 }, (table) => ({
   unique: unique().on(table.conversationId, table.userId),
-}));
-
-// Track hidden conversations (when users leave groups)
-export const hiddenConversations = pgTable("hidden_conversations", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  conversationId: integer("conversation_id").notNull(),
-  hiddenAt: timestamp("hidden_at").defaultNow(),
-}, (table) => ({
-  unique: unique().on(table.userId, table.conversationId),
 }));
 
 export const messages = pgTable("messages", {
