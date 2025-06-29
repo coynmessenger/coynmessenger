@@ -617,7 +617,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 300); // 300ms delay
+    }, 500); // Increased to 500ms delay for better UX
     setHoverLeaveTimer(timer);
     
     if (longPressTimer) {
@@ -674,7 +674,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add small delay when leaving options menu too
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 150); // Shorter delay for options menu
+    }, 300); // Increased delay for better user experience
     setHoverLeaveTimer(timer);
   };
 
