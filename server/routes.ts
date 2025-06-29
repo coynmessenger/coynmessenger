@@ -259,8 +259,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid conversation ID" });
       }
 
-      // Set cache headers for better performance
-      res.set('Cache-Control', 'public, max-age=30'); // Cache for 30 seconds
+      // No cache headers to ensure fresh data
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       
       const messages = await storage.getConversationMessages(conversationId);
       

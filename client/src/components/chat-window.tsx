@@ -358,7 +358,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     queryFn: async () => {
       const res = await fetch(`/api/conversations/${conversation.id}/messages`);
       if (!res.ok) throw new Error("Failed to fetch messages");
-      return res.json();
+      const data = await res.json();
+      
+      // Debug: Log messages to see if crypto message is being returned
+      console.log(`Fetched ${data.length} messages for conversation ${conversation.id}:`, 
+        data.map((m: any) => ({ id: m.id, type: m.messageType, content: m.content?.substring(0, 50) }))
+      );
+      
+      return data;
     },
   });
 
@@ -1528,9 +1535,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {formatTimestamp(msg.timestamp)}
                           </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        </div>
+                      </CardContent>
+                    </Card>
                   {msg.senderId === 5 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
