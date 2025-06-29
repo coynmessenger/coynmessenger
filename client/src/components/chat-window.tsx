@@ -630,6 +630,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowMessageOptions(null);
   };
 
+  // Mobile tap handler to show options
+  const handleMessageTap = (messageId: number, e: React.TouchEvent | React.MouseEvent) => {
+    // Prevent swipe from interfering
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log("Mobile tap - showing options for message:", messageId);
+    setShowMessageOptions(messageId);
+    setHoveredMessage(messageId);
+    
+    // Auto-hide after 5 seconds for mobile
+    setTimeout(() => {
+      setShowMessageOptions(null);
+      setHoveredMessage(null);
+    }, 5000);
+  };
+
   const handleMessageLeave = () => {
     console.log("Leaving message area");
     
@@ -674,7 +691,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleMessageLongPressStart = (messageId: number) => {
     const timer = setTimeout(() => {
       setShowMessageOptions(messageId);
-    }, 500); // Show options after 500ms long press
+      setHoveredMessage(messageId); // Also set hover state for mobile
+      console.log("Mobile long press - showing options for message:", messageId);
+      
+      // Provide haptic feedback on mobile if available
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    }, 300); // Reduced to 300ms for better mobile UX
     setLongPressTimer(timer);
   };
 
@@ -1262,10 +1286,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 no-search-highlight"
+                          className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
-                            zIndex: 9999,
+                            zIndex: 10000,
                             position: 'absolute'
                           }}
                           onMouseEnter={handleOptionsHover}
