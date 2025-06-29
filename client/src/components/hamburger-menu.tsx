@@ -110,7 +110,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
         createdBy: currentUserId,
       });
       
-      const response = await apiRequest("/api/groups", "POST", {
+      const response = await apiRequest("POST", "/api/groups", {
         groupName: groupName.trim(),
         memberIds: selectedUsers, // Don't duplicate current user
         createdBy: currentUserId,

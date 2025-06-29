@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
+import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon, Users } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { formatDistanceToNow } from "date-fns";
@@ -14,6 +14,69 @@ import AddContactModal from "./add-contact-modal";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+
+// Helper function to get effective display name
+function getEffectiveDisplayName(user: User | null): string {
+  if (!user) return "Unknown";
+  
+  // Priority: signInName > displayName > @username fallback
+  if (user.signInName && user.signInName.trim()) {
+    return user.signInName;
+  }
+  if (user.displayName && user.displayName.trim()) {
+    return user.displayName;
+  }
+  
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  
+  return user.username || "Unknown";
+}
+
+// Helper function to safely format timestamp
+function formatTimestamp(date: Date | null): string {
+  if (!date) return "";
+  
+  try {
+    const now = new Date();
+    const messageDate = new Date(date);
+    const diffInSeconds = Math.floor((now.getTime() - messageDate.getTime()) / 1000);
+    
+    // Less than 1 minute
+    if (diffInSeconds < 60) {
+      return "now";
+    }
+    
+    // Less than 1 hour
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes}m`;
+    }
+    
+    // Less than 24 hours
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}h`;
+    }
+    
+    // Less than 7 days
+    if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}d`;
+    }
+    
+    // Format as date
+    return messageDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return "";
+  }
+}
 
 interface SidebarProps {
   user?: User;
