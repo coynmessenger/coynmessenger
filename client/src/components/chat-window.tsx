@@ -457,7 +457,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Handle final send confirmation
   const handleSendConfirm = () => {
     sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser.id,
+      toUserId: conversation.otherUser?.id || 0,
       currency: selectedCrypto,
       amount: cryptoAmount,
     });
@@ -743,7 +743,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleQuickSend = (currency: string) => {
     const amount = "0.01"; // Default quick send amount
     sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser.id,
+      toUserId: conversation.otherUser?.id || 0,
       currency,
       amount
     });
@@ -754,7 +754,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     if (!cryptoAmount || parseFloat(cryptoAmount) <= 0) return;
 
     sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser.id,
+      toUserId: conversation.otherUser?.id || 0,
       currency: "COYN",
       amount: cryptoAmount,
     });
@@ -1382,7 +1382,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex items-start space-x-3 mb-1" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender.profilePicture || ""} />
-                      <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{getEffectiveDisplayName(msg.sender).charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="relative max-w-xs lg:max-w-md">
                       
@@ -1526,7 +1526,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                         </div>
                         <div className="text-xs text-slate-400 break-all max-w-full overflow-hidden">
-                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
+                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender?.walletAddress || 'Unknown address'}
                         </div>
                         <div className="text-xs text-slate-400">
                           {formatTimestamp(msg.timestamp)}
@@ -1664,7 +1664,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                           )}
                           <div className="text-xs text-muted-foreground mb-2">
-                            Shared by {msg.sender.displayName}
+                            Shared by {getEffectiveDisplayName(msg.sender)}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {formatTimestamp(msg.timestamp)}
