@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Users, LogOut, Edit2, Camera, User as UserIcon } from "lucide-react";
+import { Users, LogOut, Edit2, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,7 +20,7 @@ interface SimpleGroupInfoModalProps {
 export default function SimpleGroupInfoModal({ isOpen, onClose, conversationId, currentUserId }: SimpleGroupInfoModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
@@ -71,20 +71,7 @@ export default function SimpleGroupInfoModal({ isOpen, onClose, conversationId, 
     }
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: "File too large",
-          description: "Please select an image smaller than 5MB.",
-          variant: "destructive",
-        });
-        return;
-      }
-      uploadImageMutation.mutate(file);
-    }
-  };
+
 
   const getEffectiveDisplayName = (user: User): string => {
     return user.signInName || user.displayName || `@${user.walletAddress?.slice(-6) || 'user'}`;
@@ -107,29 +94,6 @@ export default function SimpleGroupInfoModal({ isOpen, onClose, conversationId, 
       toast({
         title: "Error",
         description: "Failed to update group title.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Upload group image mutation
-  const uploadImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("image", file);
-      return apiRequest("POST", `/api/groups/${conversationId}/upload-image`, formData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      toast({
-        title: "Group image updated",
-        description: "The group image has been updated successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to upload group image.",
         variant: "destructive",
       });
     },
@@ -180,32 +144,6 @@ export default function SimpleGroupInfoModal({ isOpen, onClose, conversationId, 
           </DialogHeader>
           
           <div className="flex flex-col items-center space-y-4 py-4">
-            {/* Group Icon with Upload Option */}
-            <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center overflow-hidden">
-                {groupConversation?.groupIcon ? (
-                  <img src={groupConversation.groupIcon} alt="Group" className="w-full h-full object-cover" />
-                ) : (
-                  <Users className="w-12 h-12 text-white" />
-                )}
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadImageMutation.isPending}
-              >
-                <Camera className="w-4 h-4" />
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </div>
             
             {/* Editable Group Name */}
             <div className="text-center">
