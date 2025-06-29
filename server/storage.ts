@@ -25,6 +25,9 @@ export interface IStorage {
   findConversation(user1Id: number, user2Id: number): Promise<Conversation | undefined>;
   getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]>;
   createConversation(user1Id: number, user2Id: number): Promise<Conversation>;
+  deleteConversation(conversationId: number): Promise<boolean>;
+  deleteMessagesByConversation(conversationId: number): Promise<boolean>;
+  deleteGroupMembers(conversationId: number): Promise<boolean>;
   
   // Groups
   createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation>;
@@ -631,6 +634,31 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchases.id, purchaseId))
       .returning();
     return result.length > 0;
+  }
+
+  // Conversation deletion methods
+  async deleteConversation(conversationId: number): Promise<boolean> {
+    const result = await db
+      .delete(conversations)
+      .where(eq(conversations.id, conversationId))
+      .returning();
+    return result.length > 0;
+  }
+
+  async deleteMessagesByConversation(conversationId: number): Promise<boolean> {
+    const result = await db
+      .delete(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .returning();
+    return true; // Return true even if no messages were deleted
+  }
+
+  async deleteGroupMembers(conversationId: number): Promise<boolean> {
+    const result = await db
+      .delete(groupMembers)
+      .where(eq(groupMembers.conversationId, conversationId))
+      .returning();
+    return true; // Return true even if no members were deleted
   }
 }
 

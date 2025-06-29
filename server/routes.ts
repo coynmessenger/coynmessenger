@@ -372,6 +372,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete conversation
+  app.delete("/api/conversations/:id", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const currentUserId = 5; // Current user
+
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+
+      // Check if conversation exists and user has access
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      // For groups, check if user is a member
+      if (conversation.isGroup) {
+        const members = await storage.getGroupMembers(conversationId);
+        const isMember = members.some(member => member.id === currentUserId);
+        if (!isMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      } else {
+        // For direct messages, check if user is participant
+        if (conversation.participant1Id !== currentUserId && conversation.participant2Id !== currentUserId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Delete all messages in the conversation
+      await storage.deleteMessagesByConversation(conversationId);
+      
+      // Delete group members if it's a group
+      if (conversation.isGroup) {
+        await storage.deleteGroupMembers(conversationId);
+      }
+      
+      // Delete the conversation
+      await storage.deleteConversation(conversationId);
+
+      res.json({ message: "Conversation deleted successfully" });
+    } catch (error) {
+      console.error("Delete conversation error:", error);
+      res.status(500).json({ message: "Failed to delete conversation" });
+    }
+  });
+
   // Get wallet balances
   app.get("/api/wallet/balances", async (req, res) => {
     try {
