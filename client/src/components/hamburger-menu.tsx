@@ -463,19 +463,17 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 >
                   Cancel
                 </Button>
-                <Button
-                  className="flex-1 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none text-sm"
-                  onClick={(e) => {
-                    console.log("CREATE GROUP BUTTON CLICKED!", e);
-                    alert("CREATE GROUP BUTTON CLICKED!");
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleCreateGroup();
-                  }}
-                  disabled={false}
+                <button
+                  type="button"
+                  className="flex-1 h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg text-sm"
+                  onClick={() => alert("BUTTON WORKS!")}
+                  onMouseDown={() => console.log("MOUSE DOWN")}
+                  onMouseUp={() => console.log("MOUSE UP")}
+                  onTouchStart={() => console.log("TOUCH START")}
+                  onTouchEnd={() => console.log("TOUCH END")}
                 >
-                  Create Group
-                </Button>
+                  TEST BUTTON
+                </button>
               </div>
             </div>
         </DialogContent>
