@@ -861,11 +861,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const starMessageMutation = useMutation({
     mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
-      return apiRequest("PATCH", `/api/messages/${messageId}/star`, { isStarred });
+      const url = connectedUserId ? `/api/messages/${messageId}/star?userId=${connectedUserId}` : `/api/messages/${messageId}/star`;
+      return apiRequest("PATCH", url, { isStarred });
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred", connectedUserId] });
       
       toast({
         title: variables.isStarred ? "Message starred" : "Message unstarred",

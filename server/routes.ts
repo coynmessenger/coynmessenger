@@ -520,7 +520,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get starred messages
   app.get("/api/messages/starred", async (req, res) => {
     try {
-      const userId = 5; // Current user
+      // Get user ID from query parameter or default to 5 for backward compatibility
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const starredMessages = await storage.getStarredMessages(userId);
       res.json(starredMessages);
     } catch (error) {
@@ -533,7 +534,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/messages/:id/star", async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      const userId = 5; // Current user
+      // Get user ID from query parameter or default to 5 for backward compatibility
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const { isStarred } = req.body;
 
       if (isNaN(messageId)) {

@@ -44,9 +44,33 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get connected user ID from localStorage
+  const getConnectedUserId = () => {
+    const storedUser = localStorage.getItem('connectedUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.id;
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
+    }
+    return null;
+  };
+
+  const connectedUserId = getConnectedUserId();
+
   // Fetch starred messages
   const { data: starredMessages = [] } = useQuery<StarredMessage[]>({
-    queryKey: ["/api/messages/starred"],
+    queryKey: ["/api/messages/starred", connectedUserId],
+    queryFn: async () => {
+      const url = connectedUserId ? `/api/messages/starred?userId=${connectedUserId}` : "/api/messages/starred";
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch starred messages');
+      }
+      return response.json();
+    },
     enabled: showStarredMessages,
   });
 
@@ -71,12 +95,12 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
     
     // If message is not starred, star it directly
     try {
-      await apiRequest("/api/messages/star", "PATCH", { 
-        messageId: message.id, 
+      const url = connectedUserId ? `/api/messages/${message.id}/star?userId=${connectedUserId}` : `/api/messages/${message.id}/star`;
+      await apiRequest("PATCH", url, { 
         isStarred: true 
       });
       
-      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred", connectedUserId] });
       
       toast({
         title: "Message starred",
@@ -95,12 +119,12 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
     if (!messageToUnstar) return;
     
     try {
-      await apiRequest("/api/messages/star", "PATCH", { 
-        messageId: messageToUnstar.id, 
+      const url = connectedUserId ? `/api/messages/${messageToUnstar.id}/star?userId=${connectedUserId}` : `/api/messages/${messageToUnstar.id}/star`;
+      await apiRequest("PATCH", url, { 
         isStarred: false 
       });
       
-      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/starred", connectedUserId] });
       
       toast({
         title: "Message unstarred",
