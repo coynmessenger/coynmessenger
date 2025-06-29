@@ -578,12 +578,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       if (message) {
         // Use the effective display name from enhanced message data or calculate it
         const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
-        const replyContent = message.content || `${message.cryptoAmount} ${message.cryptoCurrency}` || "Message content";
+        // Get appropriate content based on message type
+        let replyContent = "Message content";
+        if (message.messageType === "text") {
+          replyContent = message.content || "Text message";
+        } else if (message.messageType === "crypto") {
+          replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
+        } else if (message.messageType === "product_share") {
+          replyContent = message.productTitle || message.content || "Shared product";
+        } else if (message.messageType === "attachment") {
+          replyContent = message.attachmentName || "File attachment";
+        } else {
+          replyContent = message.content || "Message";
+        }
         
         console.log("Setting reply to:", {
           id: message.id,
           content: replyContent,
-          sender: effectiveName
+          sender: effectiveName,
+          messageType: message.messageType,
+          originalContent: message.content
         });
         
         setReplyToMessage({
@@ -600,6 +614,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         });
       }
       // Reset swipe state with smooth animation
+      console.log("Resetting swipe state after successful reply setup");
       setSwipeState({
         messageId: null,
         offsetX: 0,
@@ -751,6 +766,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleReplyCancel = () => {
+    console.log("Canceling reply");
     setReplyToMessage(null);
   };
 
