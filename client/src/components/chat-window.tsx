@@ -698,6 +698,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       setShowMessageOptions(messageId);
       setHoveredMessage(messageId);
       
+      // Force immediate render check
+      console.log("Current showMessageOptions state:", messageId);
+      console.log("Current hoveredMessage state:", messageId);
+      
       // Provide haptic feedback on mobile if available
       if ('vibrate' in navigator) {
         navigator.vibrate([50]); // More reliable vibration pattern
@@ -1304,10 +1308,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-12 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-2xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-14 right-0 bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight"
                           style={{ 
                             pointerEvents: 'all', 
-                            zIndex: 50000
+                            zIndex: 999999,
+                            position: 'absolute',
+                            display: 'flex',
+                            visibility: 'visible',
+                            opacity: '1'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
@@ -1485,10 +1493,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-12 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-2xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-14 left-0 bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight"
                           style={{ 
                             pointerEvents: 'all', 
-                            zIndex: 50000
+                            zIndex: 999999,
+                            position: 'absolute',
+                            display: 'flex',
+                            visibility: 'visible',
+                            opacity: '1'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
@@ -1681,10 +1693,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                        className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight"
                         style={{ 
                           pointerEvents: 'all', 
-                          zIndex: 50000
+                          zIndex: 999999,
+                          position: 'absolute',
+                          display: 'flex',
+                          visibility: 'visible',
+                          opacity: '1'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
@@ -1797,10 +1813,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className={`absolute -top-12 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200`}
+                        className={`absolute -top-14 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight`}
                         style={{ 
                           pointerEvents: 'all', 
-                          zIndex: 50000
+                          zIndex: 999999,
+                          position: 'absolute',
+                          display: 'flex',
+                          visibility: 'visible',
+                          opacity: '1'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
