@@ -684,20 +684,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Message hover and long press handlers
   const handleMessageHover = (messageId: number) => {
-    // Clear any pending hide timer
-    if (hoverLeaveTimer) {
-      clearTimeout(hoverLeaveTimer);
-      setHoverLeaveTimer(null);
+    // Only show hover on non-touch devices to avoid interference with mobile gestures
+    if (!('ontouchstart' in window)) {
+      // Clear any pending hide timer
+      if (hoverLeaveTimer) {
+        clearTimeout(hoverLeaveTimer);
+        setHoverLeaveTimer(null);
+      }
+      setHoveredMessage(messageId);
     }
-    setHoveredMessage(messageId);
   };
 
   const handleMessageLeave = () => {
-    // Add delay before hiding options to allow user to move to options menu
-    const timer = setTimeout(() => {
-      setHoveredMessage(null);
-    }, 300); // 300ms delay
-    setHoverLeaveTimer(timer);
+    // Only handle mouse leave on non-touch devices
+    if (!('ontouchstart' in window)) {
+      // Add delay before hiding options to allow user to move to options menu
+      const timer = setTimeout(() => {
+        setHoveredMessage(null);
+      }, 300); // 300ms delay
+      setHoverLeaveTimer(timer);
+    }
     
     if (longPressTimer) {
       clearTimeout(longPressTimer);
@@ -723,16 +729,48 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleLongPressStart = (messageId: number) => {
-    const timer = setTimeout(() => {
-      setShowMessageOptions(messageId);
-    }, 500); // Show options after 500ms long press
-    setLongPressTimer(timer);
+    // For touch devices, show message options on long press
+    if ('ontouchstart' in window) {
+      const timer = setTimeout(() => {
+        setShowMessageOptions(messageId);
+        setHoveredMessage(messageId); // Also show hover state for mobile
+      }, 500); // Show options after 500ms long press
+      setLongPressTimer(timer);
+    }
   };
 
   const handleLongPressEnd = () => {
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
+    }
+  };
+
+  // Mobile-friendly tap to toggle message options
+  const handleMessageTap = (messageId: number, e: React.TouchEvent) => {
+    // Only for touch devices
+    if ('ontouchstart' in window) {
+      // Prevent triggering swipe if tapping on already visible options
+      if (showMessageOptions === messageId) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowMessageOptions(null);
+        setHoveredMessage(null);
+        return;
+      }
+      
+      // Show options on tap for touch devices
+      if (!showMessageOptions) {
+        e.preventDefault();
+        setShowMessageOptions(messageId);
+        setHoveredMessage(messageId);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          setShowMessageOptions(null);
+          setHoveredMessage(null);
+        }, 5000);
+      }
     }
   };
 
