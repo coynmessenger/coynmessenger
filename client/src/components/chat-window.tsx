@@ -582,7 +582,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleSwipeEnd = () => {
     if (!swipeState.isDragging) return;
 
-    if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
+    if (swipeState.offsetX > 60) { // Reduced threshold for more sensitive triggering
       // Trigger reply to message with haptic-like feedback
       const message = messages.find(m => m.id === swipeState.messageId);
       if (message) {
@@ -601,24 +601,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           duration: 1500,
         });
       }
-      // Reset swipe state with smooth animation
-      setSwipeState({
-        messageId: null,
-        offsetX: 0,
-        isDragging: false,
-        showReply: false,
-        startX: 0
-      });
-    } else {
-      // Reset position with spring animation
-      setSwipeState({
-        messageId: null,
-        offsetX: 0,
-        isDragging: false,
-        showReply: false,
-        startX: 0
-      });
     }
+    
+    // Always reset swipe state
+    setSwipeState({
+      messageId: null,
+      offsetX: 0,
+      isDragging: false,
+      showReply: false,
+      startX: 0
+    });
   };
 
   // Message hover and long press handlers
@@ -635,7 +627,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 300); // 300ms delay
+    }, 200); // Reduced delay for better responsiveness
     setHoverLeaveTimer(timer);
     
     if (longPressTimer) {
@@ -657,7 +649,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add small delay when leaving options menu too
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 150); // Shorter delay for options menu
+    }, 100); // Shorter delay for options menu
     setHoverLeaveTimer(timer);
   };
 
