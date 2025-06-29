@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MoreVertical, Settings, Star, Users, Plus, Search, MessageCircle, Crown, Shield } from "lucide-react";
+import { MoreVertical, Settings, Star, Users, Plus, Search, MessageCircle, Crown, Shield, Check } from "lucide-react";
 import type { User, Message } from "@shared/schema";
 
 interface HamburgerMenuProps {
@@ -420,7 +420,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                       </div>
                       {selectedUsers.includes(user.id) && (
                         <div className="h-7 w-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0 shadow-lg">
-                          <Plus className="h-4 w-4 text-white rotate-45" />
+                          <Check className="h-4 w-4 text-white" />
                         </div>
                       )}
                       </div>
@@ -437,7 +437,16 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 <Button
                   variant="outline"
                   className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all duration-200 text-sm"
-                  onClick={() => setShowNewGroup(false)}
+                  onClick={() => {
+                    // Reset form and close modal
+                    setGroupName("");
+                    setSelectedUsers([]);
+                    setSearchQuery("");
+                    setShowNewGroup(false);
+                    if (onExternalGroupCreateClose) {
+                      onExternalGroupCreateClose();
+                    }
+                  }}
                 >
                   Cancel
                 </Button>

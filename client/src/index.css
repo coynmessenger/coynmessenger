@@ -86,6 +86,11 @@ body {
   background: rgb(148 163 184);
 }
 
+/* Hide close button in group creation modal */
+[data-state="open"] button[data-dialog-close] {
+  display: none !important;
+}
+
 :root {
   /* Light theme - Orange/white design */
   --background: hsl(0, 0%, 100%);
