@@ -104,6 +104,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     sender: string;
   } | null>(null);
 
+  // Debug effect to track replyToMessage state changes
+  useEffect(() => {
+    if (replyToMessage) {
+      console.log("replyToMessage state updated:", replyToMessage);
+    }
+  }, [replyToMessage]);
+
   // Message hover options state
   const [hoveredMessage, setHoveredMessage] = useState<number | null>(null);
   const [showMessageOptions, setShowMessageOptions] = useState<number | null>(null);
@@ -571,47 +578,56 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
     if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
       // Trigger reply to message with haptic-like feedback
-      const message = messages.find(m => m.id === swipeState.messageId);
-      console.log("Swipe-to-reply triggered for message:", message);
-      console.log("All messages:", messages.map(m => ({ id: m.id, content: m.content, type: m.messageType })));
+      const targetMessageId = swipeState.messageId;
+      const message = messages.find(m => m.id === targetMessageId);
+      console.log("Swipe-to-reply triggered for message ID:", targetMessageId);
+      console.log("Found message:", message);
+      console.log("All available messages:", messages.map(m => ({ id: m.id, content: m.content, type: m.messageType })));
       
-      if (message) {
-        // Use the effective display name from enhanced message data or calculate it
-        const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
-        // Get appropriate content based on message type
-        let replyContent = "Message content";
-        if (message.messageType === "text") {
-          replyContent = message.content || "Text message";
-        } else if (message.messageType === "crypto") {
-          replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
-        } else if (message.messageType === "product_share") {
-          replyContent = message.productTitle || message.content || "Shared product";
-        } else if (message.messageType === "attachment") {
-          replyContent = message.attachmentName || "File attachment";
-        } else {
-          replyContent = message.content || "Message";
-        }
+      if (message && message.id === targetMessageId) {
+        // Clear any existing reply state first
+        setReplyToMessage(null);
         
-        console.log("Setting reply to:", {
-          id: message.id,
-          content: replyContent,
-          sender: effectiveName,
-          messageType: message.messageType,
-          originalContent: message.content
-        });
-        
-        setReplyToMessage({
-          id: message.id,
-          content: replyContent,
-          sender: effectiveName
-        });
-        
-        // Add visual feedback similar to WhatsApp
-        toast({
-          title: "Replying to " + effectiveName,
-          description: "Message ready for reply",
-          duration: 1500,
-        });
+        // Wait for state to clear then set new reply
+        setTimeout(() => {
+          // Use the effective display name from enhanced message data or calculate it
+          const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
+          // Get appropriate content based on message type
+          let replyContent = "Message content";
+          if (message.messageType === "text") {
+            replyContent = message.content || "Text message";
+          } else if (message.messageType === "crypto") {
+            replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
+          } else if (message.messageType === "product_share") {
+            replyContent = message.productTitle || message.content || "Shared product";
+          } else if (message.messageType === "attachment") {
+            replyContent = message.attachmentName || "File attachment";
+          } else {
+            replyContent = message.content || "Message";
+          }
+          
+          const newReplyData = {
+            id: message.id,
+            content: replyContent,
+            sender: effectiveName
+          };
+          
+          console.log("Setting fresh reply data:", newReplyData);
+          console.log("Message details:", {
+            messageType: message.messageType,
+            originalContent: message.content,
+            messageId: message.id
+          });
+          
+          setReplyToMessage(newReplyData);
+          
+          // Add visual feedback similar to WhatsApp
+          toast({
+            title: "Replying to " + effectiveName,
+            description: "Message ready for reply",
+            duration: 1500,
+          });
+        }, 50);
       }
       // Reset swipe state with smooth animation
       console.log("Resetting swipe state after successful reply setup");
@@ -1951,7 +1967,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   {replyToMessage.sender}
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 max-w-xs">
-                  {replyToMessage.content}
+                  {(() => {
+                    console.log("Rendering reply content:", replyToMessage.content, "for message ID:", replyToMessage.id);
+                    return replyToMessage.content;
+                  })()}
                 </div>
               </div>
             </div>
