@@ -1286,14 +1286,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
-                            zIndex: 10000,
-                            position: 'absolute'
+                            zIndex: 50000,
+                            top: '20px',
+                            right: '20px',
+                            position: 'fixed'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
+                          onTouchStart={(e) => e.stopPropagation()}
                         >
                           <Button
                             variant="ghost"
@@ -1453,14 +1456,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 no-search-highlight"
+                          className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
-                            zIndex: 9999,
-                            position: 'absolute'
+                            zIndex: 50000,
+                            top: '20px',
+                            left: '20px',
+                            position: 'fixed'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
+                          onTouchStart={(e) => e.stopPropagation()}
                         >
                           <Button
                             variant="ghost"
@@ -1635,14 +1641,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 no-search-highlight"
+                        className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                         style={{ 
                           pointerEvents: 'all', 
-                          zIndex: 9999,
-                          position: 'absolute'
+                          zIndex: 50000,
+                          top: '20px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          position: 'fixed'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
+                        onTouchStart={(e) => e.stopPropagation()}
                       >
                         <Button
                           variant="ghost"
@@ -1751,14 +1761,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className={`absolute -top-10 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1 no-search-highlight`}
+                        className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                         style={{ 
                           pointerEvents: 'all', 
-                          zIndex: 9999,
-                          position: 'absolute'
+                          zIndex: 50000,
+                          top: '20px',
+                          right: msg.senderId === 5 ? '20px' : '60px',
+                          left: msg.senderId === 5 ? '60px' : '20px',
+                          position: 'fixed'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
+                        onTouchStart={(e) => e.stopPropagation()}
                       >
                         <Button
                           variant="ghost"
