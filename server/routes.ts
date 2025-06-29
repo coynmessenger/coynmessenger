@@ -13,6 +13,7 @@ import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
+import { healthCheck, readinessCheck, livenessCheck } from "./health";
 
 // Configure multer for avatar uploads
 const upload = multer({
@@ -102,6 +103,11 @@ function getEffectiveDisplayName(user: any): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoints
+  app.get('/health', healthCheck);
+  app.get('/health/ready', readinessCheck);
+  app.get('/health/live', livenessCheck);
+
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
