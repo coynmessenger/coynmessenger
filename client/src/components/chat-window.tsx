@@ -59,6 +59,36 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
 
+  // Get connected user ID from localStorage
+  const getConnectedUserId = () => {
+    const storedUser = localStorage.getItem('connectedUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.id;
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
+    }
+    return null;
+  };
+
+  const connectedUserId = getConnectedUserId();
+
+  // Query for connected user data to get current display name
+  const { data: connectedUser } = useQuery<User>({
+    queryKey: ["/api/user", connectedUserId],
+    queryFn: async () => {
+      if (!connectedUserId) return null;
+      const response = await fetch(`/api/user?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch connected user');
+      }
+      return response.json();
+    },
+    enabled: !!connectedUserId,
+  });
+
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [gifSearchQuery, setGifSearchQuery] = useState("");
@@ -627,8 +657,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         // Wait for state to clear then set new reply
         setTimeout(() => {
-          // Use the effective display name from enhanced message data or calculate it
-          const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
+          // Check if this message is from the connected user, use current display name
+          let effectiveName: string;
+          if (connectedUserId && (message.sender as any)?.id === connectedUserId && connectedUser) {
+            // Use current connected user's display name for their own messages
+            effectiveName = getEffectiveDisplayName(connectedUser);
+            console.log("Using connected user display name for reply:", effectiveName);
+          } else {
+            // Use the original sender's display name for other users' messages
+            effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
+            console.log("Using original sender display name for reply:", effectiveName);
+          }
           // Get appropriate content based on message type
           let replyContent = "Message content";
           if (message.messageType === "text") {
