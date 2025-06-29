@@ -134,7 +134,10 @@ export default function MessengerPage() {
             </h1>
           </div>
           <div className="flex items-center space-x-2">
-            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
+            <HamburgerMenu 
+              onOpenSettings={() => setIsSettingsOpen(true)} 
+              onGroupCreated={(conversationId) => setSelectedConversation(conversationId)}
+            />
             <button
               onClick={() => setIsWalletSidebarOpen(true)}
               className="hover:opacity-80 transition-opacity"
@@ -404,7 +407,10 @@ export default function MessengerPage() {
                   className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
                 />
               </button>
-              <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
+              <HamburgerMenu 
+                onOpenSettings={() => setIsSettingsOpen(true)}
+                onGroupCreated={(conversationId) => setSelectedConversation(conversationId)}
+              />
             </div>
           </div>
         </nav>

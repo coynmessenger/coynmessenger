@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import type { User, Message } from "@shared/schema";
 
 interface HamburgerMenuProps {
   onOpenSettings: () => void;
+  onGroupCreated?: (conversationId: number) => void;
 }
 
 interface StarredMessage extends Message {
@@ -25,7 +26,7 @@ interface StarredMessage extends Message {
   conversationId: number;
 }
 
-export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
+export default function HamburgerMenu({ onOpenSettings, onGroupCreated }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
   const [showNewGroup, setShowNewGroup] = useState(false);
   const [groupName, setGroupName] = useState("");
@@ -76,9 +77,9 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
       // Get current user ID from localStorage
       const currentUserId = parseInt(localStorage.getItem('connectedUserId') || '5');
       
-      await apiRequest("/api/groups", "POST", {
+      const response = await apiRequest("/api/groups", "POST", {
         groupName: groupName.trim(),
-        memberIds: [...selectedUsers, currentUserId], // Include current user
+        memberIds: selectedUsers, // Don't duplicate current user
         createdBy: currentUserId,
       });
       
@@ -89,6 +90,11 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
       
       // Refresh conversations list
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      
+      // Navigate to the new group if callback provided
+      if (onGroupCreated && response.id) {
+        onGroupCreated(response.id);
+      }
       
       // Reset form
       setGroupName("");
@@ -227,6 +233,9 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                 </Badge>
               )}
             </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-2">
+              View and manage your starred messages
+            </DialogDescription>
           </div>
           
           <div className="flex-1 overflow-hidden">
@@ -300,6 +309,9 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
               </div>
               Create New Group
             </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-2">
+              Create a group chat with multiple members for team collaboration
+            </DialogDescription>
           </div>
 
           <div className="flex flex-col h-full max-h-[calc(85vh-80px)]">
