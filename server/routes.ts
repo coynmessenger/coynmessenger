@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Refresh wallet balances from blockchain
+  // Refresh wallet balances with real-time price calculations
   app.post("/api/wallet/balances/refresh", async (req, res) => {
     try {
       const { userId } = req.body;
@@ -416,29 +416,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
 
-      // Get user's wallet address
-      const user = await storage.getUser(parseInt(userId));
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      console.log("Refreshing wallet balances with real-time prices for user:", userId);
 
-      console.log("Refreshing blockchain balances for wallet:", user.walletAddress);
+      // Get current balances from database (preserve existing crypto amounts)
+      const currentBalances = await storage.getUserWalletBalances(parseInt(userId));
       
-      // Fetch fresh blockchain balances
-      const blockchainBalances = await blockchainService.getWalletBalances(user.walletAddress);
+      // Use demo-friendly refresh to maintain balances and update USD values
+      const refreshedBalances = await blockchainService.refreshDemoBalances(currentBalances);
       
-      // Update existing wallet balances
-      for (const balanceData of blockchainBalances) {
-        await storage.updateWalletBalance(parseInt(userId), balanceData.currency, {
-          balance: balanceData.balance,
-          usdValue: balanceData.usdValue,
-          changePercent: balanceData.changePercent || "0.00"
+      // Update USD values in database
+      for (const balance of refreshedBalances) {
+        await storage.updateWalletBalance(parseInt(userId), balance.currency, {
+          balance: balance.balance, // Keep existing crypto amounts
+          usdValue: balance.usdValue, // Update USD value with current prices
+          changePercent: balance.changePercent
         });
       }
 
       // Return updated balances
       const updatedBalances = await storage.getUserWalletBalances(parseInt(userId));
-      console.log("Updated wallet balances for user:", userId);
+      console.log("Updated wallet balances with real-time USD values for user:", userId);
       
       res.json(updatedBalances);
     } catch (error) {

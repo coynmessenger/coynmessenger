@@ -139,6 +139,71 @@ class BlockchainService {
       return false;
     }
   }
+
+  // Method to get current prices only (for refreshing USD values)
+  async getCurrentPrices(): Promise<CryptoPrice> {
+    return this.getCryptoPrices();
+  }
+
+  // Method to calculate USD value for a given crypto amount
+  calculateUSDValue(amount: string, currency: string, prices: CryptoPrice): string {
+    const numAmount = parseFloat(amount);
+    
+    switch (currency) {
+      case 'BTC':
+        return (numAmount * prices.bitcoin.usd).toFixed(2);
+      case 'BNB':
+        return (numAmount * prices.binancecoin.usd).toFixed(2);
+      case 'USDT':
+        // USDT is always 1:1 with USD - this is critical for accurate representation
+        return numAmount.toFixed(2);
+      case 'COYN':
+        // COYN fixed at $0.90 for demo purposes
+        return (numAmount * 0.90).toFixed(2);
+      default:
+        return '0.00';
+    }
+  }
+
+  // Demo-friendly refresh that preserves balances and updates USD values
+  async refreshDemoBalances(currentBalances: any[]): Promise<any[]> {
+    try {
+      const prices = await this.getCurrentPrices();
+      const updatedBalances = [];
+      
+      for (const balance of currentBalances) {
+        const usdValue = this.calculateUSDValue(balance.balance, balance.currency, prices);
+        
+        let changePercent = '0.00';
+        switch (balance.currency) {
+          case 'BTC':
+            changePercent = prices.bitcoin?.usd_24h_change?.toFixed(2) || '0.00';
+            break;
+          case 'BNB':
+            changePercent = prices.binancecoin?.usd_24h_change?.toFixed(2) || '0.00';
+            break;
+          case 'USDT':
+            changePercent = prices.tether?.usd_24h_change?.toFixed(2) || '0.00';
+            break;
+          case 'COYN':
+            changePercent = '4.70'; // Fixed demo percentage for COYN
+            break;
+        }
+        
+        updatedBalances.push({
+          ...balance,
+          usdValue,
+          changePercent
+        });
+      }
+      
+      return updatedBalances;
+    } catch (error) {
+      console.error('Error refreshing demo balances:', error);
+      // Return original balances if refresh fails
+      return currentBalances;
+    }
+  }
 }
 
 export const blockchainService = new BlockchainService();
