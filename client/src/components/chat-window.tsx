@@ -1145,7 +1145,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
-      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between">
+      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between relative z-50">
         <div className="flex items-center space-x-3">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
@@ -1198,7 +1198,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
         {/* Search Results Bar */}
         {searchQuery && (
-          <div className="search-results-bar flex items-center justify-between w-full px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-700">
+          <div className="search-results-bar flex items-center justify-between w-full px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-700 relative z-40">
             <div className="flex items-center space-x-2 min-w-0 flex-1">
               {searchResultCount > 0 ? (
                 <>

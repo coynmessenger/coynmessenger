@@ -9,6 +9,23 @@ import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
+  if (user.signInName) {
+    return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username || "Unknown User";
+}
+
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -91,7 +108,7 @@ export default function UserProfileModal({
               
               <div className="text-center space-y-1">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                  {user.displayName}
+                  {getEffectiveDisplayName(user)}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-muted-foreground">
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}

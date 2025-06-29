@@ -20,6 +20,23 @@ interface StarredMessage extends Message {
   conversationId: number;
 }
 
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
+  if (user.signInName) {
+    return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username || "Unknown User";
+}
+
 export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
   const [messageToUnstar, setMessageToUnstar] = useState<StarredMessage | null>(null);
@@ -171,13 +188,13 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                       <Avatar className="h-10 w-10 ring-2 ring-orange-200 dark:ring-orange-800">
                         <AvatarImage src={message.sender.profilePicture || ""} />
                         <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold">
-                          {message.sender.displayName.charAt(0)}
+                          {getEffectiveDisplayName(message.sender).charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-semibold text-gray-900 dark:text-white">
-                            {message.sender.displayName}
+                            {getEffectiveDisplayName(message.sender)}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-full">
                             {formatTimestamp(message.timestamp)}

@@ -363,6 +363,8 @@ body {
   max-width: 100%;
   overflow: hidden;
   box-sizing: border-box;
+  z-index: 5;
+  position: relative;
 }
 
 .search-highlight-pulse {
@@ -382,6 +384,8 @@ mark {
   box-sizing: border-box;
   white-space: normal;
   overflow: visible;
+  z-index: 10;
+  position: relative;
 }
 
 mark:hover {

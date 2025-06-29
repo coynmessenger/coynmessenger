@@ -15,6 +15,23 @@ import { apiRequest } from "@/lib/queryClient";
 import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
 
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
+  if (user.signInName) {
+    return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username || "Unknown User";
+}
+
 const COUNTRIES = [
   { code: "US", name: "United States" },
   { code: "CA", name: "Canada" },
@@ -226,7 +243,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     if (user && isOpen) {
       console.log("Settings modal initializing with user data:", user);
       console.log("User profile picture:", user.profilePicture);
-      setDisplayName(user.displayName || "");
+      console.log("Effective display name:", getEffectiveDisplayName(user));
+      setDisplayName(getEffectiveDisplayName(user) || "");
       setWalletAddress(user.walletAddress || "");
       setProfilePicture(user.profilePicture || "");
       setFullName(user.fullName || "");
@@ -445,7 +463,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={profilePicture} />
                     <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-lg">
-                      {user?.displayName?.charAt(0).toUpperCase() || 'U'}
+                      {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
                     </AvatarFallback>
                   </Avatar>
                   {/* Debug info */}
@@ -476,7 +494,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-black dark:text-foreground">{user?.displayName}</h3>
+                  <h3 className="text-lg font-semibold text-black dark:text-foreground">{user ? getEffectiveDisplayName(user) : 'Unknown User'}</h3>
                   <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
                   <Button
                     onClick={triggerImageUpload}
