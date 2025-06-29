@@ -220,9 +220,7 @@ export default function Sidebar({
     return message.content || "";
   };
 
-  const formatTimestamp = (date: Date) => {
-    return formatDistanceToNow(new Date(date), { addSuffix: false });
-  };
+  // Use the global formatTimestamp function instead
 
   return (
     <>

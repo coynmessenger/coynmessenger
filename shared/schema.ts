@@ -48,6 +48,16 @@ export const groupMembers = pgTable("group_members", {
   unique: unique().on(table.conversationId, table.userId),
 }));
 
+// Track hidden conversations (when users leave groups)
+export const hiddenConversations = pgTable("hidden_conversations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  conversationId: integer("conversation_id").notNull(),
+  hiddenAt: timestamp("hidden_at").defaultNow(),
+}, (table) => ({
+  unique: unique().on(table.userId, table.conversationId),
+}));
+
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   conversationId: integer("conversation_id").notNull(),

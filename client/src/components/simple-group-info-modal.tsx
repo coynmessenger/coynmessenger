@@ -48,8 +48,7 @@ export default function SimpleGroupInfoModal({ isOpen, onClose, conversationId, 
   // Leave group mutation
   const leaveGroupMutation = useMutation({
     mutationFn: async () => {
-      // Simple leave group - just refresh conversations
-      return Promise.resolve();
+      return apiRequest("POST", `/api/groups/${conversationId}/leave`);
     },
     onSuccess: () => {
       toast({
@@ -57,7 +56,17 @@ export default function SimpleGroupInfoModal({ isOpen, onClose, conversationId, 
         description: "You have left the group",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${conversationId}/members`] });
       onClose();
+      // Navigate back to messenger main page
+      window.location.href = '/messenger';
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to leave group",
+        variant: "destructive",
+      });
     },
   });
 

@@ -1,5 +1,5 @@
 import { 
-  users, conversations, messages, walletBalances, favorites, groupMembers, nftRewards, purchases,
+  users, conversations, messages, walletBalances, favorites, groupMembers, nftRewards, purchases, hiddenConversations,
   type User, type InsertUser, 
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
@@ -9,7 +9,7 @@ import {
   type Purchase, type InsertPurchase
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, or, desc, sql, inArray, notInArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -151,6 +151,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]> {
+    // Get hidden conversation IDs for this user
+    const hiddenConvos = await db
+      .select({ conversationId: hiddenConversations.conversationId })
+      .from(hiddenConversations)
+      .where(eq(hiddenConversations.userId, userId));
+    const hiddenIds = hiddenConvos.map(h => h.conversationId);
+
     // First get direct conversations (non-group)
     const directConversations = await db
       .select({
@@ -225,7 +232,12 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return Array.from(conversationMap.values());
+    // Filter out hidden conversations
+    const visibleConversations = Array.from(conversationMap.values()).filter(
+      conv => !hiddenIds.includes(conv.id)
+    );
+    
+    return visibleConversations;
   }
 
   async createConversation(user1Id: number, user2Id: number): Promise<Conversation> {
@@ -702,6 +714,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchases.id, purchaseId))
       .returning();
     return result.length > 0;
+  }
+
+  // Hide conversation when user leaves group
+  async hideConversation(conversationId: number, userId: number): Promise<void> {
+    await db
+      .insert(hiddenConversations)
+      .values({ userId, conversationId })
+      .onConflictDoNothing();
   }
 }
 

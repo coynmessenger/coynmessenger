@@ -1211,12 +1211,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/groups/:conversationId/leave", async (req, res) => {
+  app.post("/api/groups/:conversationId/leave", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.conversationId);
       const userId = (req as any).session?.userId || 5;
       
-      await storage.removeGroupMember(conversationId, userId);
+      // Hide the conversation from the user's list
+      await storage.hideConversation(conversationId, userId);
+      
+      // Add a system message that the user left
+      await storage.createMessage({
+        conversationId,
+        senderId: userId,
+        content: `User left the group`,
+        messageType: 'system',
+      });
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error leaving group:", error);
