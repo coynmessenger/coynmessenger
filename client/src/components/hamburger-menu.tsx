@@ -394,8 +394,10 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                       </p>
                     </div>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <div
+                    filteredUsers.map((user) => {
+                      const isSelected = selectedUsers.includes(user.id);
+                      console.log(`User ${user.displayName} (ID: ${user.id}) - Selected: ${isSelected}, SelectedUsers array:`, selectedUsers);
+                      return (<div
                         key={user.id}
                         className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
                         selectedUsers.includes(user.id)
@@ -432,7 +434,8 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                         </div>
                       )}
                       </div>
-                    ))
+                    );
+                    })
                   )}
                 </div>
               </div>
