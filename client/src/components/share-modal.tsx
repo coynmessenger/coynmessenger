@@ -40,7 +40,15 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
       return apiRequest("POST", "/api/messages/share", data);
     },
     onSuccess: () => {
+      // Invalidate conversations list to update with new messages
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      
+      // Also invalidate all conversation message queries to ensure they refresh
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/conversations"],
+        predicate: (query) => query.queryKey.includes("messages")
+      });
+      
       toast({
         title: "Messages shared successfully",
         description: `Shared to ${selectedConversations.size} conversation${selectedConversations.size > 1 ? 's' : ''}`,
