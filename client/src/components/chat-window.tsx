@@ -682,15 +682,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleMessageLongPressStart = (messageId: number) => {
+    // Clear any existing timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+    }
+    
     const timer = setTimeout(() => {
       setShowMessageOptions(messageId);
-      setHoveredMessage(messageId); // Also set hover state for mobile
+      setHoveredMessage(messageId);
       
       // Provide haptic feedback on mobile if available
       if ('vibrate' in navigator) {
-        navigator.vibrate(50);
+        navigator.vibrate([50]); // More reliable vibration pattern
       }
-    }, 300); // Reduced to 300ms for better mobile UX
+      
+      // Auto-hide after 8 seconds on mobile for better UX
+      setTimeout(() => {
+        setShowMessageOptions(null);
+        setHoveredMessage(null);
+      }, 8000);
+    }, 250); // Slightly faster for better mobile responsiveness
     setLongPressTimer(timer);
   };
 
@@ -1278,7 +1289,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-12 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-12 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-2xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
                             zIndex: 50000
@@ -1445,7 +1456,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-12 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-12 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-2xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
                             zIndex: 50000
