@@ -682,12 +682,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleMessageLongPressStart = (messageId: number) => {
+    console.log("Long press started for message:", messageId);
+    
     // Clear any existing timer
     if (longPressTimer) {
       clearTimeout(longPressTimer);
     }
     
     const timer = setTimeout(() => {
+      console.log("Long press timer triggered for message:", messageId);
       setShowMessageOptions(messageId);
       setHoveredMessage(messageId);
       
@@ -706,6 +709,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleMessageLongPressEnd = () => {
+    console.log("Long press ended");
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
@@ -1389,7 +1393,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           handleMessageLeave();
                         }}
                       >
-                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
+                        <div 
+                          className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20"
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            console.log("Direct touch on message bubble:", msg.id);
+                            handleMessageLongPressStart(msg.id);
+                          }}
+                          onTouchEnd={(e) => {
+                            e.stopPropagation();
+                            handleMessageLongPressEnd();
+                          }}
+                        >
                           {/* WhatsApp-style reply context */}
                           {msg.content?.includes('@') && msg.content.includes(':') && (
                             <div className="bg-white/20 rounded-lg p-2 mb-2 border-l-4 border-white/40">
