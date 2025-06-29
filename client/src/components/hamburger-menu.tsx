@@ -133,11 +133,14 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
   };
 
   const handleUserToggle = (userId: number) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
+    console.log('Toggling user:', userId, 'Current selected:', selectedUsers);
+    setSelectedUsers(prev => {
+      const newSelected = prev.includes(userId) 
         ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
+        : [...prev, userId];
+      console.log('New selected users:', newSelected);
+      return newSelected;
+    });
   };
 
   const formatTimestamp = (timestamp: string | Date | null) => {
