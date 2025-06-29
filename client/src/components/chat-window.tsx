@@ -609,8 +609,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const hoverDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   
   const handleMessageHover = (messageId: number) => {
-    console.log("Hovering over message:", messageId);
-    
     // Clear any pending debounce timer
     if (hoverDebounceTimer.current) {
       clearTimeout(hoverDebounceTimer.current);
@@ -625,7 +623,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     // Set immediately for better responsiveness - always show options
     setHoveredMessage(messageId);
-    console.log("Set hovered message to:", messageId);
     // Clear mobile options to prevent conflicts
     setShowMessageOptions(null);
   };
@@ -636,7 +633,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     e.preventDefault();
     e.stopPropagation();
     
-    console.log("Mobile tap - showing options for message:", messageId);
     setShowMessageOptions(messageId);
     setHoveredMessage(messageId);
     
@@ -648,8 +644,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleMessageLeave = () => {
-    console.log("Leaving message area");
-    
     // Clear debounce timer if hovering again quickly
     if (hoverDebounceTimer.current) {
       clearTimeout(hoverDebounceTimer.current);
@@ -658,7 +652,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
-      console.log("Hiding hovered message");
       setHoveredMessage(null);
     }, 150); // Reduced delay for more responsive behavior
     setHoverLeaveTimer(timer);
@@ -692,7 +685,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const timer = setTimeout(() => {
       setShowMessageOptions(messageId);
       setHoveredMessage(messageId); // Also set hover state for mobile
-      console.log("Mobile long press - showing options for message:", messageId);
       
       // Provide haptic feedback on mobile if available
       if ('vibrate' in navigator) {
@@ -1286,13 +1278,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-12 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
                             zIndex: 50000,
-                            top: '20px',
-                            right: '20px',
-                            position: 'fixed'
+                            position: 'absolute'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
@@ -1456,13 +1446,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-12 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
                             zIndex: 50000,
-                            top: '20px',
-                            left: '20px',
-                            position: 'fixed'
+                            position: 'absolute'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
@@ -1641,14 +1629,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                        className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                         style={{ 
                           pointerEvents: 'all', 
                           zIndex: 50000,
-                          top: '20px',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          position: 'fixed'
+                          position: 'absolute'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
@@ -1761,14 +1746,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className="fixed bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-orange-400 rounded-lg shadow-xl p-2 flex items-center space-x-2 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                        className={`absolute -top-12 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200`}
                         style={{ 
                           pointerEvents: 'all', 
                           zIndex: 50000,
-                          top: '20px',
-                          right: msg.senderId === 5 ? '20px' : '60px',
-                          left: msg.senderId === 5 ? '60px' : '20px',
-                          position: 'fixed'
+                          position: 'absolute'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
