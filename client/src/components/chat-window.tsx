@@ -1609,28 +1609,44 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 )
               ) : (msg.messageType === "crypto" || msg.messageType === "crypto_transfer") ? (
-                // Crypto transaction message
-                <div className="flex justify-center group mb-1" data-message-id={msg.id}>
+                // Crypto transaction message - large detailed format
+                <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">
-                    <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
-                      <CardContent className="p-4">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
-                        <Coins className="h-4 w-4 text-cyan-400" />
-                        <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-cyan-400">
-                          {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                    <Card className="bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/40 dark:to-cyan-800/40 border border-cyan-300 dark:border-cyan-600/30 max-w-md w-full mx-4 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl">
+                      <CardContent className="p-6">
+                        {/* Header with icon and title */}
+                        <div className="flex items-center justify-center space-x-3 mb-4">
+                          <div className="p-2 rounded-full bg-cyan-500/20 dark:bg-cyan-400/20">
+                            <Coins className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                          </div>
+                          <span className="text-lg font-semibold text-cyan-700 dark:text-cyan-300">Crypto Transaction</span>
                         </div>
-                        <div className="text-xs text-slate-400 break-all max-w-full overflow-hidden">
-                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
+                        
+                        {/* Amount display */}
+                        <div className="text-center mb-4">
+                          <div className="text-2xl md:text-3xl font-bold text-cyan-700 dark:text-cyan-300">
+                            {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                          </div>
                         </div>
-                        <div className="text-xs text-slate-400">
-                          {formatTimestamp(msg.timestamp)}
+                        
+                        {/* Wallet address */}
+                        <div className="text-center mb-4">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            {msg.senderId === 5 ? 'To' : 'From'}:
+                          </div>
+                          <div className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all bg-gray-100 dark:bg-gray-800/50 p-2 rounded">
+                            {msg.senderId === 5 ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        
+                        {/* Timestamp */}
+                        <div className="text-center">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {formatTimestamp(msg.timestamp)}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   {msg.senderId === 5 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
