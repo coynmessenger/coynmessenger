@@ -333,9 +333,9 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
             </DialogDescription>
           </div>
 
-          <div className="flex flex-col h-full max-h-[calc(85vh-80px)]">
+          <div className="flex flex-col h-full max-h-[calc(85vh-80px)] p-6 pt-4">
             {/* Group Info */}
-            <div className="space-y-3">
+            <div className="space-y-3 mb-4">
               <div>
                 <Label htmlFor="groupName">Group Name</Label>
                 <Input
@@ -346,16 +346,14 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                   className="mt-1"
                 />
               </div>
-              
-
             </div>
 
-            <Separator />
+            <Separator className="mb-4" />
 
             {/* Member Selection */}
-            <div>
+            <div className="flex-1 overflow-hidden">
               <Label>Add Members</Label>
-              <div className="mt-2 space-y-3">
+              <div className="mt-2 space-y-3 h-full flex flex-col">
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -376,7 +374,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
                 {/* User list */}
                 <div 
-                  className="max-h-[280px] overflow-y-auto space-y-3 pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                  className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                   onWheel={(e) => e.stopPropagation()}
                 >
                   {filteredUsers.map((user) => (
@@ -413,9 +411,10 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="p-6 pt-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 rounded-b-2xl">
+          {/* Action Buttons */}
+          <div className="p-6 pt-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 rounded-b-2xl">
               <div className="flex gap-4">
                 <Button
                   variant="outline"
@@ -433,7 +432,6 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 </Button>
               </div>
             </div>
-          </div>
         </DialogContent>
       </Dialog>
 
