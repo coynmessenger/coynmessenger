@@ -360,11 +360,11 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
             <Separator className="mb-4" />
 
             {/* Member Selection */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden min-h-0">
               <Label>Add Members</Label>
-              <div className="mt-2 space-y-3 h-full flex flex-col">
+              <div className="mt-2 h-full flex flex-col">
                 {/* Search */}
-                <div className="relative">
+                <div className="relative mb-3 flex-shrink-0">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={searchQuery}
@@ -376,7 +376,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
                 {/* Selected count */}
                 {selectedUsers.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground mb-2 flex-shrink-0">
                     {selectedUsers.length} member{selectedUsers.length !== 1 ? 's' : ''} selected
                   </div>
                 )}
@@ -384,13 +384,11 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 {/* User list */}
                 <div 
                   ref={userListRef}
-                  className="flex-1 overflow-y-scroll space-y-2 pr-2 mobile-scroll scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-transparent dark:scrollbar-thumb-orange-600"
+                  className="flex-1 overflow-y-auto space-y-2 pr-2 min-h-[250px] max-h-[400px] scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 dark:scrollbar-thumb-orange-600 border border-gray-200 dark:border-gray-700 rounded-lg p-2"
                   style={{ 
                     WebkitOverflowScrolling: 'touch',
                     touchAction: 'pan-y',
-                    overscrollBehavior: 'contain',
-                    minHeight: '0',
-                    maxHeight: 'none'
+                    overscrollBehavior: 'contain'
                   }}
                 >
                   {filteredUsers.length === 0 ? (
@@ -439,7 +437,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
           </div>
 
           {/* Action Buttons - Fixed at bottom */}
-          <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-b-2xl">
+          <div className="flex-shrink-0 p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-b-2xl">
               <div className="flex gap-2">
                 <Button
                   variant="outline"
