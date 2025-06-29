@@ -1609,39 +1609,37 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 )
               ) : (msg.messageType === "crypto" || msg.messageType === "crypto_transfer") ? (
-                // Crypto transaction message - large detailed format
-                <div className="flex justify-center group mb-4" data-message-id={msg.id}>
+                // Crypto transaction message - compact sleek format
+                <div className="flex justify-center group mb-3" data-message-id={msg.id}>
                   <div className="relative">
-                    <Card className="bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/40 dark:to-cyan-800/40 border border-cyan-300 dark:border-cyan-600/30 max-w-md w-full mx-4 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl">
-                      <CardContent className="p-6">
+                    <Card className="bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/40 dark:to-cyan-800/40 border border-cyan-300 dark:border-cyan-600/30 max-w-sm mx-4 shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-xl">
+                      <CardContent className="p-4">
                         {/* Header with icon and title */}
-                        <div className="flex items-center justify-center space-x-3 mb-4">
-                          <div className="p-2 rounded-full bg-cyan-500/20 dark:bg-cyan-400/20">
-                            <Coins className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-                          </div>
-                          <span className="text-lg font-semibold text-cyan-700 dark:text-cyan-300">Crypto Transaction</span>
+                        <div className="flex items-center justify-center space-x-2 mb-3">
+                          <Coins className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                          <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Crypto Transaction</span>
                         </div>
                         
                         {/* Amount display */}
-                        <div className="text-center mb-4">
-                          <div className="text-2xl md:text-3xl font-bold text-cyan-700 dark:text-cyan-300">
+                        <div className="text-center mb-3">
+                          <div className="text-xl font-bold text-cyan-700 dark:text-cyan-300">
                             {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                           </div>
                         </div>
                         
-                        {/* Wallet address */}
-                        <div className="text-center mb-4">
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        {/* Wallet address - compact */}
+                        <div className="text-center mb-2">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                             {msg.senderId === 5 ? 'To' : 'From'}:
                           </div>
-                          <div className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all bg-gray-100 dark:bg-gray-800/50 p-2 rounded">
+                          <div className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all bg-gray-100 dark:bg-gray-800/50 px-2 py-1 rounded text-center">
                             {msg.senderId === 5 ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
                           </div>
                         </div>
                         
                         {/* Timestamp */}
                         <div className="text-center">
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
                             {formatTimestamp(msg.timestamp)}
                           </div>
                         </div>
