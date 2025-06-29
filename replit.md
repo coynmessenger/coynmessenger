@@ -404,6 +404,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Implemented comprehensive delete contact functionality - added red "Delete Contact" button under Call/Video buttons in user profile modal, created DELETE API endpoint for conversations, implemented database methods for deleting conversations and messages, added proper error handling and toast notifications, fixed race condition bug where deleted contacts would briefly appear as unclickable in contact list
 - June 29, 2025: Removed "Start New Conversation" section completely from both mobile and desktop messenger interfaces for cleaner, streamlined contact management
 - June 29, 2025: Added confirmation dialog for delete contact functionality - clicking "Delete Contact" now shows a warning dialog with user name confirmation, explaining that conversation history will be permanently removed, includes Cancel and Delete Contact buttons with proper error handling
+- June 29, 2025: Reorganized user profile modal button layout into 3 clear rows - "Send Message" button is now orange and full width at top, "Call" and "Video" buttons are side by side in middle row, "Delete Contact" button spans full width at bottom for better visual hierarchy and touch accessibility
 
 ## User Preferences
 

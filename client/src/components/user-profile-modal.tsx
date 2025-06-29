@@ -122,48 +122,52 @@ export default function UserProfileModal({
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                {onSendMessage && (
-                  <Button 
-                    onClick={onSendMessage}
-                    variant="outline"
-                    className="h-9 sm:h-10 flex flex-col items-center justify-center space-y-0.5 sm:space-y-1 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm">Message</span>
-                  </Button>
-                )}
-                {onStartCall && (
-                  <Button 
-                    onClick={onStartCall}
-                    variant="outline"
-                    className="h-9 sm:h-10 flex flex-col items-center justify-center space-y-0.5 sm:space-y-1 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm">Call</span>
-                  </Button>
-                )}
-                {onStartVideoCall && (
-                  <Button 
-                    onClick={onStartVideoCall}
-                    variant="outline"
-                    className="h-9 sm:h-10 flex flex-col items-center justify-center space-y-0.5 sm:space-y-1 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <Video className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm">Video</span>
-                  </Button>
-                )}
-              </div>
+              {/* Row 1: Send Message (Orange, Full Width) */}
+              {onSendMessage && (
+                <Button 
+                  onClick={onSendMessage}
+                  className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                >
+                  <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Send Message
+                </Button>
+              )}
               
-              {/* Delete Contact Button */}
+              {/* Row 2: Call and Video (Side by Side) */}
+              {(onStartCall || onStartVideoCall) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {onStartCall && (
+                    <Button 
+                      onClick={onStartCall}
+                      variant="outline"
+                      className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Call
+                    </Button>
+                  )}
+                  {onStartVideoCall && (
+                    <Button 
+                      onClick={onStartVideoCall}
+                      variant="outline"
+                      className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <Video className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Video
+                    </Button>
+                  )}
+                </div>
+              )}
+              
+              {/* Row 3: Delete Contact (Full Width) */}
               {onDeleteContact && (
                 <Button 
                   onClick={handleDeleteContactClick}
                   variant="outline"
-                  className="w-full h-9 sm:h-10 bg-white dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                  className="w-full h-10 sm:h-12 bg-white dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                 >
-                  <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
-                  <span className="text-sm">Delete Contact</span>
+                  <UserMinus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Delete Contact
                 </Button>
               )}
             </div>
