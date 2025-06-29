@@ -547,9 +547,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     },
   });
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!message.trim()) return;
+
+    // Haptic feedback for mobile devices
+    if ('ontouchstart' in window && 'vibrate' in navigator) {
+      navigator.vibrate(50); // Light vibration feedback
+    }
 
     let messageContent = message;
     let replyData = null;
@@ -746,30 +751,54 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Mobile-friendly tap to toggle message options
+  // Mobile-friendly double-tap for quick reply
+  const [lastTap, setLastTap] = useState<{ messageId: number; time: number } | null>(null);
+  
   const handleMessageTap = (messageId: number, e: React.TouchEvent) => {
     // Only for touch devices
     if ('ontouchstart' in window) {
-      // Prevent triggering swipe if tapping on already visible options
-      if (showMessageOptions === messageId) {
+      const now = Date.now();
+      
+      // Check for double-tap (within 300ms)
+      if (lastTap && lastTap.messageId === messageId && now - lastTap.time < 300) {
         e.preventDefault();
         e.stopPropagation();
-        setShowMessageOptions(null);
-        setHoveredMessage(null);
+        // Double-tap triggers quick reply
+        const message = messages.find(m => m.id === messageId);
+        if (message) {
+          const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
+          let replyContent = "Message";
+          if (message.messageType === "text") {
+            replyContent = message.content || "Text message";
+          } else if (message.messageType === "crypto") {
+            replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
+          }
+          
+          setReplyToMessage({
+            id: message.id,
+            content: replyContent,
+            sender: effectiveName
+          });
+        }
+        setLastTap(null);
         return;
       }
       
-      // Show options on tap for touch devices
-      if (!showMessageOptions) {
-        e.preventDefault();
+      // Single tap - toggle options
+      setLastTap({ messageId, time: now });
+      
+      if (showMessageOptions === messageId) {
+        setShowMessageOptions(null);
+        setHoveredMessage(null);
+      } else {
         setShowMessageOptions(messageId);
         setHoveredMessage(messageId);
         
-        // Auto-hide after 5 seconds
+        // Auto-hide after 4 seconds
         setTimeout(() => {
           setShowMessageOptions(null);
           setHoveredMessage(null);
-        }, 5000);
+        }, 4000);
       }
     }
   };
@@ -1883,6 +1912,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             loading="lazy"
                             onClick={(e) => {
                               e.stopPropagation();
+                              // Haptic feedback for mobile image tap
+                              if ('ontouchstart' in window && 'vibrate' in navigator) {
+                                navigator.vibrate(30);
+                              }
                               handleImagePreview(
                                 msg.attachmentUrl!, 
                                 msg.attachmentName ?? undefined, 
@@ -2183,6 +2216,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e);
+                }
+              }}
               placeholder="Type a message..."
               className="pr-16 sm:pr-20 h-11 sm:h-10 text-sm sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
             />
@@ -2523,8 +2562,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           isOpen={showImagePreview}
           onClose={() => setShowImagePreview(false)}
           imageUrl={previewImage.url}
-          imageName={previewImage.name}
-          imageSize={previewImage.size}
+          imageName={previewImage.name || "Image"}
         />
       )}
     </div>
