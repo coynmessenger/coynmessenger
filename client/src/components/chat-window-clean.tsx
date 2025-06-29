@@ -257,11 +257,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         setReplyToMessage({
           id: message.id,
           content: message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`,
-          sender: getEffectiveDisplayName(message.sender)
+          sender: message.sender ? getEffectiveDisplayName(message.sender) : "Unknown User"
         });
         toast({
           title: "Reply mode activated",
-          description: `Replying to ${getEffectiveDisplayName(message.sender)}`,
+          description: `Replying to ${message.sender ? getEffectiveDisplayName(message.sender) : "Unknown User"}`,
           duration: 1500,
         });
       }
@@ -339,7 +339,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         {Array.isArray(messages) && messages.map((msg) => (
           <div key={msg.id} className="flex items-start space-x-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={msg.sender.profilePicture || ""} />
+              <AvatarImage src={msg.sender?.profilePicture || ""} />
               <AvatarFallback>
                 <UserAvatarIcon />
               </AvatarFallback>
