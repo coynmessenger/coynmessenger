@@ -83,6 +83,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
   const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<User | null>(null);
+  const [showMemberProfile, setShowMemberProfile] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<{
     url: string;
@@ -2431,14 +2433,22 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               
               <div className="space-y-2">
                 {groupMembers.map((member) => (
-                  <div key={member.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <Button
+                    key={member.id}
+                    variant="ghost"
+                    className="flex items-center space-x-3 p-3 w-full justify-start rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors h-auto"
+                    onClick={() => {
+                      setSelectedMember(member);
+                      setShowMemberProfile(true);
+                    }}
+                  >
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={member.profilePicture || ""} />
                       <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
                         <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-medium text-foreground truncate">
                         {getEffectiveDisplayName(member)}
                       </p>
@@ -2452,13 +2462,25 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {member.isOnline && (
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     )}
-                  </div>
+                  </Button>
                 ))}
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Member Profile Modal */}
+      {selectedMember && (
+        <UserProfileModal
+          isOpen={showMemberProfile}
+          onClose={() => {
+            setShowMemberProfile(false);
+            setSelectedMember(null);
+          }}
+          user={selectedMember}
+        />
+      )}
 
       {/* Image Preview Modal */}
       {previewImage && (
