@@ -192,7 +192,7 @@ export default function Sidebar({
         </div>
 
         {/* Search Bar - Desktop Only */}
-        <div className="hidden lg:block p-4 border-b border-border bg-white dark:bg-card">
+        <div className="hidden lg:block p-2 border-b border-border bg-white dark:bg-card">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
