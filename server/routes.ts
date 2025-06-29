@@ -1212,6 +1212,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update group details
+  app.patch("/api/groups/:id", async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const { groupName, groupDescription } = req.body;
+      
+      const updatedGroup = await storage.updateGroup(groupId, { 
+        groupName, 
+        groupDescription 
+      });
+      
+      res.json(updatedGroup);
+    } catch (error) {
+      console.error("Error updating group:", error);
+      res.status(500).json({ message: "Failed to update group" });
+    }
+  });
+
+  // Upload group image
+  app.post("/api/groups/:id/upload-image", upload.single("image"), async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // In a real app, you'd upload to a cloud service and get the URL
+      const imageUrl = `/uploads/${file.filename}`;
+      
+      const updatedGroup = await storage.updateGroup(groupId, { 
+        groupIcon: imageUrl 
+      });
+      
+      res.json({ imageUrl, group: updatedGroup });
+    } catch (error) {
+      console.error("Error uploading group image:", error);
+      res.status(500).json({ message: "Failed to upload group image" });
+    }
+  });
+
   app.post("/api/groups/:conversationId/leave", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.conversationId);

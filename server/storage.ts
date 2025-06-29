@@ -39,7 +39,7 @@ export interface IStorage {
     addedBy?: number;
   }>>;
   getGroupMemberCount(conversationId: number): Promise<number>;
-  updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string }): Promise<Conversation>;
+  updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string; groupIcon?: string }): Promise<Conversation>;
   removeGroupMember(conversationId: number, userId: number): Promise<void>;
 
   // Messages
@@ -342,7 +342,7 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
-  async updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string }): Promise<Conversation> {
+  async updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string; groupIcon?: string }): Promise<Conversation> {
     const [updatedConversation] = await db
       .update(conversations)
       .set(updates)
