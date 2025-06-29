@@ -407,6 +407,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Fixed Create New Group modal mobile functionality - optimized modal layout with proper height constraints (80vh), reduced padding for mobile compatibility, ensured Cancel and Create buttons are always visible at bottom, improved scroll behavior for member list with max-height constraints, enhanced mobile touch experience with responsive design
 - June 29, 2025: Implemented comprehensive group info functionality - added clickable group headers to display group member lists, created Group Info modal with member details, wallet addresses, and online status indicators, made individual group members clickable to open their detailed user profiles, resolved DialogDescription import error that was causing messenger crashes
 - June 29, 2025: Disabled cryptocurrency sending in group chats - removed "+" button and crypto send functionality from group conversations to prevent confusion, crypto sending is now only available in one-on-one conversations for security and clarity
+- June 29, 2025: Fixed Create New Group modal scrolling and user display issues - improved mobile touch scrolling with WebKit touch support, added minimum height constraints, enhanced empty state handling with loading indicators, fixed syntax errors in user list rendering, optimized scroll behavior for mobile devices
 
 ## User Preferences
 

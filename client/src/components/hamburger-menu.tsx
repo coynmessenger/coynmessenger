@@ -374,13 +374,22 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
                 {/* User list */}
                 <div 
-                  className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0 max-h-[35vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                  className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[200px] max-h-[40vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-y"
                   onWheel={(e) => e.stopPropagation()}
+                  style={{ WebkitOverflowScrolling: 'touch' }}
                 >
-                  {filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
+                  {filteredUsers.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Users className="h-12 w-12 text-gray-400 mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400">
+                        {allUsers.length === 0 ? "Loading users..." : "No users found"}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
                         selectedUsers.includes(user.id)
                           ? "bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 shadow-md"
                           : "bg-gray-50 dark:bg-gray-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/10 border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
@@ -406,8 +415,9 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                           <Plus className="h-4 w-4 text-white rotate-45" />
                         </div>
                       )}
-                    </div>
-                  ))}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
