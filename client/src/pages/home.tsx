@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/images(1)_1750925157265.png";
 import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1750925157245.png";
@@ -441,15 +441,16 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Powered by Coynful */}
+        {/* Powered by COYN */}
         <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-opacity">
             <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
             <img 
-              src={coynfulLogoPath} 
-              alt="Coynful" 
-              className="h-6 w-auto object-contain"
+              src={coynLogoPath} 
+              alt="COYN" 
+              className="h-6 w-6 object-contain"
             />
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">COYN</span>
           </div>
         </div>
       </div>
