@@ -187,7 +187,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         description: "Contact has been removed successfully",
         duration: 3000,
       });
+      // Invalidate multiple related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.removeQueries({ queryKey: ["/api/conversations", conversation.id] });
+      
       // Navigate back to contact list
       if (onBack) {
         onBack();

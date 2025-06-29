@@ -67,16 +67,23 @@ export default function MessengerPage() {
       // If conversation exists, open it
       setSelectedConversation(existingConversation.id);
     } else {
-      // If no conversation exists, create one only when user actually wants to chat
-      createConversationMutation.mutate(contact.id);
+      // Only create conversation if the contact is actually in the available contacts list
+      const isContactAvailable = availableContacts.some(c => c.id === contact.id);
+      if (isContactAvailable) {
+        // If no conversation exists, create one only when user actually wants to chat
+        createConversationMutation.mutate(contact.id);
+      } else {
+        console.log("Contact not available for new conversation:", contact.displayName);
+      }
     }
   };
 
   // Filter out current user and users who already have conversations
-  const availableContacts = allUsers.filter(contact => 
-    contact.id !== user?.id && 
-    !conversations.some(conv => conv.otherUser?.id === contact.id)
-  );
+  const availableContacts = allUsers.filter(contact => {
+    const hasExistingConversation = conversations.some(conv => conv.otherUser?.id === contact.id);
+    const isCurrentUser = contact.id === user?.id;
+    return !isCurrentUser && !hasExistingConversation;
+  });
 
   // Filter conversations and contacts based on search query
   const filteredConversations = conversations.filter(conversation => {
