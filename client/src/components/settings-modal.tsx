@@ -213,14 +213,18 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
     const storedUser = localStorage.getItem('connectedUser');
+    console.log('Settings modal - stored user:', storedUser);
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        console.log('Settings modal - parsed user:', parsedUser);
+        console.log('Settings modal - using user ID:', parsedUser.id);
         return parsedUser.id;
       } catch (e) {
         console.error('Failed to parse stored user:', e);
       }
     }
+    console.log('Settings modal - no stored user, using null');
     return null;
   };
 
