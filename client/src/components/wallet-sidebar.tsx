@@ -74,10 +74,27 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   });
 
-  // Calculate total balance
+  // Calculate total balance with proper precision
   const totalBalance = walletBalances.reduce((sum, balance) => {
-    return sum + parseFloat(balance.usdValue || "0");
+    const usdValue = parseFloat(balance.usdValue || "0");
+    return sum + usdValue;
   }, 0);
+
+  // Calculate 24h portfolio change (weighted average)
+  const calculatePortfolioChange = () => {
+    if (totalBalance === 0) return 0;
+    
+    let totalChange = 0;
+    walletBalances.forEach(balance => {
+      const weight = parseFloat(balance.usdValue || "0") / totalBalance;
+      const change = parseFloat(balance.changePercent || "0");
+      totalChange += weight * change;
+    });
+    
+    return totalChange;
+  };
+
+  const portfolioChange = calculatePortfolioChange();
 
   // Currency configurations
   const currencyConfig: { [key: string]: { icon: JSX.Element; name: string; color: string } } = {
@@ -168,14 +185,20 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const formatBalance = (balance: string, currency: string) => {
     if (!isBalanceVisible) return "••••••";
     const num = parseFloat(balance);
-    if (currency === "BTC") return num.toFixed(6);
-    if (currency === "USDT") return num.toFixed(2);
+    
+    // Ensure consistent decimal places matching the screenshot expectations
+    if (currency === "BTC") return num.toFixed(6); // 0.099900 BTC
+    if (currency === "USDT") return num.toFixed(2); // 1000.00 USDT  
+    if (currency === "BNB") return num.toFixed(4); // 2.1625 BNB
+    if (currency === "COYN") return num.toFixed(0); // Show whole numbers for COYN
     return num.toFixed(4);
   };
 
   const formatUSD = (usd: string) => {
     if (!isBalanceVisible) return "••••••";
-    return `$${parseFloat(usd).toLocaleString()}`;
+    const amount = parseFloat(usd);
+    // Ensure proper comma formatting for thousands
+    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   if (!isOpen) return null;
@@ -244,11 +267,24 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Total Portfolio Value</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {formatUSD(totalBalance.toString())}
+                    {isBalanceVisible ? `$${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "••••••"}
                   </p>
                   <div className="flex items-center justify-center mt-2 space-x-1">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-500 font-medium">+2.4% (24h)</span>
+                    {portfolioChange >= 0 ? (
+                      <>
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-green-500 font-medium">
+                          {isBalanceVisible ? `+${portfolioChange.toFixed(1)}% (24h)` : "••••••"}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <TrendingDown className="w-4 h-4 text-red-500" />
+                        <span className="text-sm text-red-500 font-medium">
+                          {isBalanceVisible ? `${portfolioChange.toFixed(1)}% (24h)` : "••••••"}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>

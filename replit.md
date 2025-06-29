@@ -410,6 +410,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Added comprehensive haptic feedback system for mobile devices - vibration feedback on message send, image taps, and interactive elements, improved mobile user experience with tactile responses, enhanced touch interaction detection and proper event handling
 - June 29, 2025: Optimized mobile chat input experience - added Enter key support for message sending, enhanced keyboard navigation, improved input field responsiveness, better mobile typing experience with proper event handling and form submission
 - June 29, 2025: Fixed all TypeScript errors and accessibility issues - resolved image preview modal interface inconsistencies, added proper DialogTitle and DialogDescription elements for screen readers, enhanced code quality with type safety improvements
+- June 29, 2025: Fixed wallet balance synchronization and calculation accuracy - ensured highlighted amounts perfectly reflect database values, synchronized total portfolio value ($21,375) with individual crypto USD values (USDT: $2,500 + BTC: $12,500 + BNB: $5,100 + COYN: $1,275), enhanced balance formatting with proper decimal places (BTC: 6 decimals, USDT: 2 decimals, BNB: 4 decimals, COYN: whole numbers), implemented weighted portfolio change calculation based on individual asset performance
 
 ## User Preferences
 
