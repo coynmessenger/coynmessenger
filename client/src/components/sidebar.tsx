@@ -296,9 +296,146 @@ export default function Sidebar({
 
         {/* Contact List and Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">
-          {/* Removed Start New Conversation section */}
+          {/* Start New Conversation - Available Contacts */}
+          {allUsers.filter(contact => 
+            contact.id !== user?.id && 
+            contact.isSetup && 
+            !conversations.some(conv => !conv.isGroup && conv.otherUser?.id === contact.id)
+          ).length > 0 && (
+            <div className="mb-2">
+              <div className="px-3 py-2 bg-muted/30 border-b border-border">
+                <h3 className="text-xs font-medium text-muted-foreground">Start New Conversation</h3>
+              </div>
+              <div className="divide-y divide-border">
+                {allUsers.filter(contact => 
+                  contact.id !== user?.id && 
+                  contact.isSetup && 
+                  !conversations.some(conv => !conv.isGroup && conv.otherUser?.id === contact.id) &&
+                  (searchQuery ? 
+                    contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    contact.username.toLowerCase().includes(searchQuery.toLowerCase()) 
+                    : true)
+                ).map((contact) => (
+                  <div
+                    key={contact.id}
+                    onClick={() => {
+                      // Create new conversation with this contact
+                      fetch('/api/conversations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ otherUserId: contact.id })
+                      }).then(() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+                      });
+                    }}
+                    className="px-3 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="relative">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={contact.profilePicture || ""} />
+                          <AvatarFallback>
+                            <UserAvatarIcon className="w-5 h-5 text-gray-400" />
+                          </AvatarFallback>
+                        </Avatar>
+                        {contact.isOnline && (
+                          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-black dark:text-white truncate">
+                          {contact.displayName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {contact.isOnline ? "Online" : "Offline"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-
+          {/* Existing Conversations */}
+          {conversations.filter(conv => 
+            searchQuery ? (
+              conv.isGroup 
+                ? conv.groupName?.toLowerCase().includes(searchQuery.toLowerCase())
+                : conv.otherUser?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  conv.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase())
+            ) : true
+          ).length > 0 && (
+            <div>
+              <div className="px-3 py-2 bg-muted/30 border-b border-border">
+                <h3 className="text-xs font-medium text-muted-foreground">Conversations</h3>
+              </div>
+              <div className="divide-y divide-border">
+                {conversations.filter(conv => 
+                  searchQuery ? (
+                    conv.isGroup 
+                      ? conv.groupName?.toLowerCase().includes(searchQuery.toLowerCase())
+                      : conv.otherUser?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        conv.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase())
+                  ) : true
+                ).map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    onClick={() => {
+                      onSelectConversation(conversation.id);
+                      onClose();
+                    }}
+                    className={`px-3 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 ${
+                      selectedConversation === conversation.id
+                        ? "border-orange-500 bg-accent/50"
+                        : "border-transparent hover:border-orange-500"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="relative">
+                        <Avatar className="w-8 h-8">
+                          {conversation.isGroup ? (
+                            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                              <Users className="w-4 h-4" />
+                            </AvatarFallback>
+                          ) : (
+                            <>
+                              <AvatarImage src={conversation.otherUser?.profilePicture || ""} />
+                              <AvatarFallback>
+                                <UserAvatarIcon className="w-5 h-5 text-gray-400" />
+                              </AvatarFallback>
+                            </>
+                          )}
+                        </Avatar>
+                        {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between">
+                          <p className="text-xs font-medium text-black dark:text-white truncate">
+                            {conversation.isGroup 
+                              ? conversation.groupName 
+                              : getEffectiveDisplayName(conversation.otherUser)}
+                          </p>
+                          {conversation.lastMessage && (
+                            <span className="text-xs text-muted-foreground">
+                              {formatTimestamp(conversation.lastMessage.timestamp)}
+                            </span>
+                          )}
+                        </div>
+                        {conversation.lastMessage && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {conversation.lastMessage.content || "Photo"}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mobile Settings - only visible on mobile */}
