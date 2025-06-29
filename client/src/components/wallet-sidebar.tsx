@@ -301,13 +301,13 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   size="sm"
                   onClick={() => refreshBalancesMutation.mutate()}
                   disabled={refreshBalancesMutation.isPending}
-                  className="text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-all duration-200 disabled:opacity-50"
+                  className="text-gray-500 dark:text-gray-400 transition-all duration-200 disabled:opacity-50 hover:bg-transparent"
                 >
                   <RefreshCw 
                     className={`w-4 h-4 ${
                       refreshBalancesMutation.isPending 
                         ? 'animate-spin text-orange-500 dark:text-orange-400' 
-                        : 'transition-transform duration-200 hover:rotate-45'
+                        : 'text-gray-500 dark:text-gray-400'
                     }`} 
                     style={{
                       animation: refreshBalancesMutation.isPending ? 'spin-glow 1s linear infinite' : undefined
