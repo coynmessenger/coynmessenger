@@ -1507,24 +1507,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 )
               ) : msg.messageType === "crypto" ? (
                 // Crypto transaction message
-                <div className="flex justify-center group mb-1" data-message-id={msg.id}>
+                <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">
-                    <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
-                      <CardContent className="p-4">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
-                        <Coins className="h-4 w-4 text-cyan-400" />
-                        <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-cyan-400">
-                          {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                    <Card className="bg-gradient-to-br from-cyan-100/90 to-blue-100/90 dark:from-cyan-900/40 dark:to-blue-900/40 border border-cyan-200/50 dark:border-cyan-600/30 max-w-sm w-full shadow-lg rounded-3xl">
+                      <CardContent className="p-6 text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-4">
+                          <Coins className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                          <span className="text-sm font-medium text-cyan-600 dark:text-cyan-400">Crypto Transaction</span>
                         </div>
-                        <div className="text-xs text-slate-400 break-all max-w-full overflow-hidden">
-                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          {formatTimestamp(msg.timestamp)}
-                        </div>
+                        <div className="text-center space-y-3">
+                          <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
+                            {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 break-all px-2">
+                            To: {msg.senderId === 5 ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            {formatTimestamp(msg.timestamp)}
+                          </div>
                       </div>
                     </CardContent>
                   </Card>
