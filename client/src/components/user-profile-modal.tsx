@@ -37,7 +37,7 @@ export default function UserProfileModal({
   }, [isOpen, queryClient]);
 
   const copyWalletAddress = () => {
-    navigator.clipboard.writeText(user.walletAddress);
+    navigator.clipboard.writeText(user?.walletAddress || '');
     toast({
       title: "Copied!",
       description: "Wallet address copied to clipboard",
@@ -53,12 +53,12 @@ export default function UserProfileModal({
           <div className="flex flex-col items-center space-y-3">
             <div className="relative">
               <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
-                <AvatarImage src={user.profilePicture || ""} />
+                <AvatarImage src={user?.profilePicture || ""} />
                 <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
                   <UserAvatarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 dark:text-gray-400" />
                 </AvatarFallback>
               </Avatar>
-              {user.isOnline && (
+              {user?.isOnline && (
                 <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
                 </div>
@@ -66,13 +66,13 @@ export default function UserProfileModal({
             </div>
             
             <div className="text-center space-y-1">
-              <h2 className="text-lg sm:text-xl font-semibold text-black dark:text-foreground">{user.displayName}</h2>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">@{user.walletAddress?.replace(/^0x/, '').slice(-6) || user.username}</p>
+              <h2 className="text-lg sm:text-xl font-semibold text-black dark:text-foreground">{user?.displayName || user?.username || 'Unknown User'}</h2>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username || 'unknown'}</p>
               <Badge 
-                variant={user.isOnline ? "default" : "secondary"} 
-                className={`mt-1 text-xs ${user.isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'}`}
+                variant={user?.isOnline ? "default" : "secondary"} 
+                className={`mt-1 text-xs ${user?.isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'}`}
               >
-                {user.isOnline ? "Online" : "Offline"}
+                {user?.isOnline ? "Online" : "Offline"}
               </Badge>
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function UserProfileModal({
             <div className="bg-gray-50 dark:bg-muted rounded-lg p-2 sm:p-3 border border-border">
               <div className="flex items-center justify-between gap-2">
                 <code className="text-xs text-gray-700 dark:text-muted-foreground font-mono break-all flex-1 min-w-0">
-                  {user.walletAddress}
+                  {user?.walletAddress || 'No wallet address'}
                 </code>
                 <Button
                   variant="ghost"
@@ -138,10 +138,10 @@ export default function UserProfileModal({
           </div>
 
           {/* Additional Info */}
-          {user.lastSeen && (
+          {user?.lastSeen && (
             <div className="text-center pt-4 border-t border-border">
               <p className="text-xs text-gray-500 dark:text-muted-foreground">
-                Last seen: {new Date(user.lastSeen).toLocaleString()}
+                Last seen: {new Date(user?.lastSeen).toLocaleString()}
               </p>
             </div>
           )}
