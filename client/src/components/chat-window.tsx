@@ -1198,11 +1198,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
         {/* Search Results Bar */}
         {searchQuery && (
-          <div className="search-results-bar flex items-center justify-between w-full px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-700 relative z-40">
+          <div className="search-results-bar flex items-center justify-between w-full px-3 py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 relative z-40">
             <div className="flex items-center space-x-2 min-w-0 flex-1">
               {searchResultCount > 0 ? (
                 <>
-                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 shadow-sm whitespace-nowrap shrink-0">
+                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-700 shadow-sm whitespace-nowrap shrink-0">
                     {isSearching ? (
                       <div className="flex items-center space-x-1">
                         <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
@@ -1212,7 +1212,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount}</span>
                     )}
                   </Badge>
-                  <span className="text-xs text-yellow-700 dark:text-yellow-300 truncate">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
                     "{searchQuery}"
                   </span>
                 </>
@@ -1233,7 +1233,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-1 hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors duration-200 rounded-sm"
+                  className="h-7 w-7 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-sm"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1246,7 +1246,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-1 hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors duration-200 rounded-sm"
+                  className="h-7 w-7 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-sm"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
