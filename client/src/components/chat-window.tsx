@@ -991,28 +991,33 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const highlightText = (text: string, searchTerm: string) => {
     if (!searchTerm || !text) return text;
     
-    const searchTerms = searchTerm.split(/\s+/).filter(term => term.length > 0);
-    if (searchTerms.length === 0) return text;
-    
-    // Create regex that matches any of the search terms
-    const regexPattern = searchTerms
-      .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-      .join('|');
-    
-    const regex = new RegExp(`(${regexPattern})`, 'gi');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => {
-      const isMatch = searchTerms.some(term => 
-        part.toLowerCase().includes(term.toLowerCase())
-      );
+    try {
+      const searchTerms = searchTerm.split(/\s+/).filter(term => term.length > 0);
+      if (searchTerms.length === 0) return text;
       
-      return isMatch ? (
-        <mark key={index} className="search-result-container bg-orange-100 dark:bg-orange-500/30 text-orange-900 dark:text-orange-100 px-1 py-0.5 rounded font-medium border border-orange-200 dark:border-orange-400/30 inline-block max-w-fit">
-          {part}
-        </mark>
-      ) : part;
-    });
+      // Create regex that matches any of the search terms
+      const regexPattern = searchTerms
+        .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('|');
+      
+      const regex = new RegExp(`(${regexPattern})`, 'gi');
+      const parts = text.split(regex);
+      
+      return parts.map((part, index) => {
+        const isMatch = searchTerms.some(term => 
+          part.toLowerCase().includes(term.toLowerCase())
+        );
+        
+        return isMatch ? (
+          <mark key={`${searchTerm}-${index}-${part}`} className="search-result-container bg-orange-100 dark:bg-orange-500/30 text-orange-900 dark:text-orange-100 px-1 py-0.5 rounded font-medium border border-orange-200 dark:border-orange-400/30 inline-block max-w-fit">
+            {part}
+          </mark>
+        ) : part;
+      });
+    } catch (error) {
+      console.log('Highlight text error:', error);
+      return text;
+    }
   };
 
   // Navigation functions for search results
@@ -1113,8 +1118,40 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       setSearchResultCount(0);
       setCurrentSearchIndex(0);
       setIsSearching(false);
+      
+      // Clean up any existing highlights when search is cleared
+      try {
+        const highlights = document.querySelectorAll('mark.search-result-container');
+        highlights.forEach(mark => {
+          if (mark && mark.parentNode && mark.parentNode.contains(mark)) {
+            const parent = mark.parentNode;
+            const textNode = document.createTextNode(mark.textContent || '');
+            parent.replaceChild(textNode, mark);
+          }
+        });
+      } catch (error) {
+        console.log('Search cleanup error:', error);
+      }
     }
   }, [searchQuery, messages]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      try {
+        const highlights = document.querySelectorAll('mark.search-result-container');
+        highlights.forEach(mark => {
+          if (mark && mark.parentNode && mark.parentNode.contains(mark)) {
+            const parent = mark.parentNode;
+            const textNode = document.createTextNode(mark.textContent || '');
+            parent.replaceChild(textNode, mark);
+          }
+        });
+      } catch (error) {
+        console.log('Component unmount cleanup error:', error);
+      }
+    };
+  }, []);
 
   // Keyboard shortcuts for search navigation
   useEffect(() => {

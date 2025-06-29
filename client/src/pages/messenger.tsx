@@ -398,9 +398,19 @@ export default function MessengerPage() {
                 <button
                   onClick={() => {
                     setSearchQuery("");
-                    // Remove any search highlighting
-                    const highlights = document.querySelectorAll('mark');
-                    highlights.forEach(mark => mark.replaceWith(mark.textContent || ''));
+                    // Remove any search highlighting safely
+                    try {
+                      const highlights = document.querySelectorAll('mark');
+                      highlights.forEach(mark => {
+                        if (mark && mark.parentNode) {
+                          const parent = mark.parentNode;
+                          const textNode = document.createTextNode(mark.textContent || '');
+                          parent.replaceChild(textNode, mark);
+                        }
+                      });
+                    } catch (error) {
+                      console.log('Search cleanup error:', error);
+                    }
                   }}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
                 >
