@@ -182,17 +182,17 @@ export default function HomePage() {
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
       
-      <div className="max-w-4xl w-full space-y-8 relative z-10">
+      <div className="max-w-4xl w-full space-y-6 relative z-10">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex flex-col items-center justify-center mb-12">
+        <div className="text-center">
+          <div className="flex items-center justify-center mb-4">
             {/* Coynful Logo with Enhanced Glow */}
-            <div className="relative mb-8">
+            <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
               <img 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
-                className="h-32 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105 mx-auto"
+                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
                 loading="eager"
                 decoding="async"
                 style={{ imageRendering: 'auto' }}
