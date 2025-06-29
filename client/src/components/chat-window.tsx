@@ -544,6 +544,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Swipe-to-reply handlers
   const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    console.log("Swipe started for message ID:", messageId);
     setSwipeState({
       messageId,
       offsetX: 0,
@@ -571,12 +572,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
       // Trigger reply to message with haptic-like feedback
       const message = messages.find(m => m.id === swipeState.messageId);
+      console.log("Swipe-to-reply triggered for message:", message);
+      console.log("All messages:", messages.map(m => ({ id: m.id, content: m.content, type: m.messageType })));
+      
       if (message) {
         // Use the effective display name from enhanced message data or calculate it
         const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
+        const replyContent = message.content || `${message.cryptoAmount} ${message.cryptoCurrency}` || "Message content";
+        
+        console.log("Setting reply to:", {
+          id: message.id,
+          content: replyContent,
+          sender: effectiveName
+        });
+        
         setReplyToMessage({
           id: message.id,
-          content: message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`,
+          content: replyContent,
           sender: effectiveName
         });
         
