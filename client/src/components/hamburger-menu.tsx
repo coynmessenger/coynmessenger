@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -62,6 +62,15 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
     user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Reset scroll position when search changes
+  const userListRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (userListRef.current && searchQuery) {
+      userListRef.current.scrollTop = 0;
+    }
+  }, [searchQuery]);
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
@@ -320,7 +329,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
           onExternalGroupCreateClose();
         }
       }}>
-        <DialogContent className="w-[95vw] sm:w-[450px] h-[80vh] sm:h-auto sm:max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl flex flex-col">
+        <DialogContent className="w-[95vw] sm:w-[450px] h-[85vh] sm:h-auto sm:max-h-[80vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl flex flex-col">
           <div className="p-4 border-b border-gray-100 dark:border-gray-800">
             <DialogTitle className="flex items-center gap-2 text-base font-semibold">
               <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
@@ -374,9 +383,15 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
                 {/* User list */}
                 <div 
-                  className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[200px] max-h-[40vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-y"
-                  onWheel={(e) => e.stopPropagation()}
-                  style={{ WebkitOverflowScrolling: 'touch' }}
+                  ref={userListRef}
+                  className="flex-1 overflow-y-scroll space-y-2 pr-2 mobile-scroll scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-transparent dark:scrollbar-thumb-orange-600"
+                  style={{ 
+                    WebkitOverflowScrolling: 'touch',
+                    touchAction: 'pan-y',
+                    overscrollBehavior: 'contain',
+                    minHeight: '0',
+                    maxHeight: 'none'
+                  }}
                 >
                   {filteredUsers.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
