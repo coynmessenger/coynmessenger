@@ -404,9 +404,17 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                       }`}
                       onClick={() => handleUserToggle(user.id)}
                     >
-                      <Avatar className="h-12 w-12 ring-2 ring-orange-200 dark:ring-orange-800">
+                      <Avatar className={`h-12 w-12 ring-2 transition-all duration-200 ${
+                        selectedUsers.includes(user.id)
+                          ? "ring-orange-300 dark:ring-orange-600"
+                          : "ring-gray-200 dark:ring-gray-700"
+                      }`}>
                         <AvatarImage src={user.profilePicture || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold text-lg">
+                        <AvatarFallback className={`font-bold text-lg transition-all duration-200 ${
+                          selectedUsers.includes(user.id)
+                            ? "bg-gradient-to-br from-orange-500 to-orange-600 text-white"
+                            : "bg-gradient-to-br from-gray-400 to-gray-500 text-white"
+                        }`}>
                           {user.displayName.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
