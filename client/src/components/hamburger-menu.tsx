@@ -466,12 +466,13 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 <Button
                   className="flex-1 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none text-sm"
                   onClick={(e) => {
-                    console.log("Button clicked!", e);
+                    console.log("CREATE GROUP BUTTON CLICKED!", e);
+                    alert("CREATE GROUP BUTTON CLICKED!");
                     e.preventDefault();
                     e.stopPropagation();
                     handleCreateGroup();
                   }}
-                  disabled={!groupName.trim() || selectedUsers.length < 2}
+                  disabled={false}
                 >
                   Create Group
                 </Button>
