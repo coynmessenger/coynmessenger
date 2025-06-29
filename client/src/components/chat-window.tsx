@@ -168,6 +168,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       if (hoverLeaveTimer) {
         clearTimeout(hoverLeaveTimer);
       }
+      if (hoverDebounceTimer.current) {
+        clearTimeout(hoverDebounceTimer.current);
+      }
     };
   }, [longPressTimer, hoverLeaveTimer]);
   const { toast } = useToast();
@@ -603,21 +606,40 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Message hover and long press handlers
+  // Message hover with debouncing to prevent double loading
+  const hoverDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  
   const handleMessageHover = (messageId: number) => {
+    // Prevent multiple triggers for the same message
+    if (hoveredMessage === messageId) return;
+    
+    // Clear any pending debounce timer
+    if (hoverDebounceTimer.current) {
+      clearTimeout(hoverDebounceTimer.current);
+      hoverDebounceTimer.current = null;
+    }
+    
     // Clear any pending hide timer
     if (hoverLeaveTimer) {
       clearTimeout(hoverLeaveTimer);
       setHoverLeaveTimer(null);
     }
+    
+    // Set immediately without delay for better responsiveness
     setHoveredMessage(messageId);
   };
 
   const handleMessageLeave = () => {
+    // Clear debounce timer if hovering again quickly
+    if (hoverDebounceTimer.current) {
+      clearTimeout(hoverDebounceTimer.current);
+      hoverDebounceTimer.current = null;
+    }
+    
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 500); // Increased to 500ms delay for better UX
+    }, 300);
     setHoverLeaveTimer(timer);
     
     if (longPressTimer) {
@@ -674,7 +696,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add small delay when leaving options menu too
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 300); // Increased delay for better user experience
+    }, 200); // Shorter delay for more responsive behavior
     setHoverLeaveTimer(timer);
   };
 
