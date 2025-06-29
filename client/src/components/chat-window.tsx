@@ -1399,6 +1399,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             handleSwipeStart(e, msg.id);
                           }
                         }}
+                        onMouseMove={(e) => {
+                          if (swipeState.isDragging) {
+                            handleSwipeMove(e);
+                          }
+                        }}
                         onMouseUp={() => {
                           if (swipeState.isDragging) {
                             handleSwipeEnd();
@@ -1560,6 +1565,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           // Only start swipe if not clicking on options menu
                           if (!(e.target as Element).closest('[data-message-options]')) {
                             handleSwipeStart(e, msg.id);
+                          }
+                        }}
+                        onMouseMove={(e) => {
+                          if (swipeState.isDragging) {
+                            handleSwipeMove(e);
                           }
                         }}
                         onMouseUp={() => {
