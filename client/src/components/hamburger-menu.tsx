@@ -81,13 +81,21 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
     if (!groupName.trim()) {
       console.log("Group name validation failed");
-      alert("Group name required");
+      toast({
+        title: "Group name required",
+        description: "Please enter a name for the group",
+        variant: "destructive"
+      });
       return;
     }
 
     if (selectedUsers.length < 2) {
       console.log("Member selection validation failed");
-      alert("Please select at least 2 members for the group");
+      toast({
+        title: "Select members",
+        description: "Please select at least 2 members for the group",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -110,7 +118,10 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
       
       console.log("Group creation response:", response);
       
-      alert(`Successfully created group "${groupName}"`);
+      toast({
+        title: "Group created",
+        description: `Successfully created group "${groupName}"`,
+      });
       
       // Refresh conversations list
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
@@ -131,7 +142,11 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
       }
     } catch (error) {
       console.error("Group creation error:", error);
-      alert("Failed to create group. Please try again.");
+      toast({
+        title: "Failed to create group",
+        description: "Please try again",
+        variant: "destructive"
+      });
     }
   };
 
@@ -465,14 +480,14 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 </Button>
                 <button
                   type="button"
-                  className="flex-1 h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg text-sm"
-                  onClick={() => alert("BUTTON WORKS!")}
-                  onMouseDown={() => console.log("MOUSE DOWN")}
-                  onMouseUp={() => console.log("MOUSE UP")}
-                  onTouchStart={() => console.log("TOUCH START")}
-                  onTouchEnd={() => console.log("TOUCH END")}
+                  className="flex-1 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
+                  onClick={() => {
+                    console.log("Create Group button clicked!");
+                    handleCreateGroup();
+                  }}
+                  disabled={!groupName.trim() || selectedUsers.length < 2}
                 >
-                  TEST BUTTON
+                  Create Group
                 </button>
               </div>
             </div>
