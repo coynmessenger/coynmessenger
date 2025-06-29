@@ -1278,7 +1278,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="fixed top-4 right-4 sm:absolute sm:-top-12 sm:right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-12 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
                             zIndex: 50000
@@ -1445,7 +1445,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="fixed top-4 left-4 sm:absolute sm:-top-12 sm:left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                          className="absolute -top-12 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                           style={{ 
                             pointerEvents: 'all', 
                             zIndex: 50000
@@ -1627,7 +1627,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className="fixed top-4 left-1/2 transform -translate-x-1/2 sm:absolute sm:-top-12 sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
+                        className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200"
                         style={{ 
                           pointerEvents: 'all', 
                           zIndex: 50000
@@ -1743,7 +1743,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className={`fixed top-4 ${msg.senderId === 5 ? 'right-4' : 'left-4'} sm:absolute sm:-top-12 sm:${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-2 sm:p-1 flex items-center space-x-2 sm:space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200`}
+                        className={`absolute -top-12 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl p-1 flex items-center space-x-1 no-search-highlight animate-in fade-in slide-in-from-top-2 duration-200`}
                         style={{ 
                           pointerEvents: 'all', 
                           zIndex: 50000
