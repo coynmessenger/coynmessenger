@@ -299,10 +299,20 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => refetchBalances()}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  onClick={() => refreshBalancesMutation.mutate()}
+                  disabled={refreshBalancesMutation.isPending}
+                  className="text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-all duration-200 disabled:opacity-50"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw 
+                    className={`w-4 h-4 ${
+                      refreshBalancesMutation.isPending 
+                        ? 'animate-spin text-orange-500 dark:text-orange-400' 
+                        : 'transition-transform duration-200 hover:rotate-45'
+                    }`} 
+                    style={{
+                      animation: refreshBalancesMutation.isPending ? 'spin-glow 1s linear infinite' : undefined
+                    }}
+                  />
                 </Button>
               </div>
               
