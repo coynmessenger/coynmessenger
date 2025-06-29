@@ -381,7 +381,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   });
 
   const sendCryptoMutation = useMutation({
-    mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string }) => {
+    mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
       return apiRequest("POST", "/api/wallet/send", cryptoData);
     },
     onSuccess: (_, variables) => {
@@ -454,6 +454,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       toUserId: conversation.otherUser.id,
       currency: selectedCrypto,
       amount: cryptoAmount,
+      conversationId: conversation.id,
     });
   };
 
@@ -739,7 +740,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     sendCryptoMutation.mutate({
       toUserId: conversation.otherUser.id,
       currency,
-      amount
+      amount,
+      conversationId: conversation.id,
     });
   };
 
@@ -751,6 +753,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       toUserId: conversation.otherUser.id,
       currency: "COYN",
       amount: cryptoAmount,
+      conversationId: conversation.id,
     });
   };
 

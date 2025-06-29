@@ -427,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency
   app.post("/api/wallet/send", async (req, res) => {
     try {
-      const { toUserId, currency, amount } = req.body;
+      const { toUserId, currency, amount, conversationId } = req.body;
       const fromUserId = 5; // Current user
 
       if (!toUserId || !currency || !amount) {
@@ -453,10 +453,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create transfer message
       const transferMessage = {
-        conversationId: req.body.conversationId || 1, // Default conversation
+        conversationId: conversationId || 1, // Use passed conversationId or default
         senderId: fromUserId,
         content: `Sent ${amount} ${currency}`,
-        messageType: "crypto_transfer" as const,
+        messageType: "crypto" as const,
         cryptoAmount: amount,
         cryptoCurrency: currency
       };
