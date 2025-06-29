@@ -2405,7 +2405,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         onStartCall={() => {
           setShowUserProfile(false);
-          // Phone call functionality can be added here
+          setShowVoiceCall(true);
         }}
         onStartVideoCall={() => {
           setShowUserProfile(false);
