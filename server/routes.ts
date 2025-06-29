@@ -153,6 +153,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete user (contact)
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Delete all conversations involving this user first
+      const userConversations = await storage.getUserConversations(userId);
+
+      for (const conversation of userConversations) {
+        await storage.deleteConversation(conversation.id);
+      }
+
+      // Delete the user
+      const success = await storage.deleteUser(userId);
+      
+      if (success) {
+        res.json({ message: "User and associated conversations deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete user" });
+      }
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // Find or create user by wallet address
   app.post("/api/users/find-or-create", async (req, res) => {
     try {

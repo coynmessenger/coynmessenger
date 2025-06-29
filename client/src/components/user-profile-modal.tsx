@@ -3,11 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageCircle, Phone, Video, Wallet } from "lucide-react";
+import { Copy, MessageCircle, Phone, Video, Wallet, Trash2 } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -36,6 +37,11 @@ export default function UserProfileModal({
     }
   }, [isOpen, queryClient]);
 
+  // Early return if user is null
+  if (!user) {
+    return null;
+  }
+
   const copyWalletAddress = () => {
     navigator.clipboard.writeText(user.walletAddress);
     toast({
@@ -43,6 +49,36 @@ export default function UserProfileModal({
       description: "Wallet address copied to clipboard",
       duration: 2000,
     });
+  };
+
+  const deleteContactMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/users/${user.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Contact deleted",
+        description: "The contact and all conversations have been deleted",
+        duration: 2000,
+      });
+      onClose();
+    },
+    onError: (error) => {
+      console.error("Delete contact error:", error);
+      toast({
+        title: "Failed to delete contact",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDeleteContact = () => {
+    if (window.confirm(`Are you sure you want to delete ${user.displayName}? This will also delete all conversations with this contact.`)) {
+      deleteContactMutation.mutate();
+    }
   };
 
   return (
@@ -135,6 +171,16 @@ export default function UserProfileModal({
                 </Button>
               )}
             </div>
+            
+            {/* Delete Contact Button */}
+            <Button 
+              onClick={() => handleDeleteContact()}
+              variant="outline"
+              className="w-full h-9 sm:h-10 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+            >
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
+              <span className="text-sm">Delete Contact</span>
+            </Button>
           </div>
 
           {/* Additional Info */}
