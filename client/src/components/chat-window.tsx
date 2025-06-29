@@ -388,7 +388,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string }) => {
-      return apiRequest("POST", "/api/wallet/send", cryptoData);
+      return apiRequest("POST", "/api/wallet/send", {
+        ...cryptoData,
+        conversationId: conversation.id // Always include the current conversation ID
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
@@ -804,7 +807,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleQuickSend = (currency: string) => {
-    const amount = "0.01"; // Default quick send amount
+    // Set meaningful default amounts for each currency
+    const defaultAmounts = {
+      'BTC': '0.001',  // ~$100 worth
+      'BNB': '0.2',    // ~$120 worth
+      'USDT': '100',   // $100 worth
+      'COYN': '120'    // ~$100 worth at $0.85
+    };
+    
+    const amount = defaultAmounts[currency as keyof typeof defaultAmounts] || "0.01";
     sendCryptoMutation.mutate({
       toUserId: conversation.otherUser.id,
       currency,
@@ -879,7 +890,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
       
       // Check if message is crypto transaction
-      if (msg.messageType === 'crypto' && msg.cryptoCurrency) {
+      if ((msg.messageType === 'crypto' || msg.messageType === 'crypto_transfer') && msg.cryptoCurrency) {
         searchParts.push(`${msg.cryptoCurrency.toLowerCase()} crypto payment transaction`);
       }
       
@@ -1597,7 +1608,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </div>
                   </div>
                 )
-              ) : msg.messageType === "crypto" ? (
+              ) : (msg.messageType === "crypto" || msg.messageType === "crypto_transfer") ? (
                 // Crypto transaction message
                 <div className="flex justify-center group mb-1" data-message-id={msg.id}>
                   <div className="relative">
