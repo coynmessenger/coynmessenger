@@ -141,22 +141,22 @@ export default function UserProfileModal({
             {onSendMessage && (
               <Button 
                 onClick={onSendMessage}
-                className="w-full h-9 sm:h-10 bg-orange-500 hover:bg-orange-600 text-white"
+                className="w-full h-11 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-all duration-200 active:scale-95 touch-manipulation"
               >
-                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
-                <span className="text-sm">Send Message</span>
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                <span className="text-sm sm:text-base font-medium">Send Message</span>
               </Button>
             )}
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {onStartCall && (
                 <Button 
                   onClick={onStartCall}
                   variant="outline"
-                  className="h-9 sm:h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground"
+                  className="h-11 sm:h-12 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground flex items-center justify-center transition-all duration-200 active:scale-95 touch-manipulation"
                 >
-                  <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  <span className="text-xs sm:text-sm">Call</span>
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                  <span className="text-sm sm:text-base font-medium">Call</span>
                 </Button>
               )}
               
@@ -164,10 +164,10 @@ export default function UserProfileModal({
                 <Button 
                   onClick={onStartVideoCall}
                   variant="outline"
-                  className="h-9 sm:h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground"
+                  className="h-11 sm:h-12 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted border-border text-black dark:text-foreground flex items-center justify-center transition-all duration-200 active:scale-95 touch-manipulation"
                 >
-                  <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  <span className="text-xs sm:text-sm">Video</span>
+                  <Video className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                  <span className="text-sm sm:text-base font-medium">Video</span>
                 </Button>
               )}
             </div>
@@ -176,10 +176,10 @@ export default function UserProfileModal({
             <Button 
               onClick={() => handleDeleteContact()}
               variant="outline"
-              className="w-full h-9 sm:h-10 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+              className="w-full h-11 sm:h-12 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 flex items-center justify-center transition-all duration-200 active:scale-95 touch-manipulation mt-2"
             >
-              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
-              <span className="text-sm">Delete Contact</span>
+              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+              <span className="text-sm sm:text-base font-medium">Delete Contact</span>
             </Button>
           </div>
 
