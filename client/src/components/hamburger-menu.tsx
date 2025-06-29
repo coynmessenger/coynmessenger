@@ -133,14 +133,11 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
   };
 
   const handleUserToggle = (userId: number) => {
-    console.log('Toggling user:', userId, 'Current selected:', selectedUsers);
-    setSelectedUsers(prev => {
-      const newSelected = prev.includes(userId) 
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
         ? prev.filter(id => id !== userId)
-        : [...prev, userId];
-      console.log('New selected users:', newSelected);
-      return newSelected;
-    });
+        : [...prev, userId]
+    );
   };
 
   const formatTimestamp = (timestamp: string | Date | null) => {
@@ -403,7 +400,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                         className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
                         selectedUsers.includes(user.id)
                           ? "bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 shadow-md"
-                          : "bg-gray-50 dark:bg-gray-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/10 border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
+                          : "bg-white dark:bg-gray-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/10 border border-gray-200 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-800"
                       }`}
                       onClick={() => handleUserToggle(user.id)}
                     >

@@ -412,6 +412,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Fixed Create New Group modal screen fit issues - optimized modal sizing to use 95vh height with proper margin positioning, reduced header and footer padding, made content more compact with smaller input heights and button sizes, ensured user list takes maximum available space, added proper flex-shrink-0 to prevent layout collapse, improved overall mobile responsiveness to prevent modal cutoff on smaller screens
 - June 29, 2025: Enhanced Create New Group user interaction - removed × close button from modal header, implemented toggle selection (single click to select/deselect users with checkmark indicators), improved Cancel button to reset form state and close modal properly, verified Create Group button functionality with proper validation and API integration
 - June 29, 2025: Fixed Create New Group visual feedback - implemented proper state-based styling where selected users show orange glow with orange avatar rings, unselected users return to gray background with gray avatar rings, added smooth transitions for all state changes, ensuring visual consistency with selection status
+- June 29, 2025: Refined Create New Group color states - fixed unselected users to return to clean white background with gray borders instead of gray background, tested and verified toggle functionality working correctly with console logging, ensured complete visual reset when users are unchecked
 
 ## User Preferences
 
