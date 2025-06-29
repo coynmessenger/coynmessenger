@@ -483,7 +483,7 @@ export default function Sidebar({
                           </p>
                           {conversation.lastMessage && (
                             <span className="text-xs text-muted-foreground">
-                              {formatTimestamp(conversation.lastMessage.timestamp)}
+                              {formatTimestamp(conversation.lastMessage.timestamp ? new Date(conversation.lastMessage.timestamp) : null)}
                             </span>
                           )}
                         </div>

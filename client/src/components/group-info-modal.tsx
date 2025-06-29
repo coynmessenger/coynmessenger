@@ -53,30 +53,25 @@ interface GroupInfo {
 }
 
 export default function GroupInfoModal({ isOpen, onClose, conversationId, currentUserId }: GroupInfoModalProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [groupName, setGroupName] = useState("");
-  const [groupDescription, setGroupDescription] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch group info
-  const { data: groupInfo, isLoading: infoLoading } = useQuery({
-    queryKey: ["/api/groups", conversationId, "info"],
-    enabled: isOpen && !!conversationId,
+  // Fetch group conversation data
+  const { data: conversations } = useQuery({
+    queryKey: ["/api/conversations"],
+    enabled: isOpen,
   });
 
-  // Fetch group members
+  // Find the group conversation
+  const groupConversation = conversations?.find((conv: any) => conv.id === conversationId && conv.isGroup);
+  
+  // Fetch group members from the correct endpoint
   const { data: members, isLoading: membersLoading } = useQuery({
-    queryKey: ["/api/groups", conversationId, "members"],
+    queryKey: [`/api/groups/${conversationId}/members`],
     enabled: isOpen && !!conversationId,
   });
 
-  // Type-safe access to data with proper validation
   const membersList: GroupMember[] = Array.isArray(members) ? members : [];
-  const groupDetails: GroupInfo | null = groupInfo && typeof groupInfo === 'object' && 'id' in groupInfo ? groupInfo as GroupInfo : null;
-  const currentUser = membersList.find((m: GroupMember) => m.userId === currentUserId);
-  const isAdmin = currentUser?.role === "admin";
-  const isCreator = groupDetails?.createdBy === currentUserId;
 
   useEffect(() => {
     if (groupDetails) {
