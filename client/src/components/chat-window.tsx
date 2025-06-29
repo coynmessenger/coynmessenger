@@ -19,7 +19,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -107,11 +107,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     sender: string;
   } | null>(null);
 
-  // Message hover options state
-  const [hoveredMessage, setHoveredMessage] = useState<number | null>(null);
-  const [showMessageOptions, setShowMessageOptions] = useState<number | null>(null);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [hoverLeaveTimer, setHoverLeaveTimer] = useState<NodeJS.Timeout | null>(null);
+  // Removed all hover options functionality as requested
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -141,37 +138,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, [swipeState.isDragging]);
 
-  // Close message options when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showMessageOptions && !(event.target as Element).closest('[data-message-options]')) {
-        setShowMessageOptions(null);
-      }
-    };
 
-    if (showMessageOptions) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMessageOptions]);
 
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-      }
-      if (hoverLeaveTimer) {
-        clearTimeout(hoverLeaveTimer);
-      }
-      if (hoverDebounceTimer.current) {
-        clearTimeout(hoverDebounceTimer.current);
-      }
-    };
-  }, [longPressTimer, hoverLeaveTimer]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -608,138 +577,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Message hover with debouncing to prevent double loading
-  const hoverDebounceTimer = useRef<NodeJS.Timeout | null>(null);
-  
-  const handleMessageHover = (messageId: number) => {
-    // Clear any pending debounce timer
-    if (hoverDebounceTimer.current) {
-      clearTimeout(hoverDebounceTimer.current);
-      hoverDebounceTimer.current = null;
-    }
-    
-    // Clear any pending hide timer
-    if (hoverLeaveTimer) {
-      clearTimeout(hoverLeaveTimer);
-      setHoverLeaveTimer(null);
-    }
-    
-    // Set immediately for better responsiveness - always show options
-    setHoveredMessage(messageId);
-    // Clear mobile options to prevent conflicts
-    setShowMessageOptions(null);
-  };
 
-  // Mobile tap handler to show options
-  const handleMessageTap = (messageId: number, e: React.TouchEvent | React.MouseEvent) => {
-    // Prevent swipe from interfering
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setShowMessageOptions(messageId);
-    setHoveredMessage(messageId);
-    
-    // Auto-hide after 5 seconds for mobile
-    setTimeout(() => {
-      setShowMessageOptions(null);
-      setHoveredMessage(null);
-    }, 5000);
-  };
-
-  const handleMessageLeave = () => {
-    // Clear debounce timer if hovering again quickly
-    if (hoverDebounceTimer.current) {
-      clearTimeout(hoverDebounceTimer.current);
-      hoverDebounceTimer.current = null;
-    }
-    
-    // Add delay before hiding options to allow user to move to options menu
-    const timer = setTimeout(() => {
-      setHoveredMessage(null);
-    }, 150); // Reduced delay for more responsive behavior
-    setHoverLeaveTimer(timer);
-    
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  };
-
-
-
-  // Handler for when hovering over options menu itself
-  const handleOptionsHover = () => {
-    // Clear the hide timer when hovering over options
-    if (hoverLeaveTimer) {
-      clearTimeout(hoverLeaveTimer);
-      setHoverLeaveTimer(null);
-    }
-  };
-
-  const handleOptionsLeave = () => {
-    // Add small delay when leaving options menu too
-    const timer = setTimeout(() => {
-      setHoveredMessage(null);
-    }, 100); // Shorter delay for more responsive behavior
-    setHoverLeaveTimer(timer);
-  };
-
-  const handleMessageLongPressStart = (messageId: number) => {
-    console.log("Long press started for message:", messageId);
-    
-    // Clear any existing timer
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-    }
-    
-    const timer = setTimeout(() => {
-      console.log("Long press timer triggered for message:", messageId);
-      console.log("Setting showMessageOptions to:", messageId);
-      setShowMessageOptions(messageId);
-      setHoveredMessage(messageId);
-      
-      // Force immediate render check
-      console.log("Current showMessageOptions state:", messageId);
-      console.log("Current hoveredMessage state:", messageId);
-      
-      // Provide haptic feedback on mobile if available
-      if ('vibrate' in navigator) {
-        navigator.vibrate([50]); // More reliable vibration pattern
-      }
-      
-      // Auto-hide after 8 seconds on mobile for better UX
-      setTimeout(() => {
-        console.log("Auto-hiding options for message:", messageId);
-        setShowMessageOptions(null);
-        setHoveredMessage(null);
-      }, 8000);
-    }, 250); // Slightly faster for better mobile responsiveness
-    setLongPressTimer(timer);
-  };
-
-  const handleMessageLongPressEnd = () => {
-    console.log("Long press ended");
-    // Don't clear the timer immediately - let it complete if it hasn't already
-    // This prevents interrupting the 250ms timer that shows the options
-  };
 
   const handleImagePreview = (imageUrl: string, imageName?: string, imageSize?: number) => {
     setPreviewImage({ url: imageUrl, name: imageName, size: imageSize });
     setShowImagePreview(true);
   };
 
-  // Message action handlers
-  const handleCopyMessage = (message: Message) => {
-    const textToCopy = message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`;
-    navigator.clipboard.writeText(textToCopy);
-    toast({
-      title: "Message copied",
-      description: "Message copied to clipboard",
-      duration: 1500,
-    });
-    setShowMessageOptions(null);
-    setHoveredMessage(null);
-  };
+
 
   const starMessageMutation = useMutation({
     mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
@@ -765,44 +610,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   });
 
-  const handleStarMessage = (message: Message) => {
-    const isCurrentlyStarred = message.isStarred || false;
-    starMessageMutation.mutate({ 
-      messageId: message.id, 
-      isStarred: !isCurrentlyStarred 
-    });
-    setShowMessageOptions(null);
-    setHoveredMessage(null);
-  };
-
-  const handleForwardMessage = (message: Message) => {
-    // Add message to selected messages for forwarding
-    setSelectedMessages(new Set([message.id]));
-    setShowShareModal(true);
-    setShowMessageOptions(null);
-    setHoveredMessage(null);
-  };
 
 
 
-  const deleteMessage = async (messageId: number) => {
-    try {
-      await apiRequest("DELETE", `/api/messages/${messageId}`);
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
-      toast({
-        title: "Message deleted",
-        description: "The message has been deleted",
-        duration: 1500,
-      });
-    } catch (error) {
-      toast({
-        title: "Failed to delete message",
-        description: "Please try again",
-        variant: "destructive"
-      });
-    }
-    setShowMessageOptions(null);
-  };
+
+
 
 
 
@@ -1304,76 +1116,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md hover:bg-gray-50/50 dark:hover:bg-slate-800/50 rounded-2xl p-1 -m-1 transition-colors duration-200">
 
-                      {/* Message Options Menu */}
-                      {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div 
-                          data-message-options 
-                          className="absolute -top-14 right-0 bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight"
-                          style={{ 
-                            pointerEvents: 'all', 
-                            zIndex: 999999,
-                            position: 'absolute',
-                            display: 'flex',
-                            visibility: 'visible',
-                            opacity: '1'
-                          }}
-                          onMouseEnter={handleOptionsHover}
-                          onMouseLeave={handleOptionsLeave}
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                            console.log("Touch on hover options for message:", msg.id);
-                          }}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyMessage(msg);
-                            }}
-                            title="Copy"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStarMessage(msg);
-                            }}
-                            title={msg.isStarred ? "Unstar" : "Star"}
-                          >
-                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleForwardMessage(msg);
-                            }}
-                            title="Forward"
-                          >
-                            <Forward className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteMessageMutation.mutate(msg.id);
-                            }}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+
                       
                       {/* Swipeable message */}
                       <div 
