@@ -10,7 +10,7 @@ import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, 
 import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
-import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1750818324226.png";
+import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/images(1)_1750925157265.png";
 import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1750925157245.png";
 import trustWalletLogo from "@assets/Trust-Wallet-Shield-Logo-Vector-Logo-Vector.svg-_1750925157209.png";
@@ -186,17 +186,17 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex flex-col items-center justify-center mb-8">
-            {/* COYN Logo with Enhanced Glow */}
+            {/* Coynful Logo with Enhanced Glow */}
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-2xl opacity-30 scale-150 animate-pulse"></div>
               <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-28 h-28 relative z-10 drop-shadow-[0_0_40px_rgba(251,146,60,0.8)] hover:drop-shadow-[0_0_60px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-110"
+                src={coynfulLogoPath} 
+                alt="Coynful Logo" 
+                className="h-20 relative z-10 drop-shadow-[0_0_40px_rgba(251,146,60,0.8)] hover:drop-shadow-[0_0_60px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-110"
                 loading="eager"
                 decoding="async"
                 style={{ imageRendering: 'auto' }}
-                onLoad={() => console.log('COYN logo loaded')}
+                onLoad={() => console.log('Coynful logo loaded')}
               />
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function HomePage() {
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
               <p className="text-muted-foreground">
-                Connect your Web3 wallet to access COYN Messenger
+                Connect your Web3 wallet to access Coynful Messenger
               </p>
             )}
           </CardHeader>
@@ -356,8 +356,8 @@ export default function HomePage() {
                   <Check className="h-8 w-8 text-green-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to COYN Network</h3>
-                  <p className="text-black dark:text-foreground mb-2">Welcome to COYN, {connectedUser?.displayName}!</p>
+                  <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to Coynful Network</h3>
+                  <p className="text-black dark:text-foreground mb-2">Welcome to Coynful, {connectedUser?.displayName}!</p>
                   <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
