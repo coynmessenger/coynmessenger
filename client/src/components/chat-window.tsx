@@ -82,6 +82,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<{
     url: string;
@@ -367,6 +368,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       if (!res.ok) throw new Error("Failed to fetch messages");
       return res.json();
     },
+  });
+
+  // Fetch group members if this is a group conversation
+  const { data: groupMembers = [] } = useQuery<User[]>({
+    queryKey: ["/api/conversations", conversation.id, "members"],
+    queryFn: async () => {
+      const res = await fetch(`/api/conversations/${conversation.id}/members`);
+      if (!res.ok) throw new Error("Failed to fetch group members");
+      return res.json();
+    },
+    enabled: conversation?.isGroup === true,
   });
 
   const sendMessageMutation = useMutation({
@@ -1016,7 +1028,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <Button
             variant="ghost"
             className="p-0 h-auto hover:bg-transparent flex items-center space-x-3"
-            onClick={() => setShowUserProfile(true)}
+            onClick={() => conversation.isGroup ? setShowGroupInfo(true) : setShowUserProfile(true)}
           >
             <Avatar className="h-10 w-10">
               {conversation.isGroup ? (
@@ -2395,6 +2407,58 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         isCallActive={isVideoCallActive}
       />
+
+      {/* Group Info Modal */}
+      <Dialog open={showGroupInfo} onOpenChange={setShowGroupInfo}>
+        <DialogContent className="w-[95vw] sm:w-[450px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl">
+          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <Users className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              {conversation.groupName}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-2">
+              Group conversation • {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+            </DialogDescription>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Members
+              </h3>
+              
+              <div className="space-y-2">
+                {groupMembers.map((member) => (
+                  <div key={member.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={member.profilePicture || ""} />
+                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                        <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {getEffectiveDisplayName(member)}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {member.walletAddress ? 
+                          `${member.walletAddress.slice(0, 6)}...${member.walletAddress.slice(-4)}` : 
+                          'No wallet'
+                        }
+                      </p>
+                    </div>
+                    {member.isOnline && (
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Image Preview Modal */}
       {previewImage && (

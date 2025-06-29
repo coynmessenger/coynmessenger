@@ -279,6 +279,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get group members for a conversation
+  app.get("/api/conversations/:id/members", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+
+      const members = await storage.getGroupMembers(conversationId);
+      
+      // Enhance members with effective display names
+      const enhancedMembers = members.map(member => ({
+        ...member,
+        effectiveDisplayName: getEffectiveDisplayName(member)
+      }));
+      
+      res.json(enhancedMembers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get group members" });
+    }
+  });
+
   // Send a message
   app.post("/api/conversations/:id/messages", async (req, res) => {
     try {
