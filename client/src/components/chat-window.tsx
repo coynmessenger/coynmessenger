@@ -85,8 +85,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
-  // Long-press conversation selection state
-  const [isConversationSelected, setIsConversationSelected] = useState(false);
+  // Touch interaction state  
   const [touchStartTime, setTouchStartTime] = useState(0);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
@@ -647,40 +646,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Long-press handlers for conversation selection
-  const handleLongPressStart = (e: React.TouchEvent | React.MouseEvent) => {
-    const startTime = Date.now();
-    setTouchStartTime(startTime);
-    
-    const timer = setTimeout(() => {
-      // Activate conversation selection mode after 800ms
-      setIsConversationSelected(true);
-      
-      // Provide haptic feedback if available
-      if ('vibrate' in navigator) {
-        navigator.vibrate(50);
-      }
-    }, 800);
-    
-    setLongPressTimer(timer);
-  };
 
-  const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent) => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-    
-    // If it was a quick tap (not a long press), don't activate selection mode
-    const pressDuration = Date.now() - touchStartTime;
-    if (pressDuration < 800) {
-      setIsConversationSelected(false);
-    }
-  };
-
-  const handleDeselectConversation = () => {
-    setIsConversationSelected(false);
-  };
 
   // Handler for when hovering over options menu itself
   const handleOptionsHover = () => {
@@ -794,28 +760,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowMessageOptions(null);
   };
 
-  const deleteConversation = async () => {
-    try {
-      await apiRequest("DELETE", `/api/conversations/${conversation.id}`);
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      toast({
-        title: "Conversation deleted",
-        description: "The conversation has been deleted",
-        duration: 2000,
-      });
-      // Navigate back to conversation list
-      if (onBack) {
-        onBack();
-      }
-    } catch (error) {
-      toast({
-        title: "Failed to delete conversation",
-        description: "Please try again",
-        variant: "destructive"
-      });
-    }
-    setIsConversationSelected(false);
-  };
+
 
   const handleReplyCancel = () => {
     setReplyToMessage(null);
@@ -1195,90 +1140,65 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
 
-        {/* Conversation Selection Actions or Call Icons */}
+        {/* Call Icons */}
         <div className="flex items-center space-x-2">
-          {isConversationSelected ? (
-            /* Conversation Selected - Show Delete Option */
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDeselectConversation}
-                className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground"
-                title="Cancel selection"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={deleteConversation}
-                className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 hover:text-red-700"
-                title="Delete conversation"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            </>
-          ) : (
-            /* Normal State - Show Call Icons */
-            <>
-              {!conversation.isGroup && (
-                <>
+          <>
+            {!conversation.isGroup && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowVoiceCall(true)}
+                  className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                    isVoiceCallActive 
+                      ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title={isVoiceCallActive ? "Join active call" : "Voice call"}
+                >
+                  <Phone className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowVideoCall(true)}
+                  className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                    isVideoCallActive 
+                      ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title={isVideoCallActive ? "Join active video call" : "Video call"}
+                >
+                  <Video className={`h-5 w-5 ${isVideoCallActive ? 'animate-pulse' : ''}`} />
+                </Button>
+              </>
+            )}
+            
+            {conversation.isGroup && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowVoiceCall(true)}
-                    className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
-                      isVoiceCallActive 
-                        ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                    title={isVoiceCallActive ? "Join active call" : "Voice call"}
+                    className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                    title="Group options"
                   >
-                    <Phone className="h-5 w-5" />
+                    <MoreVertical className="h-5 w-5" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowVideoCall(true)}
-                    className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
-                      isVideoCallActive 
-                        ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                    title={isVideoCallActive ? "Join active video call" : "Video call"}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem 
+                    onClick={() => leaveGroupMutation.mutate()}
+                    disabled={leaveGroupMutation.isPending}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                   >
-                    <Video className={`h-5 w-5 ${isVideoCallActive ? 'animate-pulse' : ''}`} />
-                  </Button>
-                </>
-              )}
-              
-              {conversation.isGroup && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-                      title="Group options"
-                    >
-                      <MoreVertical className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem 
-                      onClick={() => leaveGroupMutation.mutate()}
-                      disabled={leaveGroupMutation.isPending}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Leave Group
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </>
-          )}
+                    <Users className="h-4 w-4 mr-2" />
+                    Leave Group
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </>
         </div>
 
       </div>
@@ -1286,13 +1206,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className={`flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)] transition-all duration-300 ${
-          isConversationSelected ? 'bg-orange-50/50 dark:bg-orange-900/20 ring-2 ring-orange-200 dark:ring-orange-700' : ''
-        }`}
-        onTouchStart={handleLongPressStart}
-        onTouchEnd={handleLongPressEnd}
-        onMouseDown={handleLongPressStart}
-        onMouseUp={handleLongPressEnd}
+        className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)] transition-all duration-300"
       >
 
         

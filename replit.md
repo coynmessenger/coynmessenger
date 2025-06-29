@@ -403,6 +403,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Implemented comprehensive contact deletion functionality - added delete contact button to user profile modal with confirmation dialog, created DELETE /api/users/:id backend endpoint with complete database cleanup (user data, conversations, messages, wallet balances, purchases, favorites, group memberships), integrated frontend with proper error handling and success notifications, users can now permanently remove contacts and all associated data from the system
 - June 29, 2025: Updated Daniel's profile picture to unique professional headshot - changed to completely different male portrait ensuring Daniel, Chris, and G Stax all have distinct profile images for clear user identification in messenger interface
 - June 29, 2025: Enhanced user profile modal button responsiveness - increased button heights to h-11/h-12, larger icons (h-4/h-5), better touch targets with touch-manipulation CSS, active scale feedback, smooth transitions, and improved mobile-first design for Call, Video, Send Message, and Delete Contact buttons
+- June 29, 2025: Removed conversation deletion functionality - eliminated conversation selection mode and trash icon that appeared when hovering/long-pressing conversations, simplified interface to focus only on message-level actions (copy, star, forward, delete message) through clean 4-button hover options above individual messages
 
 ## User Preferences
 
