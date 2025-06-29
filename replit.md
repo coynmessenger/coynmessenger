@@ -404,6 +404,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Fixed null reference errors in ChatWindow component - added proper null safety checks for conversation.otherUser references, preventing crashes when accessing displayName and wallet address properties
 - June 29, 2025: Created mobile-optimized group creation functionality - added floating action button (FAB) for group creation positioned at bottom-right on mobile devices, implemented external trigger system for HamburgerMenu component, enhanced mobile touch interface with 56px FAB featuring orange gradient styling and Users icon, integrated group creation modal that opens directly from mobile FAB for improved mobile user experience
 - June 29, 2025: Implemented comprehensive null safety fixes across all components - added proper null/undefined checks for user data, conversation data, and message data in ChatWindow, ShareModal, and UserProfileModal components, preventing runtime crashes when properties are undefined, added fallback values and safe property access throughout application for reliable error handling
+- June 29, 2025: Fixed Create New Group modal mobile functionality - optimized modal layout with proper height constraints (80vh), reduced padding for mobile compatibility, ensured Cancel and Create buttons are always visible at bottom, improved scroll behavior for member list with max-height constraints, enhanced mobile touch experience with responsive design
 
 ## User Preferences
 
