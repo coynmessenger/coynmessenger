@@ -609,6 +609,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const hoverDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   
   const handleMessageHover = (messageId: number) => {
+    console.log("Hovering over message:", messageId);
+    
     // Clear any pending debounce timer
     if (hoverDebounceTimer.current) {
       clearTimeout(hoverDebounceTimer.current);
@@ -623,11 +625,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     // Set immediately for better responsiveness - always show options
     setHoveredMessage(messageId);
+    console.log("Set hovered message to:", messageId);
     // Clear mobile options to prevent conflicts
     setShowMessageOptions(null);
   };
 
   const handleMessageLeave = () => {
+    console.log("Leaving message area");
+    
     // Clear debounce timer if hovering again quickly
     if (hoverDebounceTimer.current) {
       clearTimeout(hoverDebounceTimer.current);
@@ -636,6 +641,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
+      console.log("Hiding hovered message");
       setHoveredMessage(null);
     }, 150); // Reduced delay for more responsive behavior
     setHoverLeaveTimer(timer);
