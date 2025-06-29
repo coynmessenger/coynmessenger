@@ -247,7 +247,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {
-      res.status(500).json({ message: "Failed to get conversations" });
+      console.error("Error getting conversations:", error);
+      res.status(500).json({ message: "Failed to get conversations", error: error instanceof Error ? error.message : String(error) });
     }
   });
 

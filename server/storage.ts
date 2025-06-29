@@ -188,20 +188,23 @@ export class DatabaseStorage implements IStorage {
       .from(groupMembers)
       .where(eq(groupMembers.userId, userId));
 
-    const groupConversations = await db
-      .select({
-        conversation: conversations,
-        lastMessage: messages
-      })
-      .from(conversations)
-      .leftJoin(messages, eq(messages.conversationId, conversations.id))
-      .where(
-        and(
-          inArray(conversations.id, groupConversationIds.map(g => g.conversationId)),
-          eq(conversations.isGroup, true)
+    let groupConversations: any[] = [];
+    if (groupConversationIds.length > 0) {
+      groupConversations = await db
+        .select({
+          conversation: conversations,
+          lastMessage: messages
+        })
+        .from(conversations)
+        .leftJoin(messages, eq(messages.conversationId, conversations.id))
+        .where(
+          and(
+            inArray(conversations.id, groupConversationIds.map(g => g.conversationId)),
+            eq(conversations.isGroup, true)
+          )
         )
-      )
-      .orderBy(desc(conversations.lastMessageAt));
+        .orderBy(desc(conversations.lastMessageAt));
+    }
 
     // Combine results - for groups, we don't have otherUser, so we'll use a placeholder
     const allConversations = [
