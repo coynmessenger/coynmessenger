@@ -372,6 +372,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete conversation (remove contact)
+  app.delete("/api/conversations/:id", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const currentUserId = 5; // Current user
+
+      if (!conversationId) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+
+      // Delete all messages in the conversation first
+      await storage.deleteMessagesByConversation(conversationId);
+      
+      // Then delete the conversation
+      await storage.deleteConversation(conversationId, currentUserId);
+      
+      res.json({ message: "Contact deleted successfully" });
+    } catch (error) {
+      console.error('Delete conversation error:', error);
+      res.status(500).json({ message: "Failed to delete contact" });
+    }
+  });
+
   // Get wallet balances
   app.get("/api/wallet/balances", async (req, res) => {
     try {

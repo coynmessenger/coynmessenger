@@ -25,6 +25,8 @@ export interface IStorage {
   findConversation(user1Id: number, user2Id: number): Promise<Conversation | undefined>;
   getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]>;
   createConversation(user1Id: number, user2Id: number): Promise<Conversation>;
+  deleteConversation(conversationId: number, userId: number): Promise<boolean>;
+  deleteMessagesByConversation(conversationId: number): Promise<boolean>;
   
   // Groups
   createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation>;
@@ -216,6 +218,52 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return conversation;
+  }
+
+  async deleteConversation(conversationId: number, userId: number): Promise<boolean> {
+    try {
+      // Verify the user is part of this conversation
+      const conversation = await db
+        .select()
+        .from(conversations)
+        .where(
+          and(
+            eq(conversations.id, conversationId),
+            or(
+              eq(conversations.participant1Id, userId),
+              eq(conversations.participant2Id, userId)
+            )
+          )
+        )
+        .limit(1);
+
+      if (conversation.length === 0) {
+        return false; // User is not part of this conversation
+      }
+
+      // Delete the conversation
+      await db
+        .delete(conversations)
+        .where(eq(conversations.id, conversationId));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      return false;
+    }
+  }
+
+  async deleteMessagesByConversation(conversationId: number): Promise<boolean> {
+    try {
+      await db
+        .delete(messages)
+        .where(eq(messages.conversationId, conversationId));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting messages by conversation:', error);
+      return false;
+    }
   }
 
   async createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation> {

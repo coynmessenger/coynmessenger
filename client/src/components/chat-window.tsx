@@ -175,6 +175,34 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   }, [longPressTimer, hoverLeaveTimer]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Delete contact mutation
+  const deleteContactMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest("DELETE", `/api/conversations/${conversation.id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Contact deleted",
+        description: "Contact has been removed successfully",
+        duration: 3000,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      // Navigate back to contact list
+      if (onBack) {
+        onBack();
+      }
+    },
+    onError: (error) => {
+      console.error('Delete contact error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete contact. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
 
   // Popular emojis for quick access - organized by categories
   const emojiCategories = {
@@ -2414,6 +2442,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         onSendMessage={() => {
           setShowUserProfile(false);
           // Focus on message input - can be enhanced later
+        }}
+        onDeleteContact={() => {
+          setShowUserProfile(false);
+          deleteContactMutation.mutate(conversation.otherUser.id);
         }}
       />
 

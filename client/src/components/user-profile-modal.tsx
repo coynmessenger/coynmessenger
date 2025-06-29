@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageCircle, Phone, Video, Wallet } from "lucide-react";
+import { Copy, MessageCircle, Phone, Video, Wallet, UserMinus } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ interface UserProfileModalProps {
   onStartCall?: () => void;
   onStartVideoCall?: () => void;
   onSendMessage?: () => void;
+  onDeleteContact?: () => void;
 }
 
 export default function UserProfileModal({ 
@@ -24,7 +25,8 @@ export default function UserProfileModal({
   user, 
   onStartCall,
   onStartVideoCall,
-  onSendMessage 
+  onSendMessage,
+  onDeleteContact 
 }: UserProfileModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -135,6 +137,18 @@ export default function UserProfileModal({
                 </Button>
               )}
             </div>
+            
+            {/* Delete Contact Button */}
+            {onDeleteContact && (
+              <Button 
+                onClick={onDeleteContact}
+                variant="outline"
+                className="w-full h-9 sm:h-10 bg-white dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+              >
+                <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
+                <span className="text-sm">Delete Contact</span>
+              </Button>
+            )}
           </div>
 
           {/* Additional Info */}
