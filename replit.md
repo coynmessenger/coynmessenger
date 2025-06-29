@@ -409,6 +409,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 29, 2025: Disabled cryptocurrency sending in group chats - removed "+" button and crypto send functionality from group conversations to prevent confusion, crypto sending is now only available in one-on-one conversations for security and clarity
 - June 29, 2025: Fixed Create New Group modal scrolling and user display issues - improved mobile touch scrolling with WebKit touch support, added minimum height constraints, enhanced empty state handling with loading indicators, fixed syntax errors in user list rendering, optimized scroll behavior for mobile devices
 - June 29, 2025: Enhanced Create New Group modal scrolling experience - removed height constraints from user list, added visible orange-themed scrollbars, implemented smooth touch scrolling with momentum, added scroll position reset on search, improved modal height to 85vh for better mobile space utilization, added comprehensive CSS scrollbar styling with custom orange theme colors
+- June 29, 2025: Fixed Create New Group modal screen fit issues - optimized modal sizing to use 95vh height with proper margin positioning, reduced header and footer padding, made content more compact with smaller input heights and button sizes, ensured user list takes maximum available space, added proper flex-shrink-0 to prevent layout collapse, improved overall mobile responsiveness to prevent modal cutoff on smaller screens
 
 ## User Preferences
 

@@ -329,62 +329,57 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
           onExternalGroupCreateClose();
         }
       }}>
-        <DialogContent className="w-[95vw] sm:w-[450px] h-[85vh] sm:h-auto sm:max-h-[80vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl flex flex-col">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <DialogContent className="w-[95vw] sm:w-[450px] h-[95vh] sm:h-auto sm:max-h-[95vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl flex flex-col max-h-[95vh] my-[2.5vh]">
+          <div className="p-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               Create New Group
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground mt-2">
-              Create a group chat with multiple members for team collaboration
-            </DialogDescription>
           </div>
 
-          <div className="flex-1 flex flex-col overflow-hidden p-4 pt-2">
+          <div className="flex-1 flex flex-col overflow-hidden p-3 min-h-0">
             {/* Group Info */}
-            <div className="space-y-3 mb-4">
-              <div>
-                <Label htmlFor="groupName">Group Name</Label>
-                <Input
-                  id="groupName"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Enter group name"
-                  className="mt-1"
-                />
-              </div>
+            <div className="mb-3 flex-shrink-0">
+              <Label htmlFor="groupName" className="text-sm">Group Name</Label>
+              <Input
+                id="groupName"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Enter group name"
+                className="mt-1 h-9"
+              />
             </div>
 
-            <Separator className="mb-4" />
+            <Separator className="mb-3" />
 
             {/* Member Selection */}
             <div className="flex-1 overflow-hidden min-h-0">
-              <Label>Add Members</Label>
-              <div className="mt-2 h-full flex flex-col">
+              <Label className="text-sm">Add Members</Label>
+              <div className="mt-2 h-full flex flex-col min-h-0">
                 {/* Search */}
-                <div className="relative mb-3 flex-shrink-0">
+                <div className="relative mb-2 flex-shrink-0">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search users..."
-                    className="pl-9"
+                    className="pl-9 h-9"
                   />
                 </div>
 
                 {/* Selected count */}
                 {selectedUsers.length > 0 && (
-                  <div className="text-sm text-muted-foreground mb-2 flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-2 flex-shrink-0">
                     {selectedUsers.length} member{selectedUsers.length !== 1 ? 's' : ''} selected
                   </div>
                 )}
 
-                {/* User list */}
+                {/* User list - takes remaining space */}
                 <div 
                   ref={userListRef}
-                  className="flex-1 overflow-y-auto space-y-2 pr-2 min-h-[250px] max-h-[400px] scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 dark:scrollbar-thumb-orange-600 border border-gray-200 dark:border-gray-700 rounded-lg p-2"
+                  className="flex-1 overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 dark:scrollbar-thumb-orange-600 border border-gray-200 dark:border-gray-700 rounded-lg p-2 min-h-0"
                   style={{ 
                     WebkitOverflowScrolling: 'touch',
                     touchAction: 'pan-y',
@@ -437,17 +432,17 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
           </div>
 
           {/* Action Buttons - Fixed at bottom */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-b-2xl">
+          <div className="flex-shrink-0 p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-b-2xl">
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 h-12 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold transition-all duration-200"
+                  className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all duration-200 text-sm"
                   onClick={() => setShowNewGroup(false)}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  className="flex-1 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none text-sm"
                   onClick={handleCreateGroup}
                   disabled={!groupName.trim() || selectedUsers.length < 2}
                 >
