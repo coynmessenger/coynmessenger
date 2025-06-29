@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
@@ -371,6 +371,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         }}
       >
         <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
+        <DialogDescription className="sr-only">Active video call interface with camera and call controls</DialogDescription>
         
         {/* Video Area - Always shows the other person (Chris) */}
         <div className="relative aspect-video bg-slate-800">
