@@ -1121,5 +1121,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const webrtcSignaling = new EncryptedWebRTCSignaling(httpServer);
   console.log('Encrypted WebRTC signaling server initialized');
   
+  // Initialize real-time messaging WebSocket server
+  const { initializeMessagingWebSocket } = await import('./messaging-websocket');
+  const messagingWS = initializeMessagingWebSocket(httpServer);
+  console.log('Real-time messaging WebSocket server initialized');
+  
   return httpServer;
 }

@@ -18,6 +18,7 @@ export interface IStorage {
   getUserByWalletAddress(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserOnlineStatus(userId: number, isOnline: boolean): Promise<void>;
   getAllUsers(): Promise<User[]>;
 
   // Conversations
@@ -103,6 +104,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user || undefined;
+  }
+
+  async updateUserOnlineStatus(userId: number, isOnline: boolean): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        isOnline, 
+        lastSeen: isOnline ? undefined : new Date() 
+      })
+      .where(eq(users.id, userId));
   }
 
   async getAllUsers(): Promise<User[]> {

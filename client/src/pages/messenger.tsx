@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
+import { useMessagingWebSocket } from "@/hooks/use-messaging-websocket";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +14,8 @@ import VideoCallModal from "@/components/video-call-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
+import ConnectionStatus from "@/components/connection-status";
+import TypingIndicator from "@/components/typing-indicator";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -45,6 +48,18 @@ export default function MessengerPage() {
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
+
+  // Initialize real-time messaging WebSocket
+  const {
+    isConnected: isWSConnected,
+    typingUsers,
+    onlineUsers,
+    joinConversation,
+    leaveConversation,
+    sendTyping,
+    notifyNewMessage,
+    notifyMessageUpdate
+  } = useMessagingWebSocket(user?.id);
 
   const createConversationMutation = useMutation({
     mutationFn: async (otherUserId: number) => {
@@ -111,6 +126,22 @@ export default function MessengerPage() {
     setSelectedWalletCurrency(undefined);
   };
 
+  // Effect to join/leave conversations when selection changes
+  useEffect(() => {
+    if (selectedConversation) {
+      joinConversation(selectedConversation);
+      return () => leaveConversation();
+    }
+  }, [selectedConversation, joinConversation, leaveConversation]);
+
+  // Get typing users for current conversation
+  const currentTypingUsers = selectedConversation 
+    ? typingUsers.get(selectedConversation) || []
+    : [];
+
+  // Get online status for users
+  const isUserOnline = (userId: number) => onlineUsers.has(userId);
+
   // Keep messenger open to contact list view by default
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
@@ -135,6 +166,7 @@ export default function MessengerPage() {
             </h1>
           </div>
           <div className="flex items-center space-x-2">
+            <ConnectionStatus isConnected={isWSConnected} className="hidden sm:block" />
             <HamburgerMenu 
               onOpenSettings={() => setIsSettingsOpen(true)} 
               onGroupCreated={(conversationId) => setSelectedConversation(conversationId)}
