@@ -51,6 +51,16 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
+  // Early return if conversation or otherUser is not available
+  if (!conversation || !conversation.otherUser) {
+    return (
+      <div className="h-full flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading conversation...</p>
+        </div>
+      </div>
+    );
+  }
   const [message, setMessage] = useState("");
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -115,6 +125,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, [swipeState.isDragging]);
 
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+
   // Listen for profile updates and refresh conversation data
   useEffect(() => {
     const handleProfileUpdate = (event: CustomEvent) => {
@@ -133,10 +147,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       };
     }
   }, [queryClient, conversation.id]);
-
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
 
   // Clean message handlers without any hover functionality
   const handleImagePreview = (imageUrl: string, imageName?: string, imageSize?: number) => {
@@ -242,7 +252,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleSwipeEnd = () => {
     if (swipeState.offsetX > 80 && swipeState.messageId) {
       // Trigger reply
-      const message = messages?.find(m => m.id === swipeState.messageId);
+      const message = Array.isArray(messages) ? messages.find(m => m.id === swipeState.messageId) : null;
       if (message) {
         setReplyToMessage({
           id: message.id,
@@ -267,7 +277,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   // Fetch messages for this conversation
-  const { data: messages } = useQuery({
+  const { data: messages = [] } = useQuery({
     queryKey: ["/api/conversations", conversation.id, "messages"],
     enabled: !!conversation.id,
   });
@@ -326,7 +336,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages?.map((msg) => (
+        {Array.isArray(messages) && messages.map((msg) => (
           <div key={msg.id} className="flex items-start space-x-3">
             <Avatar className="h-8 w-8">
               <AvatarImage src={msg.sender.profilePicture || ""} />
