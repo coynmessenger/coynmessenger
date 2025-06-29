@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +68,10 @@ export default function UserProfileModal({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
+          <DialogHeader className="sr-only">
+            <DialogTitle>User Profile</DialogTitle>
+            <DialogDescription>View user profile information and manage contact options</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 sm:space-y-6">
             {/* Profile Picture and Basic Info */}
             <div className="flex flex-col items-center space-y-3">
@@ -194,6 +198,9 @@ export default function UserProfileModal({
             <DialogTitle className="text-center text-lg font-semibold text-gray-900 dark:text-white">
               Delete Contact
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Confirm deletion of contact and conversation history
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
