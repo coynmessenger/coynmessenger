@@ -73,7 +73,14 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
   }, [searchQuery]);
 
   const handleCreateGroup = async () => {
+    console.log("Create Group clicked!", {
+      groupName: groupName.trim(),
+      selectedUsers,
+      selectedUsersLength: selectedUsers.length
+    });
+
     if (!groupName.trim()) {
+      console.log("Group name validation failed");
       toast({
         title: "Group name required",
         description: "Please enter a name for the group",
@@ -83,6 +90,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
     }
 
     if (selectedUsers.length < 2) {
+      console.log("Member selection validation failed");
       toast({
         title: "Select members",
         description: "Please select at least 2 members for the group",
@@ -96,11 +104,19 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
       const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
       const currentUserId = connectedUser.id || 5;
       
+      console.log("Sending group creation request:", {
+        groupName: groupName.trim(),
+        memberIds: selectedUsers,
+        createdBy: currentUserId,
+      });
+      
       const response = await apiRequest("/api/groups", "POST", {
         groupName: groupName.trim(),
         memberIds: selectedUsers, // Don't duplicate current user
         createdBy: currentUserId,
       });
+      
+      console.log("Group creation response:", response);
       
       toast({
         title: "Group created",
@@ -463,7 +479,12 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                 </Button>
                 <Button
                   className="flex-1 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none text-sm"
-                  onClick={handleCreateGroup}
+                  onClick={(e) => {
+                    console.log("Button clicked!", e);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCreateGroup();
+                  }}
                   disabled={!groupName.trim() || selectedUsers.length < 2}
                 >
                   Create Group
