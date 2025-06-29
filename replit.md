@@ -400,6 +400,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Enhanced voice and video call modal centering - improved positioning logic to perfectly center modals based on actual viewport dimensions and modal sizes, added responsive centering that maintains position on window resize, optimized centering for both mobile and desktop viewports
 - June 28, 2025: Implemented comprehensive animated loading screens for voice and video calls - added multiple animated loading effects including pulsing rings around avatars, bouncing dots for status text, spinning rings for connecting states, breathing avatar animations, loading overlay for video calls, color-coded animations (yellow for connecting, blue for ringing, green for connected), and smooth CSS animations with staggered timing delays for polished loading experiences
 - June 28, 2025: Added smooth entrance and exit animations for voice and video call modals - implemented modal-enter animation with scale and translateY effects for appearing (0.3s duration), modal-exit animation for disappearing (0.2s duration), automatic animation triggering on modal open/close, proper animation state management with React hooks, and seamless integration with existing dragging and call persistence functionality
+- June 28, 2025: Made call button functional in user profile modal - connected "Call" button to voice call functionality, users can now initiate voice calls directly from contact profiles by clicking the Call button which opens the voice call modal
 
 ## User Preferences
 
