@@ -610,9 +610,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const hoverDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   
   const handleMessageHover = (messageId: number) => {
-    // Prevent multiple triggers for the same message
-    if (hoveredMessage === messageId) return;
-    
     // Clear any pending debounce timer
     if (hoverDebounceTimer.current) {
       clearTimeout(hoverDebounceTimer.current);
@@ -625,8 +622,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       setHoverLeaveTimer(null);
     }
     
-    // Set immediately without delay for better responsiveness
+    // Set immediately for better responsiveness - always show options
     setHoveredMessage(messageId);
+    // Clear mobile options to prevent conflicts
+    setShowMessageOptions(null);
   };
 
   const handleMessageLeave = () => {
@@ -639,7 +638,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add delay before hiding options to allow user to move to options menu
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 300);
+    }, 150); // Reduced delay for more responsive behavior
     setHoverLeaveTimer(timer);
     
     if (longPressTimer) {
@@ -696,7 +695,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Add small delay when leaving options menu too
     const timer = setTimeout(() => {
       setHoveredMessage(null);
-    }, 200); // Shorter delay for more responsive behavior
+    }, 100); // Shorter delay for more responsive behavior
     setHoverLeaveTimer(timer);
   };
 
@@ -729,6 +728,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       duration: 1500,
     });
     setShowMessageOptions(null);
+    setHoveredMessage(null);
   };
 
   const starMessageMutation = useMutation({
@@ -762,12 +762,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       isStarred: !isCurrentlyStarred 
     });
     setShowMessageOptions(null);
+    setHoveredMessage(null);
   };
 
   const handleForwardMessage = (message: Message) => {
-    // Implement forward functionality
+    // Add message to selected messages for forwarding
+    setSelectedMessages(new Set([message.id]));
     setShowShareModal(true);
     setShowMessageOptions(null);
+    setHoveredMessage(null);
   };
 
 
@@ -1333,7 +1336,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               ) : msg.senderId === 5 ? (
                   // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
-                    <div className="relative group max-w-xs lg:max-w-md">
+                    <div className="relative group max-w-xs lg:max-w-md hover:bg-gray-50/50 dark:hover:bg-slate-800/50 rounded-2xl p-1 -m-1 transition-colors duration-200">
 
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
@@ -1500,7 +1503,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="relative max-w-xs lg:max-w-md">
+                    <div className="relative max-w-xs lg:max-w-md hover:bg-gray-50/50 dark:hover:bg-slate-800/50 rounded-2xl p-1 -m-1 transition-colors duration-200">
                       
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
