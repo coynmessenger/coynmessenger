@@ -1143,6 +1143,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const webrtcSignaling = new EncryptedWebRTCSignaling(httpServer);
   console.log('Encrypted WebRTC signaling server initialized');
   
+  // Group API endpoints
+  app.get("/api/groups/:conversationId/info", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const conversation = await storage.getConversation(conversationId);
+      
+      if (!conversation || !conversation.isGroup) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      const memberCount = await storage.getGroupMemberCount(conversationId);
+      
+      res.json({
+        id: conversation.id,
+        groupName: conversation.groupName,
+        groupDescription: conversation.groupDescription,
+        groupIcon: conversation.groupIcon,
+        createdBy: conversation.createdBy,
+        createdAt: conversation.createdAt,
+        memberCount
+      });
+    } catch (error) {
+      console.error("Error fetching group info:", error);
+      res.status(500).json({ message: "Failed to fetch group info" });
+    }
+  });
+
+  app.get("/api/groups/:conversationId/members", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const members = await storage.getGroupMembers(conversationId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching group members:", error);
+      res.status(500).json({ message: "Failed to fetch group members" });
+    }
+  });
+
+  app.patch("/api/groups/:conversationId", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const { groupName, groupDescription } = req.body;
+      
+      const updatedGroup = await storage.updateGroup(conversationId, {
+        groupName,
+        groupDescription
+      });
+      
+      res.json(updatedGroup);
+    } catch (error) {
+      console.error("Error updating group:", error);
+      res.status(500).json({ message: "Failed to update group" });
+    }
+  });
+
+  app.delete("/api/groups/:conversationId/members/:userId", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const userId = parseInt(req.params.userId);
+      
+      await storage.removeGroupMember(conversationId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing group member:", error);
+      res.status(500).json({ message: "Failed to remove group member" });
+    }
+  });
+
+  app.delete("/api/groups/:conversationId/leave", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const userId = (req as any).session?.userId || 5;
+      
+      await storage.removeGroupMember(conversationId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error leaving group:", error);
+      res.status(500).json({ message: "Failed to leave group" });
+    }
+  });
+
   // Initialize real-time messaging WebSocket server
   const { initializeMessagingWebSocket } = await import('./messaging-websocket');
   const messagingWS = initializeMessagingWebSocket(httpServer);

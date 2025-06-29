@@ -19,6 +19,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
+import GroupInfoModal from "@/components/group-info-modal";
 import type { User, Conversation, Message } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
@@ -1502,7 +1503,44 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
-                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          {/* Show sender name for group messages */}
+                          {conversation.isGroup && (
+                            <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">
+                              {getEffectiveDisplayName(msg.sender)}
+                            </p>
+                          )}
+                          
+                          {/* Reply indicator for WhatsApp-style replies */}
+                          {replyingTo && msg.content?.includes('@') && msg.content.includes(':') && (
+                            <div className="mb-2 p-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg border-l-4 border-orange-400">
+                              <div className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                                {msg.content.split(':')[0].replace('@', '')}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                                {(() => {
+                                  const replyToUser = msg.content?.split(':')[0].replace('@', '');
+                                  const originalMsg = messages.find(m => {
+                                    const effectiveName = getEffectiveDisplayName(m.sender);
+                                    return effectiveName === replyToUser && 
+                                      m.id !== msg.id &&
+                                      (m.timestamp != null && msg.timestamp != null && m.timestamp < msg.timestamp);
+                                  });
+                                  return originalMsg?.content || originalMsg?.cryptoAmount 
+                                    ? `${originalMsg.content || ''} ${originalMsg.cryptoAmount ? `${originalMsg.cryptoAmount} ${originalMsg.cryptoCurrency}` : ''}`.trim()
+                                    : "Previous message";
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <p className="text-sm break-words text-foreground">
+                            {highlightText(
+                              msg.content?.includes('@') && msg.content.includes(':') 
+                                ? msg.content.split(':').slice(1).join(':').trim() 
+                                : msg.content || "", 
+                              searchQuery || ""
+                            )}
+                          </p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
@@ -2413,64 +2451,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       />
 
       {/* Group Info Modal */}
-      <Dialog open={showGroupInfo} onOpenChange={setShowGroupInfo}>
-        <DialogContent className="w-[95vw] sm:w-[450px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <Users className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              {conversation.groupName}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground mt-2">
-              Group conversation • {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
-            </DialogDescription>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Members
-              </h3>
-              
-              <div className="space-y-2">
-                {groupMembers.map((member) => (
-                  <Button
-                    key={member.id}
-                    variant="ghost"
-                    className="flex items-center space-x-3 p-3 w-full justify-start rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors h-auto"
-                    onClick={() => {
-                      setSelectedMember(member);
-                      setShowMemberProfile(true);
-                    }}
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.profilePicture || ""} />
-                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                        <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {getEffectiveDisplayName(member)}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {member.walletAddress ? 
-                          `${member.walletAddress.slice(0, 6)}...${member.walletAddress.slice(-4)}` : 
-                          'No wallet'
-                        }
-                      </p>
-                    </div>
-                    {member.isOnline && (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    )}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {conversation.isGroup && (
+        <GroupInfoModal
+          isOpen={showGroupInfo}
+          onClose={() => setShowGroupInfo(false)}
+          conversationId={conversation.id}
+          currentUserId={5} // TODO: Get from actual user context
+        />
+      )}
 
       {/* Member Profile Modal */}
       {selectedMember && (

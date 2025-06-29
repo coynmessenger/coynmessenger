@@ -30,7 +30,17 @@ export interface IStorage {
   // Groups
   createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation>;
   leaveGroup(conversationId: number, userId: number): Promise<boolean>;
-  getGroupMembers(conversationId: number): Promise<User[]>;
+  getGroupMembers(conversationId: number): Promise<Array<{
+    id: number;
+    userId: number;
+    user: User;
+    role: string;
+    joinedAt: string;
+    addedBy?: number;
+  }>>;
+  getGroupMemberCount(conversationId: number): Promise<number>;
+  updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string }): Promise<Conversation>;
+  removeGroupMember(conversationId: number, userId: number): Promise<void>;
 
   // Messages
   getMessage(id: number): Promise<Message | undefined>;
@@ -278,16 +288,66 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  async getGroupMembers(conversationId: number): Promise<User[]> {
+  async getGroupMembers(conversationId: number): Promise<Array<{
+    id: number;
+    userId: number;
+    user: User;
+    role: string;
+    joinedAt: string;
+    addedBy?: number;
+  }>> {
     const members = await db
       .select({
+        member: groupMembers,
         user: users
       })
       .from(groupMembers)
       .innerJoin(users, eq(users.id, groupMembers.userId))
-      .where(eq(groupMembers.conversationId, conversationId));
+      .where(and(eq(groupMembers.conversationId, conversationId), eq(groupMembers.isActive, true)));
 
-    return members.map(m => m.user);
+    return members.map(m => ({
+      id: m.member.id,
+      userId: m.member.userId,
+      user: m.user,
+      role: m.member.role || "member",
+      joinedAt: m.member.joinedAt?.toISOString() || new Date().toISOString(),
+      addedBy: m.member.addedBy || undefined
+    }));
+  }
+
+  async getGroupMemberCount(conversationId: number): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(groupMembers)
+      .where(and(
+        eq(groupMembers.conversationId, conversationId),
+        eq(groupMembers.isActive, true)
+      ));
+    
+    return result[0]?.count || 0;
+  }
+
+  async updateGroup(conversationId: number, updates: { groupName?: string; groupDescription?: string }): Promise<Conversation> {
+    const [updatedConversation] = await db
+      .update(conversations)
+      .set(updates)
+      .where(eq(conversations.id, conversationId))
+      .returning();
+      
+    return updatedConversation;
+  }
+
+  async removeGroupMember(conversationId: number, userId: number): Promise<void> {
+    await db
+      .update(groupMembers)
+      .set({ 
+        isActive: false,
+        leftAt: new Date()
+      })
+      .where(and(
+        eq(groupMembers.conversationId, conversationId),
+        eq(groupMembers.userId, userId)
+      ));
   }
 
   // Messages
