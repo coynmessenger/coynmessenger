@@ -19,7 +19,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import type { User, Conversation, Message } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -84,9 +84,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  
-  // Touch interaction state  
-  const [touchStartTime, setTouchStartTime] = useState(0);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     offsetX: number;
@@ -107,8 +104,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     sender: string;
   } | null>(null);
 
-  // Removed all hover options functionality as requested
-
+  // Message hover options state
+  const [hoveredMessage, setHoveredMessage] = useState<number | null>(null);
+  const [showMessageOptions, setShowMessageOptions] = useState<number | null>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [hoverLeaveTimer, setHoverLeaveTimer] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -138,9 +138,34 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, [swipeState.isDragging]);
 
+  // Close message options when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showMessageOptions && !(event.target as Element).closest('[data-message-options]')) {
+        setShowMessageOptions(null);
+      }
+    };
 
+    if (showMessageOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
 
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMessageOptions]);
 
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+      if (hoverLeaveTimer) {
+        clearTimeout(hoverLeaveTimer);
+      }
+    };
+  }, [longPressTimer, hoverLeaveTimer]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -357,10 +382,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string }) => {
-      return apiRequest("POST", "/api/wallet/send", {
-        ...cryptoData,
-        conversationId: conversation.id // Always include the current conversation ID
-      });
+      return apiRequest("POST", "/api/wallet/send", cryptoData);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
@@ -372,7 +394,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       setCryptoStep("amount");
       toast({
         title: "Crypto sent successfully",
-        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser?.displayName || 'user'}`,
+        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
       });
     },
     onError: () => {
@@ -577,14 +599,76 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
+  // Message hover and long press handlers
+  const handleMessageHover = (messageId: number) => {
+    // Clear any pending hide timer
+    if (hoverLeaveTimer) {
+      clearTimeout(hoverLeaveTimer);
+      setHoverLeaveTimer(null);
+    }
+    setHoveredMessage(messageId);
+  };
 
+  const handleMessageLeave = () => {
+    // Add delay before hiding options to allow user to move to options menu
+    const timer = setTimeout(() => {
+      setHoveredMessage(null);
+    }, 300); // 300ms delay
+    setHoverLeaveTimer(timer);
+    
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  // Handler for when hovering over options menu itself
+  const handleOptionsHover = () => {
+    // Clear the hide timer when hovering over options
+    if (hoverLeaveTimer) {
+      clearTimeout(hoverLeaveTimer);
+      setHoverLeaveTimer(null);
+    }
+  };
+
+  const handleOptionsLeave = () => {
+    // Add small delay when leaving options menu too
+    const timer = setTimeout(() => {
+      setHoveredMessage(null);
+    }, 150); // Shorter delay for options menu
+    setHoverLeaveTimer(timer);
+  };
+
+  const handleLongPressStart = (messageId: number) => {
+    const timer = setTimeout(() => {
+      setShowMessageOptions(messageId);
+    }, 500); // Show options after 500ms long press
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
 
   const handleImagePreview = (imageUrl: string, imageName?: string, imageSize?: number) => {
     setPreviewImage({ url: imageUrl, name: imageName, size: imageSize });
     setShowImagePreview(true);
   };
 
-
+  // Message action handlers
+  const handleCopyMessage = (message: Message) => {
+    const textToCopy = message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`;
+    navigator.clipboard.writeText(textToCopy);
+    toast({
+      title: "Message copied",
+      description: "Message copied to clipboard",
+      duration: 1500,
+    });
+    setShowMessageOptions(null);
+  };
 
   const starMessageMutation = useMutation({
     mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
@@ -610,28 +694,48 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   });
 
+  const handleStarMessage = (message: Message) => {
+    const isCurrentlyStarred = message.isStarred || false;
+    starMessageMutation.mutate({ 
+      messageId: message.id, 
+      isStarred: !isCurrentlyStarred 
+    });
+    setShowMessageOptions(null);
+  };
+
+  const handleForwardMessage = (message: Message) => {
+    // Implement forward functionality
+    setShowShareModal(true);
+    setShowMessageOptions(null);
+  };
 
 
 
-
-
-
-
+  const deleteMessage = async (messageId: number) => {
+    try {
+      await apiRequest("DELETE", `/api/messages/${messageId}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      toast({
+        title: "Message deleted",
+        description: "The message has been deleted",
+        duration: 1500,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete message",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+    setShowMessageOptions(null);
+  };
 
   const handleReplyCancel = () => {
     setReplyToMessage(null);
   };
 
   const handleQuickSend = (currency: string) => {
-    // Set meaningful default amounts for each currency
-    const defaultAmounts = {
-      'BTC': '0.001',  // ~$100 worth
-      'BNB': '0.2',    // ~$120 worth
-      'USDT': '100',   // $100 worth
-      'COYN': '120'    // ~$100 worth at $0.85
-    };
-    
-    const amount = defaultAmounts[currency as keyof typeof defaultAmounts] || "0.01";
+    const amount = "0.01"; // Default quick send amount
     sendCryptoMutation.mutate({
       toUserId: conversation.otherUser.id,
       currency,
@@ -706,7 +810,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
       
       // Check if message is crypto transaction
-      if ((msg.messageType === 'crypto' || msg.messageType === 'crypto_transfer') && msg.cryptoCurrency) {
+      if (msg.messageType === 'crypto' && msg.cryptoCurrency) {
         searchParts.push(`${msg.cryptoCurrency.toLowerCase()} crypto payment transaction`);
       }
       
@@ -1004,65 +1108,63 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
 
-        {/* Call Icons */}
+        {/* Call and Video Icons */}
         <div className="flex items-center space-x-2">
-          <>
-            {!conversation.isGroup && (
-              <>
+          {!conversation.isGroup && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceCall(true)}
+                className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                  isVoiceCallActive 
+                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={isVoiceCallActive ? "Join active call" : "Voice call"}
+              >
+                <Phone className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVideoCall(true)}
+                className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                  isVideoCallActive 
+                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={isVideoCallActive ? "Join active video call" : "Video call"}
+              >
+                <Video className={`h-5 w-5 ${isVideoCallActive ? 'animate-pulse' : ''}`} />
+              </Button>
+            </>
+          )}
+          
+          {conversation.isGroup && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowVoiceCall(true)}
-                  className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
-                    isVoiceCallActive 
-                      ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title={isVoiceCallActive ? "Join active call" : "Voice call"}
+                  className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                  title="Group options"
                 >
-                  <Phone className="h-5 w-5" />
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowVideoCall(true)}
-                  className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
-                    isVideoCallActive 
-                      ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title={isVideoCallActive ? "Join active video call" : "Video call"}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => leaveGroupMutation.mutate()}
+                  disabled={leaveGroupMutation.isPending}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                 >
-                  <Video className={`h-5 w-5 ${isVideoCallActive ? 'animate-pulse' : ''}`} />
-                </Button>
-              </>
-            )}
-            
-            {conversation.isGroup && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-                    title="Group options"
-                  >
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem 
-                    onClick={() => leaveGroupMutation.mutate()}
-                    disabled={leaveGroupMutation.isPending}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Leave Group
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </>
+                  <Users className="h-4 w-4 mr-2" />
+                  Leave Group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
       </div>
@@ -1070,7 +1172,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)] transition-all duration-300"
+        className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)]"
       >
 
         
@@ -1114,9 +1216,71 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               ) : msg.senderId === 5 ? (
                   // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
-                    <div className="relative group max-w-xs lg:max-w-md hover:bg-gray-50/50 dark:hover:bg-slate-800/50 rounded-2xl p-1 -m-1 transition-colors duration-200">
+                    <div className="relative group max-w-xs lg:max-w-md">
 
-
+                      {/* Message Options Menu */}
+                      {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
+                        <div 
+                          data-message-options 
+                          className="absolute -top-10 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1"
+                          style={{ 
+                            pointerEvents: 'all', 
+                            zIndex: 9999,
+                            position: 'absolute'
+                          }}
+                          onMouseEnter={handleOptionsHover}
+                          onMouseLeave={handleOptionsLeave}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyMessage(msg);
+                            }}
+                            title="Copy"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStarMessage(msg);
+                            }}
+                            title={msg.isStarred ? "Unstar" : "Star"}
+                          >
+                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleForwardMessage(msg);
+                            }}
+                            title="Forward"
+                          >
+                            <Forward className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMessageMutation.mutate(msg.id);
+                            }}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                       
                       {/* Swipeable message */}
                       <div 
@@ -1127,22 +1291,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                         onTouchStart={(e) => {
                           handleSwipeStart(e, msg.id);
-                          handleMessageLongPressStart(msg.id);
+                          handleLongPressStart(msg.id);
                         }}
                         onTouchMove={handleSwipeMove}
                         onTouchEnd={() => {
                           handleSwipeEnd();
-                          handleMessageLongPressEnd();
+                          handleLongPressEnd();
                         }}
                         onMouseDown={(e) => {
                           // Only start swipe if not clicking on options menu
                           if (!(e.target as Element).closest('[data-message-options]')) {
                             handleSwipeStart(e, msg.id);
-                          }
-                        }}
-                        onMouseMove={(e) => {
-                          if (swipeState.isDragging) {
-                            handleSwipeMove(e);
                           }
                         }}
                         onMouseUp={() => {
@@ -1158,18 +1317,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           handleMessageLeave();
                         }}
                       >
-                        <div 
-                          className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20"
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                            console.log("Direct touch on message bubble:", msg.id);
-                            handleMessageLongPressStart(msg.id);
-                          }}
-                          onTouchEnd={(e) => {
-                            e.stopPropagation();
-                            handleMessageLongPressEnd();
-                          }}
-                        >
+                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
                           {/* WhatsApp-style reply context */}
                           {msg.content?.includes('@') && msg.content.includes(':') && (
                             <div className="bg-white/20 rounded-lg p-2 mb-2 border-l-4 border-white/40">
@@ -1230,24 +1378,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       <AvatarImage src={msg.sender.profilePicture || ""} />
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="relative max-w-xs lg:max-w-md hover:bg-gray-50/50 dark:hover:bg-slate-800/50 rounded-2xl p-1 -m-1 transition-colors duration-200">
+                    <div className="relative max-w-xs lg:max-w-md">
                       
                       {/* Message Options Menu */}
                       {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                         <div 
                           data-message-options 
-                          className="absolute -top-14 left-0 bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight"
+                          className="absolute -top-10 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1"
                           style={{ 
                             pointerEvents: 'all', 
-                            zIndex: 999999,
-                            position: 'absolute',
-                            display: 'flex',
-                            visibility: 'visible',
-                            opacity: '1'
+                            zIndex: 9999,
+                            position: 'absolute'
                           }}
                           onMouseEnter={handleOptionsHover}
                           onMouseLeave={handleOptionsLeave}
-                          onTouchStart={(e) => e.stopPropagation()}
                         >
                           <Button
                             variant="ghost"
@@ -1310,22 +1454,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                         onTouchStart={(e) => {
                           handleSwipeStart(e, msg.id);
-                          handleMessageLongPressStart(msg.id);
+                          handleLongPressStart(msg.id);
                         }}
                         onTouchMove={handleSwipeMove}
                         onTouchEnd={() => {
                           handleSwipeEnd();
-                          handleMessageLongPressEnd();
+                          handleLongPressEnd();
                         }}
                         onMouseDown={(e) => {
                           // Only start swipe if not clicking on options menu
                           if (!(e.target as Element).closest('[data-message-options]')) {
                             handleSwipeStart(e, msg.id);
-                          }
-                        }}
-                        onMouseMove={(e) => {
-                          if (swipeState.isDragging) {
-                            handleSwipeMove(e);
                           }
                         }}
                         onMouseUp={() => {
@@ -1366,43 +1505,29 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </div>
                   </div>
                 )
-              ) : (msg.messageType === "crypto" || msg.messageType === "crypto_transfer") ? (
-                // Crypto transaction message - compact sleek format
-                <div className="flex justify-center group mb-3" data-message-id={msg.id}>
+              ) : msg.messageType === "crypto" ? (
+                // Crypto transaction message
+                <div className="flex justify-center group mb-1" data-message-id={msg.id}>
                   <div className="relative">
-                    <Card className="bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/40 dark:to-cyan-800/40 border border-cyan-300 dark:border-cyan-600/30 max-w-sm mx-4 shadow-md hover:shadow-lg transition-all duration-200 backdrop-blur-xl">
+                    <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105">
                       <CardContent className="p-4">
-                        {/* Header with icon and title */}
-                        <div className="flex items-center justify-center space-x-2 mb-3">
-                          <Coins className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                          <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Crypto Transaction</span>
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <Coins className="h-4 w-4 text-cyan-400" />
+                        <span className="text-sm font-medium text-cyan-400">Crypto Transaction</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-cyan-400">
+                          {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                         </div>
-                        
-                        {/* Amount display */}
-                        <div className="text-center mb-3">
-                          <div className="text-xl font-bold text-cyan-700 dark:text-cyan-300">
-                            {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
-                          </div>
+                        <div className="text-xs text-slate-400 break-all max-w-full overflow-hidden">
+                          {msg.senderId === 5 ? 'To' : 'From'}: {msg.sender.walletAddress}
                         </div>
-                        
-                        {/* Wallet address - compact */}
-                        <div className="text-center mb-2">
-                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                            {msg.senderId === 5 ? 'To' : 'From'}:
-                          </div>
-                          <div className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all bg-gray-100 dark:bg-gray-800/50 px-2 py-1 rounded text-center">
-                            {msg.senderId === 5 ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
-                          </div>
+                        <div className="text-xs text-slate-400">
+                          {formatTimestamp(msg.timestamp)}
                         </div>
-                        
-                        {/* Timestamp */}
-                        <div className="text-center">
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatTimestamp(msg.timestamp)}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
                   {msg.senderId === 5 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -1436,18 +1561,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight"
+                        className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1"
                         style={{ 
                           pointerEvents: 'all', 
-                          zIndex: 999999,
-                          position: 'absolute',
-                          display: 'flex',
-                          visibility: 'visible',
-                          opacity: '1'
+                          zIndex: 9999,
+                          position: 'absolute'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
-                        onTouchStart={(e) => e.stopPropagation()}
                       >
                         <Button
                           variant="ghost"
@@ -1556,18 +1677,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
                       <div 
                         data-message-options 
-                        className={`absolute -top-14 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border-2 border-orange-500 dark:border-cyan-500 rounded-lg shadow-2xl p-3 flex items-center space-x-3 no-search-highlight`}
+                        className={`absolute -top-10 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-1 flex items-center space-x-1`}
                         style={{ 
                           pointerEvents: 'all', 
-                          zIndex: 999999,
-                          position: 'absolute',
-                          display: 'flex',
-                          visibility: 'visible',
-                          opacity: '1'
+                          zIndex: 9999,
+                          position: 'absolute'
                         }}
                         onMouseEnter={handleOptionsHover}
                         onMouseLeave={handleOptionsLeave}
-                        onTouchStart={(e) => e.stopPropagation()}
                       >
                         <Button
                           variant="ghost"
@@ -2141,7 +2258,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center">
                     <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm sm:text-base font-semibold text-black dark:text-white bg-white/60 dark:bg-slate-900/60 px-2 sm:px-3 py-1 rounded-lg">
-                      {conversation.otherUser?.displayName || 'user'}
+                      {conversation.otherUser.displayName}
                     </span>
                   </div>
                 </div>
@@ -2177,7 +2294,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm font-semibold text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {conversation.otherUser?.displayName || 'user'}
+                      {conversation.otherUser.displayName}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
@@ -2231,7 +2348,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         onStartCall={() => {
           setShowUserProfile(false);
-          setShowVoiceCall(true);
+          // Phone call functionality can be added here
         }}
         onStartVideoCall={() => {
           setShowUserProfile(false);

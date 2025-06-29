@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Sidebar from "@/components/sidebar";
-import ChatWindow from "@/components/chat-window-clean";
+import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
@@ -32,8 +32,6 @@ export default function MessengerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
-  
-  const queryClient = useQueryClient();
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
@@ -46,30 +44,6 @@ export default function MessengerPage() {
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
-
-  // Listen for profile updates and refresh all user data
-  useEffect(() => {
-    const handleProfileUpdate = (event: CustomEvent) => {
-      console.log("Messenger page received profile update:", event.detail);
-      // Invalidate all queries to refresh user data throughout the messenger
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      
-      // Force refresh of all message queries for active conversations
-      conversations.forEach(conv => {
-        queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conv.id}/messages`] });
-      });
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
-      
-      return () => {
-        window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
-      };
-    }
-  }, [queryClient, conversations]);
 
   const createConversationMutation = useMutation({
     mutationFn: async (otherUserId: number) => {

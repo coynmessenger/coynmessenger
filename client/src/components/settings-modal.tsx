@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { syncProfileUpdate } from "@/lib/profile-sync";
 import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
 
@@ -245,14 +244,38 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
       return apiRequest("PATCH", url, userData);
     },
-    onSuccess: async (updatedUser) => {
-      // Use comprehensive profile synchronization system
-      await syncProfileUpdate({
-        userId: updatedUser.id,
-        displayName: updatedUser.displayName,
-        profilePicture: updatedUser.profilePicture,
-        signInName: updatedUser.signInName
-      });
+    onSuccess: (updatedUser) => {
+      // Immediately update all cached user data
+      queryClient.setQueryData(["/api/user"], updatedUser);
+      if (connectedUserId) {
+        queryClient.setQueryData(["/api/user", parseInt(connectedUserId)], updatedUser);
+      }
+      
+      // Invalidate all user-related queries to trigger refetch across the app
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/user", parseInt(connectedUserId)] });
+      }
+      
+      // Update localStorage for homepage and other components
+      if (updatedUser && updatedUser.displayName) {
+        localStorage.setItem('userDisplayName', updatedUser.displayName);
+        // Update connected user data in localStorage
+        const currentConnectedUser = localStorage.getItem('connectedUser');
+        if (currentConnectedUser) {
+          const connectedUserData = JSON.parse(currentConnectedUser);
+          connectedUserData.displayName = updatedUser.displayName;
+          localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
+        }
+        
+        // Dispatch custom event to notify other components of display name change
+        window.dispatchEvent(new CustomEvent('displayNameUpdated', { 
+          detail: { 
+            displayName: updatedUser.displayName,
+            userId: connectedUserId || updatedUser.id 
+          } 
+        }));
+      }
       
       toast({
         title: "Settings updated",
@@ -285,19 +308,34 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         throw new Error(`Upload failed: ${response.status}`);
       }
       
-      const result = await response.json();
-      
-      // Immediately sync profile update
-      await syncProfileUpdate({
-        userId: connectedUserId ? parseInt(connectedUserId) : 5,
-        profilePicture: result.profilePicture
-      });
-      
-      return result;
+      return response.json();
     },
     onSuccess: (response: { profilePicture: string }) => {
       console.log("Upload successful, response:", response);
       setProfilePicture(response.profilePicture);
+      
+      // Immediately update the user cache with new profile picture
+      queryClient.setQueryData(["/api/user"], (oldData: any) => {
+        if (oldData) {
+          return { ...oldData, profilePicture: response.profilePicture };
+        }
+        return oldData;
+      });
+      
+      if (connectedUserId) {
+        queryClient.setQueryData(["/api/user", parseInt(connectedUserId)], (oldData: any) => {
+          if (oldData) {
+            return { ...oldData, profilePicture: response.profilePicture };
+          }
+          return oldData;
+        });
+      }
+      
+      // Invalidate to ensure fresh data across all components
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/user", parseInt(connectedUserId)] });
+      }
       
       toast({
         title: "Profile picture updated",

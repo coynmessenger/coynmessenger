@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
@@ -361,7 +361,6 @@ export default function VoiceCallModal({
         }}
       >
         <DialogTitle className="sr-only">Voice Call with {user.displayName}</DialogTitle>
-        <DialogDescription className="sr-only">Active voice call interface with controls</DialogDescription>
 
         <div className="p-8 space-y-8">
           {/* User Avatar */}

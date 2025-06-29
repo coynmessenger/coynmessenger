@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,7 +14,6 @@ import AddContactModal from "./add-contact-modal";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { getEffectiveDisplayName } from "@/lib/profile-sync";
 
 interface SidebarProps {
   user?: User;
@@ -42,28 +41,10 @@ export default function Sidebar({
   onSearchChange,
 }: SidebarProps) {
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   
   const queryClient = useQueryClient();
-
-  // Listen for profile updates and refresh user data
-  useEffect(() => {
-    const handleProfileUpdate = (event: CustomEvent) => {
-      console.log("Sidebar received profile update:", event.detail);
-      // Invalidate queries to refresh user data throughout sidebar
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
-      
-      return () => {
-        window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
-      };
-    }
-  }, [queryClient]);
 
   // Fetch all users for contact list
   const { data: allUsers = [] } = useQuery<User[]>({
@@ -147,7 +128,7 @@ export default function Sidebar({
   const availableContacts = allUsers.filter(contact => {
     if (!user || contact.id === user.id) return false;
     const hasConversation = conversations.some(conv => 
-      conv.otherUser?.id === contact.id
+      conv.otherUser.id === contact.id
     );
     return !hasConversation;
   });

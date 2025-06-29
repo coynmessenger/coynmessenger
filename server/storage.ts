@@ -19,16 +19,12 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
-  deleteUser(id: number): Promise<boolean>;
 
   // Conversations
   getConversation(id: number): Promise<Conversation | undefined>;
   findConversation(user1Id: number, user2Id: number): Promise<Conversation | undefined>;
   getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]>;
   createConversation(user1Id: number, user2Id: number): Promise<Conversation>;
-  deleteConversation(conversationId: number): Promise<boolean>;
-  deleteMessagesByConversation(conversationId: number): Promise<boolean>;
-  deleteGroupMembers(conversationId: number): Promise<boolean>;
   
   // Groups
   createGroupConversation(groupName: string, memberIds: number[], createdBy: number): Promise<Conversation>;
@@ -112,35 +108,6 @@ export class DatabaseStorage implements IStorage {
   async getAllUsers(): Promise<User[]> {
     const allUsers = await db.select().from(users).where(eq(users.isSetup, true));
     return allUsers;
-  }
-
-  async deleteUser(id: number): Promise<boolean> {
-    try {
-      // First delete user's wallet balances
-      await db.delete(walletBalances).where(eq(walletBalances.userId, id));
-      
-      // Delete user's messages
-      await db.delete(messages).where(eq(messages.senderId, id));
-      
-      // Delete user's purchases
-      await db.delete(purchases).where(eq(purchases.userId, id));
-      
-      // Delete user's favorites
-      await db.delete(favorites).where(eq(favorites.userId, id));
-      
-      // Delete user's NFT rewards
-      await db.delete(nftRewards).where(eq(nftRewards.userId, id));
-      
-      // Delete user from group memberships
-      await db.delete(groupMembers).where(eq(groupMembers.userId, id));
-      
-      // Finally delete the user
-      const result = await db.delete(users).where(eq(users.id, id));
-      return (result.rowCount || 0) > 0;
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      return false;
-    }
   }
 
   // Conversations
@@ -664,31 +631,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchases.id, purchaseId))
       .returning();
     return result.length > 0;
-  }
-
-  // Conversation deletion methods
-  async deleteConversation(conversationId: number): Promise<boolean> {
-    const result = await db
-      .delete(conversations)
-      .where(eq(conversations.id, conversationId))
-      .returning();
-    return result.length > 0;
-  }
-
-  async deleteMessagesByConversation(conversationId: number): Promise<boolean> {
-    const result = await db
-      .delete(messages)
-      .where(eq(messages.conversationId, conversationId))
-      .returning();
-    return true; // Return true even if no messages were deleted
-  }
-
-  async deleteGroupMembers(conversationId: number): Promise<boolean> {
-    const result = await db
-      .delete(groupMembers)
-      .where(eq(groupMembers.conversationId, conversationId))
-      .returning();
-    return true; // Return true even if no members were deleted
   }
 }
 

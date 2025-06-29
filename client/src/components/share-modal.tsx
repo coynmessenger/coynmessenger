@@ -40,15 +40,7 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
       return apiRequest("POST", "/api/messages/share", data);
     },
     onSuccess: () => {
-      // Invalidate conversations list to update with new messages
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      
-      // Also invalidate all conversation message queries to ensure they refresh
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations"],
-        predicate: (query) => query.queryKey.includes("messages")
-      });
-      
       toast({
         title: "Messages shared successfully",
         description: `Shared to ${selectedConversations.size} conversation${selectedConversations.size > 1 ? 's' : ''}`,
@@ -67,9 +59,8 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
 
   const filteredConversations = conversations.filter(conv => 
     conv.id !== currentConversationId &&
-    conv.otherUser &&
-    (conv.otherUser.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     conv.otherUser.username?.toLowerCase().includes(searchQuery.toLowerCase()))
+    (conv.otherUser.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     conv.otherUser.username.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const selectedMessageObjects = messages.filter(msg => selectedMessages.has(msg.id));
@@ -149,17 +140,17 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
                 }`}
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
+                  <AvatarImage src={conversation.otherUser.profilePicture || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white text-xs font-semibold">
-                    {conversation.otherUser?.displayName?.charAt(0).toUpperCase() || 'U'}
+                    {conversation.otherUser.displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {conversation.otherUser?.displayName || 'Unknown User'}
+                    {conversation.otherUser.displayName}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    @{conversation.otherUser?.username || 'unknown'}
+                    @{conversation.otherUser.username}
                   </p>
                 </div>
                 {selectedConversations.has(conversation.id) && (

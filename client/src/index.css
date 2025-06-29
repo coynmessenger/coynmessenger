@@ -370,17 +370,6 @@ mark {
   overflow: visible;
 }
 
-/* Prevent search highlighting on message options */
-.no-search-highlight,
-.no-search-highlight *,
-[data-message-options],
-[data-message-options] * {
-  background: inherit !important;
-  border: inherit !important;
-  box-shadow: inherit !important;
-  animation: none !important;
-}
-
 mark:hover {
   background: rgba(251, 146, 60, 0.4) !important;
   transform: scale(1.02);
