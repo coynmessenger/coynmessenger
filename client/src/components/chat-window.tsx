@@ -27,7 +27,9 @@ import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { formatDistanceToNow } from "date-fns";
 
 // Utility function to get effective display name (mirrors backend logic)
-function getEffectiveDisplayName(user: User): string {
+function getEffectiveDisplayName(user: User | null): string {
+  if (!user) return "Unknown User";
+  
   // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
   if (user.signInName) {
     return user.signInName;
@@ -40,7 +42,7 @@ function getEffectiveDisplayName(user: User): string {
     return `@${user.walletAddress.slice(-6)}`;
   }
   // Ultimate fallback
-  return user.displayName || user.username;
+  return user.displayName || user.username || "Unknown User";
 }
 
 interface ChatWindowProps {
@@ -51,6 +53,10 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
+  // Early return if conversation or otherUser is null to prevent crashes
+  if (!conversation || (!conversation.isGroup && !conversation.otherUser)) {
+    return <div className="flex-1 flex items-center justify-center text-muted-foreground">Loading conversation...</div>;
+  }
   const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
@@ -394,7 +400,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       setCryptoStep("amount");
       toast({
         title: "Crypto sent successfully",
-        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
+        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser?.displayName || 'user'}`,
       });
     },
     onError: () => {
@@ -2258,7 +2264,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center">
                     <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm sm:text-base font-semibold text-black dark:text-white bg-white/60 dark:bg-slate-900/60 px-2 sm:px-3 py-1 rounded-lg">
-                      {conversation.otherUser.displayName}
+                      {getEffectiveDisplayName(conversation.otherUser)}
                     </span>
                   </div>
                 </div>
@@ -2294,13 +2300,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm font-semibold text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {conversation.otherUser.displayName}
+                      {getEffectiveDisplayName(conversation.otherUser)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Wallet Address:</span>
                     <span className="text-xs font-mono text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {conversation.otherUser.walletAddress.slice(0, 6)}...{conversation.otherUser.walletAddress.slice(-4)}
+                      {conversation.otherUser?.walletAddress ? 
+                        `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
+                        'No address'
+                      }
                     </span>
                   </div>
                 </div>

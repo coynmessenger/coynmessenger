@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -19,6 +19,8 @@ import type { User, Message } from "@shared/schema";
 interface HamburgerMenuProps {
   onOpenSettings: () => void;
   onGroupCreated?: (conversationId: number) => void;
+  externalGroupCreate?: boolean;
+  onExternalGroupCreateClose?: () => void;
 }
 
 interface StarredMessage extends Message {
@@ -26,9 +28,16 @@ interface StarredMessage extends Message {
   conversationId: number;
 }
 
-export default function HamburgerMenu({ onOpenSettings, onGroupCreated }: HamburgerMenuProps) {
+export default function HamburgerMenu({ onOpenSettings, onGroupCreated, externalGroupCreate, onExternalGroupCreateClose }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
   const [showNewGroup, setShowNewGroup] = useState(false);
+
+  // Effect to handle external group creation trigger
+  useEffect(() => {
+    if (externalGroupCreate) {
+      setShowNewGroup(true);
+    }
+  }, [externalGroupCreate]);
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,6 +109,11 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated }: Hambur
       setGroupName("");
       setSelectedUsers([]);
       setShowNewGroup(false);
+      
+      // Close external trigger if active
+      if (onExternalGroupCreateClose) {
+        onExternalGroupCreateClose();
+      }
     } catch (error) {
       toast({
         title: "Failed to create group",
@@ -300,7 +314,12 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated }: Hambur
       </Dialog>
 
       {/* New Group Modal */}
-      <Dialog open={showNewGroup} onOpenChange={setShowNewGroup}>
+      <Dialog open={showNewGroup} onOpenChange={(open) => {
+        setShowNewGroup(open);
+        if (!open && onExternalGroupCreateClose) {
+          onExternalGroupCreateClose();
+        }
+      }}>
         <DialogContent className="w-[95vw] sm:w-[450px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-gray-200/20 dark:border-gray-800/20 shadow-2xl rounded-2xl">
           <div className="p-6 border-b border-gray-100 dark:border-gray-800">
             <DialogTitle className="flex items-center gap-3 text-lg font-semibold">

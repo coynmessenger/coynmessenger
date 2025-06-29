@@ -31,6 +31,7 @@ export default function MessengerPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGroupCreateOpen, setIsGroupCreateOpen] = useState(false);
   const [, setLocation] = useLocation();
 
   const { data: user } = useQuery<User>({
@@ -410,6 +411,8 @@ export default function MessengerPage() {
               <HamburgerMenu 
                 onOpenSettings={() => setIsSettingsOpen(true)}
                 onGroupCreated={(conversationId) => setSelectedConversation(conversationId)}
+                externalGroupCreate={isGroupCreateOpen}
+                onExternalGroupCreateClose={() => setIsGroupCreateOpen(false)}
               />
             </div>
           </div>
@@ -633,6 +636,17 @@ export default function MessengerPage() {
           style={{ touchAction: 'manipulation' }}
         />
       )}
+
+      {/* Mobile Group Creation FAB */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-40">
+        <Button
+          onClick={() => setIsGroupCreateOpen(true)}
+          className="h-14 w-14 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-white dark:border-gray-800"
+          title="Create New Group"
+        >
+          <Users className="h-6 w-6 text-white" />
+        </Button>
+      </div>
     </div>
   );
 }
