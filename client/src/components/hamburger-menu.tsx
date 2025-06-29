@@ -93,7 +93,8 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
 
     try {
       // Get current user ID from localStorage
-      const currentUserId = parseInt(localStorage.getItem('connectedUserId') || '5');
+      const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+      const currentUserId = connectedUser.id || 5;
       
       const response = await apiRequest("/api/groups", "POST", {
         groupName: groupName.trim(),
@@ -396,24 +397,23 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                   ) : (
                     filteredUsers.map((user) => {
                       const isSelected = selectedUsers.includes(user.id);
-                      console.log(`User ${user.displayName} (ID: ${user.id}) - Selected: ${isSelected}, SelectedUsers array:`, selectedUsers);
                       return (<div
                         key={user.id}
                         className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
-                        selectedUsers.includes(user.id)
+                        isSelected
                           ? "bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 shadow-md"
                           : "bg-white dark:bg-gray-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/10 border border-gray-200 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-800"
                       }`}
                       onClick={() => handleUserToggle(user.id)}
                     >
                       <Avatar className={`h-12 w-12 ring-2 transition-all duration-200 ${
-                        selectedUsers.includes(user.id)
+                        isSelected
                           ? "ring-orange-300 dark:ring-orange-600"
                           : "ring-gray-200 dark:ring-gray-700"
                       }`}>
                         <AvatarImage src={user.profilePicture || ""} />
                         <AvatarFallback className={`font-bold text-lg transition-all duration-200 ${
-                          selectedUsers.includes(user.id)
+                          isSelected
                             ? "bg-gradient-to-br from-orange-500 to-orange-600 text-white"
                             : "bg-gradient-to-br from-gray-400 to-gray-500 text-white"
                         }`}>
@@ -428,7 +428,7 @@ export default function HamburgerMenu({ onOpenSettings, onGroupCreated, external
                           @{user.username}
                         </div>
                       </div>
-                      {selectedUsers.includes(user.id) && (
+                      {isSelected && (
                         <div className="h-7 w-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0 shadow-lg">
                           <Check className="h-4 w-4 text-white" />
                         </div>
