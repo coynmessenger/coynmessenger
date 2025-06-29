@@ -197,7 +197,14 @@ export default function MessengerPage() {
                         {filteredConversations.map((conversation) => (
                           <div
                             key={conversation.id}
-                            onClick={() => setSelectedConversation(conversation.id)}
+                            onClick={() => {
+                              setSelectedConversation(conversation.id);
+                              // Clear search when switching conversations on mobile
+                              if (window.innerWidth < 768) {
+                                setSearchQuery("");
+                                setIsSearchOpen(false);
+                              }
+                            }}
                             className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
                           >
                             <div className="flex items-center space-x-3">
@@ -347,7 +354,13 @@ export default function MessengerPage() {
             <div className="flex items-center space-x-2">
               <button 
                 className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                onClick={() => {
+                  setIsSearchOpen(!isSearchOpen);
+                  // Clear search when closing search bar
+                  if (isSearchOpen) {
+                    setSearchQuery("");
+                  }
+                }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -383,7 +396,12 @@ export default function MessengerPage() {
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    // Remove any search highlighting
+                    const highlights = document.querySelectorAll('mark');
+                    highlights.forEach(mark => mark.replaceWith(mark.textContent || ''));
+                  }}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
