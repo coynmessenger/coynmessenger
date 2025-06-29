@@ -185,54 +185,7 @@ export default function MessengerPage() {
 
                 {/* Contact List First - Main Focus */}
                 <div className="flex-1 overflow-auto">
-                  {/* Available Contacts - Primary Display */}
-                  {availableContacts.length > 0 && (
-                    <div>
-                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
-                        <h3 className="text-xs font-medium text-muted-foreground">Start New Conversation</h3>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
-                          <div
-                            key={contact.id}
-                            onClick={() => handleContactClick(contact)}
-                            className="px-3 py-2.5 sm:px-4 sm:py-3 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                          >
-                            <div className="flex items-center space-x-2.5 sm:space-x-3">
-                              <div className="relative">
-                                <Avatar className="w-10 h-10 sm:w-12 sm:h-12">
-                                  <AvatarImage 
-                                    src={contact.username === 'jane' ? undefined : (contact.profilePicture || undefined)} 
-                                    alt={contact.displayName}
-                                    onError={(e) => {
-                                      console.log(`Avatar failed to load for ${contact.displayName}:`, contact.profilePicture);
-                                    }}
-                                  />
-                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                    <UserAvatarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400" />
-                                  </AvatarFallback>
-                                </Avatar>
-                                {contact.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-sm sm:text-base font-medium text-foreground truncate">
-                                  {contact.displayName}
-                                </h3>
-                                <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                  @{contact.username}
-                                </p>
-                              </div>
-                              {createConversationMutation.isPending && (
-                                <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* Existing Conversations - Secondary Display */}
                   {filteredConversations.length > 0 && (
@@ -455,51 +408,7 @@ export default function MessengerPage() {
             <div className="flex-1 flex flex-col bg-background">
               {/* Contact List and Conversations */}
               <div className="flex-1 overflow-auto">
-                {/* Available Contacts - Primary Display */}
-                {availableContacts.length > 0 && (
-                  <div className="mb-2">
-                    <div className="p-3 bg-muted/30 border-b border-border">
-                      <h3 className="text-sm font-medium text-muted-foreground">Start New Conversation</h3>
-                    </div>
-                    <div className="divide-y divide-border">
-                      {availableContacts.map((contact) => (
-                        <div
-                          key={contact.id}
-                          onClick={() => createConversationMutation.mutate(contact.id)}
-                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <Avatar className="w-12 h-12">
-                                <AvatarImage 
-                                  src={contact.profilePicture || undefined} 
-                                  alt={contact.displayName}
-                                />
-                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                  <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                </AvatarFallback>
-                              </Avatar>
-                              {contact.isOnline && (
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-foreground truncate">
-                                {contact.displayName}
-                              </h3>
-                              <p className="text-sm text-muted-foreground truncate">
-                                @{contact.username}
-                              </p>
-                            </div>
-                            {createConversationMutation.isPending && (
-                              <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Existing Conversations */}
                 {filteredConversations.length > 0 && (

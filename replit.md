@@ -402,6 +402,8 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 28, 2025: Added smooth entrance and exit animations for voice and video call modals - implemented modal-enter animation with scale and translateY effects for appearing (0.3s duration), modal-exit animation for disappearing (0.2s duration), automatic animation triggering on modal open/close, proper animation state management with React hooks, and seamless integration with existing dragging and call persistence functionality
 - June 29, 2025: Fixed Call button functionality in user profile modal - connected Call button to properly open voice call modal when pressed from profile popup
 - June 29, 2025: Implemented comprehensive delete contact functionality - added red "Delete Contact" button under Call/Video buttons in user profile modal, created DELETE API endpoint for conversations, implemented database methods for deleting conversations and messages, added proper error handling and toast notifications, fixed race condition bug where deleted contacts would briefly appear as unclickable in contact list
+- June 29, 2025: Removed "Start New Conversation" section completely from both mobile and desktop messenger interfaces for cleaner, streamlined contact management
+- June 29, 2025: Added confirmation dialog for delete contact functionality - clicking "Delete Contact" now shows a warning dialog with user name confirmation, explaining that conversation history will be permanently removed, includes Cancel and Delete Contact buttons with proper error handling
 
 ## User Preferences
 
