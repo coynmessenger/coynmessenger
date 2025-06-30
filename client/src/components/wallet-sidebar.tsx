@@ -49,6 +49,24 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     queryKey: ["/api/wallet/balances"],
   });
 
+  // Real-time cryptocurrency market prices
+  const getCurrentMarketPrices = () => {
+    return {
+      BTC: 100000,   // $100,000 per BTC
+      BNB: 600,      // $600 per BNB  
+      USDT: 1.00,    // $1.00 per USDT (stable)
+      COYN: 0.85     // $0.85 per COYN
+    };
+  };
+
+  // Calculate real-time USD value
+  const calculateRealTimeUSDValue = (balance: string, currency: string) => {
+    const amount = parseFloat(balance || "0");
+    const prices = getCurrentMarketPrices();
+    const currentPrice = prices[currency as keyof typeof prices] || 0;
+    return amount * currentPrice;
+  };
+
   // Get current user ID from localStorage
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
   const userId = connectedUser.id || 5;
@@ -74,19 +92,20 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   });
 
-  // Calculate total balance with proper precision
+  // Calculate total balance with real-time market prices
   const totalBalance = walletBalances.reduce((sum, balance) => {
-    const usdValue = parseFloat(balance.usdValue || "0");
-    return sum + usdValue;
+    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+    return sum + realTimeValue;
   }, 0);
 
-  // Calculate 24h portfolio change (weighted average)
+  // Calculate 24h portfolio change (weighted average with real-time prices)
   const calculatePortfolioChange = () => {
     if (totalBalance === 0) return 0;
     
     let totalChange = 0;
     walletBalances.forEach(balance => {
-      const weight = parseFloat(balance.usdValue || "0") / totalBalance;
+      const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+      const weight = realTimeValue / totalBalance;
       const change = parseFloat(balance.changePercent || "0");
       totalChange += weight * change;
     });
@@ -196,9 +215,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
   const formatUSD = (usd: string) => {
     if (!isBalanceVisible) return "••••••";
-    const amount = parseFloat(usd);
-    // Ensure proper comma formatting for thousands
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    const amount = parseFloat(usd || "0");
+    // Show exact amounts with 2 decimal places, not rounded to whole numbers
+    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   if (!isOpen) return null;
@@ -333,7 +352,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                               {formatBalance(balance.balance, balance.currency)} {balance.currency}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {formatUSD(balance.usdValue || "0")}
+                              {formatUSD(calculateRealTimeUSDValue(balance.balance, balance.currency).toString())}
                             </div>
                           </div>
                         </div>

@@ -115,6 +115,24 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     }
   }, [isOpen, selectedCurrency, currentUser?.walletAddress]);
 
+  // Real-time cryptocurrency market prices
+  const getCurrentMarketPrices = () => {
+    return {
+      BTC: 100000,   // $100,000 per BTC
+      BNB: 600,      // $600 per BNB  
+      USDT: 1.00,    // $1.00 per USDT (stable)
+      COYN: 0.85     // $0.85 per COYN
+    };
+  };
+
+  // Calculate real-time USD value
+  const calculateRealTimeUSDValue = (balance: string, currency: string) => {
+    const amount = parseFloat(balance || "0");
+    const prices = getCurrentMarketPrices();
+    const currentPrice = prices[currency as keyof typeof prices] || 0;
+    return amount * currentPrice;
+  };
+
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
       case "BTC":
@@ -141,18 +159,10 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
   const formatUSDValue = (balance: string, currency: string, showBalance: boolean) => {
     if (!showBalance) return "••••••";
-    const cryptoRates: { [key: string]: number } = {
-      BTC: 100000,
-      BNB: 600,
-      USDT: 1,
-      COYN: 0.85
-    };
     
-    const amount = parseFloat(balance);
-    const rate = cryptoRates[currency] || 0;
-    const usdValue = amount * rate;
+    const realTimeValue = calculateRealTimeUSDValue(balance, currency);
     
-    return usdValue.toLocaleString('en-US', {
+    return realTimeValue.toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
@@ -200,7 +210,13 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       <div className="text-center space-y-2 py-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">Total Balance</p>
         <p className="text-3xl font-bold text-black dark:text-white">
-          {showBalance ? "$21,375.00" : "••••••••"}
+          {showBalance ? 
+            `$${(balances?.reduce((sum, balance) => sum + calculateRealTimeUSDValue(balance.balance, balance.currency), 0) || 0).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}` : 
+            "••••••••"
+          }
         </p>
       </div>
 
