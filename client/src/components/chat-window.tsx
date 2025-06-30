@@ -1326,7 +1326,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </div>
                   </div>
                 </div>
-              ) : msg.senderId === 5 ? (
+              ) : msg.senderId === connectedUserId ? (
                   // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
@@ -1483,10 +1483,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         </div>
                         <div className="text-center space-y-3">
                           <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
-                            {msg.senderId === 5 ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
+                            {msg.senderId === connectedUserId ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 break-all px-2">
-                            To: {msg.senderId === 5 ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
+                            To: {msg.senderId === connectedUserId ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {formatTimestamp(msg.timestamp)}
@@ -1494,7 +1494,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         </div>
                       </CardContent>
                     </Card>
-                  {msg.senderId === 5 && (
+                  {msg.senderId === connectedUserId && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -1570,14 +1570,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "attachment" ? (
                 // File attachment message
-                <div className={`flex ${msg.senderId === 5 ? 'justify-end' : 'justify-start'} group mb-1`} data-message-id={msg.id}>
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-1`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
 
                     {/* Attachment bubble */}
                     <div 
                       className={`
                         rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
-                        ${msg.senderId === 5 
+                        ${msg.senderId === connectedUserId 
                           ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
                           : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
                         }
@@ -1660,7 +1660,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       )}
                       
                       {/* Timestamp */}
-                      <div className={`text-xs mt-2 ${msg.senderId === 5 ? 'text-white/70' : 'text-muted-foreground'}`}>
+                      <div className={`text-xs mt-2 ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`}>
                         {formatTimestamp(msg.timestamp)}
                       </div>
                     </div>
