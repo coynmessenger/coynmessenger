@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -434,14 +434,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
       return apiRequest("POST", "/api/wallet/send", cryptoData);
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
-      setCryptoAmount("");
-      setSelectedCrypto("");
-      setShowCryptoModal(false);
-      setCryptoStep("amount");
+    onSuccess: async (_, variables) => {
+      // Use startTransition to prevent blocking video call modal renders
+      startTransition(() => {
+        setCryptoAmount("");
+        setSelectedCrypto("");
+        setShowCryptoModal(false);
+        setCryptoStep("amount");
+      });
+      
+      // Defer query invalidations to prevent video call interference
+      setTimeout(() => {
+        startTransition(() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+        });
+      }, 150);
+      
       toast({
         title: "Crypto sent successfully",
         description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
