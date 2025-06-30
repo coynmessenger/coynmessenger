@@ -141,11 +141,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   }, [replyToMessage]);
 
-  // Message hover options state
-  const [hoveredMessage, setHoveredMessage] = useState<number | null>(null);
-  const [showMessageOptions, setShowMessageOptions] = useState<number | null>(null);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [hoverLeaveTimer, setHoverLeaveTimer] = useState<NodeJS.Timeout | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -175,34 +171,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, [swipeState.isDragging]);
 
-  // Close message options when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showMessageOptions && !(event.target as Element).closest('[data-message-options]')) {
-        setShowMessageOptions(null);
-      }
-    };
-
-    if (showMessageOptions) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMessageOptions]);
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-      }
-      if (hoverLeaveTimer) {
-        clearTimeout(hoverLeaveTimer);
-      }
-    };
-  }, [longPressTimer, hoverLeaveTimer]);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -726,121 +695,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Message hover and long press handlers
-  const handleMessageHover = (messageId: number) => {
-    // Only show hover on non-touch devices to avoid interference with mobile gestures
-    if (!('ontouchstart' in window)) {
-      // Clear any pending hide timer
-      if (hoverLeaveTimer) {
-        clearTimeout(hoverLeaveTimer);
-        setHoverLeaveTimer(null);
-      }
-      setHoveredMessage(messageId);
-    }
-  };
-
-  const handleMessageLeave = () => {
-    // Only handle mouse leave on non-touch devices
-    if (!('ontouchstart' in window)) {
-      // Add delay before hiding options to allow user to move to options menu
-      const timer = setTimeout(() => {
-        setHoveredMessage(null);
-      }, 300); // 300ms delay
-      setHoverLeaveTimer(timer);
-    }
-    
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  };
-
-  // Handler for when hovering over options menu itself
-  const handleOptionsHover = () => {
-    // Clear the hide timer when hovering over options
-    if (hoverLeaveTimer) {
-      clearTimeout(hoverLeaveTimer);
-      setHoverLeaveTimer(null);
-    }
-  };
-
-  const handleOptionsLeave = () => {
-    // Add small delay when leaving options menu too
-    const timer = setTimeout(() => {
-      setHoveredMessage(null);
-    }, 150); // Shorter delay for options menu
-    setHoverLeaveTimer(timer);
-  };
-
-  const handleLongPressStart = (messageId: number) => {
-    // For touch devices, show message options on long press
-    if ('ontouchstart' in window) {
-      const timer = setTimeout(() => {
-        setShowMessageOptions(messageId);
-        setHoveredMessage(messageId); // Also show hover state for mobile
-      }, 500); // Show options after 500ms long press
-      setLongPressTimer(timer);
-    }
-  };
-
-  const handleLongPressEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  };
-
-  // Mobile-friendly double-tap for quick reply
-  const [lastTap, setLastTap] = useState<{ messageId: number; time: number } | null>(null);
   
-  const handleMessageTap = (messageId: number, e: React.TouchEvent) => {
-    // Only for touch devices
-    if ('ontouchstart' in window) {
-      const now = Date.now();
-      
-      // Check for double-tap (within 300ms)
-      if (lastTap && lastTap.messageId === messageId && now - lastTap.time < 300) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Double-tap triggers quick reply
-        const message = messages.find(m => m.id === messageId);
-        if (message) {
-          const effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
-          let replyContent = "Message";
-          if (message.messageType === "text") {
-            replyContent = message.content || "Text message";
-          } else if (message.messageType === "crypto") {
-            replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
-          }
-          
-          setReplyToMessage({
-            id: message.id,
-            content: replyContent,
-            sender: effectiveName
-          });
-        }
-        setLastTap(null);
-        return;
-      }
-      
-      // Single tap - toggle options
-      setLastTap({ messageId, time: now });
-      
-      if (showMessageOptions === messageId) {
-        setShowMessageOptions(null);
-        setHoveredMessage(null);
-      } else {
-        setShowMessageOptions(messageId);
-        setHoveredMessage(messageId);
-        
-        // Auto-hide after 4 seconds
-        setTimeout(() => {
-          setShowMessageOptions(null);
-          setHoveredMessage(null);
-        }, 4000);
-      }
-    }
-  };
+
+  
 
   const handleImagePreview = (imageUrl: string, imageName?: string, imageSize?: number) => {
     setPreviewImage({ url: imageUrl, name: imageName, size: imageSize });
@@ -1447,68 +1304,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   // Sent message (current user) - with swipe-to-reply
                   <div className="flex justify-end mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
-
-                      {/* Message Options Menu */}
-                      {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div 
-                          data-message-options 
-                          className="absolute -top-12 right-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-2 flex items-center space-x-1 z-50"
-                          style={{ 
-                            pointerEvents: 'auto'
-                          }}
-                          onMouseEnter={handleOptionsHover}
-                          onMouseLeave={handleOptionsLeave}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyMessage(msg);
-                            }}
-                            title="Copy"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStarMessage(msg);
-                            }}
-                            title={msg.isStarred ? "Unstar" : "Star"}
-                          >
-                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleForwardMessage(msg);
-                            }}
-                            title="Forward"
-                          >
-                            <Forward className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteMessageMutation.mutate(msg.id);
-                            }}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
                       
                       {/* Swipeable message */}
                       <div 
@@ -1519,30 +1314,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                         onTouchStart={(e) => {
                           handleSwipeStart(e, msg.id);
-                          handleLongPressStart(msg.id);
                         }}
                         onTouchMove={handleSwipeMove}
                         onTouchEnd={() => {
                           handleSwipeEnd();
-                          handleLongPressEnd();
                         }}
                         onMouseDown={(e) => {
-                          // Only start swipe if not clicking on options menu
-                          if (!(e.target as Element).closest('[data-message-options]')) {
-                            handleSwipeStart(e, msg.id);
-                          }
+                          handleSwipeStart(e, msg.id);
                         }}
                         onMouseUp={() => {
                           if (swipeState.isDragging) {
                             handleSwipeEnd();
                           }
-                        }}
-                        onMouseEnter={() => handleMessageHover(msg.id)}
-                        onMouseLeave={() => {
-                          if (swipeState.isDragging) {
-                            handleSwipeEnd();
-                          }
-                          handleMessageLeave();
                         }}
                       >
                         <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
@@ -1607,69 +1390,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="relative max-w-xs lg:max-w-md">
-                      
-                      {/* Message Options Menu */}
-                      {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                        <div 
-                          data-message-options 
-                          className="absolute -top-12 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-2 flex items-center space-x-1 z-50"
-                          style={{ 
-                            pointerEvents: 'auto'
-                          }}
-                          onMouseEnter={handleOptionsHover}
-                          onMouseLeave={handleOptionsLeave}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyMessage(msg);
-                            }}
-                            title="Copy"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStarMessage(msg);
-                            }}
-                            title={msg.isStarred ? "Unstar" : "Star"}
-                          >
-                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleForwardMessage(msg);
-                            }}
-                            title="Forward"
-                          >
-                            <Forward className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteMessageMutation.mutate(msg.id);
-                            }}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-
-                        </div>
-                      )}
 
                       {/* Swipeable message */}
                       <div 
@@ -1680,30 +1400,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                         onTouchStart={(e) => {
                           handleSwipeStart(e, msg.id);
-                          handleLongPressStart(msg.id);
                         }}
                         onTouchMove={handleSwipeMove}
                         onTouchEnd={() => {
                           handleSwipeEnd();
-                          handleLongPressEnd();
                         }}
                         onMouseDown={(e) => {
-                          // Only start swipe if not clicking on options menu
-                          if (!(e.target as Element).closest('[data-message-options]')) {
-                            handleSwipeStart(e, msg.id);
-                          }
+                          handleSwipeStart(e, msg.id);
                         }}
                         onMouseUp={() => {
                           if (swipeState.isDragging) {
                             handleSwipeEnd();
                           }
-                        }}
-                        onMouseEnter={() => handleMessageHover(msg.id)}
-                        onMouseLeave={() => {
-                          if (swipeState.isDragging) {
-                            handleSwipeEnd();
-                          }
-                          handleMessageLeave();
                         }}
                       >
                         <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
@@ -1782,68 +1490,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 // Product sharing message
                 <div className="flex justify-center group mb-1" data-message-id={msg.id}>
                   <div className="relative">
-                    
-                    {/* Message Options Menu */}
-                    {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                      <div 
-                        data-message-options 
-                        className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-2 flex items-center space-x-1 z-50"
-                        style={{ 
-                          pointerEvents: 'auto'
-                        }}
-                        onMouseEnter={handleOptionsHover}
-                        onMouseLeave={handleOptionsLeave}
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopyMessage(msg);
-                          }}
-                          title="Copy"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStarMessage(msg);
-                          }}
-                          title={msg.isStarred ? "Unstar" : "Star"}
-                        >
-                          <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleForwardMessage(msg);
-                          }}
-                          title="Forward"
-                        >
-                          <Forward className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteMessageMutation.mutate(msg.id);
-                          }}
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
 
                     <Card className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
                       onClick={() => {
@@ -1851,8 +1497,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           setLocation(`/product/${msg.productId}`);
                         }
                       }}
-                      onMouseEnter={() => handleMessageHover(msg.id)}
-                      onMouseLeave={() => handleMessageLeave()}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-center space-x-2 mb-3">
@@ -1896,68 +1540,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 // File attachment message
                 <div className={`flex ${msg.senderId === 5 ? 'justify-end' : 'justify-start'} group mb-1`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
-                    
-                    {/* Message Options Menu */}
-                    {(hoveredMessage === msg.id || showMessageOptions === msg.id) && (
-                      <div 
-                        data-message-options 
-                        className={`absolute -top-12 ${msg.senderId === 5 ? 'right-0' : 'left-0'} bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-2 flex items-center space-x-1 z-50`}
-                        style={{ 
-                          pointerEvents: 'auto'
-                        }}
-                        onMouseEnter={handleOptionsHover}
-                        onMouseLeave={handleOptionsLeave}
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopyMessage(msg);
-                          }}
-                          title="Copy"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStarMessage(msg);
-                          }}
-                          title={msg.isStarred ? "Unstar" : "Star"}
-                        >
-                          <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-current text-yellow-500' : ''}`} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-slate-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleForwardMessage(msg);
-                          }}
-                          title="Forward"
-                        >
-                          <Forward className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteMessageMutation.mutate(msg.id);
-                          }}
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
 
                     {/* Attachment bubble */}
                     <div 
@@ -1968,8 +1550,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
                         }
                       `}
-                      onMouseEnter={() => handleMessageHover(msg.id)}
-                      onMouseLeave={handleMessageLeave}
                     >
                       {/* Image Preview */}
                       {msg.attachmentType === 'image' && msg.attachmentUrl && (
