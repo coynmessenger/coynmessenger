@@ -261,7 +261,7 @@ export default function MessengerPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
                                   <h3 className="font-medium text-foreground truncate">
-                                    {conversation.isGroup ? conversation.groupName : (conversation.otherUser?.displayName || conversation.otherUser?.username || 'Contact')}
+                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
                                   </h3>
                                   {conversation.lastMessage && conversation.lastMessage.timestamp && (
                                     <span className="text-xs text-muted-foreground">
@@ -502,7 +502,7 @@ export default function MessengerPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <h3 className="font-medium text-foreground truncate">
-                                  {conversation.isGroup ? conversation.groupName : (conversation.otherUser?.displayName || conversation.otherUser?.username || 'Contact')}
+                                  {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
                                 </h3>
                                 {conversation.lastMessage && conversation.lastMessage.timestamp && (
                                   <span className="text-xs text-muted-foreground">

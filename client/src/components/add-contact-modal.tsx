@@ -24,14 +24,9 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
         walletAddress
       });
     },
-    onSuccess: async (newUser: User) => {
-      // Invalidate all relevant queries to refresh the UI
-      await queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      
-      // Refetch conversations immediately to ensure new contact appears
-      await queryClient.refetchQueries({ queryKey: ["/api/conversations"] });
-      
+    onSuccess: (newUser: User) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setWalletAddress("");
       onClose();
     },

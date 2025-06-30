@@ -461,7 +461,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       
       toast({
         title: "Crypto sent successfully",
-        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser?.displayName || 'Contact'}`,
+        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser.displayName}`,
       });
     },
     onError: () => {
@@ -1154,7 +1154,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </Avatar>
             <div className="text-left">
               <h2 className="font-semibold text-foreground">
-                {conversation.isGroup ? conversation.groupName : (conversation.otherUser?.displayName || conversation.otherUser?.username || 'Contact')}
+                {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
               </h2>
               {conversation.isGroup ? (
                 <p className="text-xs text-muted-foreground">Group conversation</p>
@@ -2181,7 +2181,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center">
                     <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm sm:text-base font-semibold text-black dark:text-white bg-white/60 dark:bg-slate-900/60 px-2 sm:px-3 py-1 rounded-lg">
-                      {conversation.otherUser?.displayName || conversation.otherUser?.username || 'Contact'}
+                      {conversation.otherUser.displayName}
                     </span>
                   </div>
                 </div>
@@ -2217,7 +2217,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm font-semibold text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {conversation.otherUser?.displayName || conversation.otherUser?.username || 'Contact'}
+                      {conversation.otherUser.displayName}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
