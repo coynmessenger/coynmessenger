@@ -17,7 +17,7 @@ import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
-import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 
 export default function MessengerPage() {
   useScrollToTop(); // Clean contact list

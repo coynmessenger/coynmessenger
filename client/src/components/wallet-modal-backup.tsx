@@ -14,7 +14,7 @@ import type { WalletBalance, User } from "@shared/schema";
 import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Shield, Clock, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import QRCode from "qrcode";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import { apiRequest } from "@/lib/queryClient";
 
 interface WalletModalProps {

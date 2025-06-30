@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { SiBitcoin, SiBinance } from "react-icons/si";
-import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 
 interface Purchase {
   id: number;

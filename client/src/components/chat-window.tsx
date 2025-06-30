@@ -23,7 +23,7 @@ import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Tra
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
-import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import { formatDistanceToNow } from "date-fns";
 
 // Utility function to get effective display name (mirrors backend logic)

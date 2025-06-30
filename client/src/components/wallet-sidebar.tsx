@@ -25,7 +25,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 
 interface WalletSidebarProps {
   isOpen: boolean;

@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Home, Search, Filter, Star, Coins, ShoppingCart, Zap, TrendingUp, Package, Users, CreditCard, ArrowRight, X, Settings, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Heart, Wallet, ChevronDown, Info, FileText } from "lucide-react";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import SettingsModal from "@/components/settings-modal";
 import { addToCart, getCartCount } from "@/components/shopping-cart";
 import ShoppingCartComponent from "@/components/shopping-cart";

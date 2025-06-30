@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
 
 interface Product {
