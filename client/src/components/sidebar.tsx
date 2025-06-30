@@ -147,9 +147,9 @@ export default function Sidebar({
 
   // Get available contacts (users not in current conversations and not current user)
   const availableContacts = allUsers.filter(contact => {
-    if (!user?.id || contact.id === user.id) return false;
+    if (!user?.id || !contact?.id || contact.id === user.id) return false;
     const hasConversation = conversations.some(conv => 
-      conv.otherUser.id === contact.id
+      conv?.otherUser?.id === contact.id
     );
     return !hasConversation;
   });
