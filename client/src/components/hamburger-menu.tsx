@@ -23,12 +23,12 @@ interface StarredMessage extends Message {
 
 // Utility function to get effective display name (mirrors backend logic)
 function getEffectiveDisplayName(user: User): string {
-  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
-  if (user.signInName) {
-    return user.signInName;
-  }
+  // Priority: 1. Profile display name (from settings), 2. Sign-in name, 3. @id format
   if (user.displayName && !user.displayName.startsWith('@')) {
     return user.displayName;
+  }
+  if (user.signInName) {
+    return user.signInName;
   }
   // Fallback to @id format using last 6 characters of wallet address
   if (user.walletAddress) {
