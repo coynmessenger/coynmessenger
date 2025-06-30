@@ -25,6 +25,7 @@ export interface IStorage {
   findConversation(user1Id: number, user2Id: number): Promise<Conversation | undefined>;
   getUserConversations(userId: number): Promise<(Conversation & { otherUser: User; lastMessage?: Message })[]>;
   createConversation(user1Id: number, user2Id: number): Promise<Conversation>;
+  getConversationBetweenUsers(user1Id: number, user2Id: number): Promise<Conversation | null>;
   deleteConversation(conversationId: number, userId: number): Promise<boolean>;
   deleteMessagesByConversation(conversationId: number): Promise<boolean>;
   
@@ -218,6 +219,20 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return conversation;
+  }
+
+  async getConversationBetweenUsers(user1Id: number, user2Id: number): Promise<Conversation | null> {
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          and(eq(conversations.participant1Id, user1Id), eq(conversations.participant2Id, user2Id)),
+          and(eq(conversations.participant1Id, user2Id), eq(conversations.participant2Id, user1Id))
+        )
+      )
+      .limit(1);
+    return conversation || null;
   }
 
   async deleteConversation(conversationId: number, userId: number): Promise<boolean> {

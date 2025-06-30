@@ -177,8 +177,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Get current user from localStorage or hardcoded for demo  
+      const currentUserId = 25; // Current user (Jen/Splinter Cell)
+
       // Check if user already exists
       const existingUser = await storage.getUserByWalletAddress(walletAddress);
+      let contactUser: User;
+      
       if (existingUser) {
         // If user exists, ensure they're set up for contact list
         if (!existingUser.isSetup) {
@@ -187,41 +192,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           console.log("Updated existing user for contact list:", updatedUser);
           
-          // Initialize wallet balances if not already done
-          await storage.initializeWalletBalances(updatedUser!.id);
-          
-          const userWithEffectiveName = {
-            ...updatedUser,
-            displayName: getEffectiveDisplayName(updatedUser!)
-          };
-          return res.json(userWithEffectiveName);
+          if (updatedUser) {
+            // Initialize wallet balances if not already done
+            await storage.initializeWalletBalances(updatedUser.id);
+            contactUser = updatedUser;
+          } else {
+            throw new Error("Failed to update user");
+          }
+        } else {
+          contactUser = existingUser;
         }
-        
-        // Return existing user
-        const userWithEffectiveName = {
-          ...existingUser,
-          displayName: getEffectiveDisplayName(existingUser)
-        };
-        return res.json(userWithEffectiveName);
+      } else {
+        // Create new user for contact list
+        const username = `0x${walletAddress.slice(-6)}`; // Use last 6 chars for username
+        contactUser = await storage.createUser({
+          username,
+          displayName: `@${walletAddress.slice(-6)}`, // Use wallet ID as default
+          walletAddress,
+          isSetup: true, // Mark as setup so they appear in contact list
+          isOnline: false
+        });
+
+        // Initialize wallet balances for new user
+        await storage.initializeWalletBalances(contactUser.id);
+        console.log("Created new contact with wallet balances:", contactUser);
       }
 
-      // Create new user for contact list
-      const username = `0x${walletAddress.slice(-6)}`; // Use last 6 chars for username
-      const newUser = await storage.createUser({
-        username,
-        displayName: `@${walletAddress.slice(-6)}`, // Use wallet ID as default
-        walletAddress,
-        isSetup: true, // Mark as setup so they appear in contact list
-        isOnline: false
-      });
-
-      // Initialize wallet balances for new user
-      await storage.initializeWalletBalances(newUser.id);
-      console.log("Created new contact with wallet balances:", newUser);
+      // Check if conversation already exists between current user and contact
+      const existingConversation = await storage.getConversationBetweenUsers(currentUserId, contactUser.id);
+      
+      if (!existingConversation) {
+        // Create conversation between current user and new contact
+        const newConversation = await storage.createConversation(currentUserId, contactUser.id);
+        console.log("Created conversation for new contact:", newConversation);
+        
+        // Add a welcome message to the conversation
+        await storage.createMessage({
+          conversationId: newConversation.id,
+          senderId: currentUserId,
+          content: `Hi! I've added you as a contact on COYN Messenger.`,
+          messageType: "text"
+        });
+      }
       
       const userWithEffectiveName = {
-        ...newUser,
-        displayName: getEffectiveDisplayName(newUser)
+        ...contactUser,
+        displayName: getEffectiveDisplayName(contactUser)
       };
       
       return res.json(userWithEffectiveName);
