@@ -435,7 +435,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-border">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-foreground flex items-center">
             <UserIcon className="h-5 w-5 mr-2" />
@@ -443,10 +443,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Profile Settings */}
           <Card className="bg-card border-border shadow-sm">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2" />
                 {showShipping ? "Profile & Shipping Information" : "Profile Information"}
@@ -458,7 +458,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
               {/* Profile Picture Section */}
               <div className="flex items-center space-x-4">
                 <div className="relative">
@@ -683,7 +683,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
           {/* Appearance Settings */}
           <Card className="bg-card border-border">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
               <CardTitle className="text-foreground flex items-center">
                 <Palette className="h-4 w-4 mr-2" />
                 Appearance
@@ -692,7 +692,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 Customize how the app looks and feels
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="text-foreground">Theme</Label>
@@ -728,7 +728,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
           {/* Notifications Settings */}
           <Card className="bg-card border-border shadow-sm">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Bell className="h-4 w-4 mr-2" />
                 Notifications
@@ -737,7 +737,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 Control how you receive notifications
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="text-foreground">Push Notifications</Label>
@@ -764,7 +764,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
           {/* Privacy & Security */}
           <Card className="bg-slate-700/50 border-slate-600">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Shield className="h-4 w-4 mr-2" />
                 Privacy & Security
@@ -773,7 +773,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 Manage your privacy and security preferences
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="text-foreground">Auto-connect Wallet</Label>
@@ -799,13 +799,13 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
 
           {/* About */}
           <Card className="bg-slate-700/50 border-slate-600">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Info className="h-4 w-4 mr-2" />
                 About
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 p-4 sm:p-6">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Version</span>
                 <span className="text-foreground">1.0.0</span>
@@ -822,7 +822,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
           </Card>
         </div>
 
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-3 sm:pt-4">
           <Button onClick={onClose} variant="outline" className="border-border text-foreground">
             Close
           </Button>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -213,11 +213,11 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch user data for address pre-population - Get connected user from localStorage with useMemo for stability
-  const connectedUser = useMemo(() => {
+  // Get connected user from localStorage with useState for stability
+  const [connectedUser, setConnectedUser] = useState(() => {
     const connectedUserString = localStorage.getItem('connectedUser');
     return connectedUserString ? JSON.parse(connectedUserString) : null;
-  }, []); // Empty dependency array since localStorage won't change during component lifecycle
+  });
   
   const { data: user } = useQuery({
     queryKey: ['/api/user', connectedUser?.id],
@@ -254,6 +254,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
       const updatedUserString = localStorage.getItem('connectedUser');
       if (updatedUserString) {
         const updatedUser = JSON.parse(updatedUserString);
+        setConnectedUser(updatedUser);
         queryClient.invalidateQueries({ queryKey: ['/api/user', updatedUser.id] });
       }
     };
