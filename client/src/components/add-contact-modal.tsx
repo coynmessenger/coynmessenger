@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/lib/queryClient";
-import { UserPlus, Wallet } from "lucide-react";
+import { UserPlus, Wallet, CheckCircle, AlertCircle } from "lucide-react";
+import { ethers } from "ethers";
 import type { User } from "@shared/schema";
 
 interface AddContactModalProps {
@@ -32,15 +33,30 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     },
   });
 
-  // Validate wallet address format
-  const validateWalletAddress = (address: string): boolean => {
-    // Must be 42 characters (0x + 40 hex characters)
-    if (address.length !== 42 || !address.startsWith('0x')) {
-      return false;
+  // Enhanced wallet address validation using ethers.js
+  const validateWalletAddress = (address: string): { isValid: boolean; error?: string } => {
+    try {
+      // Use ethers.js for comprehensive validation
+      if (!address || !address.trim()) {
+        return { isValid: false, error: "Wallet address is required" };
+      }
+      
+      // Check if it's a valid address format
+      const isValid = ethers.isAddress(address.trim());
+      
+      if (!isValid) {
+        return { isValid: false, error: "Please enter a valid wallet address (42 characters starting with 0x)" };
+      }
+      
+      // Additional check for null address
+      if (address.trim().toLowerCase() === "0x0000000000000000000000000000000000000000") {
+        return { isValid: false, error: "Null address is not allowed" };
+      }
+      
+      return { isValid: true };
+    } catch (error) {
+      return { isValid: false, error: "Invalid wallet address format" };
     }
-    // Check if the remaining 40 characters are valid hex
-    const hexPart = address.slice(2);
-    return /^[0-9a-fA-F]{40}$/.test(hexPart);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,8 +69,11 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     }
     
     // Validate if user has entered something
-    if (value.trim() && !validateWalletAddress(value.trim())) {
-      setValidationError("Please enter a valid wallet address (42 characters starting with 0x)");
+    if (value.trim()) {
+      const validation = validateWalletAddress(value.trim());
+      if (!validation.isValid) {
+        setValidationError(validation.error || "Invalid wallet address");
+      }
     }
   };
 
@@ -62,13 +81,9 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     e.preventDefault();
     const trimmedAddress = walletAddress.trim();
     
-    if (!trimmedAddress) {
-      setValidationError("Wallet address is required");
-      return;
-    }
-    
-    if (!validateWalletAddress(trimmedAddress)) {
-      setValidationError("Please enter a valid wallet address (42 characters starting with 0x)");
+    const validation = validateWalletAddress(trimmedAddress);
+    if (!validation.isValid) {
+      setValidationError(validation.error || "Invalid wallet address");
       return;
     }
     
@@ -98,11 +113,21 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
                 placeholder="0x1234567890abcdef1234567890abcdef12345678"
                 value={walletAddress}
                 onChange={handleInputChange}
-                className={`pl-10 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500 ${
-                  validationError ? 'border-red-500 dark:border-red-400' : ''
+                className={`pl-10 pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500 ${
+                  validationError ? 'border-red-500 dark:border-red-400' : walletAddress.trim() && validateWalletAddress(walletAddress.trim()).isValid ? 'border-green-500 dark:border-green-400' : ''
                 }`}
                 required
               />
+              {/* Real-time validation status icon */}
+              {walletAddress.trim() && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {validateWalletAddress(walletAddress.trim()).isValid ? (
+                    <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                  )}
+                </div>
+              )}
             </div>
             {validationError && (
               <p className="text-sm text-red-600 dark:text-red-400 mt-1">

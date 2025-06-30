@@ -189,18 +189,20 @@ export default function MessengerPage() {
 
         {/* Desktop Main Content */}
         <div className="flex flex-1">
-          <Sidebar
-            user={user}
-            conversations={searchQuery ? filteredConversations : conversations}
-            selectedConversation={selectedConversation}
-            onSelectConversation={setSelectedConversation}
-            isOpen={false}
-            onClose={() => {}}
-            onOpenWallet={handleOpenWallet}
-            onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
+          {user && (
+            <Sidebar
+              user={user}
+              conversations={searchQuery ? filteredConversations : conversations}
+              selectedConversation={selectedConversation}
+              onSelectConversation={setSelectedConversation}
+              isOpen={false}
+              onClose={() => {}}
+              onOpenWallet={handleOpenWallet}
+              onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          )}
 
           <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
