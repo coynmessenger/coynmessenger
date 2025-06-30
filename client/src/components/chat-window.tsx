@@ -185,7 +185,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Delete contact mutation
   const deleteContactMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return apiRequest("DELETE", `/api/conversations/${conversation.id}`);
+      return apiRequest("DELETE", `/api/conversations/${conversation.id}`, {
+        userId: connectedUserId
+      });
     },
     onSuccess: () => {
       toast({
