@@ -249,7 +249,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get conversations for current user
   app.get("/api/conversations", async (req, res) => {
     try {
-      const userId = 5; // Current user
+      // Get user ID from query parameter
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {

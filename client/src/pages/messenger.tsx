@@ -33,12 +33,43 @@ export default function MessengerPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
 
+  // Get connected user ID from localStorage
+  const getConnectedUserId = () => {
+    const storedUser = localStorage.getItem('connectedUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.id;
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
+    }
+    return 5; // Fallback to default user
+  };
+
+  const connectedUserId = getConnectedUserId();
+
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user", connectedUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.json();
+    },
   });
 
   const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
-    queryKey: ["/api/conversations"],
+    queryKey: ["/api/conversations", connectedUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch conversations');
+      }
+      return response.json();
+    },
+    enabled: !!connectedUserId,
   });
 
   const { data: allUsers = [] } = useQuery<User[]>({
