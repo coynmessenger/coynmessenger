@@ -80,15 +80,7 @@ export default function FavoritesPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const handleCartUpdate = () => {
-      // Just invalidate queries when cart is updated - don't force cart dialog open
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
-    };
-
-    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
-    return () => window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
-  }, [queryClient]);
+  // Remove the cart update effect that was causing infinite loop
 
   const addToCart = (favorite: Favorite) => {
     const cartItem = {

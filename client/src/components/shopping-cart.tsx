@@ -292,7 +292,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate);
     };
-  }, [isOpen, connectedUser, queryClient]); // Re-load when modal opens
+  }, [isOpen]); // Re-load when modal opens
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
