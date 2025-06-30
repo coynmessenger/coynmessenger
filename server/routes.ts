@@ -481,15 +481,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid conversation ID" });
       }
 
-      // Delete all messages in the conversation first
-      await storage.deleteMessagesByConversation(conversationId);
+      // Get the conversation details to find the other user
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      // Determine which user is the contact to be deleted
+      let contactUserId: number;
+      if (conversation.participant1Id === currentUserId && conversation.participant2Id !== null) {
+        contactUserId = conversation.participant2Id!;
+      } else if (conversation.participant2Id === currentUserId && conversation.participant1Id !== null) {
+        contactUserId = conversation.participant1Id!;
+      } else {
+        return res.status(403).json({ message: "You are not part of this conversation" });
+      }
+
+      // Delete the contact user and all their associated data
+      const success = await storage.deleteUserAndAllData(contactUserId);
       
-      // Then delete the conversation
-      await storage.deleteConversation(conversationId, currentUserId);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete contact" });
+      }
       
-      res.json({ message: "Contact deleted successfully" });
+      res.json({ message: "Contact and all associated data deleted successfully" });
     } catch (error) {
-      console.error('Delete conversation error:', error);
+      console.error('Delete contact error:', error);
       res.status(500).json({ message: "Failed to delete contact" });
     }
   });

@@ -268,6 +268,60 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async deleteUserAndAllData(userId: number): Promise<boolean> {
+    try {
+      // Delete all conversations where this user is a participant
+      await db
+        .delete(conversations)
+        .where(
+          or(
+            eq(conversations.participant1Id, userId),
+            eq(conversations.participant2Id, userId)
+          )
+        );
+
+      // Delete all messages sent by this user
+      await db
+        .delete(messages)
+        .where(eq(messages.senderId, userId));
+
+      // Delete wallet balances
+      await db
+        .delete(walletBalances)
+        .where(eq(walletBalances.userId, userId));
+
+      // Delete favorites
+      await db
+        .delete(favorites)
+        .where(eq(favorites.userId, userId));
+
+      // Delete purchases
+      await db
+        .delete(purchases)
+        .where(eq(purchases.userId, userId));
+
+      // Delete NFT rewards
+      await db
+        .delete(nftRewards)
+        .where(eq(nftRewards.userId, userId));
+
+      // Delete group memberships
+      await db
+        .delete(groupMembers)
+        .where(eq(groupMembers.userId, userId));
+
+      // Finally, delete the user record
+      await db
+        .delete(users)
+        .where(eq(users.id, userId));
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting user and all data:', error);
+      return false;
+    }
+  }
+
   async deleteMessagesByConversation(conversationId: number): Promise<boolean> {
     try {
       await db
