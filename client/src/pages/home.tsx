@@ -233,17 +233,12 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Enhanced MetaMask Logo */}
-                        <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-                          <svg viewBox="0 0 318.6 318.6" className="w-6 h-6 text-white fill-current">
-                            <path d="M274.1,35.5L174.6,109.4l18.4-43.7L274.1,35.5z" fill="#E2761B"/>
-                            <path d="M44.4,35.5l98.7,74.6l-17.5-44.3L44.4,35.5z" fill="#E4761B"/>
-                            <path d="M238.3,206.8l-26.5,40.6l56.7,15.6l16.3-55.3L238.3,206.8z" fill="#E4761B"/>
-                            <path d="M33.9,207.7l16.2,55.3l56.7-15.6l-26.5-40.6L33.9,207.7z" fill="#E4761B"/>
-                            <path d="M103.6,138.2l-15.8,23.9l56.3,2.5l-2-60.5L103.6,138.2z" fill="#E4761B"/>
-                            <path d="M214.9,138.2l-38.2-36.3l-1.3,61.2l56.3-2.5L214.9,138.2z" fill="#E4761B"/>
-                          </svg>
-                        </div>
+                        {/* Real MetaMask Logo */}
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" 
+                          alt="MetaMask" 
+                          className="w-8 h-8 object-contain"
+                        />
                       </div>
                       <span className="text-sm font-semibold">MetaMask</span>
                     </Button>
@@ -256,12 +251,12 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Enhanced WalletConnect Logo */}
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
-                          <svg viewBox="0 0 300 185" className="w-6 h-4 text-white fill-current">
-                            <path d="M61.438 36.438c48.938-47.888 128.188-47.888 177.125 0l5.875 5.75c2.438 2.4 2.438 6.275 0 8.688l-20.125 19.688c-1.225 1.2-3.2 1.2-4.425 0l-8.1-7.925c-34.125-33.425-89.438-33.425-123.563 0l-8.675 8.488c-1.225 1.2-3.2 1.2-4.425 0L54.938 50.876c-2.438-2.413-2.438-6.288 0-8.688l6.5-5.75zm218.5 40.713l17.9 17.525c2.438 2.4 2.438 6.275 0 8.688L223.763 175.9c-2.437 2.4-6.387 2.4-8.825 0l-73.1-71.525c-.612-.6-1.6-.6-2.212 0l-73.1 71.525c-2.438 2.4-6.388 2.4-8.825 0L-15.375 102.364c-2.438-2.413-2.438-6.288 0-8.688l17.9-17.525c2.437-2.4 6.387-2.4 8.825 0l73.1 71.513c.612.6 1.6.6 2.212 0l73.1-71.513c2.438-2.4 6.388-2.4 8.825 0l73.1 71.513c.613.6 1.6.6 2.213 0l73.1-71.513c2.437-2.4 6.387-2.4 8.825 0z"/>
-                          </svg>
-                        </div>
+                        {/* Real WalletConnect Logo */}
+                        <img 
+                          src="https://cryptologos.cc/logos/walletconnect-wct-logo.svg" 
+                          alt="WalletConnect" 
+                          className="w-8 h-8 object-contain"
+                        />
                       </div>
                       <span className="text-sm font-semibold">WalletConnect</span>
                     </Button>
@@ -274,13 +269,12 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Enhanced Trust Wallet Logo */}
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center shadow-lg">
-                          <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-current">
-                            <path d="M12 2L2 7v3c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-                            <path d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" fill="white"/>
-                          </svg>
-                        </div>
+                        {/* Real Trust Wallet Logo */}
+                        <img 
+                          src="https://cryptologos.cc/logos/trust-wallet-token-twt-logo.svg" 
+                          alt="Trust Wallet" 
+                          className="w-8 h-8 object-contain"
+                        />
                       </div>
                       <span className="text-sm font-semibold">Trust Wallet</span>
                     </Button>
@@ -293,12 +287,12 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Enhanced Coinbase Logo */}
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
-                          <div className="w-4 h-4 bg-white rounded flex items-center justify-center">
-                            <span className="text-blue-600 font-bold text-xs">C</span>
-                          </div>
-                        </div>
+                        {/* Real Coinbase Logo */}
+                        <img 
+                          src="https://cryptologos.cc/logos/coinbase-coin-logo.svg" 
+                          alt="Coinbase" 
+                          className="w-8 h-8 object-contain"
+                        />
                       </div>
                       <span className="text-sm font-semibold">Coinbase</span>
                     </Button>
