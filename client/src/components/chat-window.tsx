@@ -1241,7 +1241,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowVoiceCall(true)}
+                onClick={() => {
+                  console.log('ChatWindow: Voice call button clicked');
+                  setShowVoiceCall(true);
+                }}
                 className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVoiceCallActive 
                     ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
@@ -1254,7 +1257,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowVideoCall(true)}
+                onClick={() => {
+                  console.log('ChatWindow: Video call button clicked');
+                  setShowVideoCall(true);
+                }}
                 className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVideoCallActive 
                     ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
@@ -2285,17 +2291,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         isOpen={showVoiceCall}
         onClose={() => setShowVoiceCall(false)}
         onHide={() => setShowVoiceCall(false)}
-        onCallStart={() => setIsVoiceCallActive(true)}
-        onCallEnd={() => setIsVoiceCallActive(false)}
+        onCallStart={() => {
+          console.log('ChatWindow: Voice call started');
+          setIsVoiceCallActive(true);
+        }}
+        onCallEnd={() => {
+          console.log('ChatWindow: Voice call ended');
+          setIsVoiceCallActive(false);
+        }}
         user={conversation.otherUser}
         isCallActive={isVoiceCallActive}
         onSwitchToVideo={() => {
+          console.log('ChatWindow: Switching from voice to video call');
           // End voice call properly
           setIsVoiceCallActive(false);
           setShowVoiceCall(false);
+          console.log('ChatWindow: Voice call ended, starting video call');
           // Start video call immediately with active state
           setIsVideoCallActive(true);
           setShowVideoCall(true);
+          console.log('ChatWindow: Video call started with isCallActive=true');
         }}
       />
 
@@ -2304,8 +2319,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         isOpen={showVideoCall}
         onClose={() => setShowVideoCall(false)}
         onHide={() => setShowVideoCall(false)}
-        onCallStart={() => setIsVideoCallActive(true)}
-        onCallEnd={() => setIsVideoCallActive(false)}
+        onCallStart={() => {
+          console.log('ChatWindow: Video call started');
+          setIsVideoCallActive(true);
+        }}
+        onCallEnd={() => {
+          console.log('ChatWindow: Video call ended');
+          setIsVideoCallActive(false);
+        }}
         user={conversation.otherUser}
         isCallActive={isVideoCallActive}
       />
