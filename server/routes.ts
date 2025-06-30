@@ -498,14 +498,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You are not part of this conversation" });
       }
 
-      // Delete the contact user and all their associated data
-      const success = await storage.deleteUserAndAllData(contactUserId);
+      // Delete the conversation and messages between these users only
+      await storage.deleteMessagesByConversation(conversationId);
+      const success = await storage.deleteConversation(conversationId, currentUserId);
       
       if (!success) {
         return res.status(500).json({ message: "Failed to delete contact" });
       }
       
-      res.json({ message: "Contact and all associated data deleted successfully" });
+      res.json({ message: "Contact deleted successfully" });
     } catch (error) {
       console.error('Delete contact error:', error);
       res.status(500).json({ message: "Failed to delete contact" });
