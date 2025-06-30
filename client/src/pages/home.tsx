@@ -11,10 +11,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
-import metamaskLogo from "@assets/images(1)_1750925157265.png";
-import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1750925157245.png";
-import trustWalletLogo from "@assets/Trust-Wallet-Shield-Logo-Vector-Logo-Vector.svg-_1750925157209.png";
-import coinbaseLogo from "@assets/coinbase-logo_1750925157167.png";
+import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
+import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1751312780982.png";
+import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
+import coinbaseLogo from "@assets/coinbase logo_1751312780982.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
@@ -234,7 +234,7 @@ export default function HomePage() {
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
-                          src="/attached_assets/MetaMask_Fox.svg_1751312780982.png" 
+                          src={metamaskLogo} 
                           alt="MetaMask" 
                           className="w-8 h-8 object-contain"
                         />
@@ -251,7 +251,7 @@ export default function HomePage() {
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
-                          src="/attached_assets/walletconnect-logo-png_seeklogo-430923_1751312780982.png" 
+                          src={walletConnectLogo} 
                           alt="WalletConnect" 
                           className="w-8 h-8 object-contain"
                         />
@@ -268,7 +268,7 @@ export default function HomePage() {
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
-                          src="/attached_assets/Trust-Wallet_1751312780982.jpg" 
+                          src={trustWalletLogo} 
                           alt="Trust Wallet" 
                           className="w-8 h-8 object-contain"
                         />
@@ -285,7 +285,7 @@ export default function HomePage() {
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
-                          src="/attached_assets/coinbase logo_1751312780982.png" 
+                          src={coinbaseLogo} 
                           alt="Coinbase" 
                           className="w-8 h-8 object-contain"
                         />
