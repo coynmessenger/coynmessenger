@@ -267,7 +267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (displayName && displayName !== existingUser.signInName) {
           console.log(`Updating user ${existingUser.id} sign-in name from "${existingUser.signInName}" to "${displayName}"`);
           const updatedUser = await storage.updateUser(existingUser.id, {
-            signInName: displayName
+            signInName: displayName,
+            displayName: displayName // Also update displayName to match sign-in name
           });
           console.log("Updated user:", updatedUser);
           
