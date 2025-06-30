@@ -18,7 +18,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
-import type { User, Conversation, Message } from "@shared/schema";
+import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
@@ -87,6 +87,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       return response.json();
     },
     enabled: !!connectedUserId,
+  });
+
+  // Query for wallet balances to enable Max button functionality
+  const { data: walletBalances = [] } = useQuery<WalletBalance[]>({
+    queryKey: ["/api/wallet/balances"],
   });
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -520,15 +525,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Handle max button click
   const handleMaxClick = () => {
-    // Mock wallet balances for demonstration
-    const balances = {
-      BTC: "0.125",
-      BNB: "8.5",
-      USDT: "2500",
-      COYN: "1500"
-    };
-    
-    const maxAmount = balances[selectedCrypto as keyof typeof balances] || "0";
+    // Fetch real wallet balance from COYN Wallet data
+    const currentBalance = walletBalances?.find(balance => balance.currency === selectedCrypto);
+    const maxAmount = currentBalance?.balance || "0";
     setCryptoAmount(maxAmount);
   };
 
