@@ -177,8 +177,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get current user from localStorage or hardcoded for demo  
-      const currentUserId = 25; // Current user (Jen/Splinter Cell)
+      // Get current user ID from request body
+      const { currentUserId } = req.body;
+      if (!currentUserId) {
+        return res.status(400).json({ message: "Current user ID is required" });
+      }
 
       // Check if user already exists
       const existingUser = await storage.getUserByWalletAddress(walletAddress);
@@ -226,13 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const newConversation = await storage.createConversation(currentUserId, contactUser.id);
         console.log("Created conversation for new contact:", newConversation);
         
-        // Add a welcome message to the conversation
-        await storage.createMessage({
-          conversationId: newConversation.id,
-          senderId: currentUserId,
-          content: `Hi! I've added you as a contact on COYN Messenger.`,
-          messageType: "text"
-        });
+        // Don't create automatic welcome message to prevent unwanted highlighted conversations
       }
       
       const userWithEffectiveName = {

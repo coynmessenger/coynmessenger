@@ -21,8 +21,21 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
 
   const addContactMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
+      // Get current user ID from localStorage
+      const storedUser = localStorage.getItem('connectedUser');
+      let currentUserId = 5; // fallback
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          currentUserId = parsedUser.id;
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
+        }
+      }
+      
       return apiRequest("POST", "/api/contacts/add", { 
-        walletAddress
+        walletAddress,
+        currentUserId
       });
     },
     onSuccess: (newUser: User) => {
