@@ -15,6 +15,7 @@ interface AddContactModalProps {
 
 export default function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
   const [walletAddress, setWalletAddress] = useState("");
+  const [validationError, setValidationError] = useState("");
   const queryClient = useQueryClient();
 
   const addContactMutation = useMutation({
@@ -31,13 +32,47 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     },
   });
 
+  // Validate wallet address format
+  const validateWalletAddress = (address: string): boolean => {
+    // Must be 42 characters (0x + 40 hex characters)
+    if (address.length !== 42 || !address.startsWith('0x')) {
+      return false;
+    }
+    // Check if the remaining 40 characters are valid hex
+    const hexPart = address.slice(2);
+    return /^[0-9a-fA-F]{40}$/.test(hexPart);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setWalletAddress(value);
+    
+    // Clear validation error when user starts typing
+    if (validationError) {
+      setValidationError("");
+    }
+    
+    // Validate if user has entered something
+    if (value.trim() && !validateWalletAddress(value.trim())) {
+      setValidationError("Please enter a valid Ethereum wallet address (42 characters starting with 0x)");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!walletAddress.trim()) return;
+    const trimmedAddress = walletAddress.trim();
     
-    addContactMutation.mutate({
-      walletAddress: walletAddress.trim(),
-    });
+    if (!trimmedAddress) {
+      setValidationError("Wallet address is required");
+      return;
+    }
+    
+    if (!validateWalletAddress(trimmedAddress)) {
+      setValidationError("Please enter a valid Ethereum wallet address (42 characters starting with 0x)");
+      return;
+    }
+    
+    addContactMutation.mutate({ walletAddress: trimmedAddress });
   };
 
   return (
@@ -60,13 +95,20 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
               <Input
                 id="walletAddress"
                 type="text"
-                placeholder="0x1234...abcd"
+                placeholder="0x1234567890abcdef1234567890abcdef12345678"
                 value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                className="pl-10 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500"
+                onChange={handleInputChange}
+                className={`pl-10 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500 ${
+                  validationError ? 'border-red-500 dark:border-red-400' : ''
+                }`}
                 required
               />
             </div>
+            {validationError && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                {validationError}
+              </p>
+            )}
           </div>
 
           <p className="text-sm text-gray-600 dark:text-slate-400">

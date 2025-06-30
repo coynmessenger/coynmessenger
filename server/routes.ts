@@ -172,7 +172,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate wallet address using blockchain service
       const isValidWallet = await blockchainService.validateWalletAddress(walletAddress);
       if (!isValidWallet) {
-        return res.status(400).json({ message: "Invalid wallet address format" });
+        return res.status(400).json({ 
+          message: "Invalid wallet address format. Please enter a valid Ethereum wallet address (42 characters starting with 0x)" 
+        });
       }
 
       // Check if user already exists
