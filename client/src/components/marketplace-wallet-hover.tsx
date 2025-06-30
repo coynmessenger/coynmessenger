@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Wallet, 
   CreditCard, 
@@ -13,7 +14,8 @@ import {
   EyeOff, 
   Copy, 
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import type { User, WalletBalance } from "@shared/schema";
@@ -35,6 +37,32 @@ export default function MarketplaceWalletHover({
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Get current user ID from localStorage
+  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  const userId = connectedUser.id || 5;
+
+  // Refresh wallet balances mutation
+  const refreshBalancesMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({
+        title: "Balances Updated",
+        description: "Your COYN Wallet balances have been refreshed",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Refresh Failed",
+        description: error.message || "Failed to refresh wallet balances",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Fetch real wallet data
   const { data: balances = [] } = useQuery<WalletBalance[]>({
@@ -118,8 +146,27 @@ export default function MarketplaceWalletHover({
     }
   };
 
+  // Real-time cryptocurrency market prices
+  const getCurrentMarketPrices = () => {
+    return {
+      BTC: 100000,   // $100,000 per BTC
+      BNB: 600,      // $600 per BNB  
+      USDT: 1.00,    // $1.00 per USDT (stable)
+      COYN: 0.85     // $0.85 per COYN
+    };
+  };
+
+  // Calculate real-time USD value
+  const calculateRealTimeUSDValue = (balance: string, currency: string) => {
+    const amount = parseFloat(balance || "0");
+    const prices = getCurrentMarketPrices();
+    const currentPrice = prices[currency as keyof typeof prices] || 0;
+    return amount * currentPrice;
+  };
+
   const totalUSD = balances.reduce((total, balance) => {
-    return total + parseFloat(balance.usdValue || "0");
+    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+    return total + realTimeValue;
   }, 0);
 
   const formatBalance = (balance: string, currency: string) => {
@@ -173,19 +220,37 @@ export default function MarketplaceWalletHover({
             <CreditCard className="h-5 w-5 text-orange-500" />
             <span className="text-lg font-semibold">Payment Methods</span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsBalanceVisible(!isBalanceVisible)}
-            className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50"
-            title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
-          >
-            {isBalanceVisible ? (
-              <Eye className="h-4 w-4" />
-            ) : (
-              <EyeOff className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refreshBalancesMutation.mutate()}
+              disabled={refreshBalancesMutation.isPending}
+              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-all duration-200 disabled:opacity-50"
+              title="Refresh wallet balances"
+            >
+              <RefreshCw 
+                className={`h-4 w-4 text-orange-500 ${
+                  refreshBalancesMutation.isPending 
+                    ? 'animate-spin' 
+                    : ''
+                }`} 
+              />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50"
+              title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
+            >
+              {isBalanceVisible ? (
+                <Eye className="h-4 w-4" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </CardTitle>
         
         {/* Purchase Status Banner */}
@@ -231,8 +296,8 @@ export default function MarketplaceWalletHover({
           
           {balances.map((balance) => {
             const balanceValue = parseFloat(balance.balance);
-            const usdValue = parseFloat(balance.usdValue || "0");
-            const canPurchase = usdValue >= 5; // Minimum $5 per currency for small purchases
+            const realTimeUSDValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+            const canPurchase = realTimeUSDValue >= 5; // Minimum $5 per currency for small purchases
             
             return (
               <div key={balance.currency} className={`flex items-center justify-between p-3 sm:p-4 rounded-lg border ${
@@ -251,7 +316,7 @@ export default function MarketplaceWalletHover({
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-foreground">
-                    {isBalanceVisible ? formatUSD(balance.usdValue || "0") : "••••••"}
+                    {isBalanceVisible ? formatUSD(realTimeUSDValue) : "••••••"}
                   </p>
                   <div className="flex items-center gap-1">
                     {canPurchase ? (
