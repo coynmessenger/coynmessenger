@@ -62,6 +62,26 @@ export default function HomePage() {
     }
   }, [currentUserData, connectedUser]);
 
+  // Listen for display name updates from settings modal
+  useEffect(() => {
+    const handleDisplayNameUpdate = (event: CustomEvent) => {
+      console.log("Homepage received displayNameUpdated event:", event.detail);
+      // Refresh the localStorage data
+      const updatedStoredUser = localStorage.getItem('connectedUser');
+      if (updatedStoredUser) {
+        const parsedUser = JSON.parse(updatedStoredUser);
+        console.log("Updating homepage connectedUser state with:", parsedUser);
+        setConnectedUser(parsedUser);
+      }
+    };
+
+    window.addEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
+    };
+  }, []);
+
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
       try {
