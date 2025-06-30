@@ -8,8 +8,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MoreVertical, Settings, Star, MessageCircle } from "lucide-react";
+import { MoreVertical, Settings, Star, MessageCircle, UserPlus } from "lucide-react";
 import type { User, Message } from "@shared/schema";
+import AddContactModal from "./add-contact-modal";
 
 interface HamburgerMenuProps {
   onOpenSettings: () => void;
@@ -39,6 +40,7 @@ function getEffectiveDisplayName(user: User): string {
 
 export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
   const [messageToUnstar, setMessageToUnstar] = useState<StarredMessage | null>(null);
   const [showUnstarConfirm, setShowUnstarConfirm] = useState(false);
   const { toast } = useToast();
@@ -161,6 +163,11 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={() => setShowAddContact(true)}>
+            <UserPlus className="h-4 w-4 mr-3" />
+            Add Contact
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setShowStarredMessages(true)}>
             <Star className="h-4 w-4 mr-3" />
             Starred Messages
@@ -251,6 +258,12 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Contact Modal */}
+      <AddContactModal
+        isOpen={showAddContact}
+        onClose={() => setShowAddContact(false)}
+      />
 
       {/* Unstar Confirmation Dialog */}
       <AlertDialog open={showUnstarConfirm} onOpenChange={setShowUnstarConfirm}>
