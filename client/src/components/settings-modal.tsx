@@ -502,7 +502,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-black dark:text-foreground">{user ? getEffectiveDisplayName(user) : 'Unknown User'}</h3>
+                  <h3 className="text-lg font-semibold text-black dark:text-foreground">{displayName || 'Unknown User'}</h3>
                   <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
                   <Button
                     onClick={triggerImageUpload}
