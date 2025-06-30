@@ -162,8 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add contact - creates properly setup user for contact list
   app.post("/api/contacts/add", async (req, res) => {
     try {
-      const { walletAddress, displayName } = req.body;
-      console.log("Add contact request:", { walletAddress, displayName });
+      const { walletAddress } = req.body;
+      console.log("Add contact request:", { walletAddress });
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -181,27 +181,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If user exists, ensure they're set up for contact list
         if (!existingUser.isSetup) {
           const updatedUser = await storage.updateUser(existingUser.id, {
-            isSetup: true,
-            signInName: displayName || existingUser.signInName
+            isSetup: true
           });
           console.log("Updated existing user for contact list:", updatedUser);
           
           // Initialize wallet balances if not already done
           await storage.initializeWalletBalances(updatedUser!.id);
-          
-          const userWithEffectiveName = {
-            ...updatedUser,
-            displayName: getEffectiveDisplayName(updatedUser!)
-          };
-          return res.json(userWithEffectiveName);
-        }
-        
-        // If display name was provided and it's different, update it
-        if (displayName && displayName !== existingUser.signInName) {
-          const updatedUser = await storage.updateUser(existingUser.id, {
-            signInName: displayName
-          });
-          console.log("Updated contact display name:", updatedUser);
           
           const userWithEffectiveName = {
             ...updatedUser,
@@ -222,8 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const username = `0x${walletAddress.slice(-6)}`; // Use last 6 chars for username
       const newUser = await storage.createUser({
         username,
-        displayName: displayName || `@${walletAddress.slice(-6)}`,
-        signInName: displayName,
+        displayName: `@${walletAddress.slice(-6)}`, // Use wallet ID as default
         walletAddress,
         isSetup: true, // Mark as setup so they appear in contact list
         isOnline: false

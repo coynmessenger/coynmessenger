@@ -15,21 +15,18 @@ interface AddContactModalProps {
 
 export default function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
   const [walletAddress, setWalletAddress] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const queryClient = useQueryClient();
 
   const addContactMutation = useMutation({
-    mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
+    mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
       return apiRequest("POST", "/api/contacts/add", { 
-        walletAddress, 
-        displayName 
+        walletAddress
       });
     },
     onSuccess: (newUser: User) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setWalletAddress("");
-      setDisplayName("");
       onClose();
     },
   });
@@ -40,7 +37,6 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     
     addContactMutation.mutate({
       walletAddress: walletAddress.trim(),
-      displayName: displayName.trim() || undefined,
     });
   };
 
@@ -73,22 +69,9 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="displayName" className="text-gray-700 dark:text-slate-300">
-              Display Name (Optional)
-            </Label>
-            <Input
-              id="displayName"
-              type="text"
-              placeholder="Friend's Name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500"
-            />
-            <p className="text-xs text-gray-500 dark:text-slate-400">
-              If empty, will use wallet address as display name
-            </p>
-          </div>
+          <p className="text-sm text-gray-600 dark:text-slate-400">
+            The contact's existing profile name will be used automatically, or their wallet ID if no profile exists.
+          </p>
 
           <div className="flex space-x-3 pt-4">
             <Button
