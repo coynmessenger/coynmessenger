@@ -221,9 +221,6 @@ export default function MessengerPage() {
                   {/* Existing Conversations - Secondary Display */}
                   {filteredConversations.length > 0 && (
                     <div>
-                      <div className="p-3 bg-muted/30 border-b border-border">
-                        <h3 className="text-sm font-medium text-muted-foreground">Recent Conversations</h3>
-                      </div>
                       <div className="divide-y divide-border">
                         {filteredConversations.map((conversation) => (
                           <div
@@ -472,11 +469,6 @@ export default function MessengerPage() {
                 {/* Existing Conversations */}
                 {filteredConversations.length > 0 && (
                   <div>
-                    {availableContacts.length > 0 && (
-                      <div className="p-3 bg-muted/30 border-b border-border">
-                        <h3 className="text-sm font-medium text-muted-foreground">Recent Conversations</h3>
-                      </div>
-                    )}
                     <div className="divide-y divide-border">
                       {filteredConversations.map((conversation) => (
                         <div

@@ -5,7 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites } from "@shared/schema";
+import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites, type User } from "@shared/schema";
 import { db } from "./db";
 import { initializeDatabase } from "./db";
 import { eq, and } from "drizzle-orm";
