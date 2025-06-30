@@ -39,11 +39,13 @@ export default function MessengerPage() {
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        console.log('Messenger - Connected user ID:', parsedUser.id);
         return parsedUser.id;
       } catch (e) {
         console.error('Failed to parse stored user:', e);
       }
     }
+    console.log('Messenger - No stored user, using fallback ID 5');
     return 5; // Fallback to default user
   };
 
