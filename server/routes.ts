@@ -472,10 +472,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/conversations/:id", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const currentUserId = 5; // Current user
+      const { currentUserId } = req.body;
+      
+      console.log("Delete conversation request:", { conversationId, currentUserId });
 
       if (!conversationId) {
         return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+
+      if (!currentUserId) {
+        return res.status(400).json({ message: "Current user ID is required" });
       }
 
       // Delete all messages in the conversation first

@@ -81,6 +81,8 @@ The application is configured for deployment on Replit with auto-scaling:
 
 ## Changelog
 
+- June 30, 2025: Fixed contact management issues - resolved user ID mismatch in add/delete contact APIs that were hardcoded to wrong user IDs, updated both endpoints to dynamically use current user ID from localStorage, removed automatic welcome messages when adding contacts to prevent unwanted highlighted conversations
+
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging
 - June 24, 2025: Created home page with wallet connection flow - button shows "Wallet Connected" after connection

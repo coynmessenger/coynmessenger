@@ -185,7 +185,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Delete contact mutation
   const deleteContactMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return apiRequest("DELETE", `/api/conversations/${conversation.id}`);
+      // Get current user ID from localStorage
+      const storedUser = localStorage.getItem('connectedUser');
+      let currentUserId = 5; // fallback
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          currentUserId = parsedUser.id;
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
+        }
+      }
+      
+      return apiRequest("DELETE", `/api/conversations/${conversation.id}`, { currentUserId });
     },
     onSuccess: () => {
       toast({
