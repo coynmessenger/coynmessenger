@@ -91,12 +91,12 @@ const attachmentUpload = multer({
 
 // Helper function to get effective display name with correct priority
 function getEffectiveDisplayName(user: any): string {
-  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
-  if (user.signInName) {
-    return user.signInName;
-  }
+  // Priority: 1. Profile display name (if set and not @id), 2. Sign-in name, 3. @id format
   if (user.displayName && !user.displayName.startsWith('@')) {
     return user.displayName;
+  }
+  if (user.signInName) {
+    return user.signInName;
   }
   // Fallback to @id format using last 6 characters of wallet address
   return `@${user.walletAddress.slice(-6)}`;
@@ -124,10 +124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId = parseInt(req.query.userId as string);
       }
       
-      // Set cache headers for better performance
+      // Disable caching for user data to ensure real-time updates
       res.set({
-        'Cache-Control': 'public, max-age=120', // Cache for 2 minutes
-        'ETag': `user-${userId}-${Date.now()}` // Simple ETag
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       });
       
       const user = await storage.getUser(userId);

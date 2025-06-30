@@ -286,19 +286,25 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     onSuccess: (updatedUser) => {
       console.log("UpdateUserMutation success - updatedUser:", updatedUser);
       
-      // Immediately update all cached user data with exact same keys being used
+      // Aggressively clear all cache to force fresh data
+      queryClient.clear();
+      
+      // Immediately update all possible cache keys
       queryClient.setQueryData(["/api/user"], updatedUser);
       queryClient.setQueryData(["/api/user", connectedUserId], updatedUser);
+      queryClient.setQueryData(["/api/user", { userId: connectedUserId }], updatedUser);
       if (connectedUserId) {
         queryClient.setQueryData(["/api/user", parseInt(connectedUserId)], updatedUser);
+        queryClient.setQueryData(["/api/user", { userId: parseInt(connectedUserId) }], updatedUser);
       }
       
-      // Invalidate all user-related queries to trigger refetch across the app
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      // Force invalidation of all related queries
+      queryClient.invalidateQueries();
       
-      // Force refresh of current query
-      queryClient.refetchQueries({ queryKey: ["/api/user", connectedUserId] });
+      // Force immediate refetch
+      setTimeout(() => {
+        queryClient.refetchQueries();
+      }, 100);
       
       // Update localStorage for homepage and other components
       if (updatedUser) {
