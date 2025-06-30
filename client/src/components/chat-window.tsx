@@ -171,7 +171,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [swipeState.isDragging]);
+  }, [swipeState.isDragging]); // Only depend on the boolean property, not the entire object
 
   
   const { toast } = useToast();

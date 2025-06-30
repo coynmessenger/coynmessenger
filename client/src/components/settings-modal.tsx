@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -210,8 +210,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const [zipCode, setZipCode] = useState("");
   const [country, setCountry] = useState("");
 
-  // Get connected user ID from localStorage
-  const getConnectedUserId = () => {
+  // Get connected user ID from localStorage (memoized to prevent infinite re-renders)
+  const connectedUserId = useMemo(() => {
     const storedUser = localStorage.getItem('connectedUser');
     console.log('Settings modal - stored user:', storedUser);
     if (storedUser) {
@@ -226,9 +226,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     }
     console.log('Settings modal - no stored user, using null');
     return null;
-  };
-
-  const connectedUserId = getConnectedUserId();
+  }, [isOpen]); // Only re-evaluate when modal opens
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", connectedUserId],
