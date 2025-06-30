@@ -159,6 +159,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add contact - creates properly setup user for contact list
+  app.post("/api/contacts/add", async (req, res) => {
+    try {
+      const { walletAddress, displayName } = req.body;
+      console.log("Add contact request:", { walletAddress, displayName });
+      
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+
+      // Validate wallet address using blockchain service
+      const isValidWallet = await blockchainService.validateWalletAddress(walletAddress);
+      if (!isValidWallet) {
+        return res.status(400).json({ message: "Invalid wallet address format" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByWalletAddress(walletAddress);
+      if (existingUser) {
+        // If user exists, ensure they're set up for contact list
+        if (!existingUser.isSetup) {
+          const updatedUser = await storage.updateUser(existingUser.id, {
+            isSetup: true,
+            signInName: displayName || existingUser.signInName
+          });
+          console.log("Updated existing user for contact list:", updatedUser);
+          
+          // Initialize wallet balances if not already done
+          await storage.initializeWalletBalances(updatedUser!.id);
+          
+          const userWithEffectiveName = {
+            ...updatedUser,
+            displayName: getEffectiveDisplayName(updatedUser!)
+          };
+          return res.json(userWithEffectiveName);
+        }
+        
+        // If display name was provided and it's different, update it
+        if (displayName && displayName !== existingUser.signInName) {
+          const updatedUser = await storage.updateUser(existingUser.id, {
+            signInName: displayName
+          });
+          console.log("Updated contact display name:", updatedUser);
+          
+          const userWithEffectiveName = {
+            ...updatedUser,
+            displayName: getEffectiveDisplayName(updatedUser!)
+          };
+          return res.json(userWithEffectiveName);
+        }
+        
+        // Return existing user
+        const userWithEffectiveName = {
+          ...existingUser,
+          displayName: getEffectiveDisplayName(existingUser)
+        };
+        return res.json(userWithEffectiveName);
+      }
+
+      // Create new user for contact list
+      const username = `0x${walletAddress.slice(-6)}`; // Use last 6 chars for username
+      const newUser = await storage.createUser({
+        username,
+        displayName: displayName || `@${walletAddress.slice(-6)}`,
+        signInName: displayName,
+        walletAddress,
+        isSetup: true, // Mark as setup so they appear in contact list
+        isOnline: false
+      });
+
+      // Initialize wallet balances for new user
+      await storage.initializeWalletBalances(newUser.id);
+      console.log("Created new contact with wallet balances:", newUser);
+      
+      const userWithEffectiveName = {
+        ...newUser,
+        displayName: getEffectiveDisplayName(newUser)
+      };
+      
+      return res.json(userWithEffectiveName);
+    } catch (error) {
+      console.error("Add contact error:", error);
+      res.status(500).json({ message: "Failed to add contact" });
+    }
+  });
+
   // Find or create user by wallet address
   app.post("/api/users/find-or-create", async (req, res) => {
     try {

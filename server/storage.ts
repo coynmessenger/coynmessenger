@@ -529,6 +529,26 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(walletBalances.userId, userId), eq(walletBalances.currency, currency)));
   }
 
+  async initializeWalletBalances(userId: number): Promise<void> {
+    // Check if user already has wallet balances
+    const existingBalances = await this.getUserWalletBalances(userId);
+    if (existingBalances.length > 0) {
+      return; // Already initialized
+    }
+
+    // Initialize with default cryptocurrency balances
+    const defaultBalances = [
+      { userId, currency: "BTC", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
+      { userId, currency: "BNB", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
+      { userId, currency: "USDT", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
+      { userId, currency: "COYN", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
+    ];
+
+    for (const balance of defaultBalances) {
+      await this.createWalletBalance(balance);
+    }
+  }
+
   async transferCurrency(fromUserId: number, toUserId: number, currency: string, amount: number): Promise<boolean> {
     try {
       // Get sender balance

@@ -20,7 +20,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
 
   const addContactMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
-      return apiRequest("POST", "/api/users/find-or-create", { 
+      return apiRequest("POST", "/api/contacts/add", { 
         walletAddress, 
         displayName 
       });
