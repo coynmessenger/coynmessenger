@@ -269,6 +269,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       if (textContent?.trim()) {
         formData.append('content', textContent.trim());
       }
+      // Include the current connected user's ID as the sender
+      formData.append('senderId', connectedUserId.toString());
 
       const response = await fetch(`/api/conversations/${conversation.id}/messages/attachment`, {
         method: 'POST',

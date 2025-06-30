@@ -408,7 +408,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/conversations/:id/messages/attachment", attachmentUpload.single('file'), async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const senderId = 5; // Current user
+      // Use senderId from request body (current connected user)
+      const senderId = req.body.senderId || 5; // Fallback to 5 for backward compatibility
       const file = req.file;
 
       if (!file) {
