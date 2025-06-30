@@ -91,12 +91,12 @@ const attachmentUpload = multer({
 
 // Helper function to get effective display name with correct priority
 function getEffectiveDisplayName(user: any): string {
-  // Priority: 1. Profile display name (from settings), 2. Sign-in name, 3. @id format
-  if (user.displayName && !user.displayName.startsWith('@')) {
-    return user.displayName;
-  }
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
   if (user.signInName) {
     return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
   }
   // Fallback to @id format using last 6 characters of wallet address
   return `@${user.walletAddress.slice(-6)}`;
@@ -475,40 +475,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/conversations/:id", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      // Get current user ID from request body or query parameter
-      const currentUserId = req.body.userId || parseInt(req.query.userId as string) || 5;
+      const currentUserId = 5; // Current user
 
       if (!conversationId) {
         return res.status(400).json({ message: "Invalid conversation ID" });
       }
 
-      // Get the conversation details to find the other user
-      const conversation = await storage.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ message: "Conversation not found" });
-      }
-
-      // Determine which user is the contact to be deleted
-      let contactUserId: number;
-      if (conversation.participant1Id === currentUserId && conversation.participant2Id !== null) {
-        contactUserId = conversation.participant2Id!;
-      } else if (conversation.participant2Id === currentUserId && conversation.participant1Id !== null) {
-        contactUserId = conversation.participant1Id!;
-      } else {
-        return res.status(403).json({ message: "You are not part of this conversation" });
-      }
-
-      // Delete the conversation and messages between these users only
+      // Delete all messages in the conversation first
       await storage.deleteMessagesByConversation(conversationId);
-      const success = await storage.deleteConversation(conversationId, currentUserId);
       
-      if (!success) {
-        return res.status(500).json({ message: "Failed to delete contact" });
-      }
+      // Then delete the conversation
+      await storage.deleteConversation(conversationId, currentUserId);
       
       res.json({ message: "Contact deleted successfully" });
     } catch (error) {
-      console.error('Delete contact error:', error);
+      console.error('Delete conversation error:', error);
       res.status(500).json({ message: "Failed to delete contact" });
     }
   });

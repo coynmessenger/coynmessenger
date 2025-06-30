@@ -28,12 +28,12 @@ import { formatDistanceToNow } from "date-fns";
 
 // Utility function to get effective display name (mirrors backend logic)
 function getEffectiveDisplayName(user: User): string {
-  // Priority: 1. Profile display name (from settings), 2. Sign-in name, 3. @id format
-  if (user.displayName && !user.displayName.startsWith('@')) {
-    return user.displayName;
-  }
+  // Priority: 1. Sign-in name, 2. Profile display name, 3. @id format
   if (user.signInName) {
     return user.signInName;
+  }
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
   }
   // Fallback to @id format using last 6 characters of wallet address
   if (user.walletAddress) {
@@ -185,9 +185,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Delete contact mutation
   const deleteContactMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return apiRequest("DELETE", `/api/conversations/${conversation.id}`, {
-        userId: connectedUserId
-      });
+      return apiRequest("DELETE", `/api/conversations/${conversation.id}`);
     },
     onSuccess: () => {
       toast({
