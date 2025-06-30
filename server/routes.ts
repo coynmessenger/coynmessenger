@@ -602,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/messages/:id", async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      const userId = 5; // Current user
+      const userId = req.body.userId || 5; // Use userId from request body (current connected user)
 
       if (isNaN(messageId)) {
         return res.status(400).json({ message: "Invalid message ID" });

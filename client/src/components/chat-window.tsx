@@ -558,7 +558,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId: number) => {
-      return apiRequest("DELETE", `/api/messages/${messageId}`, {});
+      return apiRequest("DELETE", `/api/messages/${messageId}`, { userId: connectedUserId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
