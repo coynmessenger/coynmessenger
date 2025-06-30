@@ -122,29 +122,30 @@ export default function MessengerPage() {
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="flex h-screen scan-lines grid-pattern relative overflow-hidden">
+      {/* 90s Retro Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-retro-darker via-retro-dark to-purple-900/80"></div>
+      
       {/* Desktop Header - only visible on large screens */}
-      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
+      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen relative z-10">
+        <div className="retro-card border-b-2 border-neon-cyan p-3 flex items-center justify-between rounded-none">
           <div className="flex items-center space-x-3">
-            <Button
+            <button
               onClick={() => setLocation("/")}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted"
+              className="retro-button h-8 px-3 text-xs"
             >
-              <Home className="h-4 w-4 mr-2" />
-              Return to Home
-            </Button>
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-              Messenger
+              <Home className="h-3 w-3 mr-1" />
+              HOME
+            </button>
+            <h1 className="retro-heading text-lg text-neon-cyan">
+              MESSENGER
             </h1>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
             <button
               onClick={() => setIsWalletSidebarOpen(true)}
-              className="hover:opacity-80 transition-opacity"
+              className="neon-glow-pink retro-pulse"
               title="Open COYN Wallet"
             >
               <img 

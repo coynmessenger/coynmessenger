@@ -178,279 +178,288 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
+    <div className="min-h-screen scan-lines grid-pattern relative overflow-hidden">
+      {/* 90s Retro Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-retro-darker via-retro-dark to-purple-900/80"></div>
       
-      <div className="max-w-4xl w-full space-y-6 relative z-10">
+      <div className="max-w-4xl w-full space-y-8 relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
         {/* Header */}
-        <div className="text-center">
+        <div className="text-center space-y-6">
           <div className="flex items-center justify-center mb-4">
-            {/* Coynful Logo with Enhanced Glow */}
-            <div className="relative ml-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
+            {/* COYN Logo with Neon Effects */}
+            <div className="relative retro-float">
+              <div className="absolute inset-0 neon-glow-cyan scale-150 opacity-60"></div>
               <img 
                 src={coynfulLogoPath} 
-                alt="Coynful Logo" 
-                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
+                alt="COYN Logo" 
+                className="h-32 w-auto relative z-10 neon-glow-pink retro-pulse"
                 loading="eager"
                 decoding="async"
-                style={{ imageRendering: 'auto' }}
                 onLoad={() => console.log('Coynful logo loaded')}
               />
             </div>
           </div>
+          
+          {/* 90s Style Heading */}
+          <div className="space-y-2">
+            <h1 className="retro-heading text-4xl md:text-6xl font-black neon-flicker">
+              COYN MESSENGER
+            </h1>
+            <p className="retro-text text-lg md:text-xl text-neon-cyan">
+              The Future of Crypto Communication
+            </p>
+          </div>
         </div>
 
-        {/* Main CTA Card - Enhanced with Glassmorphism */}
-        <Card className="bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/50 backdrop-blur-2xl max-w-lg mx-auto shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-all duration-500 hover:scale-[1.02]">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
+        {/* 90s Retro Wallet Connection Interface */}
+        <div className="retro-card max-w-2xl mx-auto p-6 rounded-none">
+          <div className="text-center space-y-6">
+            <div className="retro-heading text-2xl md:text-3xl">
+              {!isConnected || !connectedUser ? "CONNECT WALLET" : "SYSTEM CONNECTED"}
+            </div>
+            
             {(!isConnected || !connectedUser) && (
-              <p className="text-muted-foreground">
-                Connect your Web3 wallet to access Coynful Messenger
+              <p className="retro-text text-neon-purple">
+                &gt;&gt; INITIALIZE CRYPTO INTERFACE &lt;&lt;
               </p>
             )}
-          </CardHeader>
-          <CardContent className="space-y-6">
+          </div>
+          
+          <div className="mt-8 space-y-6">
             {!isConnected || !connectedUser ? (
               <div className="space-y-6">
-                {/* Web3 Wallet Options */}
+                {/* Retro Wallet Grid */}
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Choose your preferred wallet to connect
+                    <p className="retro-text text-neon-green">
+                      SELECT WALLET PROTOCOL
                     </p>
                   </div>
 
-                  {/* 2x2 Grid of Wallet Options */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* 2x2 Retro Grid */}
+                  <div className="grid grid-cols-2 gap-4">
                     {/* MetaMask */}
-                    <Button 
+                    <button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                      className="retro-button h-24 flex flex-col items-center justify-center space-y-2 group disabled:opacity-50"
                       disabled={connectWalletMutation.isPending}
-                      variant="outline"
                     >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <img src={metamaskLogo} alt="MetaMask" className="w-8 h-8 object-contain drop-shadow-sm" />
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <img src={metamaskLogo} alt="MetaMask" className="w-8 h-8 object-contain" />
                       </div>
-                      <span className="text-sm font-semibold">MetaMask</span>
-                    </Button>
+                      <span className="text-xs font-black">METAMASK</span>
+                    </button>
 
                     {/* WalletConnect */}
-                    <Button 
+                    <button 
                       onClick={() => handleWeb3Connect('walletconnect')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                      className="retro-button h-24 flex flex-col items-center justify-center space-y-2 group disabled:opacity-50"
                       disabled={connectWalletMutation.isPending}
-                      variant="outline"
                     >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <img src={walletConnectLogo} alt="WalletConnect" className="w-8 h-8 object-contain drop-shadow-sm" />
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <img src={walletConnectLogo} alt="WalletConnect" className="w-8 h-8 object-contain" />
                       </div>
-                      <span className="text-sm font-semibold">WalletConnect</span>
-                    </Button>
+                      <span className="text-xs font-black">WALLET.CO</span>
+                    </button>
 
                     {/* Trust Wallet */}
-                    <Button 
+                    <button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      className="retro-button h-24 flex flex-col items-center justify-center space-y-2 group disabled:opacity-50"
                       disabled={connectWalletMutation.isPending}
-                      variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
                         <img src={trustWalletLogo} alt="Trust Wallet" className="w-8 h-8 object-contain" />
                       </div>
-                      <span className="text-sm font-medium">Trust Wallet</span>
-                    </Button>
+                      <span className="text-xs font-black">TRUST</span>
+                    </button>
 
                     {/* Coinbase Wallet */}
-                    <Button 
+                    <button 
                       onClick={() => handleWeb3Connect('coinbase')}
-                      className="h-24 bg-card hover:bg-muted border border-border text-foreground font-medium flex flex-col items-center justify-center group transition-all duration-200 space-y-2"
+                      className="retro-button h-24 flex flex-col items-center justify-center space-y-2 group disabled:opacity-50"
                       disabled={connectWalletMutation.isPending}
-                      variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center">
                         <img src={coinbaseLogo} alt="Coinbase" className="w-8 h-8 object-contain" />
                       </div>
-                      <span className="text-sm font-medium">Coinbase</span>
-                    </Button>
+                      <span className="text-xs font-black">COINBASE</span>
+                    </button>
                   </div>
                 </div>
 
+                {/* 90s Retro Divider */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
+                    <span className="w-full border-t-2 border-neon-cyan" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or connect manually</span>
+                  <div className="relative flex justify-center">
+                    <span className="retro-text bg-retro-dark px-4 text-neon-yellow">
+                      MANUAL PROTOCOL
+                    </span>
                   </div>
                 </div>
 
-                {/* Manual Input Form */}
-                <form onSubmit={handleConnectWallet} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="walletAddress" className="text-foreground">
-                      COYN Address
-                    </Label>
+                {/* Retro Manual Input Form */}
+                <form onSubmit={handleConnectWallet} className="space-y-6">
+                  <div className="space-y-4">
+                    <label className="retro-text block text-neon-green text-sm">
+                      WALLET ADDRESS
+                    </label>
                     <div className="relative">
-                      <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
+                      <input
                         id="walletAddress"
                         type="text"
                         placeholder="0x1234...abcd"
                         value={walletAddress}
                         onChange={(e) => setWalletAddress(e.target.value)}
-                        className="pl-10 h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
+                        className="w-full h-12 px-4 bg-retro-darker border-2 border-neon-cyan rounded-none text-neon-cyan font-mono text-sm focus:border-neon-pink focus:outline-none"
                         required
                       />
                     </div>
                     {walletAddress && !isValidCoynAddress(walletAddress) && (
-                      <p className="text-destructive text-xs">Please enter a valid COYN address (0x format)</p>
+                      <p className="retro-text text-neon-pink text-xs">INVALID ADDRESS FORMAT</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName" className="text-foreground">
-                      Display Name (Optional)
-                    </Label>
-                    <Input
+                  <div className="space-y-4">
+                    <label className="retro-text block text-neon-green text-sm">
+                      DISPLAY NAME (OPTIONAL)
+                    </label>
+                    <input
                       id="displayName"
                       type="text"
-                      placeholder="Your Name"
+                      placeholder="ENTER_NAME"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
+                      className="w-full h-12 px-4 bg-retro-darker border-2 border-neon-purple rounded-none text-neon-purple font-mono text-sm focus:border-neon-yellow focus:outline-none"
                     />
                   </div>
 
-                  <Button 
+                  <button 
                     type="submit" 
-                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+                    className="retro-button w-full h-12 disabled:opacity-50" 
                     disabled={!walletAddress || !isValidCoynAddress(walletAddress) || connectWalletMutation.isPending}
                   >
                     {connectWalletMutation.isPending ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
-                        <span>Connecting...</span>
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        <span className="font-black">CONNECTING...</span>
                       </div>
                     ) : (
-                      <>
-                        <Wallet className="mr-2 h-4 w-4" />
-                        Connect Manually
-                      </>
+                      <span className="font-black">MANUAL CONNECT</span>
                     )}
-                  </Button>
+                  </button>
 
                   {connectWalletMutation.error && (
-                    <p className="text-red-500 dark:text-red-400 text-sm text-center">
-                      {connectWalletMutation.error.message}
+                    <p className="retro-text text-neon-pink text-sm text-center">
+                      ERROR: {connectWalletMutation.error.message}
                     </p>
                   )}
                 </form>
               </div>
             ) : (
               <div className="text-center space-y-6">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                  <Check className="h-8 w-8 text-green-500" />
+                <div className="w-20 h-20 neon-glow-green border-2 border-neon-green rounded-none flex items-center justify-center mx-auto retro-pulse">
+                  <Check className="h-10 w-10 text-neon-green" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to Coynful Network</h3>
-                  <p className="text-black dark:text-foreground mb-2">Welcome to Coynful, {connectedUser?.displayName}!</p>
-                  <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
+                  <h3 className="retro-heading text-xl text-neon-green mb-2">SYSTEM ONLINE</h3>
+                  <p className="retro-text text-neon-cyan mb-2">WELCOME TO COYN, {connectedUser?.displayName?.toUpperCase()}!</p>
+                  <p className="retro-text text-neon-purple text-xs font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
-                  <div className="space-y-3 mt-6">
-                    <Button
+                  <div className="space-y-4 mt-6">
+                    <button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="retro-button w-full h-14"
                     >
-                      <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Open Messenger
-                    </Button>
-                    <Button
+                      <MessageCircle className="mr-2 h-6 w-6" />
+                      OPEN MESSENGER
+                    </button>
+                    <button
                       onClick={() => setLocation("/marketplace")}
-                      variant="outline"
-                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="retro-button w-full h-14"
+                      style={{
+                        background: "linear-gradient(145deg, var(--neon-purple), var(--neon-pink))",
+                        border: "2px solid var(--neon-yellow)"
+                      }}
                     >
-                      <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Explore Marketplace
-                    </Button>
+                      <Globe className="mr-2 h-6 w-6" />
+                      EXPLORE MARKETPLACE
+                    </button>
 
-                    <Button
+                    <button
                       onClick={handleSignOut}
-                      variant="outline"
-                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full h-14 bg-retro-darker border-2 border-neon-pink text-neon-pink hover:bg-retro-dark transition-all duration-300 font-black text-sm uppercase rounded-none"
                     >
-                      Sign Out
-                    </Button>
+                      SIGN OUT
+                    </button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Supported Currencies */}
-            <div className="border-t border-border pt-4">
-              <p className="text-center text-muted-foreground mb-3 text-sm">Supported Currencies</p>
-              <div className="flex justify-center space-x-3 flex-wrap gap-2">
+            {/* Retro Supported Currencies */}
+            <div className="border-t-2 border-neon-cyan pt-6">
+              <p className="text-center retro-text text-neon-yellow mb-4 text-sm">SUPPORTED PROTOCOLS</p>
+              <div className="flex justify-center space-x-4 flex-wrap gap-2">
                 {['BTC', 'BNB', 'USDT', 'COYN'].map((currency) => (
-                  <Badge key={currency} variant="secondary" className="text-xs">
+                  <span key={currency} className="px-3 py-1 bg-retro-darker border border-neon-green text-neon-green font-mono text-xs font-bold">
                     {currency}
-                  </Badge>
+                  </span>
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Features Grid - Moved below CTA */}
+        {/* 90s Retro Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-white dark:bg-slate-800/50 border-black dark:border-slate-700 backdrop-blur">
-              <CardHeader className="pb-3">
-                <feature.icon className="h-8 w-8 text-black dark:text-cyan-400 mb-2" />
-                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
-              </CardContent>
-            </Card>
+            <div key={index} className="retro-card p-4 rounded-none neon-flicker">
+              <div className="text-center space-y-3">
+                <feature.icon className="h-10 w-10 text-neon-cyan mx-auto neon-glow-cyan" />
+                <h3 className="retro-heading text-sm text-neon-pink">{feature.title.toUpperCase()}</h3>
+                <p className="retro-text text-neon-purple text-xs leading-relaxed">{feature.description}</p>
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-muted-foreground text-sm">
-          <p>Secure • Decentralized • Private</p>
-        </div>
+        {/* 90s Retro Footer */}
+        <div className="text-center space-y-6">
+          <div className="retro-text text-neon-green text-sm">
+            <span className="animate-pulse">SECURE</span> • <span className="animate-pulse">DECENTRALIZED</span> • <span className="animate-pulse">PRIVATE</span>
+          </div>
+          
+          {/* Legal Links */}
+          <div className="flex justify-center space-x-6">
+            <button
+              onClick={() => setShowTermsModal(true)}
+              className="retro-text text-neon-yellow hover:text-neon-cyan text-xs underline transition-colors"
+            >
+              TERMS & CONDITIONS
+            </button>
+            <button
+              onClick={() => setShowPrivacyModal(true)}
+              className="retro-text text-neon-yellow hover:text-neon-cyan text-xs underline transition-colors"
+            >
+              PRIVACY POLICY
+            </button>
+          </div>
 
-        {/* Legal Links */}
-        <div className="text-center mt-6 space-x-4">
-          <button
-            onClick={() => setShowTermsModal(true)}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
-          >
-            Terms & Conditions
-          </button>
-          <span className="text-sm text-muted-foreground">•</span>
-          <button
-            onClick={() => setShowPrivacyModal(true)}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
-          >
-            Privacy Policy
-          </button>
-        </div>
-
-        {/* Powered by COYN */}
-        <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
-          <div className="flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-opacity">
-            <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
-            <img 
-              src={coynLogoPath} 
-              alt="COYN" 
-              className="h-6 w-6 object-contain"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">COYN</span>
+          {/* Powered by COYN */}
+          <div className="border-t-2 border-neon-cyan pt-6">
+            <div className="flex items-center justify-center space-x-3 retro-pulse">
+              <span className="retro-text text-neon-purple text-sm">POWERED BY</span>
+              <img 
+                src={coynLogoPath} 
+                alt="COYN" 
+                className="h-8 w-8 object-contain neon-glow-pink"
+              />
+              <span className="retro-heading text-sm text-neon-pink">COYN</span>
+            </div>
           </div>
         </div>
       </div>
