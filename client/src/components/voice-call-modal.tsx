@@ -433,6 +433,11 @@ export default function VoiceCallModal({
                     size="icon"
                     onClick={() => {
                       if (onSwitchToVideo) {
+                        // End voice call first
+                        if (onCallEnd) {
+                          onCallEnd();
+                        }
+                        // Then switch to video
                         onSwitchToVideo();
                         onClose(); // Close voice call modal
                       }

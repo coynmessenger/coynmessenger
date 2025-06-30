@@ -2290,7 +2290,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         user={conversation.otherUser}
         isCallActive={isVoiceCallActive}
         onSwitchToVideo={() => {
+          // End voice call properly
+          setIsVoiceCallActive(false);
           setShowVoiceCall(false);
+          // Start video call immediately with active state
+          setIsVideoCallActive(true);
           setShowVideoCall(true);
         }}
       />
