@@ -54,7 +54,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     
     // Validate if user has entered something
     if (value.trim() && !validateWalletAddress(value.trim())) {
-      setValidationError("Please enter a valid wallet address");
+      setValidationError("Please enter a valid wallet address (42 characters starting with 0x)");
     }
   };
 
@@ -68,7 +68,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     }
     
     if (!validateWalletAddress(trimmedAddress)) {
-      setValidationError("Please enter a valid wallet address");
+      setValidationError("Please enter a valid wallet address (42 characters starting with 0x)");
       return;
     }
     

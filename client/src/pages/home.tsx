@@ -150,7 +150,7 @@ export default function HomePage() {
   };
 
   const isValidCoynAddress = (address: string) => {
-    // COYN addresses use standard 0x format
+    // COYN addresses use standard 0x format (BSC/Ethereum-compatible)
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
 
@@ -307,7 +307,7 @@ export default function HomePage() {
                       />
                     </div>
                     {walletAddress && !isValidCoynAddress(walletAddress) && (
-                      <p className="text-destructive text-xs">Please enter a valid wallet address</p>
+                      <p className="text-destructive text-xs">Please enter a valid COYN address (0x format)</p>
                     )}
                   </div>
 

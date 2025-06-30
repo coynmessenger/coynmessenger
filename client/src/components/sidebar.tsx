@@ -9,7 +9,7 @@ import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User a
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { formatDistanceToNow } from "date-fns";
-import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
+import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import AddContactModal from "./add-contact-modal";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
