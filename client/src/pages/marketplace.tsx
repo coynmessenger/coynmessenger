@@ -940,37 +940,7 @@ export default function MarketplacePage() {
           showShipping={true}
         />
 
-        {/* Statistics */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-white dark:bg-card border-border text-center">
-            <CardContent className="pt-6">
-              <Package className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">{allItems.length}+</div>
-              <div className="text-sm text-muted-foreground">Products</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-card border-border text-center">
-            <CardContent className="pt-6">
-              <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">150+</div>
-              <div className="text-sm text-muted-foreground">Active Sellers</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-card border-border text-center">
-            <CardContent className="pt-6">
-              <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">$2.5M+</div>
-              <div className="text-sm text-muted-foreground">Volume Traded</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-card border-border text-center">
-            <CardContent className="pt-6">
-              <Star className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">4.8</div>
-              <div className="text-sm text-muted-foreground">Avg Rating</div>
-            </CardContent>
-          </Card>
-        </div>
+
       </div>
 
       {/* Marketplace Wallet Hover Component */}
