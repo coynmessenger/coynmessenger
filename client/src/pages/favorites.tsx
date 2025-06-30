@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Heart, Home, ShoppingCart, Star, ArrowUp, Settings, Wallet, Store } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import MarketplaceCheckout from "@/components/marketplace-checkout";
+import { addToCart, getCartCount } from "@/components/shopping-cart";
+import ShoppingCartComponent from "@/components/shopping-cart";
 import MarketplaceWalletHover from "@/components/marketplace-wallet-hover";
 import WalletModal from "@/components/wallet-modal";
 
@@ -27,10 +28,26 @@ interface Favorite {
 export default function FavoritesPage() {
   useScrollToTop();
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [showCart, setShowCart] = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const [showWalletHover, setShowWalletHover] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Initialize cart count and listen for cart updates
+  useEffect(() => {
+    setCartCount(getCartCount());
+    
+    const handleCartUpdate = (event: CustomEvent) => {
+      setCartCount(event.detail.count);
+    };
+    
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+    };
+  }, []);
 
   // Wallet modal handlers
   const handleOpenSend = () => {
@@ -82,35 +99,16 @@ export default function FavoritesPage() {
 
   // Remove the cart update effect that was causing infinite loop
 
-  const addToCart = (favorite: Favorite) => {
+  // Helper function to add favorite to cart using the shopping-cart component function
+  const handleAddToCart = (favorite: Favorite) => {
     const cartItem = {
-      id: favorite.productId,
+      ASIN: favorite.productId,
       title: favorite.productTitle,
-      price: favorite.productPrice,
+      price: favorite.productPrice.replace('$', ''),
       imageUrl: favorite.productImage,
-      quantity: 1,
       currency: 'USD'
     };
-
-    const existingCart = JSON.parse(localStorage.getItem('shopping-cart') || '[]');
-    const existingItemIndex = existingCart.findIndex((item: any) => item.id === cartItem.id);
-
-    if (existingItemIndex > -1) {
-      existingCart[existingItemIndex].quantity += 1;
-    } else {
-      existingCart.push(cartItem);
-    }
-
-    localStorage.setItem('shopping-cart', JSON.stringify(existingCart));
-    
-    // Calculate new cart count and dispatch event
-    const totalItems = existingCart.reduce((total: number, item: any) => total + item.quantity, 0);
-    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: totalItems } }));
-    
-    toast({
-      title: "Added to Cart",
-      description: `${favorite.productTitle} has been added to your cart.`,
-    });
+    addToCart(cartItem);
   };
 
   return (
@@ -156,12 +154,17 @@ export default function FavoritesPage() {
               </Button>
               
               <Button
-                onClick={() => setShowCart(true)}
+                onClick={() => setShowCartModal(true)}
                 variant="ghost"
                 size="icon"
                 className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
                 <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 sm:h-4 sm:w-4 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Button>
             </div>
           </div>
@@ -250,7 +253,7 @@ export default function FavoritesPage() {
                         <Button 
                           size="sm" 
                           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
-                          onClick={() => addToCart(favorite)}
+                          onClick={() => handleAddToCart(favorite)}
                         >
                           <ShoppingCart className="h-3 w-3 mr-1" />
                           Cart
@@ -276,16 +279,19 @@ export default function FavoritesPage() {
         </Button>
       )}
 
-      <MarketplaceCheckout 
-        isOpen={showCart}
-        onClose={() => setShowCart(false)}
+      <ShoppingCartComponent 
+        isOpen={showCartModal}
+        onClose={() => {
+          setShowCartModal(false);
+          setCartCount(getCartCount()); // Update cart count when closing
+        }} 
       />
 
       <MarketplaceWalletHover
         isVisible={showWalletHover}
         onClose={() => setShowWalletHover(false)}
         anchorRef={walletButtonRef}
-        onProceedToCheckout={() => setShowCart(true)}
+        onProceedToCheckout={() => {}}
       />
 
       {/* Wallet Modal */}
