@@ -154,14 +154,7 @@ export default function Sidebar({
     return !hasConversation;
   });
 
-  // Debug: Log filtering results
-  console.log('Sidebar filtering debug:', {
-    currentUserId: user?.id,
-    totalUsers: allUsers.length,
-    availableContacts: availableContacts.length,
-    userIds: allUsers.map(u => ({ id: u.id, name: u.displayName })),
-    availableContactIds: availableContacts.map(u => ({ id: u.id, name: u.displayName }))
-  });
+
 
 
 
