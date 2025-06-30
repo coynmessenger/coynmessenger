@@ -105,6 +105,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
+  const [contextMenuMessage, setContextMenuMessage] = useState<Message | null>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<{
     url: string;
@@ -713,7 +715,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       description: "Message copied to clipboard",
       duration: 1500,
     });
-    setShowMessageOptions(null);
+    setContextMenuMessage(null);
   };
 
   const starMessageMutation = useMutation({
@@ -747,13 +749,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       messageId: message.id, 
       isStarred: !isCurrentlyStarred 
     });
-    setShowMessageOptions(null);
+    setContextMenuMessage(null);
   };
 
   const handleForwardMessage = (message: Message) => {
     // Implement forward functionality
     setShowShareModal(true);
-    setShowMessageOptions(null);
+    setContextMenuMessage(null);
   };
 
 
@@ -774,13 +776,37 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         variant: "destructive"
       });
     }
-    setShowMessageOptions(null);
+    setContextMenuMessage(null);
   };
 
   const handleReplyCancel = () => {
     console.log("Canceling reply");
     setReplyToMessage(null);
   };
+
+  // Context menu handlers
+  const handleContextMenu = (e: React.MouseEvent, message: Message) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setContextMenuMessage(message);
+  };
+
+  const closeContextMenu = () => {
+    setContextMenuMessage(null);
+  };
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenuMessage) {
+        closeContextMenu();
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [contextMenuMessage]);
 
   const handleQuickSend = (currency: string) => {
     const amount = "0.01"; // Default quick send amount
@@ -1328,7 +1354,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           }
                         }}
                       >
-                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20">
+                        <div 
+                          className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20"
+                          onContextMenu={(e) => handleContextMenu(e, msg)}
+                        >
                           {/* WhatsApp-style reply context */}
                           {msg.content?.includes('@') && msg.content.includes(':') && (
                             <div className="bg-white/20 rounded-lg p-2 mb-2 border-l-4 border-white/40">
@@ -1414,7 +1443,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           }
                         }}
                       >
-                        <div className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50">
+                        <div 
+                          className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
+                          onContextMenu={(e) => handleContextMenu(e, msg)}
+                        >
                           <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
@@ -1653,6 +1685,60 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenuMessage && (
+        <div
+          className="fixed z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg py-1 min-w-[140px]"
+          style={{
+            left: contextMenuPosition.x,
+            top: contextMenuPosition.y
+          }}
+          onClick={closeContextMenu}
+        >
+          <button
+            onClick={() => {
+              handleCopyMessage(contextMenuMessage);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
+          >
+            <Copy className="h-4 w-4" />
+            <span>Copy</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              handleStarMessage(contextMenuMessage);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
+          >
+            <Star className={`h-4 w-4 ${contextMenuMessage.isStarred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+            <span>{contextMenuMessage.isStarred ? 'Unstar' : 'Star'}</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              handleForwardMessage(contextMenuMessage);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
+          >
+            <Forward className="h-4 w-4" />
+            <span>Forward</span>
+          </button>
+          
+          {contextMenuMessage.senderId === connectedUserId && (
+            <button
+              onClick={() => {
+                deleteMessage(contextMenuMessage.id);
+              }}
+              className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-950 transition-colors flex items-center space-x-2 text-red-600 dark:text-red-400"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Crypto Send Panel */}
       {showCryptoSend && (
