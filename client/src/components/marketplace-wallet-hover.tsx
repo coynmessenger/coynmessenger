@@ -43,15 +43,26 @@ export default function MarketplaceWalletHover({
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
   const userId = connectedUser.id || 5;
 
-  // Refresh wallet balances mutation
+  // Use the same wallet balance query as messenger sidebar
+  const { data: balances = [] } = useQuery<WalletBalance[]>({
+    queryKey: ["/api/wallet/balances"],
+    enabled: isVisible,
+  });
+
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user"],
+    enabled: isVisible,
+  });
+
+  // Refresh wallet balances mutation (same as sidebar)
   const refreshBalancesMutation = useMutation({
     mutationFn: async () => {
       return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       toast({
-        title: "Balances Updated",
+        title: "Balances Updated", 
         description: "Your COYN Wallet balances have been refreshed",
       });
     },
@@ -62,19 +73,6 @@ export default function MarketplaceWalletHover({
         variant: "destructive",
       });
     },
-  });
-
-  // Fetch real wallet data for the connected user
-  const { data: balances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances", userId],
-    queryFn: () => apiRequest("GET", `/api/wallet/balances?userId=${userId}`),
-    enabled: isVisible && !!userId,
-  });
-
-  const { data: user } = useQuery<User>({
-    queryKey: ["/api/user", userId],
-    queryFn: () => apiRequest("GET", `/api/user?userId=${userId}`),
-    enabled: isVisible && !!userId,
   });
 
   useEffect(() => {
@@ -166,9 +164,10 @@ export default function MarketplaceWalletHover({
     return amount * currentPrice;
   };
 
-  const totalUSD = balances.reduce((total, balance) => {
+  // Calculate total balance with real-time market prices (same as messenger sidebar)
+  const totalUSD = balances.reduce((sum, balance) => {
     const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
-    return total + realTimeValue;
+    return sum + realTimeValue;
   }, 0);
 
   const formatBalance = (balance: string, currency: string) => {
@@ -214,6 +213,7 @@ export default function MarketplaceWalletHover({
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
+        animation: 'walletSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}
     >
       <CardHeader className="pb-3 flex-shrink-0 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-b border-orange-200 dark:border-orange-700">
@@ -228,7 +228,7 @@ export default function MarketplaceWalletHover({
               size="sm"
               onClick={() => refreshBalancesMutation.mutate()}
               disabled={refreshBalancesMutation.isPending}
-              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-all duration-200 disabled:opacity-50"
+              className="h-10 w-10 sm:h-8 sm:w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-all duration-200 disabled:opacity-50 touch-manipulation"
               title="Refresh wallet balances"
             >
               <RefreshCw 
@@ -243,7 +243,7 @@ export default function MarketplaceWalletHover({
               variant="ghost"
               size="sm"
               onClick={() => setIsBalanceVisible(!isBalanceVisible)}
-              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50"
+              className="h-10 w-10 sm:h-8 sm:w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-all duration-200 touch-manipulation"
               title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
             >
               {isBalanceVisible ? (

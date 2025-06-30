@@ -604,3 +604,33 @@ mark:hover {
     }
   }
 }
+
+/* Smooth wallet modal animations */
+@keyframes walletSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes walletSlideInMobile {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile-specific wallet animations */
+@media (max-width: 640px) {
+  #marketplace-wallet-popup {
+    animation: walletSlideInMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+}
