@@ -329,8 +329,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   };
 
   if (!user) {
+    console.log('VideoCallModal: No user provided, modal will not render');
     return null;
   }
+  
+  console.log('VideoCallModal: Rendering with user:', user.displayName, 'isOpen:', isOpen);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {

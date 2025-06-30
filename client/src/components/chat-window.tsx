@@ -411,7 +411,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
-      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, messageData);
+      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
+        ...messageData,
+        senderId: connectedUserId // Pass the current connected user ID
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });

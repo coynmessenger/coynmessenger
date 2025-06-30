@@ -294,9 +294,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid conversation ID" });
       }
 
+      // Use senderId from request body (current connected user)
+      const senderId = req.body.senderId || 5; // Fallback to 5 for backward compatibility
+
       const messageData = {
         conversationId,
-        senderId: 5, // Current user
+        senderId,
         content: req.body.content,
         messageType: req.body.messageType || "text",
         cryptoAmount: req.body.cryptoAmount,
