@@ -1439,8 +1439,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   // Received message - with swipe-to-reply
                   <div className="flex items-start space-x-3 mb-1" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={msg.sender.profilePicture || ""} />
-                      <AvatarFallback>{msg.sender.displayName.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={msg.sender?.profilePicture || ""} />
+                      <AvatarFallback>{msg.sender?.displayName?.charAt(0) || msg.sender?.username?.charAt(0) || "U"}</AvatarFallback>
                     </Avatar>
                     <div className="relative max-w-xs lg:max-w-md">
 
@@ -1510,7 +1510,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             {msg.senderId === connectedUserId ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 break-all px-2">
-                            To: {msg.senderId === connectedUserId ? conversation.otherUser.walletAddress : msg.sender.walletAddress}
+                            To: {msg.senderId === connectedUserId ? conversation.otherUser.walletAddress : msg.sender?.walletAddress || 'Unknown'}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {formatTimestamp(msg.timestamp)}
@@ -1582,7 +1582,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                           )}
                           <div className="text-xs text-muted-foreground mb-2">
-                            Shared by {msg.sender.displayName}
+                            Shared by {msg.sender?.displayName || msg.sender?.username || 'Unknown User'}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {formatTimestamp(msg.timestamp)}
