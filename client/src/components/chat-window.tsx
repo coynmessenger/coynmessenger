@@ -1328,7 +1328,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.senderId === connectedUserId ? (
                   // Sent message (current user) - with swipe-to-reply
-                  <div className="flex justify-end mb-1" data-message-id={msg.id}>
+                  <div className="flex justify-end items-start space-x-3 mb-1" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
                       
                       {/* Swipeable message */}
@@ -1410,6 +1410,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         )}
                       </div>
                     </div>
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={connectedUser?.profilePicture || ""} />
+                      <AvatarFallback>{connectedUser?.displayName?.charAt(0) || "U"}</AvatarFallback>
+                    </Avatar>
                   </div>
                 ) : (
                   // Received message - with swipe-to-reply
@@ -1726,17 +1730,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             <span>Forward</span>
           </button>
           
-          {contextMenuMessage.senderId === connectedUserId && (
-            <button
-              onClick={() => {
-                deleteMessage(contextMenuMessage.id);
-              }}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-950 transition-colors flex items-center space-x-2 text-red-600 dark:text-red-400"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>Delete</span>
-            </button>
-          )}
+          <button
+            onClick={() => {
+              deleteMessage(contextMenuMessage.id);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-950 transition-colors flex items-center space-x-2 text-red-600 dark:text-red-400"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>Delete</span>
+          </button>
         </div>
       )}
 
