@@ -28,6 +28,8 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
     onSuccess: (newUser: User) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      // Force refetch of users data
+      queryClient.refetchQueries({ queryKey: ["/api/users"] });
       setWalletAddress("");
       onClose();
     },

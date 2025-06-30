@@ -154,6 +154,8 @@ export default function Sidebar({
     return !hasConversation;
   });
 
+
+
   // Create conversation mutation
   const createConversationMutation = useMutation({
     mutationFn: async (otherUserId: number) => {
@@ -318,9 +320,41 @@ export default function Sidebar({
 
         {/* Contact List and Chat List - Mobile Optimized */}
         <div className="flex-1 overflow-y-auto">
-          {/* Removed Start New Conversation section */}
-
-
+          {/* Available Contacts */}
+          {availableContacts.length > 0 && (
+            <div className="px-3 py-2">
+              <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                Contacts
+              </h3>
+              <div className="space-y-1">
+                {availableContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    onClick={() => createConversationMutation.mutate(contact.id)}
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={contact.profilePicture || ""} />
+                      <AvatarFallback>
+                        <UserAvatarIcon />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {contact.displayName || contact.username}
+                      </p>
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-2 h-2 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        <p className="text-xs text-muted-foreground">
+                          {contact.isOnline ? 'Online' : 'Offline'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mobile Settings - only visible on mobile */}
