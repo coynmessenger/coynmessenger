@@ -318,6 +318,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Created user with real blockchain balances:", newUser.id);
       
+      // Create self-conversation for messaging yourself
+      const selfConversation = await storage.createConversation(newUser.id, newUser.id);
+      console.log("Created self-conversation for new user:", selfConversation.id);
+      
       // Return user with effective display name
       const userWithEffectiveName = {
         ...newUser,

@@ -142,6 +142,9 @@ export class DatabaseStorage implements IStorage {
       })
       .from(conversations)
       .leftJoin(users, or(
+        // Handle self-conversations where participant1Id === participant2Id
+        and(eq(conversations.participant1Id, conversations.participant2Id), eq(users.id, userId)),
+        // Regular conversations
         and(eq(conversations.participant1Id, userId), eq(users.id, conversations.participant2Id)),
         and(eq(conversations.participant2Id, userId), eq(users.id, conversations.participant1Id))
       ))

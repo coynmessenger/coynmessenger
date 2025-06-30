@@ -74,6 +74,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const connectedUserId = getConnectedUserId();
+  
+  // Check if this is a self-conversation (messaging yourself)
+  const isSelfConversation = connectedUserId === conversation.otherUser.id;
 
   // Query for connected user data to get current display name
   const { data: connectedUser } = useQuery<User>({
@@ -1166,7 +1169,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </Avatar>
             <div className="text-left">
               <h2 className="font-semibold text-foreground">
-                {conversation.isGroup ? conversation.groupName : (conversation.otherUser?.displayName || "Unknown User")}
+                {conversation.isGroup ? conversation.groupName : (
+                  <>
+                    {conversation.otherUser?.displayName || "Unknown User"}
+                    {isSelfConversation && <span className="text-muted-foreground font-normal"> (You)</span>}
+                  </>
+                )}
               </h2>
               {conversation.isGroup ? (
                 <p className="text-xs text-muted-foreground">Group conversation</p>
@@ -1859,18 +1867,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         )}
         
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2 sm:space-x-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
-              >
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+          {/* Plus Button with Dropdown - Hide for self-conversations */}
+          {!isSelfConversation && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+                >
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
               <DropdownMenuItem
                 onClick={() => handleCryptoClick('BTC')}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
@@ -1919,7 +1929,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </div>
 
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          )}
 
           {/* Attachment Button */}
           <DropdownMenu>
