@@ -49,7 +49,7 @@ export default function MarketplaceWalletHover({
       return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
       toast({
         title: "Balances Updated",
         description: "Your COYN Wallet balances have been refreshed",
@@ -64,15 +64,17 @@ export default function MarketplaceWalletHover({
     },
   });
 
-  // Fetch real wallet data
+  // Fetch real wallet data for the connected user
   const { data: balances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
-    enabled: isVisible,
+    queryKey: ["/api/wallet/balances", userId],
+    queryFn: () => apiRequest("GET", `/api/wallet/balances?userId=${userId}`),
+    enabled: isVisible && !!userId,
   });
 
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/user"],
-    enabled: isVisible,
+    queryKey: ["/api/user", userId],
+    queryFn: () => apiRequest("GET", `/api/user?userId=${userId}`),
+    enabled: isVisible && !!userId,
   });
 
   useEffect(() => {
