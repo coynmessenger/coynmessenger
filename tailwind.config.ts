@@ -61,14 +61,6 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
-        // 90s Retro Neon Colors
-        "neon-pink": "var(--neon-pink)",
-        "neon-cyan": "var(--neon-cyan)",
-        "neon-purple": "var(--neon-purple)",
-        "neon-green": "var(--neon-green)",
-        "neon-yellow": "var(--neon-yellow)",
-        "retro-dark": "var(--retro-dark)",
-        "retro-darker": "var(--retro-darker)",
       },
       keyframes: {
         "accordion-down": {
