@@ -149,7 +149,7 @@ export default function Sidebar({
   const availableContacts = allUsers.filter(contact => {
     if (!user || contact.id === user.id) return false;
     const hasConversation = conversations.some(conv => 
-      conv.otherUser.id === contact.id
+      conv.otherUser?.id === contact.id
     );
     return !hasConversation;
   });
