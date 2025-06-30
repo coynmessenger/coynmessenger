@@ -85,6 +85,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - June 30, 2025: Implemented self-messaging functionality - users now automatically have their own profile as a contact for messaging themselves, self-conversations are created during user sign-in, crypto transaction features are disabled for self-conversations, added visual indicators showing "(You)" badge in profile modal and chat header for self-profiles, restricted action buttons (no call/video/delete) for own profile
 - June 30, 2025: Updated wallet connection buttons to use authentic real logos - replaced custom SVG designs with authentic MetaMask, WalletConnect, Trust Wallet, and Coinbase logos from official sources for professional brand recognition
 - June 30, 2025: Fixed display name synchronization issue - when users sign in with a new display name, both signInName and displayName fields are now updated to ensure the new name appears consistently throughout the application interface
+- June 30, 2025: Enhanced profile settings synchronization - when display name is changed in profile settings, conversation cache is now invalidated to ensure the new name appears in conversation lists and throughout the application immediately
 
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging

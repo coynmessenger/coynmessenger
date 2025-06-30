@@ -277,6 +277,12 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         queryClient.invalidateQueries({ queryKey: ["/api/user", parseInt(connectedUserId)] });
       }
       
+      // Invalidate conversation queries to refresh user data in conversation lists
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      if (connectedUserId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations", parseInt(connectedUserId)] });
+      }
+      
       // Update localStorage for homepage and other components
       if (updatedUser && updatedUser.displayName) {
         localStorage.setItem('userDisplayName', updatedUser.displayName);
