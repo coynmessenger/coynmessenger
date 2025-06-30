@@ -245,19 +245,17 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     gcTime: 0, // Don't cache for long
   });
 
+  // Track if we've initialized to prevent overriding user changes
+  const [hasInitialized, setHasInitialized] = React.useState(false);
+
   // Update local state when user data changes
   React.useEffect(() => {
-    if (user && isOpen) {
+    if (user && isOpen && !hasInitialized) {
       console.log("Settings modal initializing with user data:", user);
       console.log("User profile picture:", user.profilePicture);
       console.log("Effective display name:", getEffectiveDisplayName(user));
-      console.log("Current displayName state before reset:", displayName);
       
-      // Only initialize if displayName is empty to avoid overriding user changes
-      if (!displayName) {
-        setDisplayName(getEffectiveDisplayName(user) || "");
-      }
-      
+      setDisplayName(getEffectiveDisplayName(user) || "");
       setWalletAddress(user.walletAddress || "");
       setProfilePicture(user.profilePicture || "");
       setFullName(user.fullName || "");
@@ -268,9 +266,17 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setZipCode(user.zipCode || "");
       setCountry(user.country || "");
       
-      console.log("After initialization - displayName state:", displayName);
+      setHasInitialized(true);
+      console.log("Initialized displayName to:", getEffectiveDisplayName(user));
     }
-  }, [user, isOpen]);
+  }, [user, isOpen, hasInitialized]);
+
+  // Reset initialization flag when modal closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setHasInitialized(false);
+    }
+  }, [isOpen]);
 
   const updateUserMutation = useMutation({
     mutationFn: async (userData: any) => {
@@ -295,14 +301,24 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       queryClient.refetchQueries({ queryKey: ["/api/user", connectedUserId] });
       
       // Update localStorage for homepage and other components
-      if (updatedUser && updatedUser.displayName) {
-        localStorage.setItem('userDisplayName', updatedUser.displayName);
-        // Update connected user data in localStorage
+      if (updatedUser) {
+        console.log("Updating localStorage with:", updatedUser);
+        
+        // Update all localStorage keys that might contain user data
+        localStorage.setItem('userDisplayName', updatedUser.displayName || '');
+        
+        // Update connected user data in localStorage - this is critical
         const currentConnectedUser = localStorage.getItem('connectedUser');
         if (currentConnectedUser) {
-          const connectedUserData = JSON.parse(currentConnectedUser);
-          connectedUserData.displayName = updatedUser.displayName;
-          localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
+          try {
+            const connectedUserData = JSON.parse(currentConnectedUser);
+            // Update the complete user object with all fields from server response
+            Object.assign(connectedUserData, updatedUser);
+            localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
+            console.log("Updated connectedUser in localStorage:", connectedUserData);
+          } catch (e) {
+            console.error("Failed to update localStorage:", e);
+          }
         }
         
         // Dispatch custom event to notify other components of display name change
