@@ -232,12 +232,17 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     queryKey: ["/api/user", connectedUserId],
     queryFn: async () => {
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
+      console.log("Settings modal fetching user from:", url);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch user');
       }
-      return response.json();
+      const userData = await response.json();
+      console.log("Settings modal received user data:", userData);
+      return userData;
     },
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache for long
   });
 
   // Update local state when user data changes
@@ -246,7 +251,13 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       console.log("Settings modal initializing with user data:", user);
       console.log("User profile picture:", user.profilePicture);
       console.log("Effective display name:", getEffectiveDisplayName(user));
-      setDisplayName(getEffectiveDisplayName(user) || "");
+      console.log("Current displayName state before reset:", displayName);
+      
+      // Only initialize if displayName is empty to avoid overriding user changes
+      if (!displayName) {
+        setDisplayName(getEffectiveDisplayName(user) || "");
+      }
+      
       setWalletAddress(user.walletAddress || "");
       setProfilePicture(user.profilePicture || "");
       setFullName(user.fullName || "");
@@ -256,6 +267,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setState(user.state || "");
       setZipCode(user.zipCode || "");
       setCountry(user.country || "");
+      
+      console.log("After initialization - displayName state:", displayName);
     }
   }, [user, isOpen]);
 
@@ -265,23 +278,21 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       return apiRequest("PATCH", url, userData);
     },
     onSuccess: (updatedUser) => {
-      // Immediately update all cached user data
+      console.log("UpdateUserMutation success - updatedUser:", updatedUser);
+      
+      // Immediately update all cached user data with exact same keys being used
       queryClient.setQueryData(["/api/user"], updatedUser);
+      queryClient.setQueryData(["/api/user", connectedUserId], updatedUser);
       if (connectedUserId) {
         queryClient.setQueryData(["/api/user", parseInt(connectedUserId)], updatedUser);
       }
       
       // Invalidate all user-related queries to trigger refetch across the app
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      if (connectedUserId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/user", parseInt(connectedUserId)] });
-      }
-      
-      // Invalidate conversation queries to refresh user data in conversation lists
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      if (connectedUserId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations", parseInt(connectedUserId)] });
-      }
+      
+      // Force refresh of current query
+      queryClient.refetchQueries({ queryKey: ["/api/user", connectedUserId] });
       
       // Update localStorage for homepage and other components
       if (updatedUser && updatedUser.displayName) {
@@ -381,6 +392,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   });
 
   const handleSave = () => {
+    console.log("HandleSave called with displayName:", displayName);
+    
     const updateData: any = {
       displayName,
       // Don't include profilePicture here - it's handled immediately on upload
@@ -396,6 +409,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       updateData.country = country;
     }
 
+    console.log("Sending update data:", updateData);
     updateUserMutation.mutate(updateData);
   };
 
