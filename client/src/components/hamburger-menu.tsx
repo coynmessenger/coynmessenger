@@ -347,69 +347,69 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* Transaction History Modal */}
       <Dialog open={showTransactionHistory} onOpenChange={setShowTransactionHistory}>
-        <DialogContent className="w-[95vw] sm:w-[500px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
-          <div className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
-            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <Receipt className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        <DialogContent className="w-[95vw] sm:w-[400px] h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
+          <div className="p-3 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+              <div className="p-1.5 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <Receipt className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               </div>
               Transaction History
             </DialogTitle>
           </div>
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-2">
             {transactionHistory.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-full w-fit mx-auto mb-4">
-                  <Receipt className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+              <div className="text-center py-8">
+                <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full w-fit mx-auto mb-3">
+                  <Receipt className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No transactions yet</h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">No transactions yet</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Your crypto transactions will appear here
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {transactionHistory.map((transaction) => (
                   <div 
                     key={transaction.id} 
-                    className="group p-4 bg-gradient-to-r from-white to-orange-50/30 dark:from-gray-900 dark:to-orange-900/10 rounded-xl border border-orange-100 dark:border-orange-800/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    className="group p-2.5 bg-gradient-to-r from-white to-orange-50/30 dark:from-gray-900 dark:to-orange-900/10 rounded-lg border border-orange-100 dark:border-orange-800/30 hover:shadow-md transition-all duration-200"
                   >
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10 ring-2 ring-orange-200 dark:ring-orange-800">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar className="h-8 w-8 ring-1 ring-orange-200 dark:ring-orange-800">
                         <AvatarImage src={transaction.sender.profilePicture || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold">
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold text-xs">
                           {getEffectiveDisplayName(transaction.sender).charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-semibold text-gray-900 dark:text-white">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
                             {getEffectiveDisplayName(transaction.sender)}
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-full">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-1.5 py-0.5 rounded-full">
                             {formatTimestamp(transaction.timestamp)}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
                             {transaction.senderId === connectedUserId ? '-' : '+'}{transaction.cryptoAmount} {transaction.cryptoCurrency}
                           </div>
-                          <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                          <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs px-1.5 py-0.5">
                             {transaction.senderId === connectedUserId ? 'Sent' : 'Received'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                        <p className="text-xs text-gray-700 dark:text-gray-300 mt-1 line-clamp-1">
                           {transaction.content}
                         </p>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="opacity-70 group-hover:opacity-100 p-2 h-9 w-9 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-all duration-200 hover:scale-110"
+                        className="opacity-70 group-hover:opacity-100 p-1.5 h-7 w-7 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-all duration-200 hover:scale-110 flex-shrink-0"
                         onClick={() => handleDeleteTransaction(transaction)}
                         title="Delete transaction"
                       >
-                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                       </Button>
                     </div>
                   </div>
