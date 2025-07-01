@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import ChatWindow from '@/components/chat-window';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -17,6 +18,7 @@ export default function MessengerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   // Get current user
@@ -46,10 +48,14 @@ export default function MessengerPage() {
         currentUserId
       });
     },
-    onSuccess: (newConversation) => {
+    onSuccess: async (newConversation) => {
       console.log('Conversation created successfully:', newConversation);
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      setSelectedConversation(newConversation.id);
+      // Force refetch the conversations to get the updated list with populated user data
+      await queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+      // Wait a moment for the conversation list to update, then select
+      setTimeout(() => {
+        setSelectedConversation(newConversation.id);
+      }, 200);
     },
     onError: (error) => {
       console.error('Error creating conversation:', error);
@@ -210,7 +216,8 @@ export default function MessengerPage() {
             <div className="flex items-center space-x-2">
               <button
                 className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
-                title="Menu"
+                onClick={() => setLocation('/')}
+                title="Home"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -231,7 +238,8 @@ export default function MessengerPage() {
               </button>
               <button
                 className="hover:opacity-80 transition-opacity"
-                title="Open COYN Wallet"
+                onClick={() => setLocation('/marketplace')}
+                title="Open Marketplace"
               >
                 <img 
                   src={coynLogoPath} 
