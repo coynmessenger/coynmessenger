@@ -53,7 +53,7 @@ export default function HomePage() {
       console.log("Homepage received displayNameUpdated event:", event.detail);
       
       // Only update if the event is for the current connected user
-      if (event.detail?.userId === connectedUser?.id) {
+      if (connectedUser && event.detail?.userId === connectedUser.id) {
         const updatedStoredUser = localStorage.getItem('connectedUser');
         if (updatedStoredUser) {
           const parsedUser = JSON.parse(updatedStoredUser);
