@@ -234,7 +234,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                         <p className="text-sm text-gray-700 dark:text-gray-300 break-words leading-relaxed">
                           {message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`}
                         </p>
-                        {message.messageType === "crypto" && (
+                        {message.messageType === "crypto_transfer" && (
                           <Badge variant="secondary" className="mt-3 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
                             <MessageCircle className="h-3 w-3 mr-1" />
                             Crypto Transaction

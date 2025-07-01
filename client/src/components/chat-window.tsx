@@ -791,7 +791,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const deleteMessage = async (messageId: number) => {
     try {
-      await apiRequest("DELETE", `/api/messages/${messageId}`);
+      await apiRequest("DELETE", `/api/messages/${messageId}`, {
+        userId: connectedUserId
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
       toast({
         title: "Message deleted",
@@ -1515,7 +1517,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </div>
                   </div>
                 )
-              ) : msg.messageType === "crypto" ? (
+              ) : msg.messageType === "crypto_transfer" ? (
                 // Crypto transaction message
                 <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">

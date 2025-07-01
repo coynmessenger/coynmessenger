@@ -196,7 +196,7 @@ export default function Sidebar({
   const formatLastMessage = (message?: Message) => {
     if (!message) return "";
     
-    if (message.messageType === "crypto") {
+    if (message.messageType === "crypto_transfer") {
       return `${message.cryptoAmount} ${message.cryptoCurrency} sent`;
     }
     

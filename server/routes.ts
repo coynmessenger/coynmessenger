@@ -584,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversationId || 1, // Use passed conversationId or default
         senderId: fromUserId,
         content: `Sent ${amount} ${currency}`,
-        messageType: "crypto" as const,
+        messageType: "crypto_transfer" as const,
         cryptoAmount: amount,
         cryptoCurrency: currency
       };
