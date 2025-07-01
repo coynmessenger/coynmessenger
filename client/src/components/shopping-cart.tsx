@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
@@ -433,6 +434,20 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
       // Clear cart only after successful purchase recording
       setCartItems([]);
       localStorage.setItem('shopping-cart', JSON.stringify([]));
+      
+      // Remove purchased items from favorites
+      try {
+        for (const item of cartItems) {
+          const removeResponse = await apiRequest("DELETE", `/api/favorites/${item.id}`, {
+            userId: connectedUser.id
+          });
+        }
+        // Invalidate favorites cache to update UI
+        queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      } catch (error) {
+        console.error('Error removing items from favorites:', error);
+        // Don't fail the purchase if favorites removal fails
+      }
       
       // Emit cart update event
       window.dispatchEvent(new Event('cartUpdated'));

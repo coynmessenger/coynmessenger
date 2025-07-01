@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ShoppingCart as ShoppingCartIcon, Trash2, Plus, Minus, CreditCard, Wallet, X, MapPin, Check, ArrowLeft, ArrowRight, Package, Truck, Shield, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 const COUNTRIES = [
   { code: "US", name: "United States" },
@@ -442,6 +443,20 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
       // Clear cart only after successful purchase recording
       setCartItems([]);
       localStorage.setItem('shopping-cart', JSON.stringify([]));
+      
+      // Remove purchased items from favorites
+      try {
+        for (const item of cartItems) {
+          await apiRequest("DELETE", `/api/favorites/${item.id}`, {
+            userId: connectedUser.id
+          });
+        }
+        // Invalidate favorites cache to update UI
+        queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      } catch (error) {
+        console.error('Error removing items from favorites:', error);
+        // Don't fail the purchase if favorites removal fails
+      }
       
       // Emit cart update event
       window.dispatchEvent(new Event('cartUpdated'));
