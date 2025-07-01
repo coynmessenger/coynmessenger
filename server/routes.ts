@@ -453,26 +453,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create or get conversation
   app.post("/api/conversations", async (req, res) => {
     try {
-      const { otherUserId, currentUserId } = req.body;
-      
-      // Use provided currentUserId from request, fallback to default
-      const actualCurrentUserId = currentUserId || 5;
+      const { otherUserId } = req.body;
+      const currentUserId = 5; // Current user
 
-      if (!otherUserId) {
+      if (!otherUserId || otherUserId === currentUserId) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
 
       // Check if conversation already exists
-      const existingConversation = await storage.findConversation(actualCurrentUserId, otherUserId);
+      const existingConversation = await storage.findConversation(currentUserId, otherUserId);
       if (existingConversation) {
         return res.json(existingConversation);
       }
 
-      // Create new conversation (including self-conversations)
-      const conversation = await storage.createConversation(actualCurrentUserId, otherUserId);
+      // Create new conversation
+      const conversation = await storage.createConversation(currentUserId, otherUserId);
       res.status(201).json(conversation);
     } catch (error) {
-      console.error("Conversation creation error:", error);
       res.status(500).json({ message: "Failed to create conversation" });
     }
   });

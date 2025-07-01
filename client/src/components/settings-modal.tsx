@@ -14,7 +14,23 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
-import { getEffectiveDisplayName } from "@/lib/user-utils";
+
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Profile display name (most recent), 2. Sign-in name, 3. @id format
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  if (user.signInName) {
+    return user.signInName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username || "Unknown User";
+}
 
 const COUNTRIES = [
   { code: "US", name: "United States" },
@@ -197,14 +213,18 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Get connected user ID from localStorage (memoized to prevent infinite re-renders)
   const connectedUserId = useMemo(() => {
     const storedUser = localStorage.getItem('connectedUser');
+    console.log('Settings modal - stored user:', storedUser);
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        console.log('Settings modal - parsed user:', parsedUser);
+        console.log('Settings modal - using user ID:', parsedUser.id);
         return parsedUser.id;
       } catch (e) {
         console.error('Failed to parse stored user:', e);
       }
     }
+    console.log('Settings modal - no stored user, using null');
     return null;
   }, [isOpen]); // Only re-evaluate when modal opens
 
@@ -212,13 +232,13 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     queryKey: ["/api/user", connectedUserId],
     queryFn: async () => {
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
-
+      console.log("Settings modal fetching user from:", url);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch user');
       }
       const userData = await response.json();
-
+      console.log("Settings modal received user data:", userData);
       return userData;
     },
     staleTime: 0, // Always fetch fresh data

@@ -88,13 +88,17 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   }, [isOpen]);
 
   useEffect(() => {
+    console.log('VideoCallModal: Effect triggered', { isOpen, isCallActive, callStatus, user: user?.displayName });
+    
     if (!isOpen) {
       // Only reset if call is not active (completely ending the call)
       if (!isCallActive) {
+        console.log('VideoCallModal: Resetting call state (modal closed, call not active)');
         setCallStatus("connecting");
         setCallDuration(0);
         setIsMuted(false);
         setIsVideoOff(false);
+        
       }
       return;
     }
@@ -107,14 +111,14 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
 
     // Otherwise, go through normal connection process
-
+    console.log('VideoCallModal: Starting new call sequence');
     const timer1 = setTimeout(() => {
-
+      console.log('VideoCallModal: Call status -> ringing');
       setCallStatus("ringing");
     }, 1000);
 
     const timer2 = setTimeout(() => {
-
+      console.log('VideoCallModal: Call status -> connected, calling onCallStart');
       setCallStatus("connected");
       if (onCallStart) {
         onCallStart();
@@ -332,11 +336,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   };
 
   if (!user) {
-
+    console.log('VideoCallModal: No user provided, modal will not render');
     return null;
   }
   
-
+  console.log('VideoCallModal: Rendering with user:', user.displayName, 'isOpen:', isOpen);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {

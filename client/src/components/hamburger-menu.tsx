@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { MoreVertical, Settings, Star, MessageCircle, UserPlus } from "lucide-react";
 import type { User, Message } from "@shared/schema";
-import { getEffectiveDisplayName } from "@/lib/user-utils";
 import AddContactModal from "./add-contact-modal";
 
 interface HamburgerMenuProps {
@@ -20,6 +19,23 @@ interface HamburgerMenuProps {
 interface StarredMessage extends Message {
   sender: User;
   conversationId: number;
+}
+
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Profile display name (most recent), 2. Sign-in name, 3. @id format
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  if (user.signInName) {
+    return user.signInName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username || "Unknown User";
 }
 
 export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {

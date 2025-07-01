@@ -96,9 +96,12 @@ export default function VoiceCallModal({
   }, [isOpen]);
 
   useEffect(() => {
+    console.log('VoiceCallModal: Effect triggered', { isOpen, isCallActive, callStatus, user: user?.displayName });
+    
     if (!isOpen) {
       // Only reset if call is not active (completely ending the call)
       if (!isCallActive) {
+        console.log('VoiceCallModal: Resetting call state (modal closed, call not active)');
         setCallStatus("connecting");
         setCallDuration(0);
         setIsMuted(false);
@@ -114,14 +117,14 @@ export default function VoiceCallModal({
       return;
     }
 
-
+    console.log('VoiceCallModal: Starting new call sequence');
     const timer1 = setTimeout(() => {
-
+      console.log('VoiceCallModal: Call status -> ringing');
       setCallStatus("ringing");
     }, 1000);
 
     const timer2 = setTimeout(() => {
-
+      console.log('VoiceCallModal: Call status -> connected, calling onCallStart');
       setCallStatus("connected");
       if (onCallStart) onCallStart();
     }, 3000);

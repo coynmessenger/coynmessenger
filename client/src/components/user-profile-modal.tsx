@@ -8,7 +8,23 @@ import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { getEffectiveDisplayName } from "@/lib/user-utils";
+
+// Utility function to get effective display name (mirrors backend logic)
+function getEffectiveDisplayName(user: User): string {
+  // Priority: 1. Profile display name (most recent), 2. Sign-in name, 3. @id format
+  if (user.displayName && !user.displayName.startsWith('@')) {
+    return user.displayName;
+  }
+  if (user.signInName) {
+    return user.signInName;
+  }
+  // Fallback to @id format using last 6 characters of wallet address
+  if (user.walletAddress) {
+    return `@${user.walletAddress.slice(-6)}`;
+  }
+  // Ultimate fallback
+  return user.displayName || user.username || "Unknown User";
+}
 
 interface UserProfileModalProps {
   isOpen: boolean;

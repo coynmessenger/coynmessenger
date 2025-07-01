@@ -233,7 +233,7 @@ export default function HomePage() {
                 loading="eager"
                 decoding="async"
                 style={{ imageRendering: 'auto' }}
-
+                onLoad={() => console.log('Coynful logo loaded')}
               />
             </div>
           </div>
