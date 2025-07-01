@@ -78,7 +78,10 @@ export default function MessengerPage() {
 
   const createConversationMutation = useMutation({
     mutationFn: async (otherUserId: number) => {
-      const response = await apiRequest("POST", "/api/conversations", { otherUserId });
+      const response = await apiRequest("POST", "/api/conversations", { 
+        otherUserId,
+        currentUserId: connectedUserId 
+      });
       return response.json();
     },
     onSuccess: (newConversation: Conversation) => {

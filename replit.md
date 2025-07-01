@@ -81,6 +81,7 @@ The application is configured for deployment on Replit with auto-scaling:
 
 ## Changelog
 
+- July 1, 2025: Fixed critical messenger page contact display and conversation creation bugs - resolved missing contact list display on both mobile and desktop layouts, implemented proper contact sorting with user's own profile appearing first for self-messaging, fixed conversation creation API to accept currentUserId from frontend and allow self-conversations, added "You" badge for user's own profile, enhanced contact click functionality to properly create and open conversations
 - June 30, 2025: Fixed contact management issues - resolved user ID mismatch in add/delete contact APIs that were hardcoded to wrong user IDs, updated both endpoints to dynamically use current user ID from localStorage, removed automatic welcome messages when adding contacts to prevent unwanted highlighted conversations
 - June 30, 2025: Implemented self-messaging functionality - users now automatically have their own profile as a contact for messaging themselves, self-conversations are created during user sign-in, crypto transaction features are disabled for self-conversations, added visual indicators showing "(You)" badge in profile modal and chat header for self-profiles, restricted action buttons (no call/video/delete) for own profile
 - June 30, 2025: Updated wallet connection buttons to use authentic real logos - replaced custom SVG designs with authentic MetaMask, WalletConnect, Trust Wallet, and Coinbase logos from official sources for professional brand recognition
