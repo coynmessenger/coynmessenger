@@ -39,7 +39,13 @@ export default function FavoritesPage() {
     setCartCount(getCartCount());
     
     const handleCartUpdate = (event: CustomEvent) => {
-      setCartCount(event.detail.count);
+      if (event.detail && typeof event.detail.count === 'number') {
+        setCartCount(event.detail.count);
+      } else {
+        // Fallback: get cart count from localStorage
+        const cart = JSON.parse(localStorage.getItem('shopping-cart') || '[]');
+        setCartCount(cart.length);
+      }
     };
     
     window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
