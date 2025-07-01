@@ -45,33 +45,27 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Optimized user data fetching with React Query
-  const { data: currentUserData } = useQuery({
-    queryKey: ["/api/user", { userId: connectedUser?.id }],
-    queryFn: () => connectedUser ? apiRequest("GET", `/api/user?userId=${connectedUser.id}`) : null,
-    enabled: !!(isConnected && connectedUser?.id),
-    staleTime: 2 * 60 * 1000, // Fresh for 2 minutes
-    gcTime: 10 * 60 * 1000, // Cache for 10 minutes
-  });
-
-  // Update connected user when data changes
-  useEffect(() => {
-    if (currentUserData && currentUserData.displayName !== connectedUser?.displayName) {
-      localStorage.setItem('connectedUser', JSON.stringify(currentUserData));
-      setConnectedUser(currentUserData);
-    }
-  }, [currentUserData, connectedUser]);
+  // Removed automatic user data fetching to prevent conflicts with localStorage updates
 
   // Listen for display name updates from settings modal
   useEffect(() => {
     const handleDisplayNameUpdate = (event: CustomEvent) => {
       console.log("Homepage received displayNameUpdated event:", event.detail);
-      // Refresh the localStorage data
-      const updatedStoredUser = localStorage.getItem('connectedUser');
-      if (updatedStoredUser) {
-        const parsedUser = JSON.parse(updatedStoredUser);
-        console.log("Updating homepage connectedUser state with:", parsedUser);
-        setConnectedUser(parsedUser);
+      
+      // Only update if the event is for the current connected user
+      if (event.detail?.userId === connectedUser?.id) {
+        const updatedStoredUser = localStorage.getItem('connectedUser');
+        if (updatedStoredUser) {
+          const parsedUser = JSON.parse(updatedStoredUser);
+          console.log("Updating homepage connectedUser state with:", parsedUser);
+          
+          // Verify the user ID matches before updating state
+          if (parsedUser.id === connectedUser.id) {
+            setConnectedUser(parsedUser);
+          } else {
+            console.error("User ID mismatch in displayNameUpdated event - not updating homepage state");
+          }
+        }
       }
     };
 
@@ -80,7 +74,7 @@ export default function HomePage() {
     return () => {
       window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
     };
-  }, []);
+  }, [connectedUser?.id]);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
