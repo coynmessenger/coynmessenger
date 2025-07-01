@@ -52,41 +52,48 @@ export default function MessengerPage() {
 
   // Handle contact click
   const handleContactClick = async (contact: User) => {
-    if (!user) {
-      console.log('No user found');
-      return;
-    }
-    
-    console.log('Clicking contact:', contact.displayName, 'ID:', contact.id);
-    console.log('Current user ID:', user.id);
-    console.log('Available conversations:', conversations);
+    if (!connectedUserId) return;
     
     // Check if conversation already exists
     const existingConversation = conversations.find(conv => 
-      (conv.participant1Id === user.id && conv.participant2Id === contact.id) ||
-      (conv.participant2Id === user.id && conv.participant1Id === contact.id)
+      (conv.participant1Id === connectedUserId && conv.participant2Id === contact.id) ||
+      (conv.participant2Id === connectedUserId && conv.participant1Id === contact.id)
     );
     
-    console.log('Existing conversation found:', existingConversation);
-    
     if (existingConversation) {
-      console.log('Setting selected conversation to:', existingConversation.id);
       setSelectedConversation(existingConversation.id);
     } else {
       // Create new conversation
-      console.log('Creating new conversation with user:', contact.id);
       createConversationMutation.mutate(contact.id);
     }
   };
 
-  // Create unified contact list: current user first, then ALL other users
-  const currentUserContact = user ? [user] : [];
-  const otherContacts = allUsers.filter(contact => contact.id !== user?.id);
-  const allContacts = [...currentUserContact, ...otherContacts];
+  // Get the connected user ID from localStorage to identify the real current user
+  const getConnectedUserId = () => {
+    const storedUser = localStorage.getItem('connectedUser');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        return parsed.id || parsed.userId;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  };
 
-  console.log('All users:', allUsers);
-  console.log('Current user:', user);
-  console.log('All contacts to display:', allContacts);
+  const connectedUserId = getConnectedUserId();
+
+  // Find the real current user based on connected user ID
+  const realCurrentUser = allUsers.find(u => u.id === connectedUserId);
+  
+  // Create unified contact list: real current user first, then others (excluding duplicates)
+  const currentUserContact = realCurrentUser ? [realCurrentUser] : [];
+  const otherContacts = allUsers.filter(contact => 
+    contact.id !== connectedUserId && 
+    contact.id !== user?.id // Also exclude the API current user if different
+  );
+  const allContacts = [...currentUserContact, ...otherContacts];
 
   // Filter contacts based on search
   const filteredContacts = allContacts.filter(contact =>
@@ -138,14 +145,14 @@ export default function MessengerPage() {
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium text-foreground truncate">
                             {contact.displayName}
-                            {contact.id === user?.id && (
+                            {contact.id === connectedUserId && (
                               <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">
                                 You
                               </span>
                             )}
                           </h3>
                           <p className="text-sm text-muted-foreground truncate">
-                            {contact.id === user?.id ? "Message yourself" : `@${contact.username}`}
+                            {contact.id === connectedUserId ? "Message yourself" : `@${contact.username}`}
                           </p>
                         </div>
                         {createConversationMutation.isPending && (
@@ -276,14 +283,14 @@ export default function MessengerPage() {
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium text-foreground truncate">
                             {contact.displayName}
-                            {contact.id === user?.id && (
+                            {contact.id === connectedUserId && (
                               <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">
                                 You
                               </span>
                             )}
                           </h3>
                           <p className="text-sm text-muted-foreground truncate">
-                            {contact.id === user?.id ? "Message yourself" : `@${contact.username}`}
+                            {contact.id === connectedUserId ? "Message yourself" : `@${contact.username}`}
                           </p>
                         </div>
                         {createConversationMutation.isPending && (
