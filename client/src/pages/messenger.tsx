@@ -117,7 +117,11 @@ export default function MessengerPage() {
   const availableContacts = allUsers.filter(contact => {
     const hasExistingConversation = conversations.some(conv => conv.otherUser?.id === contact.id);
     const isCurrentUser = contact.id === user?.id;
-    return !isCurrentUser && !hasExistingConversation;
+    const shouldInclude = !isCurrentUser && !hasExistingConversation;
+    
+
+    
+    return shouldInclude;
   });
 
 
@@ -141,6 +145,8 @@ export default function MessengerPage() {
     contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+
 
   // Handler for opening wallet with optional pre-selected currency
   const handleOpenWallet = (currency?: string) => {
@@ -531,17 +537,74 @@ export default function MessengerPage() {
 
                 {/* Contact List - Mobile */}
                 {filteredConversations.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <div className="mx-auto mb-4">
+                  <div className="flex-1 flex flex-col">
+                    <div className="bg-card border-b border-border p-4">
+                      <div className="flex items-center space-x-3">
                         <img 
                           src={coynLogoPath} 
                           alt="COYN Logo" 
-                          className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                          className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                         />
+                        <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                          Start a Conversation
+                        </h1>
                       </div>
-                      <h2 className="text-xl font-semibold mb-2">No contacts available</h2>
-                      <p>Add contacts to start messaging</p>
+                    </div>
+
+                    <div className="flex-1 overflow-auto">
+                      {(searchQuery ? filteredContacts : availableContacts).length > 0 ? (
+                        <div className="divide-y divide-border">
+                          {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
+                            <div
+                              key={contact.id}
+                              onClick={() => handleContactClick(contact)}
+                              className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="relative">
+                                  <Avatar className="w-12 h-12">
+                                    <AvatarImage 
+                                      src={contact.profilePicture || undefined} 
+                                      alt={contact.displayName}
+                                    />
+                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  {contact.isOnline && (
+                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-medium text-foreground truncate">
+                                    {contact.displayName}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground truncate">
+                                    @{contact.username}
+                                  </p>
+                                </div>
+                                {createConversationMutation.isPending && (
+                                  <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="text-center text-muted-foreground">
+                            <div className="mx-auto mb-4">
+                              <img 
+                                src={coynLogoPath} 
+                                alt="COYN Logo" 
+                                className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                              />
+                            </div>
+                            <h2 className="text-xl font-semibold mb-2">All Set!</h2>
+                            <p>You're connected to all available contacts</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
