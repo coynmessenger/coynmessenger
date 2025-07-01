@@ -74,6 +74,8 @@ export default function MessengerPage() {
 
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const createConversationMutation = useMutation({
@@ -282,8 +284,8 @@ export default function MessengerPage() {
                     </div>
                   )}
 
-                  {/* Empty State - Only show if no conversations AND no available contacts */}
-                  {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                  {/* Contact List - Show when no conversations selected */}
+                  {filteredConversations.length === 0 && (
                     <div className="flex-1 flex flex-col">
                       <div className="bg-card border-b border-border p-4">
                         <div className="flex items-center space-x-3">
@@ -523,8 +525,8 @@ export default function MessengerPage() {
                   </div>
                 )}
 
-                {/* Empty State */}
-                {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                {/* Contact List - Mobile */}
+                {filteredConversations.length === 0 && (
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center text-muted-foreground">
                       <div className="mx-auto mb-4">
