@@ -720,6 +720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get user ID from query parameter or default to session user (5)
       const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      console.log("PATCH /api/user - Query params:", req.query, "Extracted userId:", userId);
       
       // Simple validation for user update
       const allowedFields = ['displayName', 'fullName', 'email', 'addressLine1', 'addressLine2', 'city', 'state', 'zipCode', 'country', 'profilePicture'];

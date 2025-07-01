@@ -281,6 +281,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const updateUserMutation = useMutation({
     mutationFn: async (userData: any) => {
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
+      console.log("Making PATCH request to:", url, "with data:", userData, "for connectedUserId:", connectedUserId);
       return apiRequest("PATCH", url, userData);
     },
     onSuccess: (updatedUser) => {
@@ -318,10 +319,29 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         if (currentConnectedUser) {
           try {
             const connectedUserData = JSON.parse(currentConnectedUser);
-            // Update the complete user object with all fields from server response
-            Object.assign(connectedUserData, updatedUser);
-            localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
-            console.log("Updated connectedUser in localStorage:", connectedUserData);
+            
+            // SAFETY CHECK: Only update if the user IDs match to prevent wrong user data overwrite
+            if (connectedUserData.id === updatedUser.id) {
+              // SAFER UPDATE: Only update specific fields that we know should change
+              // Don't overwrite critical data like wallet address, username, or user ID
+              const safeFieldsToUpdate = ['displayName', 'fullName', 'profilePicture', 'addressLine1', 'addressLine2', 'city', 'state', 'zipCode', 'country'];
+              
+              safeFieldsToUpdate.forEach(field => {
+                if (updatedUser[field] !== undefined) {
+                  connectedUserData[field] = updatedUser[field];
+                }
+              });
+              
+              localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
+              console.log("SAFE UPDATE: Updated connectedUser in localStorage with specific fields only:", connectedUserData);
+            } else {
+              console.error("User ID mismatch! Not updating localStorage.", {
+                storedUserId: connectedUserData.id,
+                updatedUserId: updatedUser.id,
+                storedWallet: connectedUserData.walletAddress,
+                updatedWallet: updatedUser.walletAddress
+              });
+            }
           } catch (e) {
             console.error("Failed to update localStorage:", e);
           }
