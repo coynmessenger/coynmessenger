@@ -109,7 +109,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
+    console.log('getAllUsers: Fetching all users from database...');
     const allUsers = await db.select().from(users).where(eq(users.isSetup, true));
+    console.log(`getAllUsers: Found ${allUsers.length} setup users in database`);
+    console.log('getAllUsers: User IDs:', allUsers.map(u => u.id));
     return allUsers;
   }
 

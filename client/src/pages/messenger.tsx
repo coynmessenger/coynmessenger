@@ -21,6 +21,8 @@ import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
   useScrollToTop(); // Clean contact list
+  
+
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
@@ -74,8 +76,6 @@ export default function MessengerPage() {
 
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
-    staleTime: 0,
-    gcTime: 0,
   });
 
   const createConversationMutation = useMutation({
@@ -117,6 +117,14 @@ export default function MessengerPage() {
     const isCurrentUser = contact.id === user?.id;
     return !isCurrentUser && !hasExistingConversation;
   });
+
+  // Debug logging
+  if (allUsers.length < 5) {
+    console.log('DEBUG: allUsers count is low:', allUsers.length);
+    console.log('DEBUG: allUsers data:', allUsers);
+    console.log('DEBUG: user data:', user);
+    console.log('DEBUG: conversations:', conversations);
+  }
 
   // Filter conversations and contacts based on search query
   const filteredConversations = conversations.filter(conversation => {
