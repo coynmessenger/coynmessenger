@@ -129,6 +129,20 @@ export default function MessengerPage() {
         conversation.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     }
+  }).sort((a, b) => {
+    // Sort conversations to prioritize user's own conversation at the top
+    const isUserConversationA = a.otherUser?.id === connectedUserId;
+    const isUserConversationB = b.otherUser?.id === connectedUserId;
+    
+    if (isUserConversationA && !isUserConversationB) {
+      return -1; // User's conversation comes first
+    }
+    if (!isUserConversationA && isUserConversationB) {
+      return 1; // Other user's conversation comes after
+    }
+    
+    // For other conversations, maintain original order (could add timestamp sorting here)
+    return 0;
   });
 
   const filteredContacts = availableContacts.filter(contact =>
