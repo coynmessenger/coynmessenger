@@ -25,23 +25,7 @@ import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import { formatDistanceToNow } from "date-fns";
-
-// Utility function to get effective display name (mirrors backend logic)
-function getEffectiveDisplayName(user: User): string {
-  // Priority: 1. Profile display name (most recent), 2. Sign-in name, 3. @id format
-  if (user.displayName && !user.displayName.startsWith('@')) {
-    return user.displayName;
-  }
-  if (user.signInName) {
-    return user.signInName;
-  }
-  // Fallback to @id format using last 6 characters of wallet address
-  if (user.walletAddress) {
-    return `@${user.walletAddress.slice(-6)}`;
-  }
-  // Ultimate fallback
-  return user.displayName || user.username;
-}
+import { getEffectiveDisplayName } from "@/lib/user-utils";
 
 interface ChatWindowProps {
   conversation: Conversation & { otherUser: User };
@@ -422,10 +406,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
       
-      // Debug: Log messages to see if crypto message is being returned
-      console.log(`Fetched ${data.length} messages for conversation ${conversation.id}:`, 
-        data.map((m: any) => ({ id: m.id, type: m.messageType, content: m.content?.substring(0, 50) }))
-      );
+
       
       return data;
     },
@@ -618,7 +599,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Swipe-to-reply handlers
   const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    console.log("Swipe started for message ID:", messageId);
+
     setSwipeState({
       messageId,
       offsetX: 0,
