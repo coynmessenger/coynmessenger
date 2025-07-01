@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MoreVertical, Settings, Star, MessageCircle, UserPlus } from "lucide-react";
+import { MoreVertical, Settings, Star, MessageCircle, UserPlus, Receipt } from "lucide-react";
 import type { User, Message } from "@shared/schema";
 import AddContactModal from "./add-contact-modal";
 
@@ -41,6 +41,7 @@ function getEffectiveDisplayName(user: User): string {
 export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [messageToUnstar, setMessageToUnstar] = useState<StarredMessage | null>(null);
   const [showUnstarConfirm, setShowUnstarConfirm] = useState(false);
   const { toast } = useToast();
@@ -74,6 +75,20 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
       return response.json();
     },
     enabled: showStarredMessages,
+  });
+
+  // Fetch transaction history
+  const { data: transactionHistory = [] } = useQuery<StarredMessage[]>({
+    queryKey: ["/api/transactions/history", connectedUserId],
+    queryFn: async () => {
+      const url = connectedUserId ? `/api/transactions/history?userId=${connectedUserId}` : "/api/transactions/history";
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch transaction history');
+      }
+      return response.json();
+    },
+    enabled: showTransactionHistory,
   });
 
   const formatTimestamp = (timestamp: string | Date | null) => {
@@ -171,6 +186,10 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           <DropdownMenuItem onClick={() => setShowStarredMessages(true)}>
             <Star className="h-4 w-4 mr-3" />
             Starred Messages
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowTransactionHistory(true)}>
+            <Receipt className="h-4 w-4 mr-3" />
+            Transaction History
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onOpenSettings}>
@@ -287,6 +306,72 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Transaction History Modal */}
+      <Dialog open={showTransactionHistory} onOpenChange={setShowTransactionHistory}>
+        <DialogContent className="w-[95vw] sm:w-[500px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
+          <div className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <Receipt className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              Transaction History
+            </DialogTitle>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6">
+            {transactionHistory.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-full w-fit mx-auto mb-4">
+                  <Receipt className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No transactions yet</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Your crypto transactions will appear here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {transactionHistory.map((transaction) => (
+                  <div 
+                    key={transaction.id} 
+                    className="group p-4 bg-gradient-to-r from-white to-orange-50/30 dark:from-gray-900 dark:to-orange-900/10 rounded-xl border border-orange-100 dark:border-orange-800/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-10 w-10 ring-2 ring-orange-200 dark:ring-orange-800">
+                        <AvatarImage src={transaction.sender.profilePicture || ""} />
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold">
+                          {getEffectiveDisplayName(transaction.sender).charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {getEffectiveDisplayName(transaction.sender)}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-full">
+                            {formatTimestamp(transaction.timestamp)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                            {transaction.senderId === connectedUserId ? '-' : '+'}{transaction.cryptoAmount} {transaction.cryptoCurrency}
+                          </div>
+                          <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                            {transaction.senderId === connectedUserId ? 'Sent' : 'Received'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                          {transaction.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

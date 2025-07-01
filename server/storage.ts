@@ -44,6 +44,7 @@ export interface IStorage {
   searchMessagesInConversation(query: string, conversationId: number): Promise<Message[]>;
   getStarredMessages(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
   toggleMessageStar(messageId: number, userId: number, isStarred: boolean): Promise<boolean>;
+  getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
 
   // Wallet
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
@@ -717,6 +718,47 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchases.id, purchaseId))
       .returning();
     return result.length > 0;
+  }
+
+  async getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; conversationId: number })[]> {
+    // Get user's conversation IDs
+    const userConversationIds = await db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      );
+
+    const conversationIds = userConversationIds.map(c => c.id);
+    
+    if (conversationIds.length === 0) {
+      return [];
+    }
+
+    // Get crypto transaction messages from user's conversations
+    const transactions = await db
+      .select({
+        message: messages,
+        sender: users
+      })
+      .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
+      .where(
+        and(
+          inArray(messages.conversationId, conversationIds),
+          eq(messages.messageType, "crypto_transfer")
+        )
+      )
+      .orderBy(desc(messages.timestamp));
+
+    return transactions.map(row => ({
+      ...row.message,
+      sender: row.sender!,
+      conversationId: row.message.conversationId
+    }));
   }
 }
 

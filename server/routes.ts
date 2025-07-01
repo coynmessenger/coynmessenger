@@ -632,6 +632,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get transaction history
+  app.get("/api/transactions/history", async (req, res) => {
+    try {
+      // Get user ID from query parameter or default to 5 for backward compatibility
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      const transactions = await storage.getUserTransactionHistory(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Get transaction history error:", error);
+      res.status(500).json({ message: "Failed to get transaction history" });
+    }
+  });
+
   // Toggle star on a message
   app.patch("/api/messages/:id/star", async (req, res) => {
     try {
