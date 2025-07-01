@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -317,12 +317,12 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     });
   };
 
-  const calculateTotal = () => {
+  const calculateTotal = useMemo(() => {
     return cartItems.reduce((total, item) => {
       const price = parseFloat(item.price.replace(/[,$]/g, ''));
       return total + (price * item.quantity);
     }, 0);
-  };
+  }, [cartItems]);
 
   const convertToCrypto = (usdAmount: number, crypto: keyof typeof CRYPTO_RATES) => {
     const rate = parseFloat(CRYPTO_RATES[crypto].replace(/[,$]/g, ''));
@@ -353,7 +353,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   };
 
   const calculateTotalWithExtras = () => {
-    const subtotal = calculateTotal();
+    const subtotal = calculateTotal;
     const shipping = calculateShippingCost();
     const tax = calculateTax(subtotal);
     return subtotal + shipping + tax;
@@ -505,7 +505,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     </div>
   );
 
-  const totalUSD = calculateTotal();
+  const totalUSD = calculateTotal;
 
   const handleClose = () => {
     setShowCheckoutModal(false);
@@ -855,7 +855,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   <CardContent className="pt-0 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Subtotal:</span>
-                      <span>${calculateTotal().toFixed(2)}</span>
+                      <span>${calculateTotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Shipping:</span>
@@ -863,7 +863,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Tax:</span>
-                      <span>${calculateTax(calculateTotal()).toFixed(2)}</span>
+                      <span>${calculateTax(calculateTotal).toFixed(2)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold">
@@ -936,7 +936,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal:</span>
-                        <span>${calculateTotal().toFixed(2)}</span>
+                        <span>${calculateTotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Shipping {expressShipping ? '(Express)' : '(Standard)'}:</span>
@@ -944,7 +944,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Tax:</span>
-                        <span>${calculateTax(calculateTotal()).toFixed(2)}</span>
+                        <span>${calculateTax(calculateTotal).toFixed(2)}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between font-bold text-lg">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -85,11 +85,13 @@ export default function Sidebar({
     return amount * currentPrice;
   };
 
-  // Calculate total balance with real-time market prices
-  const totalBalance = walletBalances.reduce((sum, balance) => {
-    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
-    return sum + realTimeValue;
-  }, 0);
+  // Calculate total balance with real-time market prices - memoized for performance
+  const totalBalance = useMemo(() => {
+    return walletBalances.reduce((sum, balance) => {
+      const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+      return sum + realTimeValue;
+    }, 0);
+  }, [walletBalances]);
 
   // Currency icons and helper functions
   const currencyIcons: { [key: string]: { color: string; symbol: string; isCoyn?: boolean } } = {
@@ -156,24 +158,26 @@ export default function Sidebar({
     }).format(parseFloat(value || "0"));
   };
 
-  // Get available contacts (users not in current conversations and not current user)
-  const availableContacts = allUsers.filter(contact => {
-    if (!user?.id || !contact?.id) return false;
-    
-    // Special handling for self-conversation
-    if (contact.id === user.id) {
-      // Always include current user for self-messaging
-      const hasSelfConversation = conversations.some(conv => 
+  // Get available contacts (users not in current conversations and not current user) - memoized for performance
+  const availableContacts = useMemo(() => {
+    return allUsers.filter(contact => {
+      if (!user?.id || !contact?.id) return false;
+      
+      // Special handling for self-conversation
+      if (contact.id === user.id) {
+        // Always include current user for self-messaging
+        const hasSelfConversation = conversations.some(conv => 
+          conv?.otherUser?.id === contact.id
+        );
+        return !hasSelfConversation;
+      }
+      
+      const hasConversation = conversations.some(conv => 
         conv?.otherUser?.id === contact.id
       );
-      return !hasSelfConversation;
-    }
-    
-    const hasConversation = conversations.some(conv => 
-      conv?.otherUser?.id === contact.id
-    );
-    return !hasConversation;
-  });
+      return !hasConversation;
+    });
+  }, [allUsers, user?.id, conversations]);
 
 
 

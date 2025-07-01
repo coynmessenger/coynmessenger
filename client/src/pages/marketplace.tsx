@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -90,6 +90,8 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
               src={product.imageUrl} 
               alt={product.title}
               className="w-20 h-20 object-cover rounded-lg"
+              loading="lazy"
+              decoding="async"
             />
             <div className="flex-1">
               <h3 className="font-semibold text-foreground line-clamp-2">{product.title}</h3>
@@ -361,43 +363,48 @@ export default function MarketplacePage() {
     { value: "sports", label: "Sports & Outdoors", icon: Users }
   ];
 
-  const allItems = [...marketplaceProducts, ...legacyItems];
+  const allItems = useMemo(() => [...marketplaceProducts, ...legacyItems], [marketplaceProducts, legacyItems]);
   
-  // Filter items and apply search/category filters
-  const filteredItems = allItems.filter(item => {
-    const isMarketplaceProduct = 'ASIN' in item;
-    
-    // Only filter out items that explicitly have no image URL at all
-    const hasValidImageUrl = isMarketplaceProduct ? 
-      item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('placeholder') : 
-      ('image' in item && typeof item.image === 'string' && item.image.trim() !== '' && !item.image.includes('placeholder'));
-    
-    // Allow items with valid image URLs or marketplace products (they have fallback handling)
-    if (!hasValidImageUrl && !isMarketplaceProduct) return false;
-    
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (isMarketplaceProduct ? item.brand?.toLowerCase() : item.seller?.toLowerCase())?.includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.category.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
+  // Memoize expensive filtering operation
+  const filteredItems = useMemo(() => {
+    return allItems.filter(item => {
+      const isMarketplaceProduct = 'ASIN' in item;
+      
+      // Only filter out items that explicitly have no image URL at all
+      const hasValidImageUrl = isMarketplaceProduct ? 
+        item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('placeholder') : 
+        ('image' in item && typeof item.image === 'string' && item.image.trim() !== '' && !item.image.includes('placeholder'));
+      
+      // Allow items with valid image URLs or marketplace products (they have fallback handling)
+      if (!hasValidImageUrl && !isMarketplaceProduct) return false;
+      
+      const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (isMarketplaceProduct ? item.brand?.toLowerCase() : item.seller?.toLowerCase())?.includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || item.category.toLowerCase() === selectedCategory.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [allItems, searchQuery, selectedCategory]);
 
-  const sortedItems = filteredItems.sort((a, b) => {
-    switch (sortBy) {
-      case "featured":
-        const aFeatured = 'featured' in a ? a.featured : false;
-        const bFeatured = 'featured' in b ? b.featured : true; // Amazon products are "featured"
-        return (bFeatured ? 1 : 0) - (aFeatured ? 1 : 0);
-      case "price-low":
-        return parseFloat(a.price) - parseFloat(b.price);
-      case "price-high":
-        return parseFloat(b.price) - parseFloat(a.price);
-      case "rating":
-        return b.rating - a.rating;
-      default:
-        return 0;
-    }
-  });
+  // Memoize expensive sorting operation
+  const sortedItems = useMemo(() => {
+    return [...filteredItems].sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "featured":
+          const aFeatured = 'featured' in a ? a.featured : false;
+          const bFeatured = 'featured' in b ? b.featured : true; // Amazon products are "featured"
+          return (bFeatured ? 1 : 0) - (aFeatured ? 1 : 0);
+        case "price-low":
+          return parseFloat(a.price) - parseFloat(b.price);
+        case "price-high":
+          return parseFloat(b.price) - parseFloat(a.price);
+        case "rating":
+          return b.rating - a.rating;
+        default:
+          return 0;
+      }
+    });
+  }, [filteredItems, sortBy]);
 
   const handleProductClick = (item: any) => {
     if ('ASIN' in item) {
@@ -749,6 +756,7 @@ export default function MarketplacePage() {
                             alt={`${item.title} - Image ${currentImageIndex + 1}`}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
+                            decoding="async"
                             onLoad={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'block';
