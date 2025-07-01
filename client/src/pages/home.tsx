@@ -95,6 +95,8 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
+      console.log("connectWalletMutation success - received user:", user);
+      
       // Store connection state in localStorage
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
@@ -105,9 +107,13 @@ export default function HomePage() {
         localStorage.setItem('userDisplayName', user.displayName);
       }
       
+      // Clear all cache to prevent stale data conflicts
+      queryClient.clear();
+      
       // Immediately update cache data for both query key patterns
       queryClient.setQueryData(["/api/user"], user);
       queryClient.setQueryData(["/api/user", user.id], user);
+      queryClient.setQueryData(["/api/user", { userId: user.id }], user);
       
       // Invalidate user queries to ensure fresh data across all components
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -117,8 +123,21 @@ export default function HomePage() {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", user.id] });
       
+      // Force immediate state update
       setConnectedUser(user);
       setIsConnected(true);
+      
+      console.log("Updated homepage state with new user:", user);
+      
+      // Force a component re-render after a brief delay to ensure localStorage is updated
+      setTimeout(() => {
+        const freshUser = localStorage.getItem('connectedUser');
+        if (freshUser) {
+          const parsedUser = JSON.parse(freshUser);
+          console.log("Force refreshing homepage with fresh localStorage data:", parsedUser);
+          setConnectedUser(parsedUser);
+        }
+      }, 100);
     },
   });
 
