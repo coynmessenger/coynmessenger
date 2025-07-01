@@ -50,6 +50,9 @@ export default function MessengerPage() {
       console.log('Conversation created successfully:', newConversation);
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       setSelectedConversation(newConversation.id);
+    },
+    onError: (error) => {
+      console.error('Error creating conversation:', error);
     }
   });
 
@@ -113,6 +116,9 @@ export default function MessengerPage() {
 
   // Get current conversation
   const currentConversation = conversations.find(conv => conv.id === selectedConversation);
+  console.log('Selected conversation ID:', selectedConversation);
+  console.log('Current conversation found:', currentConversation);
+  console.log('All conversations:', conversations);
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-background">
