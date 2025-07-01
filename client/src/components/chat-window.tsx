@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, startTransition, useMemo, useCallback, memo } from "react";
+import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -875,8 +875,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Memoized enhanced search functionality with fuzzy matching
-  const performAdvancedSearch = useCallback((query: string, messageList: (Message & { sender: User })[]) => {
+  // Enhanced search functionality with fuzzy matching
+  const performAdvancedSearch = (query: string, messageList: (Message & { sender: User })[]) => {
     if (!query || query.length < 1) return [];
     
     const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
@@ -918,7 +918,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         );
       });
     });
-  }, []);
+  };
 
   // Enhanced text highlighting with multiple search terms
   const highlightText = (text: string, searchTerm: string) => {

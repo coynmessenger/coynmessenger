@@ -151,11 +151,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users - only return properly setup users for contact list
   app.get("/api/users", async (req, res) => {
     try {
-      // Disable caching for users endpoint
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
       const users = await storage.getAllUsers();
       // Filter to only show properly setup users (demo users, not auto-created wallet users)
       const setupUsers = users.filter(user => user.isSetup === true);
