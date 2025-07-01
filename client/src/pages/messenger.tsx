@@ -39,12 +39,15 @@ export default function MessengerPage() {
   // Create conversation mutation
   const createConversationMutation = useMutation({
     mutationFn: async (otherUserId: number) => {
+      const currentUserId = getConnectedUserId();
+      console.log('Creating conversation with currentUserId:', currentUserId, 'otherUserId:', otherUserId);
       return apiRequest(`/api/conversations`, 'POST', {
         otherUserId,
-        currentUserId: user?.id
+        currentUserId
       });
     },
     onSuccess: (newConversation) => {
+      console.log('Conversation created successfully:', newConversation);
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       setSelectedConversation(newConversation.id);
     }
@@ -52,7 +55,11 @@ export default function MessengerPage() {
 
   // Handle contact click
   const handleContactClick = async (contact: User) => {
-    if (!connectedUserId) return;
+    console.log('Contact clicked:', contact.displayName, 'ID:', contact.id);
+    if (!connectedUserId) {
+      console.log('No connected user ID found');
+      return;
+    }
     
     // Check if conversation already exists
     const existingConversation = conversations.find(conv => 
@@ -60,10 +67,13 @@ export default function MessengerPage() {
       (conv.participant2Id === connectedUserId && conv.participant1Id === contact.id)
     );
     
+    console.log('Existing conversation:', existingConversation);
+    
     if (existingConversation) {
+      console.log('Setting selected conversation to:', existingConversation.id);
       setSelectedConversation(existingConversation.id);
     } else {
-      // Create new conversation
+      console.log('Creating new conversation with user:', contact.id);
       createConversationMutation.mutate(contact.id);
     }
   };
