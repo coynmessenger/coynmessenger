@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +45,17 @@ export default function Sidebar({
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   
   const queryClient = useQueryClient();
+
+  // Listen for profile updates and refresh data
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, [queryClient]);
 
   // Fetch all users for contact list
   const { data: allUsers = [] } = useQuery<User[]>({
@@ -147,7 +158,17 @@ export default function Sidebar({
 
   // Get available contacts (users not in current conversations and not current user)
   const availableContacts = allUsers.filter(contact => {
-    if (!user?.id || !contact?.id || contact.id === user.id) return false;
+    if (!user?.id || !contact?.id) return false;
+    
+    // Special handling for self-conversation
+    if (contact.id === user.id) {
+      // Always include current user for self-messaging
+      const hasSelfConversation = conversations.some(conv => 
+        conv?.otherUser?.id === contact.id
+      );
+      return !hasSelfConversation;
+    }
+    
     const hasConversation = conversations.some(conv => 
       conv?.otherUser?.id === contact.id
     );
@@ -344,11 +365,14 @@ export default function Sidebar({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
                         {contact.displayName || contact.username}
+                        {contact.id === user?.id && (
+                          <span className="ml-1 text-xs text-primary font-normal">(You)</span>
+                        )}
                       </p>
                       <div className="flex items-center space-x-1">
                         <div className={`w-2 h-2 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
                         <p className="text-xs text-muted-foreground">
-                          {contact.isOnline ? 'Online' : 'Offline'}
+                          {contact.id === user?.id ? 'Message yourself' : (contact.isOnline ? 'Online' : 'Offline')}
                         </p>
                       </div>
                     </div>

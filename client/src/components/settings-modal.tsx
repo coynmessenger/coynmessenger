@@ -327,10 +327,17 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
           }
         }
         
-        // Dispatch custom event to notify other components of display name change
+        // Dispatch custom events to notify other components of profile changes
         window.dispatchEvent(new CustomEvent('displayNameUpdated', { 
           detail: { 
             displayName: updatedUser.displayName,
+            userId: connectedUserId || updatedUser.id 
+          } 
+        }));
+        
+        window.dispatchEvent(new CustomEvent('profileUpdated', { 
+          detail: { 
+            user: updatedUser,
             userId: connectedUserId || updatedUser.id 
           } 
         }));
