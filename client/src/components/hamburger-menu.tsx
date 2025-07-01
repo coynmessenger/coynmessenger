@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MoreVertical, Settings, Star, MessageCircle, UserPlus, Receipt } from "lucide-react";
+import { MoreVertical, Settings, Star, MessageCircle, UserPlus, Receipt, Trash2 } from "lucide-react";
 import type { User, Message } from "@shared/schema";
 import AddContactModal from "./add-contact-modal";
 
@@ -44,6 +44,8 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [messageToUnstar, setMessageToUnstar] = useState<StarredMessage | null>(null);
   const [showUnstarConfirm, setShowUnstarConfirm] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<StarredMessage | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -162,6 +164,42 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const cancelUnstarMessage = () => {
     setShowUnstarConfirm(false);
     setMessageToUnstar(null);
+  };
+
+  const handleDeleteTransaction = (transaction: StarredMessage) => {
+    setTransactionToDelete(transaction);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteTransaction = async () => {
+    if (!transactionToDelete) return;
+    
+    try {
+      await apiRequest("DELETE", `/api/messages/${transactionToDelete.id}`, { 
+        userId: connectedUserId 
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions/history", connectedUserId] });
+      
+      toast({
+        title: "Transaction deleted",
+        description: "Transaction has been removed from your history",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete transaction",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    } finally {
+      setShowDeleteConfirm(false);
+      setTransactionToDelete(null);
+    }
+  };
+
+  const cancelDeleteTransaction = () => {
+    setShowDeleteConfirm(false);
+    setTransactionToDelete(null);
   };
 
   return (
@@ -364,6 +402,15 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                           {transaction.content}
                         </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-70 group-hover:opacity-100 p-2 h-9 w-9 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-all duration-200 hover:scale-110"
+                        onClick={() => handleDeleteTransaction(transaction)}
+                        title="Delete transaction"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -372,6 +419,29 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Transaction Confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className="bg-white dark:bg-black border border-orange-200/30 dark:border-orange-800/30 rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This transaction will be permanently removed from your history. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDeleteTransaction}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteTransaction}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
