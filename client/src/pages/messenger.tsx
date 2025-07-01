@@ -99,7 +99,7 @@ export default function MessengerPage() {
       setSelectedConversation(existingConversation.id);
     } else {
       // Only create conversation if the contact is actually in the available contacts list
-      const isContactAvailable = availableContacts.some(c => c.id === contact.id);
+      const isContactAvailable = sortedContacts.some(c => c.id === contact.id);
       if (isContactAvailable) {
         // If no conversation exists, create one only when user actually wants to chat
         createConversationMutation.mutate(contact.id);
@@ -109,11 +109,18 @@ export default function MessengerPage() {
     }
   };
 
-  // Filter out current user and users who already have conversations
+  // Create contacts list with current user first for self-messaging, then other available contacts
   const availableContacts = allUsers.filter(contact => {
     const hasExistingConversation = conversations.some(conv => conv.otherUser?.id === contact.id);
     const isCurrentUser = contact.id === user?.id;
-    return !isCurrentUser && !hasExistingConversation;
+    return !hasExistingConversation; // Include ALL users without existing conversations
+  });
+
+  // Sort contacts to put current user first (for self-messaging), then others
+  const sortedContacts = [...availableContacts].sort((a, b) => {
+    if (a.id === user?.id) return -1; // Current user first
+    if (b.id === user?.id) return 1;  // Current user first
+    return 0; // Keep original order for others
   });
 
   // Filter conversations and contacts based on search query
@@ -131,7 +138,7 @@ export default function MessengerPage() {
     }
   });
 
-  const filteredContacts = availableContacts.filter(contact =>
+  const filteredContacts = sortedContacts.filter(contact =>
     contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -218,11 +225,75 @@ export default function MessengerPage() {
 
                 {/* Contact List First - Main Focus */}
                 <div className="flex-1 overflow-auto">
+                  {/* Available Contacts - Always show when there are contacts */}
+                  {sortedContacts.length > 0 && (
+                    <div className="flex-1 flex flex-col">
+                      <div className="bg-card border-b border-border p-4">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={coynLogoPath} 
+                            alt="COYN Logo" 
+                            className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                          />
+                          <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                            Start a Conversation
+                          </h1>
+                        </div>
+                      </div>
 
+                      <div className="flex-1 overflow-auto">
+                        <div className="divide-y divide-border">
+                          {(searchQuery ? filteredContacts : sortedContacts).map((contact) => (
+                            <div
+                              key={contact.id}
+                              onClick={() => handleContactClick(contact)}
+                              className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="relative">
+                                  <Avatar className="w-12 h-12">
+                                    <AvatarImage 
+                                      src={contact.profilePicture || undefined} 
+                                      alt={contact.displayName}
+                                    />
+                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  {contact.isOnline && (
+                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-medium text-foreground truncate">
+                                    {contact.displayName}
+                                    {contact.id === user?.id && (
+                                      <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">
+                                        You
+                                      </span>
+                                    )}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground truncate">
+                                    {contact.id === user?.id ? "Message yourself" : `@${contact.username}`}
+                                  </p>
+                                </div>
+                                {createConversationMutation.isPending && (
+                                  <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Existing Conversations - Secondary Display */}
                   {filteredConversations.length > 0 && (
                     <div>
+                      <div className="bg-card border-b border-border p-4">
+                        <h2 className="text-lg font-medium text-foreground">Recent Conversations</h2>
+                      </div>
                       <div className="divide-y divide-border">
                         {filteredConversations.map((conversation) => (
                           <div
@@ -283,7 +354,7 @@ export default function MessengerPage() {
                   )}
 
                   {/* Empty State - Only show if no conversations AND no available contacts */}
-                  {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                  {filteredConversations.length === 0 && sortedContacts.length === 0 && (
                     <div className="flex-1 flex flex-col">
                       <div className="bg-card border-b border-border p-4">
                         <div className="flex items-center space-x-3">
@@ -299,9 +370,9 @@ export default function MessengerPage() {
                       </div>
 
                       <div className="flex-1 overflow-auto">
-                        {(searchQuery ? filteredContacts : availableContacts).length > 0 ? (
+                        {(searchQuery ? filteredContacts : sortedContacts).length > 0 ? (
                           <div className="divide-y divide-border">
-                            {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
+                            {(searchQuery ? filteredContacts : sortedContacts).map((contact) => (
                               <div
                                 key={contact.id}
                                 onClick={() => handleContactClick(contact)}
@@ -523,8 +594,71 @@ export default function MessengerPage() {
                   </div>
                 )}
 
-                {/* Empty State */}
-                {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                {/* Available Contacts - Show when no conversations OR when there are available contacts */}
+                {(filteredConversations.length === 0 && sortedContacts.length > 0) && (
+                  <div className="flex-1 flex flex-col">
+                    <div className="bg-card border-b border-border p-4">
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={coynLogoPath} 
+                          alt="COYN Logo" 
+                          className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                        />
+                        <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                          Start a Conversation
+                        </h1>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 overflow-auto">
+                      <div className="divide-y divide-border">
+                        {(searchQuery ? filteredContacts : sortedContacts).map((contact) => (
+                          <div
+                            key={contact.id}
+                            onClick={() => handleContactClick(contact)}
+                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="relative">
+                                <Avatar className="w-12 h-12">
+                                  <AvatarImage 
+                                    src={contact.profilePicture || undefined} 
+                                    alt={contact.displayName}
+                                  />
+                                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                    <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                  </AvatarFallback>
+                                </Avatar>
+                                {contact.isOnline && (
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium text-foreground truncate">
+                                  {contact.displayName}
+                                  {contact.id === user?.id && (
+                                    <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">
+                                      You
+                                    </span>
+                                  )}
+                                </h3>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {contact.id === user?.id ? "Message yourself" : `@${contact.username}`}
+                                </p>
+                              </div>
+                              {createConversationMutation.isPending && (
+                                <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State - Only show if no conversations AND no available contacts */}
+                {filteredConversations.length === 0 && sortedContacts.length === 0 && (
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center text-muted-foreground">
                       <div className="mx-auto mb-4">
