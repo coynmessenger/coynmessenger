@@ -52,7 +52,14 @@ export default function MessengerPage() {
 
   // Handle contact click
   const handleContactClick = async (contact: User) => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
+    
+    console.log('Clicking contact:', contact.displayName, 'ID:', contact.id);
+    console.log('Current user ID:', user.id);
+    console.log('Available conversations:', conversations);
     
     // Check if conversation already exists
     const existingConversation = conversations.find(conv => 
@@ -60,26 +67,26 @@ export default function MessengerPage() {
       (conv.participant2Id === user.id && conv.participant1Id === contact.id)
     );
     
+    console.log('Existing conversation found:', existingConversation);
+    
     if (existingConversation) {
+      console.log('Setting selected conversation to:', existingConversation.id);
       setSelectedConversation(existingConversation.id);
     } else {
       // Create new conversation
+      console.log('Creating new conversation with user:', contact.id);
       createConversationMutation.mutate(contact.id);
     }
   };
 
-  // Create unified contact list: current user first, then others without existing conversations
+  // Create unified contact list: current user first, then ALL other users
   const currentUserContact = user ? [user] : [];
-  const otherAvailableContacts = allUsers.filter(contact => {
-    const hasExistingConversation = conversations.some(conv => 
-      (conv.participant1Id === user?.id && conv.participant2Id === contact.id) ||
-      (conv.participant2Id === user?.id && conv.participant1Id === contact.id)
-    );
-    const isCurrentUser = contact.id === user?.id;
-    return !isCurrentUser && !hasExistingConversation;
-  });
+  const otherContacts = allUsers.filter(contact => contact.id !== user?.id);
+  const allContacts = [...currentUserContact, ...otherContacts];
 
-  const allContacts = [...currentUserContact, ...otherAvailableContacts];
+  console.log('All users:', allUsers);
+  console.log('Current user:', user);
+  console.log('All contacts to display:', allContacts);
 
   // Filter contacts based on search
   const filteredContacts = allContacts.filter(contact =>
