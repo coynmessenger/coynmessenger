@@ -264,28 +264,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists
       const existingUser = await storage.getUserByWalletAddress(walletAddress);
       if (existingUser) {
-        // If display name was provided and it's different from sign-in name, update it
+        // Ensure user is properly set up for contact list (Web3 wallet users should appear as their own contact)
+        let userToUpdate = existingUser;
+        let needsUpdate = false;
+        const updateData: any = {};
+        
+        // Update display name if provided and different
         if (displayName && displayName !== existingUser.signInName) {
           console.log(`Updating user ${existingUser.id} sign-in name from "${existingUser.signInName}" to "${displayName}"`);
-          const updatedUser = await storage.updateUser(existingUser.id, {
-            signInName: displayName,
-            displayName: displayName // Also update displayName to match sign-in name
-          });
-          console.log("Updated user:", updatedUser);
-          
-          // Return user with effective display name
-          const userWithEffectiveName = {
-            ...updatedUser,
-            displayName: getEffectiveDisplayName(updatedUser)
-          };
-          return res.json(userWithEffectiveName);
+          updateData.signInName = displayName;
+          updateData.displayName = displayName; // Also update displayName to match sign-in name
+          needsUpdate = true;
         }
-        console.log(`User exists with same sign-in name: "${existingUser.signInName}"`);
+        
+        // Ensure user is set up for contact list
+        if (!existingUser.isSetup) {
+          console.log(`Setting up user ${existingUser.id} for contact list`);
+          updateData.isSetup = true;
+          needsUpdate = true;
+        }
+        
+        // Update user if needed
+        if (needsUpdate) {
+          const updatedUser = await storage.updateUser(existingUser.id, updateData);
+          if (updatedUser) {
+            userToUpdate = updatedUser;
+            console.log("Updated user:", userToUpdate);
+          }
+        }
+        
+        // Ensure user has a self-conversation for messaging themselves
+        const selfConversation = await storage.getConversationBetweenUsers(existingUser.id, existingUser.id);
+        if (!selfConversation) {
+          console.log(`Creating self-conversation for user ${existingUser.id}`);
+          await storage.createConversation(existingUser.id, existingUser.id);
+        }
         
         // Return user with effective display name
         const userWithEffectiveName = {
-          ...existingUser,
-          displayName: getEffectiveDisplayName(existingUser)
+          ...userToUpdate,
+          displayName: getEffectiveDisplayName(userToUpdate)
         };
         return res.json(userWithEffectiveName);
       }
@@ -296,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         displayName: displayName || `@${walletAddress.slice(-6)}`, // Use display name or @id format
         signInName: displayName, // Store the sign-in name separately (can be null)
         walletAddress: walletAddress,
-        isSetup: false, // Don't show automatically created wallet users in contact list
+        isSetup: true, // Set to true so Web3 wallet users appear as their own contact
         isOnline: true,
         profileImage: null
       };
