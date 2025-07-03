@@ -66,10 +66,10 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
 
   const usdPrice = parseFloat(product.price);
   const cryptoPrices: Record<string, string> = {
-    BTC: (usdPrice / cryptoRates.BTC).toFixed(8),
-    BNB: (usdPrice / cryptoRates.BNB).toFixed(6),
-    USDT: (usdPrice / cryptoRates.USDT).toFixed(2),
-    COYN: (usdPrice / cryptoRates.COYN).toFixed(2)
+    BTC: (usdPrice / cryptoRates.BTC).toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 8 }),
+    BNB: (usdPrice / cryptoRates.BNB).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 }),
+    USDT: (usdPrice / cryptoRates.USDT).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    COYN: (usdPrice / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   };
 
   const handlePurchase = () => {
@@ -862,7 +862,7 @@ export default function MarketplacePage() {
                           </span>
                           {isMarketplaceProduct && (
                             <Badge variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
-                              ≈ {(parseFloat(item.price) / cryptoRates.COYN).toFixed(0)} COYN
+                              ≈ {(parseFloat(item.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN
                             </Badge>
                           )}
                         </div>

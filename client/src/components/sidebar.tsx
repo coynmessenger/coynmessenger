@@ -141,10 +141,28 @@ export default function Sidebar({
 
   const formatBalance = (balance: string, currency: string) => {
     const num = parseFloat(balance);
-    if (currency === "USDT") return num.toFixed(2);
-    if (currency === "BTC") return num.toFixed(8);
-    if (currency === "ETH") return num.toFixed(6);
-    return num.toFixed(3);
+    if (currency === "USDT") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+    if (currency === "BTC") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 8,
+        maximumFractionDigits: 8
+      });
+    }
+    if (currency === "ETH") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 6,
+        maximumFractionDigits: 6
+      });
+    }
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    });
   };
 
   const formatUSD = (value: string) => {
@@ -327,7 +345,7 @@ export default function Sidebar({
                           ) : (
                             <TrendingDown className="h-2 w-2 mr-1" />
                           )}
-                          {Math.abs(changePercent).toFixed(1)}%
+                          {Math.abs(changePercent).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </div>
                       </div>
                     </div>

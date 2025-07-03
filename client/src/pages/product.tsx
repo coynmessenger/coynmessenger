@@ -314,7 +314,7 @@ export default function ProductPage() {
     if (providedCrypto < requiredCrypto * 0.98) {
       toast({
         title: "Insufficient Amount",
-        description: `Please provide at least ${requiredCrypto.toFixed(6)} ${selectedCrypto}`,
+        description: `Please provide at least ${requiredCrypto.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} ${selectedCrypto}`,
         variant: "destructive",
       });
       return;
@@ -560,19 +560,19 @@ export default function ProductPage() {
                   <div className="bg-yellow-100/80 dark:bg-yellow-900/20 px-3 py-3 rounded-lg space-y-2">
                     <div className="flex items-center gap-2">
                       <img src={coynLogoPath} alt="COYN" className="h-5 w-5 rounded-full" />
-                      <span className="font-bold text-yellow-700 dark:text-yellow-400">≈ {(parseFloat(product.price) / cryptoRates.COYN).toFixed(0)} COYN</span>
+                      <span className="font-bold text-yellow-700 dark:text-yellow-400">≈ {(parseFloat(product.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <SiBitcoin className="h-5 w-5 text-orange-500" />
-                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.BTC).toFixed(6)} BTC</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.BTC).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} BTC</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <SiBinance className="h-5 w-5 text-yellow-500" />
-                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.BNB).toFixed(4)} BNB</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.BNB).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} BNB</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold">₮</div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.USDT).toFixed(2)} USDT</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.USDT).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT</span>
                     </div>
                   </div>
                 </div>
@@ -762,10 +762,10 @@ export default function ProductPage() {
                   <div>
                     <Label>Amount Required</Label>
                     <div className="text-2xl font-bold text-orange-600 dark:text-cyan-400">
-                      {requiredCrypto.toFixed(6)} {selectedCrypto}
+                      {requiredCrypto.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} {selectedCrypto}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      = ${totalUSD.toFixed(2)} USD
+                      = ${totalUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                     </div>
                   </div>
 

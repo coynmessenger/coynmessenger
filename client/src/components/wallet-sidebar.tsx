@@ -205,12 +205,35 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     if (!isBalanceVisible) return "••••••";
     const num = parseFloat(balance);
     
-    // Ensure consistent decimal places matching the screenshot expectations
-    if (currency === "BTC") return num.toFixed(6); // 0.099900 BTC
-    if (currency === "USDT") return num.toFixed(2); // 1000.00 USDT  
-    if (currency === "BNB") return num.toFixed(4); // 2.1625 BNB
-    if (currency === "COYN") return num.toFixed(0); // Show whole numbers for COYN
-    return num.toFixed(4);
+    // Format with commas and appropriate decimal places
+    if (currency === "BTC") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 6,
+        maximumFractionDigits: 6
+      });
+    }
+    if (currency === "USDT") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+    if (currency === "BNB") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4
+      });
+    }
+    if (currency === "COYN") {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+    }
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4
+    });
   };
 
   const formatUSD = (usd: string) => {
@@ -293,14 +316,14 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                       <>
                         <TrendingUp className="w-4 h-4 text-green-500" />
                         <span className="text-sm text-green-500 font-medium">
-                          {isBalanceVisible ? `+${portfolioChange.toFixed(1)}% (24h)` : "••••••"}
+                          {isBalanceVisible ? `+${portfolioChange.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% (24h)` : "••••••"}
                         </span>
                       </>
                     ) : (
                       <>
                         <TrendingDown className="w-4 h-4 text-red-500" />
                         <span className="text-sm text-red-500 font-medium">
-                          {isBalanceVisible ? `${portfolioChange.toFixed(1)}% (24h)` : "••••••"}
+                          {isBalanceVisible ? `${portfolioChange.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% (24h)` : "••••••"}
                         </span>
                       </>
                     )}

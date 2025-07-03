@@ -1677,7 +1677,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                             {msg.attachmentSize && (
                               <div className="text-xs opacity-70">
-                                {(msg.attachmentSize / 1024 / 1024).toFixed(1)} MB
+                                {(msg.attachmentSize / 1024 / 1024).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB
                               </div>
                             )}
                           </div>

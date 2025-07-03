@@ -152,9 +152,15 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     if (!showBalance) return "••••••";
     const num = parseFloat(balance);
     if (num >= 1) {
-      return num.toFixed(4);
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4
+      });
     }
-    return num.toFixed(8);
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 8,
+      maximumFractionDigits: 8
+    });
   };
 
   const formatUSDValue = (balance: string, currency: string, showBalance: boolean) => {
