@@ -141,21 +141,51 @@ export default function HomePage() {
     },
   });
 
-  // Handle mobile wallet returns
+  // Handle mobile wallet returns and initial wallet detection
   useEffect(() => {
+    let isChecking = false; // Prevent multiple simultaneous checks
+
+    // Check for existing wallet connection on page load
+    const checkInitialWalletConnection = async () => {
+      if (!isConnected && !isChecking && typeof window.ethereum !== 'undefined') {
+        isChecking = true;
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts && accounts.length > 0) {
+            console.log("Found existing wallet connection on page load:", accounts[0]);
+            connectWalletMutation.mutate({
+              walletAddress: accounts[0],
+              displayName: undefined
+            });
+          }
+        } catch (error) {
+          console.log("No existing wallet connection found");
+        } finally {
+          isChecking = false;
+        }
+      }
+    };
+
+    // Run initial check
+    checkInitialWalletConnection();
+
     const handleVisibilityChange = async () => {
-      if (!document.hidden && isMobile()) {
+      if (!document.hidden && isMobile() && !isChecking) {
         console.log("Page became visible - checking for wallet connection");
         
         // Check if we have a pending wallet connection
         const pendingConnection = localStorage.getItem('pendingWalletConnection');
         if (pendingConnection === 'true') {
           console.log("Pending wallet connection detected, checking for wallet access");
+          isChecking = true;
           
           // Try to detect if a wallet connection was successful
           try {
             if (typeof window.ethereum !== 'undefined') {
+              console.log("Checking ethereum provider for accounts");
               const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+              console.log("Found accounts:", accounts);
+              
               if (accounts && accounts.length > 0 && !isConnected) {
                 console.log("Wallet connection successful, connecting user:", accounts[0]);
                 
@@ -167,23 +197,60 @@ export default function HomePage() {
                   walletAddress: accounts[0],
                   displayName: undefined
                 });
+              } else if (accounts && accounts.length > 0 && isConnected) {
+                console.log("User already connected, removing pending flag");
+                localStorage.removeItem('pendingWalletConnection');
+              } else {
+                console.log("No accounts found, trying to request accounts");
+                // Try to request accounts if none found
+                try {
+                  const requestedAccounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                  console.log("Requested accounts:", requestedAccounts);
+                  
+                  if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
+                    console.log("Account request successful, connecting user:", requestedAccounts[0]);
+                    
+                    // Remove pending flag
+                    localStorage.removeItem('pendingWalletConnection');
+                    
+                    // Connect the wallet
+                    connectWalletMutation.mutate({
+                      walletAddress: requestedAccounts[0],
+                      displayName: undefined
+                    });
+                  }
+                } catch (requestError) {
+                  console.log("Account request failed:", requestError);
+                }
               }
+            } else {
+              console.log("No ethereum provider found");
             }
           } catch (error) {
-            console.log("No wallet connection detected");
+            console.log("Error checking wallet connection:", error);
             // Remove pending flag after timeout
             setTimeout(() => {
               localStorage.removeItem('pendingWalletConnection');
             }, 5000);
+          } finally {
+            isChecking = false;
           }
         }
       }
     };
 
+    // Also listen for focus events as another way to detect return from wallet app
+    const handleFocus = () => {
+      console.log("Window focused - triggering wallet check");
+      handleVisibilityChange();
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [isConnected, connectWalletMutation]);
 
