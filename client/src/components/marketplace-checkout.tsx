@@ -15,6 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
+// Utility function to format prices with commas
+const formatPrice = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 const COUNTRIES = [
   { code: "US", name: "United States" },
   { code: "CA", name: "Canada" },
@@ -617,20 +626,20 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
               <div className="space-y-3">
                 <div className="flex justify-between text-sm sm:text-base">
                   <span>Subtotal:</span>
-                  <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
+                  <span className="font-medium">${formatPrice(calculateSubtotal())}</span>
                 </div>
                 <div className="flex justify-between text-sm sm:text-base">
                   <span>Shipping:</span>
-                  <span className="font-medium">${calculateShipping().toFixed(2)}</span>
+                  <span className="font-medium">${formatPrice(calculateShipping())}</span>
                 </div>
                 <div className="flex justify-between text-sm sm:text-base">
                   <span>Tax:</span>
-                  <span className="font-medium">${calculateTax().toFixed(2)}</span>
+                  <span className="font-medium">${formatPrice(calculateTax())}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg sm:text-xl">
                   <span>Total:</span>
-                  <span className="text-orange-600">${calculateTotal().toFixed(2)}</span>
+                  <span className="text-orange-600">${formatPrice(calculateTotal())}</span>
                 </div>
               </div>
             </Card>
@@ -828,20 +837,20 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Items ({cartItems.length}):</span>
-              <span>${calculateSubtotal().toFixed(2)}</span>
+              <span>${formatPrice(calculateSubtotal())}</span>
             </div>
             <div className="flex justify-between">
               <span>Shipping:</span>
-              <span>${calculateShipping().toFixed(2)}</span>
+              <span>${formatPrice(calculateShipping())}</span>
             </div>
             <div className="flex justify-between">
               <span>Tax:</span>
-              <span>${calculateTax().toFixed(2)}</span>
+              <span>${formatPrice(calculateTax())}</span>
             </div>
             <Separator />
             <div className="flex justify-between font-semibold text-lg text-orange-600">
               <span>Order Total:</span>
-              <span>${calculateTotal().toFixed(2)}</span>
+              <span>${formatPrice(calculateTotal())}</span>
             </div>
           </div>
         </CardContent>
@@ -902,7 +911,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm font-medium text-blue-800">
-              Total: {isBalanceVisible ? `$${calculateTotal().toFixed(2)} = ${convertToCrypto(calculateTotal())} ${selectedCrypto}` : "••••••"}
+              Total: {isBalanceVisible ? `$${formatPrice(calculateTotal())} = ${convertToCrypto(calculateTotal())} ${selectedCrypto}` : "••••••"}
             </p>
             <p className="text-xs text-blue-600 mt-1">
               Rate: {isBalanceVisible ? `1 ${selectedCrypto} = $${CRYPTO_RATES[selectedCrypto]}` : "••••••"}
@@ -966,7 +975,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         <div className="space-y-2">
           <div className="flex justify-between font-semibold text-lg">
             <span>Final Total:</span>
-            <span className="text-orange-600">${calculateTotal().toFixed(2)}</span>
+            <span className="text-orange-600">${formatPrice(calculateTotal())}</span>
           </div>
           <div className="flex justify-between text-sm text-orange-700">
             <span>Crypto Amount:</span>

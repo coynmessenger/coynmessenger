@@ -17,6 +17,15 @@ import { useLocation } from "wouter";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 
+// Utility function to format prices with commas
+const formatPrice = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 interface CartItem {
   id: string;
   title: string;
@@ -611,7 +620,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                               <div className="flex items-center gap-2">
                                 <div className="text-right">
                                   <p className="text-sm font-bold text-foreground">
-                                    ${(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity).toFixed(2)}
+                                    ${formatPrice(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity)}
                                   </p>
                                 </div>
                                 <Button
@@ -637,7 +646,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground text-xs sm:text-sm">Total:</span>
                       <span className="text-sm sm:text-base font-bold text-orange-500 dark:text-cyan-400">
-                        ${totalUSD.toFixed(2)}
+                        ${formatPrice(totalUSD)}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -856,7 +865,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                           <p className="font-medium text-sm line-clamp-1">{item.title}</p>
                           <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                         </div>
-                        <p className="font-medium text-sm">${(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity).toFixed(2)}</p>
+                        <p className="font-medium text-sm">${formatPrice(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity)}</p>
                       </div>
                     ))}
                   </CardContent>
@@ -870,20 +879,20 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   <CardContent className="pt-0 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Subtotal:</span>
-                      <span>${calculateTotal().toFixed(2)}</span>
+                      <span>${formatPrice(calculateTotal())}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Shipping:</span>
-                      <span>${calculateShippingCost().toFixed(2)} {expressShipping && '(Express)'}</span>
+                      <span>${formatPrice(calculateShippingCost())} {expressShipping && '(Express)'}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Tax:</span>
-                      <span>${calculateTax(calculateTotal()).toFixed(2)}</span>
+                      <span>${formatPrice(calculateTax(calculateTotal()))}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold">
                       <span>Total:</span>
-                      <span className="text-orange-500">${calculateTotalWithExtras().toFixed(2)} USD</span>
+                      <span className="text-orange-500">${formatPrice(calculateTotalWithExtras())} USD</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -924,9 +933,9 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm line-clamp-1">{item.title}</p>
-                            <p className="text-xs text-muted-foreground">Qty: {item.quantity} × ${parseFloat(item.price.replace(/[,$]/g, '')).toFixed(2)}</p>
+                            <p className="text-xs text-muted-foreground">Qty: {item.quantity} × ${formatPrice(parseFloat(item.price.replace(/[,$]/g, '')))}</p>
                           </div>
-                          <p className="font-medium text-sm">${(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity).toFixed(2)}</p>
+                          <p className="font-medium text-sm">${formatPrice(parseFloat(item.price.replace(/[,$]/g, '')) * item.quantity)}</p>
                         </div>
                       ))}
                     </div>
@@ -951,20 +960,20 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal:</span>
-                        <span>${calculateTotal().toFixed(2)}</span>
+                        <span>${formatPrice(calculateTotal())}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Shipping {expressShipping ? '(Express)' : '(Standard)'}:</span>
-                        <span>${calculateShippingCost().toFixed(2)}</span>
+                        <span>${formatPrice(calculateShippingCost())}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Tax:</span>
-                        <span>${calculateTax(calculateTotal()).toFixed(2)}</span>
+                        <span>${formatPrice(calculateTax(calculateTotal()))}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between font-bold text-lg">
                         <span>Order Total:</span>
-                        <span className="text-orange-500">${calculateTotalWithExtras().toFixed(2)} USD</span>
+                        <span className="text-orange-500">${formatPrice(calculateTotalWithExtras())} USD</span>
                       </div>
                     </div>
 
@@ -1011,7 +1020,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     {convertToCrypto(calculateTotalWithExtras(), selectedCrypto)} {selectedCrypto}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    ≈ ${calculateTotalWithExtras().toFixed(2)} USD
+                    ≈ ${formatPrice(calculateTotalWithExtras())} USD
                   </p>
                 </div>
 

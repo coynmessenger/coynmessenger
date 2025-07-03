@@ -40,6 +40,15 @@ import { apiRequest } from "@/lib/queryClient";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
 
+// Utility function to format prices with commas
+const formatPrice = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 interface Product {
   ASIN: string;
   title: string;
@@ -539,7 +548,7 @@ export default function ProductPage() {
             <div className="bg-gradient-to-r from-orange-100/60 to-cyan-100/60 dark:from-slate-700/60 dark:to-slate-600/60 backdrop-blur-sm p-6 rounded-xl border border-orange-200/50 dark:border-cyan-600/50 shadow-lg">
               <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-4xl font-bold text-orange-600 dark:text-cyan-400">
-                  ${product.price}
+                  ${formatPrice(product.price)}
                 </span>
                 <span className="text-lg text-muted-foreground">USD</span>
               </div>

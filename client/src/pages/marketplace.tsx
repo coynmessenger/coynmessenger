@@ -20,6 +20,15 @@ import ShoppingCartComponent from "@/components/shopping-cart";
 import MarketplaceWalletHover from "@/components/marketplace-wallet-hover";
 import WalletModal from "@/components/wallet-modal";
 
+// Utility function to format prices with commas
+const formatPrice = (price: string | number): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 interface Product {
   ASIN: string;
   title: string;
@@ -849,7 +858,7 @@ export default function MarketplacePage() {
                       <div className="flex flex-col">
                         <div className="flex items-center space-x-2">
                           <span className="text-lg font-bold text-foreground">
-                            ${item.price}
+                            ${formatPrice(item.price)}
                           </span>
                           {isMarketplaceProduct && (
                             <Badge variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
