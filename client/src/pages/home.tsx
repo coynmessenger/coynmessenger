@@ -141,17 +141,50 @@ export default function HomePage() {
     },
   });
 
-  // Sync state with localStorage on page load
+  // Comprehensive state synchronization on page load
   useEffect(() => {
-    const storedConnected = localStorage.getItem('walletConnected');
-    const storedUser = localStorage.getItem('connectedUser');
+    const syncConnectionState = async () => {
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      // First, sync any stored connection state
+      if (storedConnected === 'true' && storedUser && !isConnected) {
+        console.log("Syncing stored connection state on page load");
+        const parsedUser = JSON.parse(storedUser);
+        setConnectedUser(parsedUser);
+        setIsConnected(true);
+        return;
+      }
+      
+      // If no stored state but we have a pending connection, check for wallet
+      if (!isConnected && typeof window.ethereum !== 'undefined') {
+        try {
+          console.log("Checking for wallet connection on page load");
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          
+          if (accounts && accounts.length > 0) {
+            console.log("Found connected wallet on page load, creating session:", accounts[0]);
+            
+            // Clear any pending flags
+            localStorage.removeItem('pendingWalletConnection');
+            
+            // Connect the wallet
+            connectWalletMutation.mutate({
+              walletAddress: accounts[0],
+              displayName: undefined
+            });
+          }
+        } catch (error) {
+          console.log("No wallet connection found on page load");
+        }
+      }
+    };
     
-    if (storedConnected === 'true' && storedUser && !isConnected) {
-      console.log("Syncing stored connection state on page load");
-      const parsedUser = JSON.parse(storedUser);
-      setConnectedUser(parsedUser);
-      setIsConnected(true);
-    }
+    // Run sync immediately
+    syncConnectionState();
+    
+    // Also run sync after a short delay to catch slow wallet injections
+    setTimeout(syncConnectionState, 1000);
   }, []);
 
   // Handle mobile wallet returns and initial wallet detection
@@ -308,8 +341,34 @@ export default function HomePage() {
             });
           }
         } else {
-          // Mobile-specific MetaMask connection
-          if (isMobile()) {
+          // For mobile, try to connect through any available ethereum provider
+          if (isMobile() && typeof window.ethereum !== 'undefined') {
+            try {
+              console.log("Trying to connect through available ethereum provider on mobile");
+              localStorage.setItem('pendingWalletConnection', 'true');
+              
+              // Try to request accounts directly
+              const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                console.log("Mobile wallet connection successful:", accounts[0]);
+                localStorage.removeItem('pendingWalletConnection');
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            } catch (error) {
+              console.log("Mobile ethereum provider connection failed:", error);
+              // Fallback to deep link
+              const currentUrl = window.location.href;
+              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+              window.open(deepLink, '_blank');
+            }
+          } else if (isMobile()) {
+            // No ethereum provider, use deep link
             localStorage.setItem('pendingWalletConnection', 'true');
             const currentUrl = window.location.href;
             const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
