@@ -44,9 +44,17 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch wallet balances
+  // Get current user ID from localStorage
+  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  const userId = connectedUser.id || 5;
+
+  // Fetch wallet balances for the correct user
   const { data: walletBalances = [], refetch: refetchBalances } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
+    queryKey: ["/api/wallet/balances", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/wallet/balances?userId=${userId}`);
+      return response.json();
+    },
   });
 
   // Real-time cryptocurrency market prices
@@ -73,10 +81,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     return amount * currentPrice;
   };
 
-  // Get current user ID from localStorage
-  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-  const userId = connectedUser.id || 5;
-
   // Check if current user has a real Trust Wallet address
   const isTrustWalletUser = connectedUser.walletAddress && 
     connectedUser.walletAddress.startsWith('0x') && 
@@ -96,7 +100,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
       toast({
         title: "Balances Updated",
         description: "Your wallet balances have been refreshed from the blockchain",
