@@ -327,6 +327,12 @@ export default function HomePage() {
   };
 
   const handleWeb3Connect = async (walletType: string) => {
+    // Prevent multiple simultaneous connections
+    if (connectWalletMutation.isPending) {
+      console.log("Connection already in progress, ignoring additional request");
+      return;
+    }
+    
     try {
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
@@ -541,15 +547,21 @@ export default function HomePage() {
   };
 
   const handleSignOut = () => {
-    // Clear localStorage
+    console.log("Signing out user...");
+    
+    // Clear all localStorage related to wallet connection
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
+    localStorage.removeItem('pendingWalletConnection');
     
-    // Reset state
+    // Reset all state
     setIsConnected(false);
     setConnectedUser(null);
     setWalletAddress('');
     setDisplayName('');
+    
+    // Force a page refresh to ensure clean state
+    window.location.reload();
   };
 
   const isValidCoynAddress = (address: string) => {
