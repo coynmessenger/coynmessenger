@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,19 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Get current user ID from localStorage
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
   const userId = connectedUser.id || 5;
+
+  // Check if current user has a real Trust Wallet address
+  const isTrustWalletUser = connectedUser.walletAddress && 
+    connectedUser.walletAddress.startsWith('0x') && 
+    connectedUser.walletAddress.length === 42;
+
+  // Auto-refresh Trust Wallet balances when sidebar opens
+  useEffect(() => {
+    if (isOpen && isTrustWalletUser) {
+      console.log("Auto-refreshing Trust Wallet balances for:", connectedUser.walletAddress);
+      refreshBalancesMutation.mutate();
+    }
+  }, [isOpen, isTrustWalletUser]);
 
   // Refresh wallet balances mutation
   const refreshBalancesMutation = useMutation({

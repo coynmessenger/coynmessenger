@@ -515,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Refresh wallet balances with real-time price calculations
+  // Refresh wallet balances with real-time blockchain data
   app.post("/api/wallet/balances/refresh", async (req, res) => {
     try {
       const { userId } = req.body;
@@ -524,26 +524,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
 
-      console.log("Refreshing wallet balances with real-time prices for user:", userId);
+      console.log("Refreshing wallet balances with real-time blockchain data for user:", userId);
 
-      // Get current balances from database (preserve existing crypto amounts)
-      const currentBalances = await storage.getUserWalletBalances(parseInt(userId));
-      
-      // Use demo-friendly refresh to maintain balances and update USD values
-      const refreshedBalances = await blockchainService.refreshDemoBalances(currentBalances);
-      
-      // Update USD values in database
-      for (const balance of refreshedBalances) {
-        await storage.updateWalletBalance(parseInt(userId), balance.currency, {
-          balance: balance.balance, // Keep existing crypto amounts
-          usdValue: balance.usdValue, // Update USD value with current prices
-          changePercent: balance.changePercent
-        });
+      // Get user info to check if they have a real wallet address
+      const user = await storage.getUser(parseInt(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let refreshedBalances;
+
+      if (user.walletAddress && user.walletAddress.startsWith('0x') && user.walletAddress.length === 42) {
+        // Real Trust Wallet user - fetch actual blockchain balances
+        console.log("Fetching real blockchain balances for Trust Wallet:", user.walletAddress);
+        refreshedBalances = await blockchainService.getWalletBalances(user.walletAddress);
+        
+        // Update all balances with real blockchain data
+        for (const balance of refreshedBalances) {
+          await storage.updateWalletBalance(parseInt(userId), balance.currency, {
+            balance: balance.balance, // Real blockchain amounts
+            usdValue: balance.usdValue, // Real USD values
+            changePercent: balance.changePercent
+          });
+        }
+        console.log("Updated Trust Wallet with real blockchain balances:", refreshedBalances);
+      } else {
+        // Demo user - use demo-friendly refresh to maintain balances and update USD values
+        const currentBalances = await storage.getUserWalletBalances(parseInt(userId));
+        refreshedBalances = await blockchainService.refreshDemoBalances(currentBalances);
+        
+        // Update USD values in database
+        for (const balance of refreshedBalances) {
+          await storage.updateWalletBalance(parseInt(userId), balance.currency, {
+            balance: balance.balance, // Keep existing crypto amounts for demo users
+            usdValue: balance.usdValue, // Update USD value with current prices
+            changePercent: balance.changePercent
+          });
+        }
+        console.log("Updated demo user with price refresh only");
       }
 
       // Return updated balances
       const updatedBalances = await storage.getUserWalletBalances(parseInt(userId));
-      console.log("Updated wallet balances with real-time USD values for user:", userId);
+      console.log("Refreshed balances for user", userId, "- Real wallet:", !!user.walletAddress?.startsWith('0x'));
       
       res.json(updatedBalances);
     } catch (error) {

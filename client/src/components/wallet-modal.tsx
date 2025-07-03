@@ -40,6 +40,30 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     queryKey: ["/api/user"],
   });
 
+  // Get current user info for Trust Wallet detection
+  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  const isTrustWalletUser = connectedUser.walletAddress && 
+    connectedUser.walletAddress.startsWith('0x') && 
+    connectedUser.walletAddress.length === 42;
+
+  // Trust Wallet balance refresh mutation
+  const refreshBalancesMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", `/api/wallet/balances/refresh`, { userId: connectedUser.id || 5 });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+    },
+  });
+
+  // Auto-refresh Trust Wallet balances when modal opens
+  useEffect(() => {
+    if (isOpen && isTrustWalletUser) {
+      console.log("Auto-refreshing Trust Wallet balances in modal for:", connectedUser.walletAddress);
+      refreshBalancesMutation.mutate();
+    }
+  }, [isOpen, isTrustWalletUser]);
+
   const selectedBalance = balances?.find(balance => balance.currency === selectedCurrency);
   const availableBalance = parseFloat(selectedBalance?.balance || "0");
   const sendAmount = parseFloat(amount || "0");
