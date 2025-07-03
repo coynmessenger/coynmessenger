@@ -12,9 +12,7 @@ import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
-import walletConnectLogo from "@assets/walletconnect-logo-png_seeklogo-430923_1751312780982.png";
 import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
-import coinbaseLogo from "@assets/coinbase logo_1751312780982.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
@@ -458,23 +456,6 @@ export default function HomePage() {
                       <span className="text-sm font-semibold">MetaMask</span>
                     </Button>
 
-                    {/* WalletConnect */}
-                    <Button 
-                      onClick={() => handleWeb3Connect('walletconnect')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-                      disabled={connectWalletMutation.isPending}
-                      variant="outline"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <img 
-                          src={walletConnectLogo} 
-                          alt="WalletConnect" 
-                          className="w-8 h-8 object-contain"
-                        />
-                      </div>
-                      <span className="text-sm font-semibold">WalletConnect</span>
-                    </Button>
-
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
@@ -490,23 +471,6 @@ export default function HomePage() {
                         />
                       </div>
                       <span className="text-sm font-semibold">Trust Wallet</span>
-                    </Button>
-
-                    {/* Coinbase Wallet */}
-                    <Button 
-                      onClick={() => handleWeb3Connect('coinbase')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-                      disabled={connectWalletMutation.isPending}
-                      variant="outline"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <img 
-                          src={coinbaseLogo} 
-                          alt="Coinbase" 
-                          className="w-8 h-8 object-contain"
-                        />
-                      </div>
-                      <span className="text-sm font-semibold">Coinbase</span>
                     </Button>
                   </div>
                 </div>
