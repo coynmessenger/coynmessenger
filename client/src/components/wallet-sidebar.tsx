@@ -59,8 +59,14 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     };
   };
 
-  // Calculate real-time USD value
-  const calculateRealTimeUSDValue = (balance: string, currency: string) => {
+  // Calculate USD value - use fetched values for Trust Wallet users, demo prices for others
+  const calculateRealTimeUSDValue = (balance: string, currency: string, fetchedUsdValue?: string | null) => {
+    // For Trust Wallet users, use the real USD value fetched from blockchain
+    if (isTrustWalletUser && fetchedUsdValue) {
+      return parseFloat(fetchedUsdValue);
+    }
+    
+    // For demo users, use demo market prices
     const amount = parseFloat(balance || "0");
     const prices = getCurrentMarketPrices();
     const currentPrice = prices[currency as keyof typeof prices] || 0;
@@ -105,9 +111,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   });
 
-  // Calculate total balance with real-time market prices
+  // Calculate total balance - use real USD values for Trust Wallet users
   const totalBalance = walletBalances.reduce((sum, balance) => {
-    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue);
     return sum + realTimeValue;
   }, 0);
 
@@ -388,7 +394,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                               {formatBalance(balance.balance, balance.currency)} {balance.currency}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {formatUSD(calculateRealTimeUSDValue(balance.balance, balance.currency).toString())}
+                              {formatUSD(calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue).toString())}
                             </div>
                           </div>
                         </div>

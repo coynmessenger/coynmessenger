@@ -149,8 +149,14 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     };
   };
 
-  // Calculate real-time USD value
-  const calculateRealTimeUSDValue = (balance: string, currency: string) => {
+  // Calculate USD value - use fetched values for Trust Wallet users, demo prices for others
+  const calculateRealTimeUSDValue = (balance: string, currency: string, fetchedUsdValue?: string | null) => {
+    // For Trust Wallet users, use the real USD value fetched from blockchain
+    if (isTrustWalletUser && fetchedUsdValue) {
+      return parseFloat(fetchedUsdValue);
+    }
+    
+    // For demo users, use demo market prices
     const amount = parseFloat(balance || "0");
     const prices = getCurrentMarketPrices();
     const currentPrice = prices[currency as keyof typeof prices] || 0;
@@ -187,10 +193,10 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     });
   };
 
-  const formatUSDValue = (balance: string, currency: string, showBalance: boolean) => {
+  const formatUSDValue = (balance: string, currency: string, showBalance: boolean, fetchedUsdValue?: string | null) => {
     if (!showBalance) return "••••••";
     
-    const realTimeValue = calculateRealTimeUSDValue(balance, currency);
+    const realTimeValue = calculateRealTimeUSDValue(balance, currency, fetchedUsdValue);
     
     return realTimeValue.toLocaleString('en-US', {
       style: 'currency',
@@ -241,7 +247,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
         <p className="text-sm text-gray-600 dark:text-gray-400">Total Balance</p>
         <p className="text-3xl font-bold text-black dark:text-white">
           {showBalance ? 
-            `$${(balances?.reduce((sum, balance) => sum + calculateRealTimeUSDValue(balance.balance, balance.currency), 0) || 0).toLocaleString('en-US', {
+            `$${(balances?.reduce((sum, balance) => sum + calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue), 0) || 0).toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             })}` : 
@@ -273,7 +279,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
                       <p className="font-medium text-black dark:text-white text-sm">
-                        {formatUSDValue(balance.balance, balance.currency, showBalance)}
+                        {formatUSDValue(balance.balance, balance.currency, showBalance, balance.usdValue)}
                       </p>
                       <div className="flex items-center gap-1 text-xs justify-end">
                         {isPositive ? (

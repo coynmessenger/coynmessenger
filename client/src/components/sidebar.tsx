@@ -77,17 +77,29 @@ export default function Sidebar({
     };
   };
 
-  // Calculate real-time USD value
-  const calculateRealTimeUSDValue = (balance: string, currency: string) => {
+  // Get current user info for Trust Wallet detection
+  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  const isTrustWalletUser = connectedUser.walletAddress && 
+    connectedUser.walletAddress.startsWith('0x') && 
+    connectedUser.walletAddress.length === 42;
+
+  // Calculate USD value - use fetched values for Trust Wallet users, demo prices for others
+  const calculateRealTimeUSDValue = (balance: string, currency: string, fetchedUsdValue?: string | null) => {
+    // For Trust Wallet users, use the real USD value fetched from blockchain
+    if (isTrustWalletUser && fetchedUsdValue) {
+      return parseFloat(fetchedUsdValue);
+    }
+    
+    // For demo users, use demo market prices
     const amount = parseFloat(balance || "0");
     const prices = getCurrentMarketPrices();
     const currentPrice = prices[currency as keyof typeof prices] || 0;
     return amount * currentPrice;
   };
 
-  // Calculate total balance with real-time market prices
+  // Calculate total balance - use real USD values for Trust Wallet users
   const totalBalance = walletBalances.reduce((sum, balance) => {
-    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue);
     return sum + realTimeValue;
   }, 0);
 
@@ -315,7 +327,7 @@ export default function Sidebar({
             {walletBalances.map((balance) => {
               const changePercent = parseFloat(balance.changePercent || "0");
               const isPositive = changePercent >= 0;
-              const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
+              const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue);
               const portfolioPercent = totalBalance > 0 ? (realTimeValue / totalBalance * 100) : 0;
               
               return (
