@@ -192,19 +192,19 @@ export default function MarketplacePage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
 
-  // Fetch marketplace products with debounced search - optimized caching
+  // Fetch marketplace products - always enabled to show all products by default
   const { data: marketplaceProducts = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ["/api/marketplace/search", searchQuery, selectedCategory],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchQuery.trim()) params.append('q', searchQuery.trim());
+      // Always pass the search query, empty string will return all products
+      params.append('query', searchQuery.trim());
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
       
       const res = await fetch(`/api/marketplace/search?${params}`);
       if (!res.ok) throw new Error("Failed to fetch products");
       return res.json();
     },
-    enabled: searchQuery.length >= 3 || searchQuery.length === 0 || selectedCategory !== 'all',
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
     refetchOnWindowFocus: false,

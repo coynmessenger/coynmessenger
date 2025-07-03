@@ -1059,16 +1059,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced Marketplace API routes
+  // Enhanced Marketplace API routes - returns all products when no query provided
   app.get("/api/marketplace/search", async (req, res) => {
     try {
       const { query = "", category = "", minPrice, maxPrice } = req.query;
+      const searchQuery = query as string;
+      const searchCategory = category as string;
+      
       const products = await marketplaceAPI.searchProducts(
-        query as string,
-        category as string,
+        searchQuery,
+        searchCategory,
         minPrice ? parseFloat(minPrice as string) : undefined,
         maxPrice ? parseFloat(maxPrice as string) : undefined
       );
+      
+      console.log(`[MARKETPLACE] Returning ${products.length} products for query: "${searchQuery}", category: "${searchCategory}"`);
       res.json(products);
     } catch (error) {
       console.error("[MARKETPLACE] Search error:", error);
