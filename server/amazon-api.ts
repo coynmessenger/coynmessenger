@@ -53,26 +53,26 @@ class MarketplaceAPI {
       // Use SiteStripe-style URL construction
       const productUrl = this.generateAffiliateLink(asin);
       
-      // Since we can't directly scrape Amazon, we'll use the existing mock data
-      // but enhance it with proper SiteStripe affiliate links
-      const mockProduct = this.getMockProductDetails(asin);
+      // Find product in the expanded catalog
+      const allProducts = this.getExpandedAmazonCatalog();
+      const foundProduct = allProducts.find(product => product.ASIN === asin);
       
-      if (mockProduct) {
+      if (foundProduct) {
         // Create enhanced product with SiteStripe affiliate info
         const enhancedProduct: Product = {
-          ...mockProduct,
+          ...foundProduct,
           productUrl: productUrl,
           affiliateInfo: {
             associateTag: this.associateTag,
-            commissionRate: this.getCommissionRate(mockProduct.category),
-            trackingId: `sitestripe_${Date.now()}`
+            commissionRate: this.getCommissionRate(foundProduct.category),
+            trackingId: `sitestripe_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
           }
         };
         
         return enhancedProduct;
       }
       
-      return mockProduct;
+      return null;
     } catch (error) {
       console.error('[AMAZON SITESTRIPE] Product info failed:', error);
       return null;
@@ -617,7 +617,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/81h2gWPTYJL._AC_UL320_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/81h2gWPTYJL._AC_UL320_.jpg'
+          'https://m.media-amazon.com/images/I/81h2gWPTYJL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/91VBZ8+DZXL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/71cEkQgRMCL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/81NjZtTVhEL._AC_UL320_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B07D23CFGR',
         rating: 4.9,
@@ -633,7 +636,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/71UypkUjStL._AC_UL320_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/71UypkUjStL._AC_UL320_.jpg'
+          'https://m.media-amazon.com/images/I/71UypkUjStL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/61TYzFm+Y4L._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/71mEhQGnC5L._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/61dKvGkVfYL._AC_UL320_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B08CKQQ398',
         rating: 4.7,
@@ -649,7 +655,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/71aFt4+OTOL._AC_UL320_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/71aFt4+OTOL._AC_UL320_.jpg'
+          'https://m.media-amazon.com/images/I/71aFt4+OTOL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/71GmEfz8xFL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/61SvGgVgWXL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/71N8TbN6NFL._AC_UL320_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B08D9QX9S6',
         rating: 4.8,
@@ -668,7 +677,9 @@ class MarketplaceAPI {
         imageUrl: 'https://m.media-amazon.com/images/I/71M0dVr6GPL._AC_UX679_.jpg',
         images: [
           'https://m.media-amazon.com/images/I/71M0dVr6GPL._AC_UX679_.jpg',
-          'https://m.media-amazon.com/images/I/71KQ2j0HZHL._AC_UX679_.jpg'
+          'https://m.media-amazon.com/images/I/71KQ2j0HZHL._AC_UX679_.jpg',
+          'https://m.media-amazon.com/images/I/61ZzH7TZHIL._AC_UX679_.jpg',
+          'https://m.media-amazon.com/images/I/71pFzV8XJXL._AC_UX679_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B084KP3K88',
         rating: 4.5,
@@ -685,7 +696,9 @@ class MarketplaceAPI {
         imageUrl: 'https://m.media-amazon.com/images/I/61+OG7F2EtL._AC_UY695_.jpg',
         images: [
           'https://m.media-amazon.com/images/I/61+OG7F2EtL._AC_UY695_.jpg',
-          'https://m.media-amazon.com/images/I/71K9VGJ+7hL._AC_UY695_.jpg'
+          'https://m.media-amazon.com/images/I/71K9VGJ+7hL._AC_UY695_.jpg',
+          'https://m.media-amazon.com/images/I/71XbqPH1QcL._AC_UY695_.jpg',
+          'https://m.media-amazon.com/images/I/61dPLm4qHhL._AC_UY695_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B089QWERTY',
         rating: 4.6,
@@ -740,7 +753,9 @@ class MarketplaceAPI {
         imageUrl: 'https://m.media-amazon.com/images/I/71TpSBYvJyL._AC_SL1500_.jpg',
         images: [
           'https://m.media-amazon.com/images/I/71TpSBYvJyL._AC_SL1500_.jpg',
-          'https://m.media-amazon.com/images/I/71wR8zB1hpL._AC_SL1500_.jpg'
+          'https://m.media-amazon.com/images/I/71wR8zB1hpL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71qKgH8YTGL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71R7KqH4FKL._AC_SL1500_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B085NOP456',
         rating: 4.6,
@@ -756,7 +771,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/61T7qMVf7XL._AC_SL1500_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/61T7qMVf7XL._AC_SL1500_.jpg'
+          'https://m.media-amazon.com/images/I/61T7qMVf7XL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71wHZqJ-KgL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61H5mM8YOLL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71cK5JGD8UL._AC_SL1500_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B087QRS789',
         rating: 4.3,
@@ -775,7 +793,9 @@ class MarketplaceAPI {
         imageUrl: 'https://m.media-amazon.com/images/I/61h4bNiWdmL._AC_SL1000_.jpg',
         images: [
           'https://m.media-amazon.com/images/I/61h4bNiWdmL._AC_SL1000_.jpg',
-          'https://m.media-amazon.com/images/I/71AkKkGGjjL._AC_SL1000_.jpg'
+          'https://m.media-amazon.com/images/I/71AkKkGGjjL._AC_SL1000_.jpg',
+          'https://m.media-amazon.com/images/I/71zVKgBM4lL._AC_SL1000_.jpg',
+          'https://m.media-amazon.com/images/I/61GVMhJ8fUL._AC_SL1000_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B089TUV012',
         rating: 4.8,
@@ -994,7 +1014,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/81-tl8dNFPL._AC_SL1500_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/81-tl8dNFPL._AC_SL1500_.jpg'
+          'https://m.media-amazon.com/images/I/81-tl8dNFPL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71VBmKHcT7L._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71q-j6VkrQL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71JBsKm8JtL._AC_SL1500_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B089ZXYZ123',
         rating: 4.6,
@@ -1013,7 +1036,9 @@ class MarketplaceAPI {
         imageUrl: 'https://m.media-amazon.com/images/I/71rJM+OTYHL._AC_UX679_.jpg',
         images: [
           'https://m.media-amazon.com/images/I/71rJM+OTYHL._AC_UX679_.jpg',
-          'https://m.media-amazon.com/images/I/61RzT8+nFTL._AC_UX679_.jpg'
+          'https://m.media-amazon.com/images/I/61RzT8+nFTL._AC_UX679_.jpg',
+          'https://m.media-amazon.com/images/I/61cI7hJKDtL._AC_UX679_.jpg',
+          'https://m.media-amazon.com/images/I/71Z9f8LRZNL._AC_UX679_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B08MNOPQRS',
         rating: 4.7,
@@ -1031,7 +1056,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/81HUDSz+URL._AC_UL320_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/81HUDSz+URL._AC_UL320_.jpg'
+          'https://m.media-amazon.com/images/I/81HUDSz+URL._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/81bGKUa1e0L._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/71rMdKNQFML._AC_UL320_.jpg',
+          'https://m.media-amazon.com/images/I/81YklHGZ2nL._AC_UL320_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B08QRSTU456',
         rating: 4.8,
@@ -1049,7 +1077,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/91pD7YfpNJL._AC_SL1500_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/91pD7YfpNJL._AC_SL1500_.jpg'
+          'https://m.media-amazon.com/images/I/91pD7YfpNJL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/81W6GKRD1YL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71bBqQGF8VL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61I7rJZDN-L._AC_SL1500_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B08UVWXYZ78',
         rating: 4.8,
@@ -1067,7 +1098,10 @@ class MarketplaceAPI {
         currency: 'USD',
         imageUrl: 'https://m.media-amazon.com/images/I/61hMF75cqSL._AC_SL1500_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/61hMF75cqSL._AC_SL1500_.jpg'
+          'https://m.media-amazon.com/images/I/61hMF75cqSL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71aGBDl1gqL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61zKyN4l5EL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71hPw8QL7QL._AC_SL1500_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B08ABCDEF90',
         rating: 4.7,
