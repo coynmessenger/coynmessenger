@@ -62,6 +62,11 @@ interface Product {
   category: string;
   brand?: string;
   description?: string;
+  affiliateInfo?: {
+    associateTag: string;
+    commissionRate: number;
+    trackingId: string;
+  };
 }
 
 interface CryptoRates {
@@ -661,6 +666,30 @@ export default function ProductPage() {
                 </div>
               </div>
             </div>
+
+            {/* SiteStripe Affiliate Information */}
+            {product.affiliateInfo && (
+              <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
+                  <h3 className="text-sm font-semibold text-orange-700 dark:text-orange-300">Amazon SiteStripe Tracking</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs text-orange-600 dark:text-orange-400">
+                  <div>
+                    <span className="font-medium">Associate Tag:</span> {product.affiliateInfo.associateTag}
+                  </div>
+                  <div>
+                    <span className="font-medium">Commission Rate:</span> {product.affiliateInfo.commissionRate}%
+                  </div>
+                  <div className="col-span-2">
+                    <span className="font-medium">Tracking ID:</span> {product.affiliateInfo.trackingId}
+                  </div>
+                </div>
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
+                  This purchase supports COYN through Amazon's Associates program
+                </p>
+              </div>
+            )}
 
             {/* Trust Indicators */}
             <div className="grid grid-cols-3 gap-4">

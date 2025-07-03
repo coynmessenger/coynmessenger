@@ -970,6 +970,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SiteStripe affiliate link generation
+  app.get("/api/sitestripe/link/:asin", async (req, res) => {
+    try {
+      const { asin } = req.params;
+      const affiliateLink = marketplaceAPI.generateAffiliateLink(asin);
+      const product = await marketplaceAPI.getSiteStripeProductInfo(asin);
+      
+      res.json({
+        asin,
+        affiliateLink,
+        associateTag: 'store09de-20',
+        commissionInfo: product?.affiliateInfo || null,
+        trackingEnabled: true
+      });
+    } catch (error) {
+      console.error("[SITESTRIPE] Link generation error:", error);
+      res.status(500).json({ message: "Failed to generate affiliate link" });
+    }
+  });
+
   // Favorites API routes
   app.get("/api/favorites", async (req, res) => {
     try {
@@ -1056,11 +1076,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Individual product details
+  // Individual product details with SiteStripe integration
   app.get("/api/marketplace/product/:asin", async (req, res) => {
     try {
       const { asin } = req.params;
-      const product = await marketplaceAPI.getProductDetails(asin);
+      // Use SiteStripe integration for enhanced affiliate tracking
+      const product = await marketplaceAPI.getSiteStripeProductInfo(asin);
       
       if (!product) {
         return res.status(404).json({ message: "Product not found" });

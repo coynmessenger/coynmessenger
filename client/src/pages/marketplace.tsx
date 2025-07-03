@@ -42,6 +42,11 @@ interface Product {
   category: string;
   brand?: string;
   description?: string;
+  affiliateInfo?: {
+    associateTag: string;
+    commissionRate: number;
+    trackingId: string;
+  };
 }
 
 interface CryptoRates {
@@ -860,11 +865,18 @@ export default function MarketplacePage() {
                           <span className="text-lg font-bold text-foreground">
                             ${formatPrice(item.price)}
                           </span>
-                          {isMarketplaceProduct && (
-                            <Badge variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
-                              ≈ {(parseFloat(item.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN
-                            </Badge>
-                          )}
+                          <div className="flex flex-wrap gap-1">
+                            {isMarketplaceProduct && (
+                              <Badge variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
+                                ≈ {(parseFloat(item.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN
+                              </Badge>
+                            )}
+                            {isMarketplaceProduct && (
+                              <Badge variant="outline" className="text-xs border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20">
+                                SiteStripe
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                       

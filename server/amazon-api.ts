@@ -13,6 +13,11 @@ interface Product {
   category: string;
   brand?: string;
   description?: string;
+  affiliateInfo?: {
+    associateTag: string;
+    commissionRate: number;
+    trackingId: string;
+  };
 }
 
 interface CryptoRates {
@@ -33,7 +38,73 @@ class MarketplaceAPI {
   constructor() {
     this.accessKey = process.env.AMAZON_ACCESS_KEY || '';
     this.secretKey = process.env.AMAZON_SECRET_KEY || '';
-    this.associateTag = process.env.AMAZON_ASSOCIATE_TAG || '';
+    this.associateTag = process.env.AMAZON_ASSOCIATE_TAG || 'store09de-20';
+  }
+
+  // SiteStripe integration - generate affiliate links
+  generateAffiliateLink(asin: string, tag?: string): string {
+    const associateTag = tag || this.associateTag;
+    return `https://www.amazon.com/dp/${asin}/?tag=${associateTag}`;
+  }
+
+  // SiteStripe-style product info extraction
+  async getSiteStripeProductInfo(asin: string): Promise<Product | null> {
+    try {
+      // Use SiteStripe-style URL construction
+      const productUrl = this.generateAffiliateLink(asin);
+      
+      // Since we can't directly scrape Amazon, we'll use the existing mock data
+      // but enhance it with proper SiteStripe affiliate links
+      const mockProduct = this.getMockProductDetails(asin);
+      
+      if (mockProduct) {
+        // Create enhanced product with SiteStripe affiliate info
+        const enhancedProduct: Product = {
+          ...mockProduct,
+          productUrl: productUrl,
+          affiliateInfo: {
+            associateTag: this.associateTag,
+            commissionRate: this.getCommissionRate(mockProduct.category),
+            trackingId: `sitestripe_${Date.now()}`
+          }
+        };
+        
+        return enhancedProduct;
+      }
+      
+      return mockProduct;
+    } catch (error) {
+      console.error('[AMAZON SITESTRIPE] Product info failed:', error);
+      return null;
+    }
+  }
+
+  // Get commission rates by category (SiteStripe rates)
+  private getCommissionRate(category: string): number {
+    const rates: Record<string, number> = {
+      'Electronics': 2.5,
+      'Computers': 2.5,
+      'Video Games': 1.0,
+      'Books': 4.5,
+      'Home & Garden': 3.0,
+      'Kitchen': 3.0,
+      'Sports & Outdoors': 3.0,
+      'Automotive': 3.0,
+      'Health & Personal Care': 1.0,
+      'Beauty': 3.0,
+      'Clothing': 2.0,
+      'Shoes': 2.0,
+      'Jewelry': 2.0,
+      'Tools & Home Improvement': 3.0,
+      'Toys & Games': 3.0,
+      'Baby Products': 3.0,
+      'Pet Supplies': 3.0,
+      'Office Products': 3.0,
+      'Musical Instruments': 3.0,
+      'default': 1.0
+    };
+    
+    return rates[category] || rates.default;
   }
 
   private createSignature(stringToSign: string): string {
