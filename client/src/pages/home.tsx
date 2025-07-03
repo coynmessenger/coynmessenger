@@ -141,6 +141,52 @@ export default function HomePage() {
     },
   });
 
+  // Handle mobile wallet returns
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (!document.hidden && isMobile()) {
+        console.log("Page became visible - checking for wallet connection");
+        
+        // Check if we have a pending wallet connection
+        const pendingConnection = localStorage.getItem('pendingWalletConnection');
+        if (pendingConnection === 'true') {
+          console.log("Pending wallet connection detected, checking for wallet access");
+          
+          // Try to detect if a wallet connection was successful
+          try {
+            if (typeof window.ethereum !== 'undefined') {
+              const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+              if (accounts && accounts.length > 0 && !isConnected) {
+                console.log("Wallet connection successful, connecting user:", accounts[0]);
+                
+                // Remove pending flag
+                localStorage.removeItem('pendingWalletConnection');
+                
+                // Connect the wallet
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            }
+          } catch (error) {
+            console.log("No wallet connection detected");
+            // Remove pending flag after timeout
+            setTimeout(() => {
+              localStorage.removeItem('pendingWalletConnection');
+            }, 5000);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isConnected, connectWalletMutation]);
+
   const handleConnectWallet = (e: React.FormEvent) => {
     e.preventDefault();
     if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
@@ -172,6 +218,7 @@ export default function HomePage() {
         } else {
           // Mobile-specific MetaMask connection
           if (isMobile()) {
+            localStorage.setItem('pendingWalletConnection', 'true');
             const currentUrl = window.location.href;
             const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
             window.open(deepLink, '_blank');
@@ -200,6 +247,7 @@ export default function HomePage() {
               console.error('Trust Wallet connection failed:', error);
               // On mobile, try deep link fallback
               if (isMobile()) {
+                localStorage.setItem('pendingWalletConnection', 'true');
                 const currentUrl = window.location.href;
                 const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
                 window.open(deepLink, '_blank');
