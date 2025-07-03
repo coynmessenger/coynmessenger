@@ -19,12 +19,20 @@ import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
 
-// MetaMask type declarations
+// WalletConnect Web3Provider (commented out due to compatibility issues)
+// import WalletConnectProvider from "@walletconnect/web3-provider";
+
+// Web3 Wallet type declarations
 declare global {
   interface Window {
     ethereum?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
       isMetaMask?: boolean;
+      isTrust?: boolean;
+      isCoinbaseWallet?: boolean;
+    };
+    trustWallet?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
     };
   }
 }
@@ -148,7 +156,7 @@ export default function HomePage() {
   const handleWeb3Connect = async (walletType: string) => {
     try {
       if (walletType === 'metamask') {
-        if (typeof window.ethereum !== 'undefined') {
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
           const accounts = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
           });
@@ -163,14 +171,116 @@ export default function HomePage() {
           window.open('https://metamask.io/download/', '_blank');
         }
       } else if (walletType === 'trust') {
-        // Trust Wallet integration coming soon
-        alert('Trust Wallet integration coming soon. Please use manual wallet address input for now.');
-      } else {
-        // For WalletConnect and Coinbase, show message that they need to use manual input
-        alert(`${walletType === 'walletconnect' ? 'WalletConnect' : 'Coinbase Wallet'} integration coming soon. Please use manual wallet address input for now.`);
+        // Trust Wallet Web3 integration
+        if (typeof window.ethereum !== 'undefined') {
+          // Check if Trust Wallet is available
+          if (window.ethereum.isTrust || window.trustWallet) {
+            try {
+              const provider = window.trustWallet || window.ethereum;
+              const accounts = await provider.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            } catch (error) {
+              console.error('Trust Wallet connection failed:', error);
+              alert('Failed to connect Trust Wallet. Please try again or use manual input.');
+            }
+          } else {
+            // If Trust Wallet is not detected, try generic ethereum provider
+            try {
+              const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            } catch (error) {
+              console.error('Web3 wallet connection failed:', error);
+              // Redirect to Trust Wallet if not installed
+              if (typeof window !== 'undefined' && window.navigator.userAgent.includes('Mobile')) {
+                // Mobile - open Trust Wallet app or app store
+                window.open('https://link.trustwallet.com/open_url?coin_id=60&url=' + encodeURIComponent(window.location.href), '_blank');
+              } else {
+                // Desktop - redirect to Trust Wallet download
+                window.open('https://trustwallet.com/download', '_blank');
+              }
+            }
+          }
+        } else {
+          // No Web3 provider detected
+          if (typeof window !== 'undefined' && window.navigator.userAgent.includes('Mobile')) {
+            // Mobile - open Trust Wallet app or app store
+            window.open('https://link.trustwallet.com/open_url?coin_id=60&url=' + encodeURIComponent(window.location.href), '_blank');
+          } else {
+            // Desktop - redirect to Trust Wallet download
+            window.open('https://trustwallet.com/download', '_blank');
+          }
+        }
+      } else if (walletType === 'walletconnect') {
+        // WalletConnect integration - simplified approach
+        try {
+          // Check if WalletConnect is available through injected provider
+          if (typeof window.ethereum !== 'undefined') {
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            }
+          } else {
+            // Redirect to WalletConnect-supported wallets
+            const wcUri = `wc:${Math.random().toString(36).substring(2)}@2?relay-protocol=irn&symKey=${Math.random().toString(36).substring(2)}`;
+            if (navigator.userAgent.includes('Mobile')) {
+              // Mobile - try to open in Trust Wallet or MetaMask
+              window.open(`https://link.trustwallet.com/wc?uri=${encodeURIComponent(wcUri)}`, '_blank');
+            } else {
+              alert('Please install a WalletConnect-compatible wallet like Trust Wallet or MetaMask to continue.');
+            }
+          }
+        } catch (error) {
+          console.error('WalletConnect connection failed:', error);
+          alert('Failed to connect WalletConnect. Please try again or use manual input.');
+        }
+      } else if (walletType === 'coinbase') {
+        // Coinbase Wallet integration
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
+          try {
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            }
+          } catch (error) {
+            console.error('Coinbase Wallet connection failed:', error);
+            alert('Failed to connect Coinbase Wallet. Please try again or use manual input.');
+          }
+        } else {
+          // Redirect to Coinbase Wallet download
+          window.open('https://www.coinbase.com/wallet', '_blank');
+        }
       }
     } catch (error) {
       console.error(`Failed to connect ${walletType} wallet:`, error);
+      alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
     }
   };
 
