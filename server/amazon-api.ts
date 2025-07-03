@@ -484,6 +484,343 @@ class MarketplaceAPI {
         category: 'Toys & Games',
         brand: 'LEGO',
         description: 'Build a shark, squid, or angler fish with this creative 3-in-1 building set.'
+      },
+      {
+        ASIN: 'B09BKGW8ZD',
+        title: 'Ravensburger 1000 Piece Puzzle - Krypt Silver',
+        price: '19.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81-9nAm2inL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/81-9nAm2inL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71vWFHDJHLL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B09BKGW8ZD',
+        rating: 4.6,
+        reviewCount: 3245,
+        category: 'Toys & Games',
+        brand: 'Ravensburger',
+        description: 'Challenge yourself with this premium 1000-piece monochrome puzzle featuring silver spiral design.'
+      },
+
+      // More Electronics
+      {
+        ASIN: 'B08HR7SV3M',
+        title: 'Samsung Galaxy Watch 6 Classic 43mm Bluetooth Smartwatch',
+        price: '399.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61pLl2rQ7dL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61pLl2rQ7dL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71Zm-grj9rL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08HR7SV3M',
+        rating: 4.5,
+        reviewCount: 18234,
+        category: 'Electronics',
+        brand: 'Samsung',
+        description: 'Advanced smartwatch with fitness tracking, ECG monitoring, and premium stainless steel design.'
+      },
+      {
+        ASIN: 'B0915QF5F3',
+        title: 'Anker PowerCore 10000 Portable Charger',
+        price: '24.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61wZgBNbUeL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61wZgBNbUeL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71z5+xTYRDL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B0915QF5F3',
+        rating: 4.7,
+        reviewCount: 87456,
+        category: 'Electronics',
+        brand: 'Anker',
+        description: 'Ultra-compact portable charger with PowerIQ technology for optimal charging speed.'
+      },
+      {
+        ASIN: 'B08B3P5D9K',
+        title: 'Logitech MX Master 3S Advanced Wireless Mouse',
+        price: '99.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71w4nnqwfML._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08B3P5D9K',
+        rating: 4.8,
+        reviewCount: 24567,
+        category: 'Computers',
+        brand: 'Logitech',
+        description: 'Professional wireless mouse with ultra-fast scrolling and customizable buttons.'
+      },
+
+      // More Home & Kitchen
+      {
+        ASIN: 'B08JH8R7RR',
+        title: 'Ninja Air Fryer Pro 4-in-1 with 5 QT Capacity',
+        price: '119.95',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/813BqjLxJhL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/813BqjLxJhL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71KJ45TfzkL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08JH8R7RR',
+        rating: 4.7,
+        reviewCount: 45678,
+        category: 'Kitchen',
+        brand: 'Ninja',
+        description: 'Versatile air fryer with roast, reheat, and dehydrate functions for healthy cooking.'
+      },
+      {
+        ASIN: 'B08ZN7QJD5',
+        title: 'Shark Navigator Lift-Away Professional NV356E',
+        price: '179.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/719BSzG2ySL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/719BSzG2ySL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/61Ht+YPr-DL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08ZN7QJD5',
+        rating: 4.6,
+        reviewCount: 67890,
+        category: 'Home',
+        brand: 'Shark',
+        description: 'Powerful upright vacuum with lift-away technology and anti-allergen seal.'
+      },
+      {
+        ASIN: 'B085WDZ6P3',
+        title: 'Vitamix A3500 Ascent Series Smart Blender',
+        price: '599.95',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71iGAUPgvmL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71iGAUPgvmL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71M8oQZ-4ML._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B085WDZ6P3',
+        rating: 4.8,
+        reviewCount: 12345,
+        category: 'Kitchen',
+        brand: 'Vitamix',
+        description: 'Professional-grade blender with smart technology and variable speed control.'
+      },
+
+      // More Books
+      {
+        ASIN: 'B07D23CFGR',
+        title: 'Becoming by Michelle Obama',
+        price: '14.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81h2gWPTYJL._AC_UL320_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/81h2gWPTYJL._AC_UL320_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B07D23CFGR',
+        rating: 4.9,
+        reviewCount: 123456,
+        category: 'Books',
+        brand: 'Crown',
+        description: 'Intimate memoir from former First Lady Michelle Obama chronicling her journey and experiences.'
+      },
+      {
+        ASIN: 'B08CKQQ398',
+        title: 'Think and Grow Rich by Napoleon Hill',
+        price: '11.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71UypkUjStL._AC_UL320_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71UypkUjStL._AC_UL320_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08CKQQ398',
+        rating: 4.7,
+        reviewCount: 89765,
+        category: 'Books',
+        brand: 'Sound Wisdom',
+        description: 'Classic personal development book revealing the money-making secrets of Americas wealthiest people.'
+      },
+      {
+        ASIN: 'B08D9QX9S6',
+        title: 'The Four Agreements: A Practical Guide to Personal Freedom',
+        price: '10.49',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71aFt4+OTOL._AC_UL320_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71aFt4+OTOL._AC_UL320_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08D9QX9S6',
+        rating: 4.8,
+        reviewCount: 34567,
+        category: 'Books',
+        brand: 'Amber-Allen Publishing',
+        description: 'Ancient Toltec wisdom offering a code of conduct for attaining personal freedom and happiness.'
+      },
+
+      // Fashion & Clothing
+      {
+        ASIN: 'B084KP3K88',
+        title: 'Champion Mens Powerblend Fleece Hoodie',
+        price: '39.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71M0dVr6GPL._AC_UX679_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71M0dVr6GPL._AC_UX679_.jpg',
+          'https://m.media-amazon.com/images/I/71KQ2j0HZHL._AC_UX679_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B084KP3K88',
+        rating: 4.5,
+        reviewCount: 15678,
+        category: 'Clothing',
+        brand: 'Champion',
+        description: 'Comfortable fleece hoodie with reduced pilling and shrinkage for lasting comfort.'
+      },
+      {
+        ASIN: 'B089QWERTY',
+        title: 'Nike Mens Air Max 270 Running Shoes',
+        price: '149.95',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61+OG7F2EtL._AC_UY695_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61+OG7F2EtL._AC_UY695_.jpg',
+          'https://m.media-amazon.com/images/I/71K9VGJ+7hL._AC_UY695_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B089QWERTY',
+        rating: 4.6,
+        reviewCount: 23456,
+        category: 'Shoes',
+        brand: 'Nike',
+        description: 'Lifestyle sneakers with Max Air unit in the heel for exceptional comfort and style.'
+      },
+
+      // More Sports & Outdoors
+      {
+        ASIN: 'B089KLM789',
+        title: 'Hydro Flask Standard Mouth Water Bottle 21 oz',
+        price: '39.95',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61S3RK0BPHL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61S3RK0BPHL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71pY8eGT3lL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B089KLM789',
+        rating: 4.8,
+        reviewCount: 34567,
+        category: 'Sports & Outdoors',
+        brand: 'Hydro Flask',
+        description: 'Insulated stainless steel water bottle that keeps beverages cold for 24 hours or hot for 12 hours.'
+      },
+      {
+        ASIN: 'B08XYZ1234',
+        title: 'Wilson NCAA Official Basketball',
+        price: '29.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81vkKkq4JDL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/81vkKkq4JDL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71H8ZmNFWTL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08XYZ1234',
+        rating: 4.7,
+        reviewCount: 8976,
+        category: 'Sports & Outdoors',
+        brand: 'Wilson',
+        description: 'Official NCAA basketball with premium composite leather cover for indoor and outdoor play.'
+      },
+
+      // More Beauty & Personal Care
+      {
+        ASIN: 'B085NOP456',
+        title: 'Olaplex No. 3 Hair Perfector Treatment',
+        price: '28.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71TpSBYvJyL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71TpSBYvJyL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71wR8zB1hpL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B085NOP456',
+        rating: 4.6,
+        reviewCount: 67890,
+        category: 'Beauty',
+        brand: 'Olaplex',
+        description: 'Professional hair treatment that repairs broken bonds and strengthens damaged hair.'
+      },
+      {
+        ASIN: 'B087QRS789',
+        title: 'The Ordinary Niacinamide 10% + Zinc 1% Serum',
+        price: '6.70',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61T7qMVf7XL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61T7qMVf7XL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B087QRS789',
+        rating: 4.3,
+        reviewCount: 45678,
+        category: 'Beauty',
+        brand: 'The Ordinary',
+        description: 'High-strength serum that reduces appearance of blemishes and congestion.'
+      },
+
+      // Pet Supplies
+      {
+        ASIN: 'B089TUV012',
+        title: 'KONG Classic Dog Toy - Large',
+        price: '14.99',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/61h4bNiWdmL._AC_SL1000_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/61h4bNiWdmL._AC_SL1000_.jpg',
+          'https://m.media-amazon.com/images/I/71AkKkGGjjL._AC_SL1000_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B089TUV012',
+        rating: 4.8,
+        reviewCount: 89012,
+        category: 'Pet Supplies',
+        brand: 'KONG',
+        description: 'Durable rubber dog toy perfect for stuffing with treats and promoting healthy chewing.'
+      },
+
+      // Office Products
+      {
+        ASIN: 'B08AWXY345',
+        title: 'Herman Miller Aeron Ergonomic Office Chair',
+        price: '1395.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/71qLZXCl5rL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/71qLZXCl5rL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/81WvVrNKjgL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08AWXY345',
+        rating: 4.7,
+        reviewCount: 3456,
+        category: 'Office Products',
+        brand: 'Herman Miller',
+        description: 'Premium ergonomic office chair with advanced PostureFit SL support and breathable mesh design.'
+      },
+
+      // Garden & Outdoor
+      {
+        ASIN: 'B08BZAB678',
+        title: 'Weber Original Kettle Premium Charcoal Grill 22-Inch',
+        price: '219.00',
+        currency: 'USD',
+        imageUrl: 'https://m.media-amazon.com/images/I/81QpkIHJkpL._AC_SL1500_.jpg',
+        images: [
+          'https://m.media-amazon.com/images/I/81QpkIHJkpL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71YGdl5TQBL._AC_SL1500_.jpg'
+        ],
+        productUrl: 'https://amazon.com/dp/B08BZAB678',
+        rating: 4.8,
+        reviewCount: 12345,
+        category: 'Patio, Lawn & Garden',
+        brand: 'Weber',
+        description: 'Classic charcoal grill with porcelain-enameled bowl and lid for superior heat retention.'
       }
     ];
   }
