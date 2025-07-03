@@ -153,6 +153,10 @@ export default function HomePage() {
     });
   };
 
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
   const handleWeb3Connect = async (walletType: string) => {
     try {
       if (walletType === 'metamask') {
@@ -168,10 +172,17 @@ export default function HomePage() {
             });
           }
         } else {
-          window.open('https://metamask.io/download/', '_blank');
+          // Mobile-specific MetaMask connection
+          if (isMobile()) {
+            const currentUrl = window.location.href;
+            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+            window.open(deepLink, '_blank');
+          } else {
+            window.open('https://metamask.io/download/', '_blank');
+          }
         }
       } else if (walletType === 'trust') {
-        // Trust Wallet Web3 integration
+        // Trust Wallet Web3 integration with enhanced mobile support
         if (typeof window.ethereum !== 'undefined') {
           // Check if Trust Wallet is available
           if (window.ethereum.isTrust || window.trustWallet) {
@@ -189,7 +200,14 @@ export default function HomePage() {
               }
             } catch (error) {
               console.error('Trust Wallet connection failed:', error);
-              alert('Failed to connect Trust Wallet. Please try again or use manual input.');
+              // On mobile, try deep link fallback
+              if (isMobile()) {
+                const currentUrl = window.location.href;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+                window.open(deepLink, '_blank');
+              } else {
+                alert('Failed to connect Trust Wallet. Please try again or use manual input.');
+              }
             }
           } else {
             // If Trust Wallet is not detected, try generic ethereum provider
@@ -206,23 +224,31 @@ export default function HomePage() {
               }
             } catch (error) {
               console.error('Web3 wallet connection failed:', error);
-              // Redirect to Trust Wallet if not installed
-              if (typeof window !== 'undefined' && window.navigator.userAgent.includes('Mobile')) {
-                // Mobile - open Trust Wallet app or app store
-                window.open('https://link.trustwallet.com/open_url?coin_id=60&url=' + encodeURIComponent(window.location.href), '_blank');
+              // Enhanced mobile fallback for Trust Wallet
+              if (isMobile()) {
+                const currentUrl = window.location.href;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+                window.open(deepLink, '_blank');
               } else {
-                // Desktop - redirect to Trust Wallet download
                 window.open('https://trustwallet.com/download', '_blank');
               }
             }
           }
         } else {
-          // No Web3 provider detected
-          if (typeof window !== 'undefined' && window.navigator.userAgent.includes('Mobile')) {
-            // Mobile - open Trust Wallet app or app store
-            window.open('https://link.trustwallet.com/open_url?coin_id=60&url=' + encodeURIComponent(window.location.href), '_blank');
+          // No Web3 provider detected - Enhanced mobile handling
+          if (isMobile()) {
+            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
+            const currentUrl = window.location.href;
+            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+            
+            // Try Trust Wallet first
+            window.open(deepLink, '_blank');
+            
+            // Fallback message for user
+            setTimeout(() => {
+              console.log('If Trust Wallet did not open, please install it from your app store');
+            }, 2000);
           } else {
-            // Desktop - redirect to Trust Wallet download
             window.open('https://trustwallet.com/download', '_blank');
           }
         }
@@ -244,11 +270,25 @@ export default function HomePage() {
           } else {
             // Redirect to WalletConnect-supported wallets
             const wcUri = `wc:${Math.random().toString(36).substring(2)}@2?relay-protocol=irn&symKey=${Math.random().toString(36).substring(2)}`;
-            if (navigator.userAgent.includes('Mobile')) {
-              // Mobile - try to open in Trust Wallet or MetaMask
-              window.open(`https://link.trustwallet.com/wc?uri=${encodeURIComponent(wcUri)}`, '_blank');
+            if (isMobile()) {
+              // Enhanced mobile WalletConnect support
+              const currentUrl = window.location.href;
+              
+              // Try opening in various mobile wallets
+              const walletApps = [
+                `https://link.trustwallet.com/wc?uri=${encodeURIComponent(wcUri)}`,
+                `https://metamask.app.link/wc?uri=${encodeURIComponent(wcUri)}`,
+                `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`
+              ];
+              
+              // Try the first available wallet
+              window.open(walletApps[0], '_blank');
+              
+              setTimeout(() => {
+                console.log('If no wallet opened, please ensure you have a compatible wallet app installed');
+              }, 2000);
             } else {
-              alert('Please install a WalletConnect-compatible wallet like Trust Wallet or MetaMask to continue.');
+              alert('For WalletConnect, please scan the QR code with your mobile wallet app, or use manual input for now.');
             }
           }
         } catch (error) {
@@ -256,7 +296,7 @@ export default function HomePage() {
           alert('Failed to connect WalletConnect. Please try again or use manual input.');
         }
       } else if (walletType === 'coinbase') {
-        // Coinbase Wallet integration
+        // Enhanced Coinbase Wallet integration with mobile support
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
           try {
             const accounts = await window.ethereum.request({ 
@@ -271,11 +311,30 @@ export default function HomePage() {
             }
           } catch (error) {
             console.error('Coinbase Wallet connection failed:', error);
-            alert('Failed to connect Coinbase Wallet. Please try again or use manual input.');
+            // Mobile fallback for Coinbase Wallet
+            if (isMobile()) {
+              const currentUrl = window.location.href;
+              const deepLink = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
+              window.open(deepLink, '_blank');
+            } else {
+              alert('Failed to connect Coinbase Wallet. Please try again or use manual input.');
+            }
           }
         } else {
-          // Redirect to Coinbase Wallet download
-          window.open('https://www.coinbase.com/wallet', '_blank');
+          // Enhanced mobile detection for Coinbase Wallet
+          if (isMobile()) {
+            // Mobile - try deep link to Coinbase Wallet app
+            const currentUrl = window.location.href;
+            const deepLink = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
+            window.open(deepLink, '_blank');
+            
+            setTimeout(() => {
+              console.log('If Coinbase Wallet did not open, please install it from your app store');
+            }, 2000);
+          } else {
+            // Desktop - redirect to download page
+            window.open('https://www.coinbase.com/wallet', '_blank');
+          }
         }
       }
     } catch (error) {
@@ -366,7 +425,17 @@ export default function HomePage() {
                 <div className="space-y-4">
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Choose your preferred wallet to connect
+                      {isMobile() ? (
+                        <>
+                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
+                            📱 Mobile Detected
+                          </span>
+                          <br />
+                          Tap to open in your wallet app
+                        </>
+                      ) : (
+                        "Choose your preferred wallet to connect"
+                      )}
                     </p>
                   </div>
 
