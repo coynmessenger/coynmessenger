@@ -141,6 +141,19 @@ export default function HomePage() {
     },
   });
 
+  // Sync state with localStorage on page load
+  useEffect(() => {
+    const storedConnected = localStorage.getItem('walletConnected');
+    const storedUser = localStorage.getItem('connectedUser');
+    
+    if (storedConnected === 'true' && storedUser && !isConnected) {
+      console.log("Syncing stored connection state on page load");
+      const parsedUser = JSON.parse(storedUser);
+      setConnectedUser(parsedUser);
+      setIsConnected(true);
+    }
+  }, []);
+
   // Handle mobile wallet returns and initial wallet detection
   useEffect(() => {
     let isChecking = false; // Prevent multiple simultaneous checks
@@ -172,6 +185,18 @@ export default function HomePage() {
     const handleVisibilityChange = async () => {
       if (!document.hidden && isMobile() && !isChecking) {
         console.log("Page became visible - checking for wallet connection");
+        
+        // First, check if we're already connected but the state isn't updated
+        const storedConnected = localStorage.getItem('walletConnected');
+        const storedUser = localStorage.getItem('connectedUser');
+        
+        if (storedConnected === 'true' && storedUser && !isConnected) {
+          console.log("Found stored connection, updating state");
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+          return;
+        }
         
         // Check if we have a pending wallet connection
         const pendingConnection = localStorage.getItem('pendingWalletConnection');
