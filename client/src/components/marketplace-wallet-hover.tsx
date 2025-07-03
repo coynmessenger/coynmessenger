@@ -43,14 +43,22 @@ export default function MarketplaceWalletHover({
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
   const userId = connectedUser.id || 5;
 
-  // Use the same wallet balance query as messenger sidebar
+  // Fetch wallet balances for the correct user
   const { data: balances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
+    queryKey: ["/api/wallet/balances", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/wallet/balances?userId=${userId}`);
+      return response.json();
+    },
     enabled: isVisible,
   });
 
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?userId=${userId}`);
+      return response.json();
+    },
     enabled: isVisible,
   });
 
@@ -60,7 +68,7 @@ export default function MarketplaceWalletHover({
       return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
       toast({
         title: "Balances Updated", 
         description: "Your COYN Wallet balances have been refreshed",
