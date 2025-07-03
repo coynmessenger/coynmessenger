@@ -117,11 +117,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user - optimized with caching
   app.get("/api/user", async (req, res) => {
     try {
-      let userId = 5; // Default user
+      // Require user ID from query parameter
+      if (!req.query.userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
       
-      // Check if there's a specific user ID in query (for wallet connections)
-      if (req.query.userId) {
-        userId = parseInt(req.query.userId as string);
+      const userId = parseInt(req.query.userId as string);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
       }
       
       // Disable caching for user data to ensure real-time updates
@@ -358,8 +361,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get conversations for current user
   app.get("/api/conversations", async (req, res) => {
     try {
-      // Get user ID from query parameter
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      // Require user ID from query parameter
+      if (!req.query.userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const userId = parseInt(req.query.userId as string);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -524,8 +535,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get wallet balances
   app.get("/api/wallet/balances", async (req, res) => {
     try {
-      // Get user ID from query parameter or default to 5
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      // Require user ID from query parameter
+      if (!req.query.userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const userId = parseInt(req.query.userId as string);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
       const balances = await storage.getUserWalletBalances(userId);
       res.json(balances);
     } catch (error) {

@@ -62,9 +62,21 @@ export default function Sidebar({
     queryKey: ['/api/users'],
   });
 
+  // Get current user info for Trust Wallet detection
+  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  
   // Fetch wallet balances
   const { data: walletBalances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
+    queryKey: ["/api/wallet/balances", connectedUser.id],
+    queryFn: async () => {
+      if (!connectedUser.id) return [];
+      const response = await fetch(`/api/wallet/balances?userId=${connectedUser.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet balances');
+      }
+      return response.json();
+    },
+    enabled: !!connectedUser.id,
   });
 
   // Real-time cryptocurrency market prices
@@ -77,8 +89,6 @@ export default function Sidebar({
     };
   };
 
-  // Get current user info for Trust Wallet detection
-  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
   const isTrustWalletUser = connectedUser.walletAddress && 
     connectedUser.walletAddress.startsWith('0x') && 
     connectedUser.walletAddress.length === 42;
