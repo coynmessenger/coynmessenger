@@ -6,10 +6,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Inter', 'Space Grotesk', 'system-ui', '-apple-system', 'sans-serif'],
-        'heading': ['Space Grotesk', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        'mono': ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-        'body': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'sans': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
+        'heading': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
+        'mono': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
+        'body': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
       },
       borderRadius: {
         lg: "var(--radius)",
