@@ -357,7 +357,7 @@ export default function MessengerPage() {
                               <div className="mx-auto mb-4">
                                 <img 
                                   src={coynLogoPath} 
-                                  alt="COYN Logo" 
+                                  alt="Coynful Logo" 
                                   className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
                                 />
                               </div>
@@ -392,7 +392,7 @@ export default function MessengerPage() {
                 <Home className="h-5 w-5" />
               </Button>
               <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
-                Messenger
+                Coynful
               </h1>
             </div>
             <div className="flex items-center space-x-2">
@@ -413,11 +413,11 @@ export default function MessengerPage() {
               <button
                 onClick={() => setIsWalletSidebarOpen(true)}
                 className="hover:opacity-80 transition-opacity"
-                title="Open COYN Wallet"
+                title="Open Coynful Wallet"
               >
                 <img 
                   src={coynLogoPath} 
-                  alt="COYN Logo" 
+                  alt="Coynful Logo" 
                   className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
                 />
               </button>

@@ -318,7 +318,7 @@ export default function HomePage() {
 
   const handleConnectWallet = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
+    if (!walletAddress.trim() || !isValidCoynfulAddress(walletAddress)) return;
     
     connectWalletMutation.mutate({
       walletAddress: walletAddress.trim(),
@@ -575,8 +575,8 @@ export default function HomePage() {
     window.location.reload();
   };
 
-  const isValidCoynAddress = (address: string) => {
-    // COYN addresses use standard 0x format (BSC/Ethereum-compatible)
+  const isValidCoynfulAddress = (address: string) => {
+    // Coynful addresses use standard 0x format (BSC/Ethereum-compatible)
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
 
@@ -584,7 +584,7 @@ export default function HomePage() {
     {
       icon: Coins,
       title: "Instant Crypto",
-      description: "Send BTC, BNB, USDT, and COYN directly in your chats"
+      description: "Send BTC, BNB, USDT, and Coynful directly in your chats"
     },
     {
       icon: Shield,
@@ -724,8 +724,8 @@ export default function HomePage() {
                         required
                       />
                     </div>
-                    {walletAddress && !isValidCoynAddress(walletAddress) && (
-                      <p className="text-destructive text-xs">Please enter a valid COYN address (0x format)</p>
+                    {walletAddress && !isValidCoynfulAddress(walletAddress) && (
+                      <p className="text-destructive text-xs">Please enter a valid Coynful address (0x format)</p>
                     )}
                   </div>
 
@@ -746,7 +746,7 @@ export default function HomePage() {
                   <Button 
                     type="submit" 
                     className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
-                    disabled={!walletAddress || !isValidCoynAddress(walletAddress) || connectWalletMutation.isPending}
+                    disabled={!walletAddress || !isValidCoynfulAddress(walletAddress) || connectWalletMutation.isPending}
                   >
                     {connectWalletMutation.isPending ? (
                       <div className="flex items-center space-x-2">
@@ -859,16 +859,16 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Powered by COYN */}
+        {/* Powered by Coynful */}
         <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-opacity">
             <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
             <img 
               src={coynLogoPath} 
-              alt="COYN" 
+              alt="Coynful" 
               className="h-6 w-6 object-contain"
             />
-            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">COYN</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Coynful</span>
           </div>
         </div>
       </div>

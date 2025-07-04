@@ -1,8 +1,8 @@
-# COYN Messenger
+# Coynful Messenger
 
 ## Overview
 
-COYN Messenger is a modern full-stack messaging application that combines traditional chat functionality with cryptocurrency wallet integration. Built with React and Express, it provides users with the ability to send messages, manage crypto wallets, and conduct video calls within a sleek, dark-themed interface.
+Coynful Messenger is a modern full-stack messaging application that combines traditional chat functionality with cryptocurrency wallet integration. Built with React and Express, it provides users with the ability to send messages, manage crypto wallets, and conduct video calls within a sleek, dark-themed interface.
 
 ## System Architecture
 
@@ -10,7 +10,7 @@ COYN Messenger is a modern full-stack messaging application that combines tradit
 - **Framework**: React 18 with TypeScript
 - **Routing**: Wouter for client-side routing
 - **UI Library**: Radix UI components with shadcn/ui styling
-- **Styling**: Tailwind CSS with custom COYN branding
+- **Styling**: Tailwind CSS with custom Coynful branding
 - **State Management**: TanStack Query for server state management
 - **Build Tool**: Vite with hot module replacement
 
@@ -118,6 +118,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - July 4, 2025: Removed SiteStripe from marketplace - eliminated all SiteStripe branding, badges, affiliate tracking, commission rates, and associate tag references throughout the application, removed SiteStripe API endpoints and affiliate link generation methods, cleaned up marketplace interface to remove green SiteStripe badges from product cards, simplified product URLs to direct Amazon links without affiliate tracking
 - July 4, 2025: Implemented comprehensive video calling with camera and voice access - integrated automatic camera permission requests for video calls, added microphone permission requests for voice calls, enhanced video call interface with media controls, mute/video toggle functionality, and call duration tracking
 - July 4, 2025: Removed artistic filters from video calling - eliminated filter selection panel, palette button, and all filter-related code per user request for cleaner video call interface focused on core functionality
+- July 4, 2025: Rebranded application from "COYN" to "Coynful" throughout entire platform - updated all branding elements including sidebar headers, mobile navigation titles, logo alt text, home page features descriptions, authentication validation functions, error messages, and footer attribution, ensuring consistent Coynful branding across messenger interface, home page, and documentation while maintaining original logo assets
 
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging

@@ -260,12 +260,12 @@ export default function Sidebar({
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 blur-lg opacity-20 animate-pulse"></div>
                 <img 
                   src={coynLogoPath} 
-                  alt="COYN Logo" 
+                  alt="Coynful Logo" 
                   className="w-10 h-10 relative z-10 drop-shadow-[0_0_20px_rgba(251,146,60,0.6)] hover:drop-shadow-[0_0_30px_rgba(251,146,60,0.8)] transition-all duration-300"
                 />
               </div>
               <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent">COYN Messenger</h1>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent">Coynful Messenger</h1>
               </div>
             </div>
 
