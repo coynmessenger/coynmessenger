@@ -44,7 +44,7 @@ export default function MessengerPage() {
         console.error('Failed to parse stored user:', e);
       }
     }
-    return 5; // Fallback to default user
+    return 26; // Fallback to COYNBIT user
   };
 
   const connectedUserId = getConnectedUserId();

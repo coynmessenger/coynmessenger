@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move, Palette, X } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User } from "@shared/schema";
 
@@ -23,8 +23,112 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSelfViewExpanded, setIsSelfViewExpanded] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [hasMediaPermission, setHasMediaPermission] = useState(false);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   
   const [callDuration, setCallDuration] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Artistic filters available
+  const artisticFilters = [
+    { id: 'none', name: 'None', icon: '🎨', description: 'No filter' },
+    { id: 'picasso', name: 'Picasso', icon: '🎭', description: 'Cubist art style' },
+    { id: 'vangogh', name: 'Van Gogh', icon: '🌻', description: 'Swirling brushstrokes' },
+    { id: 'basquiat', name: 'Basquiat', icon: '👑', description: 'Neo-expressionist style' },
+    { id: 'monet', name: 'Monet', icon: '🌊', description: 'Impressionist painting' },
+    { id: 'warhol', name: 'Warhol', icon: '🎨', description: 'Pop art style' },
+    { id: 'kandinsky', name: 'Kandinsky', icon: '🔺', description: 'Abstract expressionism' }
+  ];
+
+  // Request camera and microphone access
+  const requestMediaAccess = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+      setMediaStream(stream);
+      setHasMediaPermission(true);
+      
+      // Set up video element
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      
+      return stream;
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      setHasMediaPermission(false);
+      return null;
+    }
+  };
+
+  // Apply artistic filter to video feed
+  const applyArtisticFilter = (filter: string) => {
+    if (!canvasRef.current || !videoRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const video = videoRef.current;
+    
+    if (!ctx) return;
+    
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Apply filter effects
+    switch (filter) {
+      case 'picasso':
+        // Cubist effect with geometric shapes
+        ctx.filter = 'contrast(150%) saturate(80%) hue-rotate(15deg)';
+        ctx.globalCompositeOperation = 'multiply';
+        break;
+      case 'vangogh':
+        // Swirling brushstroke effect
+        ctx.filter = 'contrast(120%) saturate(150%) blur(0.5px)';
+        ctx.globalCompositeOperation = 'overlay';
+        break;
+      case 'basquiat':
+        // Neo-expressionist high contrast
+        ctx.filter = 'contrast(200%) saturate(120%) brightness(110%)';
+        ctx.globalCompositeOperation = 'hard-light';
+        break;
+      case 'monet':
+        // Impressionist soft focus
+        ctx.filter = 'blur(1px) saturate(130%) brightness(105%)';
+        ctx.globalCompositeOperation = 'soft-light';
+        break;
+      case 'warhol':
+        // Pop art high contrast colors
+        ctx.filter = 'contrast(180%) saturate(200%) hue-rotate(45deg)';
+        ctx.globalCompositeOperation = 'color-dodge';
+        break;
+      case 'kandinsky':
+        // Abstract expressionism
+        ctx.filter = 'contrast(140%) saturate(160%) hue-rotate(30deg)';
+        ctx.globalCompositeOperation = 'difference';
+        break;
+      default:
+        ctx.filter = 'none';
+        ctx.globalCompositeOperation = 'source-over';
+    }
+  };
+
+  // Toggle artistic filter
+  const toggleFilter = (filterId: string) => {
+    setActiveFilter(activeFilter === filterId ? null : filterId);
+    if (filterId !== 'none') {
+      applyArtisticFilter(filterId);
+    }
+  };
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -107,6 +211,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     if (isCallActive) {
       console.log('VideoCallModal: Rejoining active call or transferred from voice');
       setCallStatus("connected");
+      // Request media access for active calls
+      requestMediaAccess();
       return;
     }
 
@@ -120,6 +226,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     const timer2 = setTimeout(() => {
       console.log('VideoCallModal: Call status -> connected, calling onCallStart');
       setCallStatus("connected");
+      // Request camera and microphone access when call connects
+      requestMediaAccess();
       if (onCallStart) {
         onCallStart();
       }
@@ -396,8 +504,24 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           )}
           
           {callStatus === "connected" ? (
-            // Other person's video feed (Chris)
-            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+            // Other person's video feed 
+            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center relative">
+              {/* Hidden video element for user's camera */}
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="hidden"
+              />
+              
+              {/* Canvas for applying artistic filters */}
+              <canvas
+                ref={canvasRef}
+                className="hidden"
+              />
+              
+              {/* Mock remote user video - showing other person */}
               <div className="text-center space-y-4">
                 <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
                   <AvatarImage src={user.profilePicture || ""} />
@@ -455,14 +579,40 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               onClick={() => setIsSelfViewExpanded(true)}
               title="Click to expand your view"
             >
-              <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center relative">
                 {isVideoOff ? (
                   <div className="text-center">
                     <div className="text-white/40 text-xs">You</div>
                     <div className="text-red-400/80 text-xs mt-1">Camera off</div>
                   </div>
+                ) : hasMediaPermission ? (
+                  <div className="relative w-full h-full">
+                    {/* Show canvas with filter or direct video */}
+                    {activeFilter && activeFilter !== 'none' ? (
+                      <canvas
+                        className="w-full h-full object-cover rounded"
+                        style={{ transform: 'scaleX(-1)' }} // Mirror effect
+                      />
+                    ) : (
+                      <video
+                        className="w-full h-full object-cover rounded"
+                        style={{ transform: 'scaleX(-1)' }} // Mirror effect
+                        autoPlay
+                        muted
+                        playsInline
+                      />
+                    )}
+                    {activeFilter && activeFilter !== 'none' && (
+                      <div className="absolute bottom-1 left-1 bg-black/50 px-1 py-0.5 rounded text-xs text-white">
+                        {artisticFilters.find(f => f.id === activeFilter)?.icon}
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <div className="text-white/40 text-xs">You</div>
+                  <div className="text-center">
+                    <div className="text-white/40 text-xs">You</div>
+                    <div className="text-orange-400/80 text-xs mt-1">Camera starting...</div>
+                  </div>
                 )}
               </div>
             </div>
@@ -553,6 +703,21 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                   >
                     {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                   </Button>
+
+                  {/* Artistic Filters Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                      showFilters || activeFilter
+                        ? "bg-orange-500/20 border-orange-400 text-orange-400 hover:bg-orange-500/30" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                    }`}
+                    title="Artistic Filters"
+                  >
+                    <Palette className="h-5 w-5" />
+                  </Button>
                 </>
               )}
 
@@ -564,6 +729,59 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               >
                 <PhoneOff className="h-5 w-5" />
               </Button>
+            </div>
+          )}
+
+          {/* Artistic Filters Panel */}
+          {showFilters && callStatus === "connected" && (
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-orange-400" />
+                  Artistic Filters
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowFilters(false)}
+                  className="w-8 h-8 text-slate-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {artisticFilters.map((filter) => (
+                  <Button
+                    key={filter.id}
+                    variant="outline"
+                    onClick={() => toggleFilter(filter.id)}
+                    className={`flex flex-col items-center p-3 h-auto border-2 transition-all duration-300 ${
+                      activeFilter === filter.id
+                        ? "bg-orange-500/20 border-orange-400 text-orange-400"
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
+                    }`}
+                    title={filter.description}
+                  >
+                    <span className="text-xl mb-1">{filter.icon}</span>
+                    <span className="text-xs font-medium">{filter.name}</span>
+                  </Button>
+                ))}
+              </div>
+              
+              {activeFilter && (
+                <div className="mt-4 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-orange-400 font-medium">Active Filter:</span>
+                    <span className="text-white">
+                      {artisticFilters.find(f => f.id === activeFilter)?.name}
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-1">
+                    {artisticFilters.find(f => f.id === activeFilter)?.description}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
