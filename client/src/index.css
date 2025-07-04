@@ -1,21 +1,29 @@
-/* Import fonts that match the E1234 techno/LCD style */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
+/* Import fonts that match the Good Old DOS retro computer aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 /* 
-  To use the actual E1234 font from DaFont:
-  1. Download E1234.ttf from https://www.dafont.com/e1234.font
-  2. Add the font file to your public/fonts/ directory
-  3. Uncomment and use this @font-face declaration:
+  To use the actual Good Old DOS font from DaFont:
+  1. Download the font files from https://www.dafont.com/good-old-dos.font
+  2. Add the font files to your public/fonts/ directory
+  3. Uncomment and use these @font-face declarations:
   
   @font-face {
-    font-family: 'E1234';
-    src: url('/fonts/E1234.ttf') format('truetype');
+    font-family: 'Good Old DOS';
+    src: url('/fonts/Good Old DOS.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }
   
-  Then update the .homepage-font class to use 'E1234' as the first font choice.
+  @font-face {
+    font-family: 'Good Old DOS Smooth';
+    src: url('/fonts/Good Old DOS Smooth.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  Then update the .homepage-font class to use 'Good Old DOS' as the first font choice.
 */
 
 @tailwind base;
@@ -47,26 +55,41 @@ body {
   }
 }
 
-/* E1234-style techno font for homepage using Orbitron (similar LCD/tech aesthetic) */
+/* Good Old DOS-style retro computer font for homepage */
 .homepage-font {
-  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
-  font-weight: 500;
-  letter-spacing: 0.025em;
+  font-family: 'Source Code Pro', 'Courier Prime', 'Share Tech Mono', 'Courier New', monospace;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
 }
 
 .homepage-font * {
   font-family: inherit !important;
 }
 
-/* Enhance techno/futuristic feel */
+/* Enhance retro DOS computer terminal feel */
 .homepage-font h1, .homepage-font h2, .homepage-font h3 {
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .homepage-font .card-title {
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* DOS-style terminal text effects */
+.homepage-font p, .homepage-font span {
+  font-weight: 400;
   letter-spacing: 0.03em;
+}
+
+.homepage-font button {
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 :root {
