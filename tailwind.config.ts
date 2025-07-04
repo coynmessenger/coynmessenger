@@ -5,12 +5,6 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
-      fontFamily: {
-        'sans': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
-        'heading': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
-        'mono': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
-        'body': ['IBM Plex Mono', 'JetBrains Mono', 'Source Code Pro', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
-      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

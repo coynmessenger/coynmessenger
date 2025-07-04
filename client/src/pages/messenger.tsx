@@ -167,7 +167,7 @@ export default function MessengerPage() {
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-body">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
@@ -181,7 +181,7 @@ export default function MessengerPage() {
               <Home className="h-4 w-4 mr-2" />
               Return to Home
             </Button>
-            <h1 className="text-xl font-heading font-medium text-primary tracking-tight">
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
           </div>
@@ -391,7 +391,7 @@ export default function MessengerPage() {
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-heading font-medium text-black dark:text-black tracking-tight">
+              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
