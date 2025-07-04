@@ -41,70 +41,9 @@ class MarketplaceAPI {
     this.associateTag = process.env.AMAZON_ASSOCIATE_TAG || 'store09de-20';
   }
 
-  // SiteStripe integration - generate affiliate links
-  generateAffiliateLink(asin: string, tag?: string): string {
-    const associateTag = tag || this.associateTag;
-    return `https://www.amazon.com/dp/${asin}/?tag=${associateTag}`;
-  }
-
-  // SiteStripe-style product info extraction
-  async getSiteStripeProductInfo(asin: string): Promise<Product | null> {
-    try {
-      // Use SiteStripe-style URL construction
-      const productUrl = this.generateAffiliateLink(asin);
-      
-      // Find product in the expanded catalog
-      const allProducts = this.getExpandedAmazonCatalog();
-      const foundProduct = allProducts.find(product => product.ASIN === asin);
-      
-      if (foundProduct) {
-        // Create enhanced product with SiteStripe affiliate info
-        const enhancedProduct: Product = {
-          ...foundProduct,
-          productUrl: productUrl,
-          affiliateInfo: {
-            associateTag: this.associateTag,
-            commissionRate: this.getCommissionRate(foundProduct.category),
-            trackingId: `sitestripe_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-          }
-        };
-        
-        return enhancedProduct;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('[AMAZON SITESTRIPE] Product info failed:', error);
-      return null;
-    }
-  }
-
-  // Get commission rates by category (SiteStripe rates)
-  private getCommissionRate(category: string): number {
-    const rates: Record<string, number> = {
-      'Electronics': 2.5,
-      'Computers': 2.5,
-      'Video Games': 1.0,
-      'Books': 4.5,
-      'Home & Garden': 3.0,
-      'Kitchen': 3.0,
-      'Sports & Outdoors': 3.0,
-      'Automotive': 3.0,
-      'Health & Personal Care': 1.0,
-      'Beauty': 3.0,
-      'Clothing': 2.0,
-      'Shoes': 2.0,
-      'Jewelry': 2.0,
-      'Tools & Home Improvement': 3.0,
-      'Toys & Games': 3.0,
-      'Baby Products': 3.0,
-      'Pet Supplies': 3.0,
-      'Office Products': 3.0,
-      'Musical Instruments': 3.0,
-      'default': 1.0
-    };
-    
-    return rates[category] || rates.default;
+  // Generate product links
+  generateProductLink(asin: string): string {
+    return `https://www.amazon.com/dp/${asin}`;
   }
 
   // Generate real Amazon products from expanded catalog
@@ -128,15 +67,10 @@ class MarketplaceAPI {
       });
     }
 
-    // Add SiteStripe affiliate information to all products
+    // Add product URLs to all products
     return filteredProducts.map(product => ({
       ...product,
-      productUrl: this.generateAffiliateLink(product.ASIN),
-      affiliateInfo: {
-        associateTag: this.associateTag,
-        commissionRate: this.getCommissionRate(product.category),
-        trackingId: `sitestripe_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      }
+      productUrl: this.generateProductLink(product.ASIN)
     }));
   }
 

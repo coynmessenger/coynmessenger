@@ -871,11 +871,7 @@ export default function MarketplacePage() {
                                 ≈ {(parseFloat(item.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN
                               </Badge>
                             )}
-                            {isMarketplaceProduct && (
-                              <Badge variant="outline" className="text-xs border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20">
-                                SiteStripe
-                              </Badge>
-                            )}
+
                           </div>
                         </div>
                       </div>
