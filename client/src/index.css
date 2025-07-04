@@ -28,6 +28,11 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Fix for mobile viewport scrolling */
@@ -78,6 +83,17 @@ body {
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
+}
+
+/* Modern font styling for application headers */
+.app-header-font {
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Perfect body text */
