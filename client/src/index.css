@@ -1,5 +1,22 @@
-/* Try to import E1234 font, fallback to system fonts if not available */
-@import url('https://fonts.googleapis.com/css2?family=E1234:wght@300;400;500;600;700&display=swap');
+/* Import fonts that match the E1234 techno/LCD style */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+/* 
+  To use the actual E1234 font from DaFont:
+  1. Download E1234.ttf from https://www.dafont.com/e1234.font
+  2. Add the font file to your public/fonts/ directory
+  3. Uncomment and use this @font-face declaration:
+  
+  @font-face {
+    font-family: 'E1234';
+    src: url('/fonts/E1234.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  Then update the .homepage-font class to use 'E1234' as the first font choice.
+*/
 
 @tailwind base;
 @tailwind components;
@@ -30,13 +47,26 @@ body {
   }
 }
 
-/* E1234 font for homepage */
+/* E1234-style techno font for homepage using Orbitron (similar LCD/tech aesthetic) */
 .homepage-font {
-  font-family: 'E1234', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
+  font-weight: 500;
+  letter-spacing: 0.025em;
 }
 
 .homepage-font * {
   font-family: inherit !important;
+}
+
+/* Enhance techno/futuristic feel */
+.homepage-font h1, .homepage-font h2, .homepage-font h3 {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.homepage-font .card-title {
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
 :root {
