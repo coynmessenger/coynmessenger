@@ -297,7 +297,11 @@ export default function FavoritesPage() {
         isVisible={showWalletHover}
         onClose={() => setShowWalletHover(false)}
         anchorRef={walletButtonRef}
-        onProceedToCheckout={() => {}}
+        onProceedToCheckout={() => {
+          setShowWalletHover(false);
+          setShowCartModal(true);
+          setCartCount(getCartCount()); // Update cart count when opening
+        }}
       />
 
       {/* Wallet Modal */}
