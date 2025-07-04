@@ -604,21 +604,28 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-purple-900/30 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
       
-      <div className="max-w-4xl w-full space-y-6 relative z-10">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            {/* Coynful Logo with Enhanced Glow */}
-            <div className="relative ml-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
+      {/* Floating Grid Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.1)_1px,transparent_0)] bg-[length:40px_40px] opacity-20"></div>
+      
+      <div className="max-w-6xl mx-auto px-4 py-8 relative z-10 flex flex-col min-h-screen">
+        {/* Modern Hero Header */}
+        <div className="text-center flex-1 flex flex-col justify-center">
+          {/* Logo Section */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 blur-3xl opacity-60 scale-150 animate-pulse"></div>
+            <div className="relative">
               <img 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
-                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
+                className="h-32 w-auto mx-auto relative z-10 drop-shadow-[0_0_60px_rgba(251,146,60,0.8)] hover:drop-shadow-[0_0_80px_rgba(251,146,60,1)] transition-all duration-700 hover:scale-110"
                 loading="eager"
                 decoding="async"
                 style={{ imageRendering: 'auto' }}
@@ -626,19 +633,36 @@ export default function HomePage() {
               />
             </div>
           </div>
+          
+          {/* Hero Text */}
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
+            The Future of
+            <span className="block bg-gradient-to-r from-orange-400 via-amber-400 to-cyan-400 bg-clip-text text-transparent">
+              Web3 Communication
+            </span>
+          </h1>
+          
+          <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed font-light">
+            Secure messaging, instant crypto transfers, and decentralized marketplace
+          </p>
+          
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-12">
+            Connect your wallet to unlock the next generation of digital interaction
+          </p>
         </div>
 
-        {/* Main CTA Card - Enhanced with Glassmorphism */}
-        <Card className="bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/50 backdrop-blur-2xl max-w-lg mx-auto shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-all duration-500 hover:scale-[1.02]">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
-            {(!isConnected || !connectedUser) && (
-              <p className="text-muted-foreground">
-                Connect your Web3 wallet to access Coynful Messenger
-              </p>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-6">
+        {/* Modern Connection Card */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-20">
+          <Card className="bg-black/40 border border-white/10 backdrop-blur-2xl shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 hover:scale-[1.02]">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl text-white mb-2">Connect Wallet</CardTitle>
+              {(!isConnected || !connectedUser) && (
+                <p className="text-slate-300">
+                  Choose your Web3 wallet to get started
+                </p>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-6">
             {!isConnected || !connectedUser ? (
               <div className="space-y-6">
                 {/* Web3 Wallet Options */}
@@ -821,6 +845,7 @@ export default function HomePage() {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         {/* Features Grid - Moved below CTA */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -885,3 +910,4 @@ export default function HomePage() {
     </div>
   );
 }
+
