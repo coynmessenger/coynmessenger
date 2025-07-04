@@ -1521,14 +1521,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 // Crypto transaction message
                 <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">
-                    <Card className="bg-gradient-to-br from-cyan-100/90 to-blue-100/90 dark:from-cyan-900/40 dark:to-blue-900/40 border border-cyan-200/50 dark:border-cyan-600/30 max-w-sm w-full shadow-lg rounded-3xl">
+                    <Card className="bg-gradient-to-br from-orange-100/90 to-orange-100/90 dark:from-orange-900/40 dark:to-orange-900/40 border border-orange-200/50 dark:border-orange-600/30 max-w-sm w-full shadow-lg rounded-3xl">
                       <CardContent className="p-6 text-center">
                         <div className="flex items-center justify-center space-x-2 mb-4">
-                          <Coins className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-                          <span className="text-sm font-medium text-cyan-600 dark:text-cyan-400">Crypto Transaction</span>
+                          <Coins className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                          <span className="text-sm font-medium text-orange-600 dark:text-orange-400">Crypto Transaction</span>
                         </div>
                         <div className="text-center space-y-3">
-                          <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
+                          <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
                             {msg.senderId === connectedUserId ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 break-all px-2">
@@ -1787,10 +1787,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Crypto Send Panel */}
       {showCryptoSend && (
         <div className="border-t border-slate-700 bg-slate-800 p-4">
-          <Card className="bg-gradient-to-r from-cyan-600/10 to-cyan-500/10 border-cyan-500/20">
+          <Card className="bg-gradient-to-r from-orange-600/10 to-orange-500/10 border-orange-500/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-cyan-400 flex items-center">
+                <span className="text-sm font-medium text-orange-400 flex items-center">
                   <Send className="h-4 w-4 mr-2" />
                   Send COYN
                 </span>
@@ -1812,13 +1812,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     placeholder="0.00 COYN"
                     value={cryptoAmount}
                     onChange={(e) => setCryptoAmount(e.target.value)}
-                    className="bg-slate-700 border-slate-600 focus:border-cyan-500"
+                    className="bg-slate-700 border-slate-600 focus:border-orange-500"
                   />
                 </div>
                 <div className="flex space-x-2">
                   <Button 
                     type="submit"
-                    className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900"
+                    className="flex-1 bg-orange-500 hover:bg-orange-400 text-slate-900"
                     disabled={sendCryptoMutation.isPending}
                   >
                     {sendCryptoMutation.isPending ? "Sending..." : "Send COYN"}
@@ -1877,7 +1877,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
@@ -1941,7 +1941,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 dark:text-cyan-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
               >
                 <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
@@ -2005,7 +2005,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }
               }}
               placeholder="Type a message..."
-              className="pr-16 sm:pr-20 h-11 sm:h-10 text-sm sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-cyan-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-cyan-200/20"
+              className="pr-16 sm:pr-20 h-11 sm:h-10 text-sm sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
             />
             
             {/* GIF Picker */}
@@ -2015,7 +2015,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-8 sm:right-11 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
+                  className="absolute right-8 sm:right-11 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
                 >
                   <Image className="h-4 w-4 sm:h-4 sm:w-4" />
                 </Button>
@@ -2025,7 +2025,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">GIFs</h3>
                     {!gifSearchQuery.trim() && (
-                      <span className="text-xs text-orange-600 dark:text-cyan-400 bg-orange-50 dark:bg-cyan-900/30 px-2 py-1 rounded-full">
+                      <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full">
                         ✨ Smart suggestions
                       </span>
                     )}
@@ -2037,7 +2037,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       placeholder="Search GIFs..."
                       value={gifSearchQuery}
                       onChange={(e) => setGifSearchQuery(e.target.value)}
-                      className="h-8 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400"
+                      className="h-8 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400"
                     />
                   </div>
 
@@ -2053,7 +2053,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         className="relative aspect-square bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden hover:bg-orange-100 dark:hover:bg-slate-600 transition-colors group"
                       >
                         <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 dark:from-slate-600 dark:to-slate-700 flex items-center justify-center">
-                          <span className="text-xs text-gray-600 dark:text-slate-300 text-center p-2 group-hover:text-orange-600 dark:group-hover:text-cyan-300">
+                          <span className="text-xs text-gray-600 dark:text-slate-300 text-center p-2 group-hover:text-orange-600 dark:group-hover:text-orange-300">
                             {gif.title}
                           </span>
                         </div>
@@ -2077,7 +2077,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-cyan-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
+                  className="absolute right-1 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
                 >
                   <Smile className="h-4 w-4 sm:h-4 sm:w-4" />
                 </Button>
@@ -2095,7 +2095,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         onClick={() => setSelectedEmojiCategory(category as keyof typeof emojiCategories)}
                         className={`px-2 py-1 text-xs rounded-md transition-colors capitalize ${
                           selectedEmojiCategory === category
-                            ? "bg-orange-100 dark:bg-cyan-900/50 text-orange-700 dark:text-cyan-300 border border-orange-300 dark:border-cyan-600"
+                            ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-600"
                             : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
                         }`}
                       >
@@ -2130,7 +2130,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <Button 
             type="submit"
             size="icon"
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white h-10 w-10 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white h-10 w-10 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <Send className="h-4 w-4 sm:h-4 sm:w-4" />
@@ -2152,7 +2152,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         <DialogContent className="w-[92vw] sm:w-[85vw] max-w-sm max-h-[85vh] m-3 sm:m-6 p-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 flex flex-col rounded-2xl shadow-2xl">
           <DialogHeader className="p-4 sm:p-6 pb-0 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-t-2xl border-b border-gray-200/30 dark:border-slate-700/30">
             <DialogTitle className="text-black dark:text-white text-lg sm:text-xl font-bold flex items-center space-x-2">
-              <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-400 dark:to-orange-300 bg-clip-text text-transparent">
                 {cryptoStep === "amount" ? "Send" : "Confirm"}
               </span>
               <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500 bg-clip-text text-transparent font-bold">
@@ -2160,7 +2160,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </span>
               {getCryptoIcon(selectedCrypto)}
               {cryptoStep === "confirm" && (
-                <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-400 dark:to-orange-300 bg-clip-text text-transparent">
                   Transfer
                 </span>
               )}
@@ -2182,7 +2182,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       placeholder={`0.00000 ${selectedCrypto}`}
                       value={cryptoAmount}
                       onChange={(e) => setCryptoAmount(e.target.value)}
-                      className="h-12 sm:h-14 text-base sm:text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-cyan-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-cyan-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-24 sm:pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="h-12 sm:h-14 text-base sm:text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-24 sm:pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                       <Button
@@ -2190,7 +2190,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         onClick={handleMaxClick}
                         size="sm"
                         variant="outline"
-                        className="h-8 px-3 text-xs font-medium bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-cyan-950/80 dark:to-cyan-900/80 dark:hover:from-cyan-900 dark:hover:to-cyan-800 border-orange-200 dark:border-cyan-700 text-orange-600 dark:text-cyan-300 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm"
+                        className="h-8 px-3 text-xs font-medium bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-950/80 dark:to-orange-900/80 dark:hover:from-orange-900 dark:hover:to-orange-800 border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-300 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm"
                       >
                         Max
                       </Button>
@@ -2214,7 +2214,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6">
                   <Button
                     onClick={handleAmountConfirm}
-                    className="w-full h-11 sm:h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
+                    className="w-full h-11 sm:h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
                     disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
                   >
                     Continue
@@ -2263,7 +2263,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <Button
                     onClick={handleSendConfirm}
                     disabled={sendCryptoMutation.isPending}
-                    className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {sendCryptoMutation.isPending ? (
                       <span className="flex items-center space-x-2">
