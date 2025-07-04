@@ -604,7 +604,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
       
