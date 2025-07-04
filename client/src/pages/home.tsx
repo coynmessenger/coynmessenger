@@ -156,14 +156,16 @@ export default function HomePage() {
         return;
       }
       
-      // If no stored state but we have a pending connection, check for wallet
+      // If no stored state but we have a wallet provider, check for connected accounts
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         try {
-          console.log("Checking for wallet connection on page load");
+          console.log("Checking for existing wallet connection on page load");
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
-            console.log("Found connected wallet on page load, creating session:", accounts[0]);
+            console.log("Found existing wallet connection on page load:");
+            console.log("- Wallet address:", accounts[0]);
+            console.log("- Provider:", window.ethereum.isMetaMask ? 'MetaMask' : 'Other');
             
             // Clear any pending flags
             localStorage.removeItem('pendingWalletConnection');
@@ -173,9 +175,11 @@ export default function HomePage() {
               walletAddress: accounts[0],
               displayName: undefined
             });
+          } else {
+            console.log("No existing wallet connections found on page load");
           }
         } catch (error) {
-          console.log("No wallet connection found on page load");
+          console.log("Error checking for wallet connection on page load:", error);
         }
       }
     };
@@ -336,15 +340,22 @@ export default function HomePage() {
     try {
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+          console.log("MetaMask detected, requesting account access...");
           const accounts = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
           });
           
+          console.log("MetaMask returned accounts:", accounts);
+          
           if (accounts && accounts[0]) {
+            console.log("Connecting MetaMask wallet with address:", accounts[0]);
             connectWalletMutation.mutate({
               walletAddress: accounts[0],
               displayName: undefined // Let the backend generate a proper display name
             });
+          } else {
+            console.log("No MetaMask accounts found");
+            alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
           }
         } else {
           // For mobile, try to connect through any available ethereum provider

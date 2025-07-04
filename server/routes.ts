@@ -253,6 +253,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress, displayName } = req.body;
       console.log("Find-or-create request:", { walletAddress, displayName });
+      console.log("Wallet address details:");
+      console.log("- Raw address:", walletAddress);
+      console.log("- Address length:", walletAddress?.length);
+      console.log("- Starts with 0x:", walletAddress?.startsWith('0x'));
+      console.log("- Display name:", displayName || "Not provided");
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
