@@ -1841,11 +1841,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-3 sm:p-4 shadow-lg">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
-          <div className="mb-3 p-3 bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border-l-4 border-green-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
+          <div className="mb-3 p-3 bg-gradient-to-r from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border-l-4 border-orange-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
             <div className="flex items-center space-x-3">
-              <Reply className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <Reply className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               <div className="flex-1">
-                <div className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">
+                <div className="text-xs font-medium text-orange-700 dark:text-orange-300 mb-1">
                   {replyToMessage.sender}
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 max-w-xs">
@@ -1861,7 +1861,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               variant="ghost"
               size="icon"
               onClick={handleReplyCancel}
-              className="h-7 w-7 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/30 rounded-full transition-all duration-150"
+              className="h-7 w-7 text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800/30 rounded-full transition-all duration-150"
             >
               <X className="h-4 w-4" />
             </Button>

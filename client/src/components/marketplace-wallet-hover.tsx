@@ -287,7 +287,7 @@ export default function MarketplaceWalletHover({
         {/* Total Value */}
         <div className="text-center space-y-2 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 p-4 sm:p-6 rounded-lg">
           <p className="text-sm text-muted-foreground">Available for purchases</p>
-          <p className="text-2xl sm:text-3xl font-bold text-orange-500 dark:text-cyan-400">
+          <p className="text-2xl sm:text-3xl font-bold text-orange-500 dark:text-orange-400">
             {isBalanceVisible ? formatUSD(totalUSD) : "••••••"}
           </p>
           <p className="text-xs text-muted-foreground">Total purchasing power</p>
