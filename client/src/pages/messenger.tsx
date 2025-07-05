@@ -251,18 +251,20 @@ export default function MessengerPage() {
           </div>
         )}
 
-        {/* Desktop Main Content - matches mobile */}
-        <div className="flex-1 flex flex-col bg-background">
-          {selectedConversation && currentConversation ? (
-            <ChatWindow
-              conversation={currentConversation}
-              onToggleSidebar={() => setIsSidebarOpen(true)}
-              onBack={() => setSelectedConversation(null)}
-              searchQuery={searchQuery}
-            />
-          ) : (
-            <div className="flex-1 flex flex-col bg-background">
-              <div className="flex-1 overflow-auto">
+        {/* Desktop Main Content with permanent wallet sidebar */}
+        <div className="flex flex-1">
+          {/* Main conversation area */}
+          <div className="flex-1 flex flex-col bg-background">
+            {selectedConversation && currentConversation ? (
+              <ChatWindow
+                conversation={currentConversation}
+                onToggleSidebar={() => setIsSidebarOpen(true)}
+                onBack={() => setSelectedConversation(null)}
+                searchQuery={searchQuery}
+              />
+            ) : (
+              <div className="flex-1 flex flex-col bg-background">
+                <div className="flex-1 overflow-auto">
                 {/* Existing Conversations */}
                 {filteredConversations.length > 0 && (
                   <div>
@@ -382,9 +384,20 @@ export default function MessengerPage() {
                     </div>
                   </div>
                 )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Permanent COYN Wallet Sidebar for Desktop */}
+          <div className="w-80 border-l border-border bg-card/50 backdrop-blur-sm">
+            <WalletSidebar 
+              isOpen={true}
+              onClose={() => {}}
+              user={user}
+              isPermanent={true}
+            />
+          </div>
         </div>
       </div>
 
