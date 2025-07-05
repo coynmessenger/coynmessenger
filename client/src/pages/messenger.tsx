@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
@@ -14,7 +15,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home, User as UserIcon, Settings, Users } from "lucide-react";
+import { Home, User as UserIcon, Settings, Users, MessageCircle, Phone, Wallet, MoreVertical, Search, X, MessageSquarePlus } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -31,6 +32,8 @@ export default function MessengerPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [, setLocation] = useLocation();
 
   // Get connected user ID from localStorage
@@ -250,11 +253,157 @@ export default function MessengerPage() {
           </div>
         )}
 
-        {/* Desktop Main Content with permanent wallet sidebar */}
+        {/* Desktop WhatsApp-style Layout */}
         <div className="flex flex-1">
-          {/* Left Sidebar - Conversations and Contacts */}
-          <div className="w-80 border-r border-border bg-card/30 backdrop-blur-sm">
+          {/* Panel 1: Navigation Sidebar (Left) */}
+          <div className="w-16 bg-slate-200 dark:bg-slate-800 border-r border-border flex flex-col items-center py-4 space-y-4">
+            {/* Profile Avatar */}
+            <div className="relative">
+              <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition-opacity">
+                <AvatarImage 
+                  src={user?.profilePicture || undefined} 
+                  alt={user?.displayName || "User"}
+                />
+                <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-xs">
+                  <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </AvatarFallback>
+              </Avatar>
+              {user?.isOnline && (
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+              )}
+            </div>
+
+            {/* Navigation Icons */}
+            <div className="flex flex-col space-y-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-lg hover:bg-accent"
+                title="Chats"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-lg hover:bg-accent"
+                title="Calls"
+                onClick={() => setIsVoiceCallOpen(true)}
+              >
+                <Phone className="w-5 h-5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-lg hover:bg-accent"
+                title="Wallet"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Wallet className="w-5 h-5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-lg hover:bg-accent"
+                title="Settings"
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Bottom spacer */}
+            <div className="flex-1"></div>
+
+            {/* Menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 rounded-lg hover:bg-accent"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <MoreVertical className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Panel 2: Chat List (Center-Left) */}
+          <div className="w-96 bg-background border-r border-border">
             <div className="flex flex-col h-full">
+              {/* Chat List Header */}
+              <div className="p-4 border-b border-border bg-slate-50 dark:bg-slate-900/50">
+                <div className="flex items-center justify-between mb-3">
+                  <h1 className="text-xl font-semibold text-foreground">Chats</h1>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 rounded-full hover:bg-accent"
+                      title="New Group"
+                      onClick={() => setIsGroupModalOpen(true)}
+                    >
+                      <Users className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 rounded-full hover:bg-accent"
+                      title="New Chat"
+                    >
+                      <MessageSquarePlus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search or start new chat"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex mt-3 space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-3 py-1 text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-3 py-1 text-xs rounded-full hover:bg-accent"
+                  >
+                    Unread
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-3 py-1 text-xs rounded-full hover:bg-accent"
+                  >
+                    Groups
+                  </Button>
+                </div>
+              </div>
+
+              {/* Conversations List */}
               <div className="flex-1 overflow-auto">
                 {/* Existing Conversations */}
                 {filteredConversations.length > 0 && (
