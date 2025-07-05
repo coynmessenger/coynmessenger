@@ -99,21 +99,11 @@ export default function MessengerWhatsApp() {
     );
   });
 
-  // Available contacts (excluding current user and existing conversations)
-  const availableContacts = allUsers.filter((contact) => {
-    if (contact.id === connectedUserId || !contact.isSetup) return false;
-    return !conversations.some((conv) => 
-      conv.participant1Id === contact.id || conv.participant2Id === contact.id
-    );
-  });
-
-  // Filter contacts based on search
-  const filteredContacts = availableContacts.filter((contact) => {
-    if (!searchQuery) return true;
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      contact.displayName?.toLowerCase().includes(searchLower) ||
-      contact.username?.toLowerCase().includes(searchLower)
+  // Remove duplicate conversations and sort
+  const uniqueConversations = conversations.filter((conv, index, self) => {
+    return index === self.findIndex((c) => 
+      (c.participant1Id === conv.participant1Id && c.participant2Id === conv.participant2Id) ||
+      (c.participant1Id === conv.participant2Id && c.participant2Id === conv.participant1Id)
     );
   });
 
