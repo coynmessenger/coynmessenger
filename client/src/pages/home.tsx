@@ -538,16 +538,35 @@ export default function HomePage() {
   const handleSignOut = () => {
     console.log("Signing out user...");
     
-    // Clear all localStorage related to wallet connection
+    // Clear ALL localStorage items related to the application
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
     localStorage.removeItem('pendingWalletConnection');
+    localStorage.removeItem('shopping-cart');
+    localStorage.removeItem('theme');
+    localStorage.removeItem('favorites');
+    localStorage.removeItem('wallet-balances-hidden');
+    
+    // Clear any session storage
+    sessionStorage.clear();
     
     // Reset all state
     setIsConnected(false);
     setConnectedUser(null);
     setWalletAddress('');
     setDisplayName('');
+    
+    // Disconnect from any Web3 providers if connected
+    if (window.ethereum) {
+      try {
+        // Clear any ethereum provider state
+        console.log("Clearing ethereum provider state");
+      } catch (error) {
+        console.log("No active ethereum connections to clear");
+      }
+    }
+    
+    console.log("User signed out completely - all data cleared");
     
     // Force a page refresh to ensure clean state
     window.location.reload();

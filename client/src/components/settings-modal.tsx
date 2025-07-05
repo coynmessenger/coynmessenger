@@ -489,6 +489,33 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     }
   });
 
+  const handleSignOut = () => {
+    console.log("Signing out user from settings...");
+    
+    // Clear ALL localStorage items related to the application
+    localStorage.removeItem('walletConnected');
+    localStorage.removeItem('connectedUser');
+    localStorage.removeItem('pendingWalletConnection');
+    localStorage.removeItem('shopping-cart');
+    localStorage.removeItem('theme');
+    localStorage.removeItem('favorites');
+    localStorage.removeItem('wallet-balances-hidden');
+    
+    // Clear any session storage
+    sessionStorage.clear();
+    
+    // Clear React Query cache
+    queryClient.clear();
+    
+    // Close the settings modal
+    onClose();
+    
+    console.log("User signed out completely - redirecting to homepage");
+    
+    // Redirect to homepage
+    window.location.href = '/';
+  };
+
   const handleClearAllData = () => {
     if (clearDataConfirmText === "DELETE ALL MY DATA") {
       clearAllDataMutation.mutate();
@@ -921,6 +948,13 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                 >
                   Clear All Data
+                </Button>
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline" 
+                  className="w-full border-border text-foreground hover:bg-muted"
+                >
+                  Sign Out
                 </Button>
               </div>
             </CardContent>
