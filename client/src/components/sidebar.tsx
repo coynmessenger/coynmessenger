@@ -5,12 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
+import { Search, Wallet, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { formatDistanceToNow } from "date-fns";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
-import AddContactModal from "./add-contact-modal";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -40,7 +39,7 @@ export default function Sidebar({
   searchQuery = "",
   onSearchChange,
 }: SidebarProps) {
-  const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  // Removed contact discovery functionality
 
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   
@@ -57,10 +56,7 @@ export default function Sidebar({
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, [queryClient]);
 
-  // Fetch all users for contact list
-  const { data: allUsers = [] } = useQuery<User[]>({
-    queryKey: ['/api/users'],
-  });
+  // Only show existing conversations - no contact discovery
 
   // Get current user info for Trust Wallet detection
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
@@ -196,24 +192,7 @@ export default function Sidebar({
     }).format(parseFloat(value || "0"));
   };
 
-  // Get available contacts (users not in current conversations and not current user)
-  const availableContacts = allUsers.filter(contact => {
-    if (!user?.id || !contact?.id) return false;
-    
-    // Special handling for self-conversation
-    if (contact.id === user.id) {
-      // Always include current user for self-messaging
-      const hasSelfConversation = conversations.some(conv => 
-        conv?.otherUser?.id === contact.id
-      );
-      return !hasSelfConversation;
-    }
-    
-    const hasConversation = conversations.some(conv => 
-      conv?.otherUser?.id === contact.id
-    );
-    return !hasConversation;
-  });
+  // No contact discovery - only show existing conversations
 
 
 
@@ -381,41 +360,47 @@ export default function Sidebar({
 
 
 
-        {/* Contact List and Chat List - Mobile Optimized */}
+        {/* Conversations Only */}
         <div className="flex-1 overflow-y-auto">
-          {/* Available Contacts */}
-          {availableContacts.length > 0 && (
+          {/* Existing Conversations */}
+          {conversations.length > 0 && (
             <div className="px-3 py-2">
               <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-                Contacts
+                Conversations
               </h3>
               <div className="space-y-1">
-                {availableContacts.map((contact) => (
+                {conversations.map((conversation) => (
                   <div
-                    key={contact.id}
-                    onClick={() => createConversationMutation.mutate(contact.id)}
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                    key={conversation.id}
+                    onClick={() => onSelectConversation(conversation.id)}
+                    className={`flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                      selectedConversation === conversation.id 
+                        ? 'bg-accent' 
+                        : 'hover:bg-accent/50'
+                    }`}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={contact.profilePicture || ""} />
+                      <AvatarImage src={conversation.otherUser?.profilePicture || ""} />
                       <AvatarFallback>
                         <UserAvatarIcon />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
-                        {contact.displayName || contact.username}
-                        {contact.id === user?.id && (
+                        {conversation.otherUser?.displayName || conversation.otherUser?.username}
+                        {conversation.otherUser?.id === user?.id && (
                           <span className="ml-1 text-xs text-primary font-normal">(You)</span>
                         )}
                       </p>
-                      <div className="flex items-center space-x-1">
-                        <div className={`w-2 h-2 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                        <p className="text-xs text-muted-foreground">
-                          {contact.id === user?.id ? 'Message yourself' : (contact.isOnline ? 'Online' : 'Offline')}
-                        </p>
-                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {formatLastMessage(conversation.lastMessage)}
+                      </p>
                     </div>
+                    {conversation.lastMessage?.timestamp && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimestamp(conversation.lastMessage.timestamp)}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -433,16 +418,6 @@ export default function Sidebar({
               <Wallet className="h-3 w-3 mr-1.5" />
               <span className="text-sm">Wallet</span>
             </Button>
-            <Button
-              onClick={() => setIsAddContactOpen(true)}
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 text-muted-foreground hover:text-primary border-border hover:border-primary"
-              title="Add Contact"
-            >
-              <UserPlus className="h-3 w-3" />
-            </Button>
-
           </div>
         </div>
 
@@ -455,11 +430,7 @@ export default function Sidebar({
         />
       )}
 
-      {/* Modals */}
-      <AddContactModal
-        isOpen={isAddContactOpen}
-        onClose={() => setIsAddContactOpen(false)}
-      />
+      {/* Contact discovery removed - no modals needed */}
 
     </>
   );
