@@ -776,10 +776,20 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Zerion Logo - Custom SVG */}
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">Z</span>
-                        </div>
+                        {/* Authentic Zerion Logo SVG */}
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <defs>
+                            <linearGradient id="zerionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#2563eb" />
+                              <stop offset="50%" stopColor="#7c3aed" />
+                              <stop offset="100%" stopColor="#db2777" />
+                            </linearGradient>
+                          </defs>
+                          <rect width="32" height="32" rx="8" fill="url(#zerionGradient)" />
+                          <path d="M8 12L16 8L24 12V20L16 24L8 20V12Z" fill="white" opacity="0.9" />
+                          <path d="M12 14L16 12L20 14V18L16 20L12 18V14Z" fill="url(#zerionGradient)" />
+                          <circle cx="16" cy="16" r="2" fill="white" />
+                        </svg>
                       </div>
                       <span className="text-sm font-semibold">Zerion</span>
                     </Button>
