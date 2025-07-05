@@ -650,8 +650,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Main CTA Card - Enhanced with Glassmorphism */}
-        <Card className="bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/50 backdrop-blur-2xl max-w-lg mx-auto shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-all duration-500 hover:scale-[1.02]">
+        {/* Main CTA Card - Clean Design */}
+        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
@@ -686,7 +686,7 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -703,7 +703,7 @@ export default function HomePage() {
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -844,12 +844,12 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Features Grid - Moved below CTA */}
+        {/* Features Grid - Clean Design */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-white dark:bg-slate-800/50 border-black dark:border-slate-700 backdrop-blur">
+            <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
               <CardHeader className="pb-3">
-                <feature.icon className="h-8 w-8 text-black dark:text-cyan-400 mb-2" />
+                <feature.icon className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-2" />
                 <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
