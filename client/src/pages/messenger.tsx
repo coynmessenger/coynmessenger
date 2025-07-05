@@ -5,7 +5,7 @@ import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Sidebar from "@/components/sidebar";
+
 import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
@@ -27,7 +27,7 @@ export default function MessengerPage() {
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -204,21 +204,6 @@ export default function MessengerPage() {
 
         {/* Desktop Main Content */}
         <div className="flex flex-1">
-          {user && (
-            <Sidebar
-              user={user}
-              conversations={searchQuery ? filteredConversations : conversations}
-              selectedConversation={selectedConversation}
-              onSelectConversation={setSelectedConversation}
-              isOpen={false}
-              onClose={() => {}}
-              onOpenWallet={handleOpenWallet}
-              onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
-          )}
-
           <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
               <ChatWindow
@@ -473,7 +458,7 @@ export default function MessengerPage() {
           {selectedConversation && currentConversation ? (
             <ChatWindow
               conversation={currentConversation}
-              onToggleSidebar={() => setIsSidebarOpen(true)}
+              onToggleSidebar={() => {}}
               onBack={() => setSelectedConversation(null)}
               searchQuery={searchQuery}
             />
@@ -559,19 +544,7 @@ export default function MessengerPage() {
           )}
         </div>
 
-        {/* Mobile Sidebar */}
-        <Sidebar
-          user={user}
-          conversations={searchQuery ? filteredConversations : conversations}
-          selectedConversation={selectedConversation}
-          onSelectConversation={setSelectedConversation}
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onOpenWallet={handleOpenWallet}
-          onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
+
       </div>
 
       {/* Modals */}
@@ -603,14 +576,7 @@ export default function MessengerPage() {
         user={user}
       />
 
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-          style={{ touchAction: 'manipulation' }}
-        />
-      )}
+
     </div>
   );
 }
