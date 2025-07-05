@@ -58,22 +58,16 @@ export default function MessengerPage() {
 
   // Create contact list with current user at top
   const getContactList = () => {
-    if (!user || !allUsers.length) {
-      console.log("Contact list empty - user:", user, "allUsers length:", allUsers.length);
-      return [];
-    }
+    if (!user) return [];
     
-    console.log("Building contact list - current user:", user.id, user.displayName);
-    console.log("All users:", allUsers.map(u => ({ id: u.id, displayName: u.displayName, isSetup: u.isSetup })));
-    
-    // Start with current user at the top
+    // Always start with current user at the top
     const contactList = [user];
     
-    // Add other users who are setup (excluding current user)
-    const otherUsers = allUsers.filter(u => u.id !== user.id && u.isSetup);
-    contactList.push(...otherUsers);
-    
-    console.log("Final contact list:", contactList.map(c => ({ id: c.id, displayName: c.displayName })));
+    // Add other users who are setup (excluding current user) if any exist
+    if (allUsers.length > 0) {
+      const otherUsers = allUsers.filter(u => u.id !== user.id && u.isSetup);
+      contactList.push(...otherUsers);
+    }
     
     return contactList;
   };
