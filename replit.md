@@ -121,6 +121,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - July 5, 2025: Cleaned up duplicate self-conversations - removed 5 duplicate self-conversations for user 31, leaving only one clean self-contact for messaging yourself, eliminated unnecessary conversation clutter in messenger interface
 - July 5, 2025: Enhanced comprehensive sign out functionality - implemented complete logout system that clears ALL localStorage items (walletConnected, connectedUser, shopping-cart, theme, favorites, wallet-balances-hidden), clears sessionStorage and React Query cache, added sign out buttons to both homepage wallet connection area and settings modal privacy section, ensures complete data cleanup and automatic redirect to homepage for secure logout
 - July 5, 2025: Removed contacts panel from desktop messenger layout - eliminated the "Contacts" section that appeared under wallet info in sidebar, streamlined sidebar to show only wallet information and search functionality for cleaner interface
+- July 5, 2025: Enhanced wallet address display in sidebar - implemented proper address truncation (first 6...last 4 characters), added copy-to-clipboard functionality with visual feedback (copy icon changes to checkmark), improved styling with hover effects and better responsive layout
 
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging

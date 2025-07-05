@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon } from "lucide-react";
+import { Search, Wallet, UserPlus, Eye, EyeOff, TrendingUp, TrendingDown, User as UserIcon, Copy, Check } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { formatDistanceToNow } from "date-fns";
@@ -41,8 +41,8 @@ export default function Sidebar({
   onSearchChange,
 }: SidebarProps) {
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
-
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+  const [isCopied, setIsCopied] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -205,6 +205,25 @@ export default function Sidebar({
     }).format(parseFloat(value || "0"));
   };
 
+  // Function to copy wallet address to clipboard
+  const copyWalletAddress = async () => {
+    if (user?.walletAddress) {
+      try {
+        await navigator.clipboard.writeText(user.walletAddress);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy wallet address:', err);
+      }
+    }
+  };
+
+  // Function to truncate wallet address for display
+  const truncateAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   // Get available contacts (users not in current conversations and not current user)
   const availableContacts = allUsers.filter(contact => {
     if (!user?.id || !contact?.id) return false;
@@ -280,8 +299,21 @@ export default function Sidebar({
 
           </div>
           {user && (
-            <div className="mt-4 text-xs font-mono bg-orange-100/50 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-orange-200/50 dark:border-slate-600/50 text-orange-700 dark:text-orange-300 backdrop-blur-sm">
-              {user.walletAddress}
+            <div className="mt-4">
+              <div 
+                className="flex items-center justify-between text-xs font-mono bg-orange-100/50 dark:bg-slate-800/50 px-3 py-2 rounded-lg border border-orange-200/50 dark:border-slate-600/50 text-orange-700 dark:text-orange-300 backdrop-blur-sm cursor-pointer hover:bg-orange-200/50 dark:hover:bg-slate-700/50 transition-colors"
+                onClick={copyWalletAddress}
+                title="Click to copy wallet address"
+              >
+                <span className="truncate mr-2">{truncateAddress(user.walletAddress)}</span>
+                <div className="flex-shrink-0">
+                  {isCopied ? (
+                    <Check className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <Copy className="h-3 w-3 hover:text-orange-500" />
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
