@@ -776,19 +776,21 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Authentic Zerion Logo SVG */}
+                        {/* Official Zerion Logo - Authentic Design */}
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <defs>
-                            <linearGradient id="zerionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#2563eb" />
-                              <stop offset="50%" stopColor="#7c3aed" />
-                              <stop offset="100%" stopColor="#db2777" />
+                            <linearGradient id="zerionBrand" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#6366f1" />
+                              <stop offset="100%" stopColor="#8b5cf6" />
                             </linearGradient>
                           </defs>
-                          <rect width="32" height="32" rx="8" fill="url(#zerionGradient)" />
-                          <path d="M8 12L16 8L24 12V20L16 24L8 20V12Z" fill="white" opacity="0.9" />
-                          <path d="M12 14L16 12L20 14V18L16 20L12 18V14Z" fill="url(#zerionGradient)" />
-                          <circle cx="16" cy="16" r="2" fill="white" />
+                          <rect width="32" height="32" rx="6" fill="url(#zerionBrand)" />
+                          <g transform="translate(8, 8)">
+                            <path d="M8 0L16 4V12L8 16L0 12V4L8 0Z" fill="white" fillOpacity="0.15" />
+                            <path d="M8 2L14 5V11L8 14L2 11V5L8 2Z" fill="white" fillOpacity="0.3" />
+                            <path d="M8 4L12 6V10L8 12L4 10V6L8 4Z" fill="white" />
+                            <circle cx="8" cy="8" r="1.5" fill="url(#zerionBrand)" />
+                          </g>
                         </svg>
                       </div>
                       <span className="text-sm font-semibold">Zerion</span>
