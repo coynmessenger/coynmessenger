@@ -168,211 +168,223 @@ export default function MessengerPage() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      {/* Desktop Header - only visible on large screens */}
+      {/* Desktop Layout - Now matches mobile exactly */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Button
-              onClick={() => setLocation("/")}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Return to Home
-            </Button>
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-              Messenger
-            </h1>
+        {/* Desktop Navigation - matches mobile */}
+        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center space-x-3">
+              <Button
+                onClick={() => setLocation("/")}
+                variant="ghost"
+                size="sm"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
+                title="Home"
+              >
+                <Home className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+                Coynful
+              </h1>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button 
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
+                onClick={() => {
+                  setIsSearchOpen(!isSearchOpen);
+                  if (isSearchOpen) {
+                    setSearchQuery("");
+                  }
+                }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setIsWalletSidebarOpen(true)}
+                className="hover:opacity-80 transition-opacity"
+                title="Open Coynful Wallet"
+              >
+                <img 
+                  src={coynLogoPath} 
+                  alt="Coynful Logo" 
+                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                />
+              </button>
+              <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
-            <button
-              onClick={() => setIsWalletSidebarOpen(true)}
-              className="hover:opacity-80 transition-opacity"
-              title="Open COYN Wallet"
-            >
-              <img 
-                src={coynLogoPath} 
-                alt="COYN Logo" 
-                className="w-8 h-8 cursor-pointer"
-              />
-            </button>
-          </div>
-        </div>
+        </nav>
 
-        {/* Desktop Main Content */}
-        <div className="flex flex-1">
-          {user && (
-            <Sidebar
-              user={user}
-              conversations={searchQuery ? filteredConversations : conversations}
-              selectedConversation={selectedConversation}
-              onSelectConversation={setSelectedConversation}
-              isOpen={false}
-              onClose={() => {}}
-              onOpenWallet={handleOpenWallet}
-              onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
+        {/* Desktop Search Bar - matches mobile */}
+        {isSearchOpen && (
+          <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 p-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search messages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-100 border border-gray-300 dark:border-gray-300 rounded-lg text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                autoFocus
+              />
+              <svg 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-500" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Main Content - matches mobile */}
+        <div className="flex-1 flex flex-col bg-background">
+          {selectedConversation && currentConversation ? (
+            <ChatWindow
+              conversation={currentConversation}
+              onToggleSidebar={() => setIsSidebarOpen(true)}
+              onBack={() => setSelectedConversation(null)}
               searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
             />
-          )}
-
-          <div className="flex-1 flex flex-col bg-background">
-            {selectedConversation && currentConversation ? (
-              <ChatWindow
-                conversation={currentConversation}
-                onToggleSidebar={() => {}}
-                onBack={() => setSelectedConversation(null)}
-                searchQuery={searchQuery}
-              />
-            ) : (
-              <div className="flex-1 flex flex-col bg-background">
-
-
-                {/* Contact List First - Main Focus */}
-                <div className="flex-1 overflow-auto">
-
-
-                  {/* Existing Conversations - Secondary Display */}
-                  {filteredConversations.length > 0 && (
-                    <div>
-                      <div className="divide-y divide-border">
-                        {filteredConversations.map((conversation) => (
-                          <div
-                            key={conversation.id}
-                            onClick={() => {
-                              setSelectedConversation(conversation.id);
-                              // Clear search when switching conversations on mobile
-                              if (window.innerWidth < 768) {
-                                setSearchQuery("");
-                                setIsSearchOpen(false);
-                              }
-                            }}
-                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="relative">
-                                <Avatar className="w-12 h-12">
-                                  {conversation.isGroup ? (
-                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                                      <Users className="w-6 h-6" />
+          ) : (
+            <div className="flex-1 flex flex-col bg-background">
+              <div className="flex-1 overflow-auto">
+                {/* Existing Conversations */}
+                {filteredConversations.length > 0 && (
+                  <div>
+                    <div className="divide-y divide-border">
+                      {filteredConversations.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          onClick={() => setSelectedConversation(conversation.id)}
+                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <Avatar className="w-12 h-12">
+                                {conversation.isGroup ? (
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                    <Users className="w-6 h-6" />
+                                  </AvatarFallback>
+                                ) : (
+                                  <>
+                                    <AvatarImage 
+                                      src={conversation.otherUser?.profilePicture || undefined} 
+                                      alt={conversation.otherUser?.displayName || "User"}
+                                    />
+                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                                     </AvatarFallback>
-                                  ) : (
-                                    <>
-                                      <AvatarImage 
-                                        src={conversation.otherUser?.profilePicture || undefined} 
-                                        alt={conversation.otherUser?.displayName || "User"}
-                                      />
-                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                      </AvatarFallback>
-                                    </>
-                                  )}
-                                </Avatar>
-                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                  </>
+                                )}
+                              </Avatar>
+                              {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-medium text-foreground truncate">
+                                  {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                </h3>
+                                {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
                                 )}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                  <h3 className="font-medium text-foreground truncate">
-                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
-                                  </h3>
-                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {conversation.lastMessage?.content || "No messages yet"}
-                                </p>
-                              </div>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {conversation.lastMessage?.content || "No messages yet"}
+                              </p>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Empty State - Only show if no conversations AND no available contacts */}
-                  {filteredConversations.length === 0 && availableContacts.length === 0 && (
-                    <div className="flex-1 flex flex-col">
-                      <div className="bg-card border-b border-border p-4">
-                        <div className="flex items-center space-x-3">
-                          <img 
-                            src={coynLogoPath} 
-                            alt="COYN Logo" 
-                            className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
-                          />
-                          <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-                            Start a Conversation
-                          </h1>
                         </div>
-                      </div>
-
-                      <div className="flex-1 overflow-auto">
-                        {(searchQuery ? filteredContacts : availableContacts).length > 0 ? (
-                          <div className="divide-y divide-border">
-                            {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
-                              <div
-                                key={contact.id}
-                                onClick={() => handleContactClick(contact)}
-                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <div className="relative">
-                                    <Avatar className="w-12 h-12">
-                                      <AvatarImage 
-                                        src={contact.profilePicture || undefined} 
-                                        alt={contact.displayName}
-                                      />
-                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    {contact.isOnline && (
-                                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-foreground truncate">
-                                      {contact.displayName}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground truncate">
-                                      @{contact.username}
-                                    </p>
-                                  </div>
-                                  {createConversationMutation.isPending && (
-                                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center text-muted-foreground">
-                              <div className="mx-auto mb-4">
-                                <img 
-                                  src={coynLogoPath} 
-                                  alt="Coynful Logo" 
-                                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
-                                />
-                              </div>
-                              <h2 className="text-xl font-semibold mb-2">All Set!</h2>
-                              <p>You're connected to all available contacts</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* Available Contacts */}
+                {(searchQuery ? filteredContacts : availableContacts).length > 0 && (
+                  <div>
+                    <div className="bg-muted/30 px-4 py-2 border-b border-border">
+                      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                        Start New Conversation
+                      </h2>
+                    </div>
+                    <div className="divide-y divide-border">
+                      {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
+                        <div
+                          key={contact.id}
+                          onClick={() => handleContactClick(contact)}
+                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <Avatar className="w-12 h-12">
+                                <AvatarImage 
+                                  src={contact.profilePicture || undefined} 
+                                  alt={contact.displayName}
+                                />
+                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                  <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                </AvatarFallback>
+                              </Avatar>
+                              {contact.isOnline && (
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-foreground truncate">
+                                {contact.displayName}
+                              </h3>
+                              <p className="text-sm text-muted-foreground truncate">
+                                @{contact.username}
+                              </p>
+                            </div>
+                            {createConversationMutation.isPending && (
+                              <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {filteredConversations.length === 0 && (searchQuery ? filteredContacts : availableContacts).length === 0 && (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <div className="mx-auto mb-4">
+                        <img 
+                          src={coynLogoPath} 
+                          alt="Coynful Logo" 
+                          className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                        />
+                      </div>
+                      <h2 className="text-xl font-semibold mb-2">All Set!</h2>
+                      <p>You're connected to all available contacts</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
