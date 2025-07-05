@@ -201,17 +201,16 @@ export default function MessengerPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
-              <button
-                onClick={() => setIsWalletSidebarOpen(true)}
+              <div
                 className="hover:opacity-80 transition-opacity"
-                title="Open Coynful Wallet"
+                title="Coynful Wallet (Always Open)"
               >
                 <img 
                   src={coynLogoPath} 
                   alt="Coynful Logo" 
-                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                 />
-              </button>
+              </div>
               <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
             </div>
           </div>
