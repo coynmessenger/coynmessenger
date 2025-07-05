@@ -195,7 +195,7 @@ export default function MessengerPage() {
                     <div
                       key={contact.id}
                       onClick={() => handleContactClick(contact)}
-                      className="flex items-center space-x-4 p-4 rounded-lg hover:bg-accent cursor-pointer transition-colors border border-border"
+                      className="flex items-center space-x-4 p-4 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer transition-all duration-200 border border-border hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md active:scale-[0.98]"
                     >
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={contact.profilePicture || ""} />
@@ -340,7 +340,7 @@ export default function MessengerPage() {
                   <div
                     key={contact.id}
                     onClick={() => handleContactClick(contact)}
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors border border-border"
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer transition-all duration-200 border border-border hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md active:scale-[0.98] touch-manipulation"
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={contact.profilePicture || ""} />
