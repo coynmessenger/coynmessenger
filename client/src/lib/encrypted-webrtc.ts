@@ -46,7 +46,10 @@ export class EncryptedWebRTCService {
     this.socket = io(socketUrl, {
       transports: ['websocket'],
       forceNew: true,
+      path: '/socket.io/',
     });
+    
+    console.log('Attempting to connect to WebRTC signaling server at:', socketUrl);
 
     this.setupSocketListeners();
   }
@@ -144,15 +147,20 @@ export class EncryptedWebRTCService {
 
     return new Promise((resolve, reject) => {
       if (this.isInitialized && this.localUserId === userId) {
+        console.log(`Already initialized for user ${userId}`);
         resolve();
         return;
       }
 
+      console.log(`Authenticating user ${userId} with WebRTC signaling server`);
+      
       const timeout = setTimeout(() => {
+        console.error(`Authentication timeout for user ${userId}`);
         reject(new Error('Authentication timeout'));
       }, 10000);
 
       this.socket!.once('authenticated', (data) => {
+        console.log(`Authentication successful for user ${userId}`);
         clearTimeout(timeout);
         resolve();
       });
@@ -212,13 +220,14 @@ export class EncryptedWebRTCService {
       await peerConnection.setLocalDescription(offer);
 
       // Send encrypted call invitation
+      console.log(`Sending initiate-call event for ${type} call to ${targetUserId}`);
       this.socket.emit('initiate-call', {
         targetUserId,
         type,
         offer,
       });
 
-      console.log(`Initiated encrypted ${type} call to ${targetUserId}`);
+      console.log(`Initiated encrypted ${type} call to ${targetUserId} with callId: ${callId}`);
       return callId;
       
     } catch (error) {

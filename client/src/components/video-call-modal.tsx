@@ -95,34 +95,28 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // Initialize encrypted WebRTC service
   useEffect(() => {
     if (isOpen && user && !webrtcService.current) {
-      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-      if (currentUser.id) {
-        webrtcService.current = new EncryptedWebRTCService();
-        
-        // Set event handlers for encrypted WebRTC
-        webrtcService.current.setEventHandlers({
-          onIncomingCall: (call) => {
-            if (call.type === 'video') {
-              setCallStatus("ringing");
-              setEncryptedCallId(call.callId);
-            }
-          },
-          onCallAccepted: (call) => {
-            setCallStatus("connected");
-            if (onCallStart) onCallStart();
-          },
-          onCallEnded: (call) => {
-            setCallStatus("ended");
-            if (onCallEnd) onCallEnd();
-          },
-          onEncryptionStatusChanged: (encrypted) => {
-            // Handle encryption status changes
+      webrtcService.current = new EncryptedWebRTCService();
+      
+      // Set event handlers for encrypted WebRTC
+      webrtcService.current.setEventHandlers({
+        onIncomingCall: (call) => {
+          if (call.type === 'video') {
+            setCallStatus("ringing");
+            setEncryptedCallId(call.callId);
           }
-        });
-        
-        // Initialize with current user's wallet address as user ID
-        webrtcService.current.initialize(currentUser.id.toString());
-      }
+        },
+        onCallAccepted: (call) => {
+          setCallStatus("connected");
+          if (onCallStart) onCallStart();
+        },
+        onCallEnded: (call) => {
+          setCallStatus("ended");
+          if (onCallEnd) onCallEnd();
+        },
+        onEncryptionStatusChanged: (encrypted) => {
+          // Handle encryption status changes
+        }
+      });
     }
     
     return () => {
@@ -156,16 +150,30 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     if (callType === "outgoing" && webrtcService.current && user) {
       setCallStatus("connecting");
       
-      // Start encrypted video call between wallets
-      webrtcService.current.initiateCall(user.id.toString(), 'video')
-        .then((callId) => {
-          setEncryptedCallId(callId);
-          setCallStatus("ringing");
-        })
-        .catch((error) => {
-          setCallStatus("ended");
-          if (onCallEnd) onCallEnd();
-        });
+      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+      if (currentUser.id) {
+        // Wait for WebRTC service to be fully initialized
+        webrtcService.current.initialize(currentUser.id.toString())
+          .then(() => {
+            if (webrtcService.current) {
+              return webrtcService.current.initiateCall(user.id.toString(), 'video');
+            }
+            throw new Error('WebRTC service not available');
+          })
+          .then((callId) => {
+            setEncryptedCallId(callId);
+            setCallStatus("ringing");
+          })
+          .catch((error) => {
+            console.error('Failed to initiate video call:', error);
+            setCallStatus("ended");
+            if (onCallEnd) onCallEnd();
+          });
+      } else {
+        console.error('Current user not found');
+        setCallStatus("ended");
+        if (onCallEnd) onCallEnd();
+      }
     } else if (callType === "incoming") {
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
