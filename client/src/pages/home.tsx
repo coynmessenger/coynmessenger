@@ -34,7 +34,10 @@ declare global {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
     };
     zerion?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
+      ethereum?: {
+        request: (args: { method: string; params?: any[] }) => Promise<any>;
+        isZerion?: boolean;
+      };
     };
   }
 }
@@ -555,10 +558,35 @@ export default function HomePage() {
           }
         }
       } else if (walletType === 'zerion') {
-        // Zerion Wallet integration with Web3 provider detection
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
+        // Zerion Extension integration with proper provider detection
+        console.log("Attempting to connect Zerion extension...");
+        
+        // Check for Zerion extension via window.zerion
+        if (typeof window.zerion !== 'undefined' && window.zerion.ethereum) {
           try {
-            console.log("Zerion detected, requesting account access...");
+            console.log("Zerion extension detected via window.zerion, requesting account access...");
+            const accounts = await window.zerion.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              console.log("Connecting Zerion extension with address:", accounts[0]);
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            } else {
+              console.log("No Zerion accounts found");
+              alert("No Zerion accounts found. Please unlock your Zerion extension and try again.");
+            }
+          } catch (error) {
+            console.error('Zerion extension connection failed:', error);
+            alert('Failed to connect Zerion extension. Please ensure it is installed and unlocked.');
+          }
+        } else if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
+          // Fallback: Check if Zerion is injected into window.ethereum
+          try {
+            console.log("Zerion detected via window.ethereum.isZerion, requesting account access...");
             const accounts = await window.ethereum.request({ 
               method: 'eth_requestAccounts' 
             });
@@ -570,50 +598,18 @@ export default function HomePage() {
                 displayName: undefined
               });
             } else {
-              console.log("No Zerion accounts found");
-              alert("No Zerion accounts found. Please unlock Zerion and try again.");
+              console.log("No Zerion accounts found via ethereum provider");
+              alert("No Zerion accounts found. Please unlock your Zerion extension and try again.");
             }
           } catch (error) {
-            console.error('Zerion Wallet connection failed:', error);
-            // Mobile fallback for Zerion
-            if (isMobile()) {
-              const currentUrl = window.location.href;
-              const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
-              window.open(deepLink, '_blank');
-            } else {
-              alert('Failed to connect Zerion Wallet. Please try again or use manual input.');
-            }
-          }
-        } else if (typeof window.ethereum !== 'undefined') {
-          // Try generic ethereum provider (Zerion might be available through it)
-          try {
-            console.log("Trying to connect through available ethereum provider for Zerion");
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
-            });
-            
-            if (accounts && accounts[0]) {
-              console.log("Generic ethereum provider connection successful for Zerion:", accounts[0]);
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-          } catch (error) {
-            console.log("Generic ethereum provider connection failed for Zerion:", error);
-            // Fallback to deep link
-            if (isMobile()) {
-              const currentUrl = window.location.href;
-              const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
-              window.open(deepLink, '_blank');
-            } else {
-              window.open('https://zerion.io/download', '_blank');
-            }
+            console.error('Zerion ethereum provider connection failed:', error);
+            alert('Failed to connect Zerion. Please ensure the extension is installed and unlocked.');
           }
         } else {
-          // No Web3 provider detected - Enhanced mobile handling for Zerion
+          // No Zerion extension detected
+          console.log("Zerion extension not detected");
           if (isMobile()) {
-            // Mobile - Zerion deep link
+            // Mobile - redirect to app store or deep link
             const currentUrl = window.location.href;
             const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
             window.open(deepLink, '_blank');
@@ -622,7 +618,9 @@ export default function HomePage() {
               console.log('If Zerion did not open, please install it from your app store');
             }, 2000);
           } else {
-            window.open('https://zerion.io/download', '_blank');
+            // Desktop - direct user to install extension
+            alert('Zerion extension not detected. Please install the Zerion browser extension and try again.');
+            window.open('https://chrome.google.com/webstore/detail/zerion-wallet-for-web3-nf/klghhnkeealcohjjanjjdaeeggmfmlpl', '_blank');
           }
         }
       }
