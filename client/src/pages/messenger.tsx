@@ -252,18 +252,10 @@ export default function MessengerPage() {
 
         {/* Desktop Main Content with permanent wallet sidebar */}
         <div className="flex flex-1">
-          {/* Main conversation area */}
-          <div className="flex-1 flex flex-col bg-background">
-            {selectedConversation && currentConversation ? (
-              <ChatWindow
-                conversation={currentConversation}
-                onToggleSidebar={() => setIsSidebarOpen(true)}
-                onBack={() => setSelectedConversation(null)}
-                searchQuery={searchQuery}
-              />
-            ) : (
-              <div className="flex-1 flex flex-col bg-background">
-                <div className="flex-1 overflow-auto">
+          {/* Left Sidebar - Conversations and Contacts */}
+          <div className="w-80 border-r border-border bg-card/30 backdrop-blur-sm">
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-auto">
                 {/* Existing Conversations */}
                 {filteredConversations.length > 0 && (
                   <div>
@@ -369,7 +361,7 @@ export default function MessengerPage() {
 
                 {/* Empty State */}
                 {filteredConversations.length === 0 && (searchQuery ? filteredContacts : availableContacts).length === 0 && (
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className="flex-1 flex items-center justify-center p-8">
                     <div className="text-center text-muted-foreground">
                       <div className="mx-auto mb-4">
                         <img 
@@ -383,6 +375,31 @@ export default function MessengerPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Center - Chat Window */}
+          <div className="flex-1 flex flex-col bg-background">
+            {selectedConversation && currentConversation ? (
+              <ChatWindow
+                conversation={currentConversation}
+                onToggleSidebar={() => setIsSidebarOpen(true)}
+                onBack={() => setSelectedConversation(null)}
+                searchQuery={searchQuery}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <div className="mx-auto mb-4">
+                    <img 
+                      src={coynLogoPath} 
+                      alt="Coynful Logo" 
+                      className="w-20 h-20 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                    />
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2">Welcome to Coynful</h2>
+                  <p>Select a conversation or contact to start messaging</p>
                 </div>
               </div>
             )}
