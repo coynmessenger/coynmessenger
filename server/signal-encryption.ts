@@ -64,7 +64,7 @@ export class SimpleEncryptionService {
     }
 
     const plaintext = JSON.stringify(data);
-    const iv = crypto.randomBytes(16);
+    const iv = crypto.randomBytes(12); // 12 bytes for GCM
     const cipher = crypto.createCipher('aes-256-gcm', sharedSecret);
     cipher.setAAD(Buffer.from(recipientId)); // Additional authenticated data
 

@@ -112,40 +112,87 @@ export class EncryptedWebRTCSignaling {
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           
-          // Create active call record
-          const call: ActiveCall = {
-            id: callId,
-            participants: [
-              {
-                userId: callerId,
-                socketId: socket.id,
-                encryptionService: callerEncryption
-              }
-            ],
-            type: data.type,
-            startTime: new Date(),
-            encrypted: true
-          };
-
-          this.activeCalls.set(callId, call);
-
-          // Encrypt call initiation data if offer is provided
-          let encryptedOffer: string | undefined;
-          if (data.offer) {
-            encryptedOffer = await callerEncryption.encryptSignalingData(data.targetUserId, data.offer);
+          // Get target user's encryption service
+          const targetEncryption = this.encryptionServices.get(data.targetUserId);
+          if (!targetEncryption) {
+            console.log(`Target user ${data.targetUserId} encryption service not found`);
+            return;
           }
 
-          // Send encrypted call invitation
-          console.log(`Sending incoming-call event to socket ${targetSocketId} for user ${data.targetUserId}`);
-          this.io.to(targetSocketId).emit('incoming-call', {
-            callId,
-            fromUserId: callerId,
-            type: data.type,
-            encryptedOffer,
-            encrypted: true
-          });
+          try {
+            // Ensure shared secret is established between users
+            const callerPublicKey = await callerEncryption.getPublicKey();
+            const targetPublicKey = await targetEncryption.getPublicKey();
+            
+            // Establish shared secrets for both users
+            await callerEncryption.establishSession(data.targetUserId, targetPublicKey);
+            await targetEncryption.establishSession(callerId, callerPublicKey);
+            
+            console.log(`Shared secret established between ${callerId} and ${data.targetUserId}`);
+            
+            // Create active call record
+            const call: ActiveCall = {
+              id: callId,
+              participants: [
+                {
+                  userId: callerId,
+                  socketId: socket.id,
+                  encryptionService: callerEncryption
+                }
+              ],
+              type: data.type,
+              startTime: new Date(),
+              encrypted: true
+            };
 
-          console.log(`Encrypted ${data.type} call initiated: ${callId} from ${callerId} to ${data.targetUserId}`);
+            this.activeCalls.set(callId, call);
+
+            // Encrypt call initiation data if offer is provided
+            let encryptedOffer: string | undefined;
+            if (data.offer) {
+              encryptedOffer = await callerEncryption.encryptSignalingData(data.targetUserId, data.offer);
+            }
+
+            // Send encrypted call invitation
+            console.log(`Sending incoming-call event to socket ${targetSocketId} for user ${data.targetUserId}`);
+            this.io.to(targetSocketId).emit('incoming-call', {
+              callId,
+              fromUserId: callerId,
+              type: data.type,
+              encryptedOffer,
+              encrypted: true
+            });
+
+            console.log(`Encrypted ${data.type} call initiated: ${callId} from ${callerId} to ${data.targetUserId}`);
+          } catch (error) {
+            console.error(`Failed to establish encryption for call between ${callerId} and ${data.targetUserId}:`, error);
+            // Send unencrypted call as fallback
+            const call: ActiveCall = {
+              id: callId,
+              participants: [
+                {
+                  userId: callerId,
+                  socketId: socket.id,
+                  encryptionService: callerEncryption
+                }
+              ],
+              type: data.type,
+              startTime: new Date(),
+              encrypted: false
+            };
+
+            this.activeCalls.set(callId, call);
+
+            this.io.to(targetSocketId).emit('incoming-call', {
+              callId,
+              fromUserId: callerId,
+              type: data.type,
+              offer: data.offer,
+              encrypted: false
+            });
+
+            console.log(`Fallback unencrypted ${data.type} call initiated: ${callId} from ${callerId} to ${data.targetUserId}`);
+          }
         } else {
           console.log(`Call initiation failed - targetSocketId: ${targetSocketId}, callerEncryption: ${!!callerEncryption}`);
           if (!targetSocketId) {
@@ -178,11 +225,19 @@ export class EncryptedWebRTCSignaling {
           encryptionService: accepterEncryption
         });
 
-        // Encrypt answer if provided
+        // Encrypt answer if provided and encryption is available
         let encryptedAnswer: string | undefined;
-        if (data.answer && call.participants.length > 1) {
+        let isEncrypted = call.encrypted;
+        
+        if (data.answer && call.participants.length > 1 && call.encrypted) {
           const callerId = call.participants[0].userId;
-          encryptedAnswer = await accepterEncryption.encryptSignalingData(callerId, data.answer);
+          try {
+            encryptedAnswer = await accepterEncryption.encryptSignalingData(callerId, data.answer);
+          } catch (error) {
+            console.error(`Failed to encrypt answer for call ${data.callId}:`, error);
+            // Fall back to unencrypted
+            isEncrypted = false;
+          }
         }
 
         // Notify caller that call was accepted
@@ -190,11 +245,12 @@ export class EncryptedWebRTCSignaling {
         this.io.to(callerSocketId).emit('call-accepted', {
           callId: data.callId,
           byUserId: accepterId,
-          encryptedAnswer,
-          encrypted: true
+          encryptedAnswer: isEncrypted ? encryptedAnswer : undefined,
+          answer: !isEncrypted ? data.answer : undefined,
+          encrypted: isEncrypted
         });
 
-        console.log(`Encrypted call ${data.callId} accepted by ${accepterId}`);
+        console.log(`${isEncrypted ? 'Encrypted' : 'Unencrypted'} call ${data.callId} accepted by ${accepterId}`);
       });
 
       // Handle encrypted ICE candidates
@@ -210,18 +266,29 @@ export class EncryptedWebRTCSignaling {
         const targetSocketId = this.userSockets.get(data.targetUserId);
 
         if (senderEncryption && targetSocketId) {
-          // Encrypt ICE candidate
-          const encryptedCandidate = await senderEncryption.encryptSignalingData(
-            data.targetUserId, 
-            data.candidate
-          );
+          try {
+            // Encrypt ICE candidate
+            const encryptedCandidate = await senderEncryption.encryptSignalingData(
+              data.targetUserId, 
+              data.candidate
+            );
 
-          this.io.to(targetSocketId).emit('ice-candidate', {
-            callId: data.callId,
-            fromUserId: senderId,
-            encryptedCandidate,
-            encrypted: true
-          });
+            this.io.to(targetSocketId).emit('ice-candidate', {
+              callId: data.callId,
+              fromUserId: senderId,
+              encryptedCandidate,
+              encrypted: true
+            });
+          } catch (error) {
+            console.error(`Failed to encrypt ICE candidate from ${senderId} to ${data.targetUserId}:`, error);
+            // Send unencrypted as fallback
+            this.io.to(targetSocketId).emit('ice-candidate', {
+              callId: data.callId,
+              fromUserId: senderId,
+              candidate: data.candidate,
+              encrypted: false
+            });
+          }
         }
       });
 
@@ -239,19 +306,31 @@ export class EncryptedWebRTCSignaling {
         const targetSocketId = this.userSockets.get(data.targetUserId);
 
         if (senderEncryption && targetSocketId) {
-          // Encrypt signaling data
-          const encryptedSignal = await senderEncryption.encryptSignalingData(
-            data.targetUserId,
-            data.signalData
-          );
+          try {
+            // Encrypt signaling data
+            const encryptedSignal = await senderEncryption.encryptSignalingData(
+              data.targetUserId,
+              data.signalData
+            );
 
-          this.io.to(targetSocketId).emit('webrtc-signal', {
-            callId: data.callId,
-            fromUserId: senderId,
-            encryptedSignal,
-            type: data.type,
-            encrypted: true
-          });
+            this.io.to(targetSocketId).emit('webrtc-signal', {
+              callId: data.callId,
+              fromUserId: senderId,
+              encryptedSignal,
+              type: data.type,
+              encrypted: true
+            });
+          } catch (error) {
+            console.error(`Failed to encrypt WebRTC signal from ${senderId} to ${data.targetUserId}:`, error);
+            // Send unencrypted as fallback
+            this.io.to(targetSocketId).emit('webrtc-signal', {
+              callId: data.callId,
+              fromUserId: senderId,
+              signalData: data.signalData,
+              type: data.type,
+              encrypted: false
+            });
+          }
         }
       });
 
