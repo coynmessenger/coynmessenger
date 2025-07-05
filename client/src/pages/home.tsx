@@ -223,9 +223,15 @@ export default function HomePage() {
     const checkZerionExtension = () => {
       console.log("=== DELAYED ZERION CHECK ===");
       console.log("window.zerion:", typeof window.zerion !== 'undefined' ? 'Available' : 'Not found');
+      console.log("window.zerionWallet:", typeof (window as any).zerionWallet !== 'undefined' ? 'Available' : 'Not found');
       console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'N/A');
       
-      if (typeof window.zerion !== 'undefined' || (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion)) {
+      // Check all available providers
+      console.log("All window properties containing 'erion':", Object.keys(window).filter(key => key.toLowerCase().includes('erion')));
+      
+      if (typeof window.zerion !== 'undefined' || 
+          typeof (window as any).zerionWallet !== 'undefined' ||
+          (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion)) {
         console.log("✓ Zerion extension detected in delayed check!");
       }
     };
@@ -602,6 +608,11 @@ export default function HomePage() {
         console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'undefined');
         console.log("Available providers:", Object.keys(window).filter(key => key.includes('erion') || key.includes('ethereum')));
         
+        // Check specifically for zerionWallet
+        if (typeof (window as any).zerionWallet !== 'undefined') {
+          console.log("✓ Found window.zerionWallet!", (window as any).zerionWallet);
+        }
+        
         // Try multiple detection methods for Zerion extension
         let zerionProvider = null;
         
@@ -610,12 +621,17 @@ export default function HomePage() {
           console.log("✓ Zerion extension detected via window.zerion");
           zerionProvider = window.zerion.ethereum;
         }
-        // Method 2: Check window.ethereum.isZerion
+        // Method 2: Check window.zerionWallet (alternative Zerion provider)
+        else if (typeof (window as any).zerionWallet !== 'undefined') {
+          console.log("✓ Zerion extension detected via window.zerionWallet");
+          zerionProvider = (window as any).zerionWallet;
+        }
+        // Method 3: Check window.ethereum.isZerion
         else if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
           console.log("✓ Zerion extension detected via window.ethereum.isZerion");
           zerionProvider = window.ethereum;
         }
-        // Method 3: Check providers array for Zerion
+        // Method 4: Check providers array for Zerion
         else if (typeof window.ethereum !== 'undefined' && Array.isArray((window.ethereum as any).providers)) {
           const zerionInProviders = (window.ethereum as any).providers.find((provider: any) => provider.isZerion);
           if (zerionInProviders) {
