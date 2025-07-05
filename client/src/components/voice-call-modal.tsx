@@ -33,8 +33,6 @@ export default function VoiceCallModal({
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [hasAudioPermission, setHasAudioPermission] = useState(false);
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -46,22 +44,6 @@ export default function VoiceCallModal({
   // Animation state
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationType, setAnimationType] = useState<'enter' | 'exit'>('enter');
-
-  // Request microphone access for voice calling
-  const requestAudioAccess = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
-      setAudioStream(stream);
-      setHasAudioPermission(true);
-      return stream;
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      setHasAudioPermission(false);
-      return null;
-    }
-  };
 
   // Function to center the modal
   const centerModal = () => {
@@ -132,8 +114,6 @@ export default function VoiceCallModal({
     if (isCallActive) {
       console.log('VoiceCallModal: Rejoining active call');
       setCallStatus("connected");
-      // Request audio access for active calls
-      requestAudioAccess();
       return;
     }
 
@@ -146,8 +126,6 @@ export default function VoiceCallModal({
     const timer2 = setTimeout(() => {
       console.log('VoiceCallModal: Call status -> connected, calling onCallStart');
       setCallStatus("connected");
-      // Request microphone access when call connects
-      requestAudioAccess();
       if (onCallStart) onCallStart();
     }, 3000);
 

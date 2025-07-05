@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Users } from "lucide-react";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
@@ -13,77 +13,142 @@ import VideoCallModal from "@/components/video-call-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
-import { useScrollToTop } from "@/hooks/use-scroll-to-top";
-import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
-import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User, Conversation, Message } from "@shared/schema";
+import { Home, User as UserIcon, Settings, Users } from "lucide-react";
+import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
+import { WalletIcon } from "@/components/ui/wallet-icon";
+import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
 export default function MessengerPage() {
-  useScrollToTop();
-  const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
+  useScrollToTop(); // Clean contact list
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
-  // Get connected user from localStorage
-  const connectedUserId = parseInt(localStorage.getItem('connectedUserId') || '0');
-
-  // Fetch current user
-  const { data: user } = useQuery<User>({
-    queryKey: ['/api/user', connectedUserId],
-    queryFn: () => apiRequest("GET", `/api/user?userId=${connectedUserId}`).then(res => res.json()),
-    enabled: !!connectedUserId,
-  });
-
-  // Fetch conversations
-  const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
-    queryKey: ['/api/conversations'],
-    queryFn: () => apiRequest("GET", "/api/conversations").then(res => res.json()),
-    enabled: !!connectedUserId,
-  });
-
-  // Fetch all users for contact list
-  const { data: allUsers = [] } = useQuery<User[]>({
-    queryKey: ['/api/users'],
-    queryFn: () => apiRequest("GET", "/api/users").then(res => res.json()),
-  });
-
-  // Create contact list with current user at top
-  const getContactList = () => {
-    if (!user) return [];
-    
-    // Always start with current user at the top
-    const contactList = [user];
-    
-    // Add other users who are setup (excluding current user) if any exist
-    if (allUsers.length > 0) {
-      const otherUsers = allUsers.filter(u => u.id !== user.id && u.isSetup);
-      contactList.push(...otherUsers);
+  // Get connected user ID from localStorage
+  const getConnectedUserId = () => {
+    const storedUser = localStorage.getItem('connectedUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.id;
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
     }
-    
-    return contactList;
+    return 5; // Fallback to default user
   };
 
-  const contactList = getContactList();
+  const connectedUserId = getConnectedUserId();
 
-  // Filter contact list based on search
-  const filteredContactList = contactList.filter((contact) => {
-    if (!searchQuery) return true;
-    
-    const searchLower = searchQuery.toLowerCase();
-    const displayName = contact.displayName?.toLowerCase();
-    const username = contact.username?.toLowerCase();
-    
-    return displayName?.includes(searchLower) || username?.includes(searchLower);
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user", connectedUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.json();
+    },
   });
+
+  const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({
+    queryKey: ["/api/conversations", connectedUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch conversations');
+      }
+      return response.json();
+    },
+    enabled: !!connectedUserId,
+  });
+
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+  });
+
+  const createConversationMutation = useMutation({
+    mutationFn: async (otherUserId: number) => {
+      const response = await apiRequest("POST", "/api/conversations", { otherUserId });
+      return response.json();
+    },
+    onSuccess: (newConversation: Conversation) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setSelectedConversation(newConversation.id);
+    },
+  });
+
+  // Handler for clicking on a contact - don't auto-create conversations
+  const handleContactClick = (contact: User) => {
+    // Check if conversation already exists
+    const existingConversation = conversations.find(conv => 
+      conv.otherUser?.id === contact.id
+    );
+    
+    if (existingConversation) {
+      // If conversation exists, open it
+      setSelectedConversation(existingConversation.id);
+    } else {
+      // Only create conversation if the contact is actually in the available contacts list
+      const isContactAvailable = availableContacts.some(c => c.id === contact.id);
+      if (isContactAvailable) {
+        // If no conversation exists, create one only when user actually wants to chat
+        createConversationMutation.mutate(contact.id);
+      } else {
+        console.log("Contact not available for new conversation:", contact.displayName);
+      }
+    }
+  };
+
+  // Filter out current user and users who already have conversations
+  const availableContacts = allUsers.filter(contact => {
+    const hasExistingConversation = conversations.some(conv => conv.otherUser?.id === contact.id);
+    const isCurrentUser = contact.id === user?.id;
+    return !isCurrentUser && !hasExistingConversation;
+  });
+
+  // Filter conversations and contacts based on search query
+  const filteredConversations = conversations.filter(conversation => {
+    const isGroup = conversation.isGroup;
+    if (isGroup) {
+      // For groups, search by group name
+      return conversation.groupName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    } else {
+      // For direct conversations, search by other user's name
+      return conversation.otherUser?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conversation.otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (conversation.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    }
+  }).sort((a, b) => {
+    // Sort conversations to prioritize user's own conversation at the top
+    const isUserConversationA = a.otherUser?.id === connectedUserId;
+    const isUserConversationB = b.otherUser?.id === connectedUserId;
+    
+    if (isUserConversationA && !isUserConversationB) {
+      return -1; // User's conversation comes first
+    }
+    if (!isUserConversationA && isUserConversationB) {
+      return 1; // Other user's conversation comes after
+    }
+    
+    // For other conversations, maintain original order (could add timestamp sorting here)
+    return 0;
+  });
+
+  const filteredContacts = availableContacts.filter(contact =>
+    contact.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contact.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Handler for opening wallet with optional pre-selected currency
   const handleOpenWallet = (currency?: string) => {
@@ -97,151 +162,217 @@ export default function MessengerPage() {
     setSelectedWalletCurrency(undefined);
   };
 
-  // Handler for contact click (starts new conversation)
-  const handleContactClick = async (contact: User) => {
-    if (!user?.id) return;
-
-    // Check if conversation already exists
-    const existingConversation = conversations.find(conv => 
-      conv.otherUser?.id === contact.id
-    );
-
-    if (existingConversation) {
-      setSelectedConversation(existingConversation.id);
-      return;
-    }
-
-    // Create new conversation
-    createConversationMutation.mutate(contact.id);
-  };
-
-  // Create conversation mutation
-  const createConversationMutation = useMutation({
-    mutationFn: async (otherUserId: number) => {
-      const response = await apiRequest("POST", "/api/conversations", {
-        otherUserId,
-      });
-      return response.json();
-    },
-    onSuccess: (newConversation) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      setSelectedConversation(newConversation.id);
-    },
-  });
+  // Keep messenger open to contact list view by default
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      {/* Desktop Layout */}
-      <div className="hidden lg:flex lg:w-full lg:h-screen">
-        {/* Desktop Sidebar - Only shows wallet and conversations */}
-        {user && (
-          <Sidebar
-            user={user}
-            conversations={conversations}
-            selectedConversation={selectedConversation}
-            onSelectConversation={setSelectedConversation}
-            isOpen={false}
-            onClose={() => {}}
-            onOpenWallet={handleOpenWallet}
-            onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
-        )}
+      {/* Desktop Header - only visible on large screens */}
+      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
+        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => setLocation("/")}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Return to Home
+            </Button>
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+              Messenger
+            </h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
+            <button
+              onClick={() => setIsWalletSidebarOpen(true)}
+              className="hover:opacity-80 transition-opacity"
+              title="Open COYN Wallet"
+            >
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-8 h-8 cursor-pointer"
+              />
+            </button>
+          </div>
+        </div>
 
-        {/* Desktop Main Area */}
-        <div className="flex-1 flex flex-col bg-background">
-          {selectedConversation && currentConversation ? (
-            <ChatWindow
-              conversation={currentConversation}
-              onToggleSidebar={() => {}}
-              onBack={() => setSelectedConversation(null)}
+        {/* Desktop Main Content */}
+        <div className="flex flex-1">
+          {user && (
+            <Sidebar
+              user={user}
+              conversations={searchQuery ? filteredConversations : conversations}
+              selectedConversation={selectedConversation}
+              onSelectConversation={setSelectedConversation}
+              isOpen={false}
+              onClose={() => {}}
+              onOpenWallet={handleOpenWallet}
+              onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
               searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
-          ) : (
-            <div className="flex-1 overflow-auto">
-              {/* Contact List in Main Area */}
-              <div className="p-6">
-                <div className="mb-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <img 
-                      src={coynLogoPath} 
-                      alt="Coynful Logo" 
-                      className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
-                    />
-                    <h1 className="text-2xl font-semibold text-foreground">Contacts</h1>
-                  </div>
-                  <p className="text-muted-foreground">Start a conversation with someone from your contact list</p>
-                </div>
+          )}
 
-                {/* Search Bar */}
-                <div className="mb-6">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search contacts..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
-                    />
-                  </div>
-                </div>
+          <div className="flex-1 flex flex-col bg-background">
+            {selectedConversation && currentConversation ? (
+              <ChatWindow
+                conversation={currentConversation}
+                onToggleSidebar={() => {}}
+                onBack={() => setSelectedConversation(null)}
+                searchQuery={searchQuery}
+              />
+            ) : (
+              <div className="flex-1 flex flex-col bg-background">
 
-                {/* Contact List */}
-                <div className="grid gap-3">
-                  {filteredContactList.map((contact) => (
-                    <div
-                      key={contact.id}
-                      onClick={() => handleContactClick(contact)}
-                      className="flex items-center space-x-4 p-4 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer transition-all duration-200 border border-border hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md active:scale-[0.98]"
-                    >
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={contact.profilePicture || ""} />
-                        <AvatarFallback>
-                          <UserAvatarIcon />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <p className="text-lg font-medium text-foreground truncate">
-                            {contact.displayName || contact.username}
-                          </p>
-                          {contact.id === user?.id && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                              You
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <div className={`w-2 h-2 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          <p className="text-sm text-muted-foreground">
-                            {contact.id === user?.id ? 'Message yourself' : (contact.isOnline ? 'Online' : 'Offline')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-muted-foreground">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+
+                {/* Contact List First - Main Focus */}
+                <div className="flex-1 overflow-auto">
+
+
+                  {/* Existing Conversations - Secondary Display */}
+                  {filteredConversations.length > 0 && (
+                    <div>
+                      <div className="divide-y divide-border">
+                        {filteredConversations.map((conversation) => (
+                          <div
+                            key={conversation.id}
+                            onClick={() => {
+                              setSelectedConversation(conversation.id);
+                              // Clear search when switching conversations on mobile
+                              if (window.innerWidth < 768) {
+                                setSearchQuery("");
+                                setIsSearchOpen(false);
+                              }
+                            }}
+                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="relative">
+                                <Avatar className="w-12 h-12">
+                                  {conversation.isGroup ? (
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                      <Users className="w-6 h-6" />
+                                    </AvatarFallback>
+                                  ) : (
+                                    <>
+                                      <AvatarImage 
+                                        src={conversation.otherUser?.profilePicture || undefined} 
+                                        alt={conversation.otherUser?.displayName || "User"}
+                                      />
+                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                      </AvatarFallback>
+                                    </>
+                                  )}
+                                </Avatar>
+                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-medium text-foreground truncate">
+                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                  </h3>
+                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {conversation.lastMessage?.content || "No messages yet"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
 
-                {filteredContactList.length === 0 && (
-                  <div className="text-center py-12">
-                    <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-foreground mb-2">No contacts found</h3>
-                    <p className="text-muted-foreground">
-                      {searchQuery ? 'Try adjusting your search' : 'No contacts available'}
-                    </p>
-                  </div>
-                )}
+                  {/* Empty State - Only show if no conversations AND no available contacts */}
+                  {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                    <div className="flex-1 flex flex-col">
+                      <div className="bg-card border-b border-border p-4">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={coynLogoPath} 
+                            alt="COYN Logo" 
+                            className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                          />
+                          <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                            Start a Conversation
+                          </h1>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-auto">
+                        {(searchQuery ? filteredContacts : availableContacts).length > 0 ? (
+                          <div className="divide-y divide-border">
+                            {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
+                              <div
+                                key={contact.id}
+                                onClick={() => handleContactClick(contact)}
+                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="relative">
+                                    <Avatar className="w-12 h-12">
+                                      <AvatarImage 
+                                        src={contact.profilePicture || undefined} 
+                                        alt={contact.displayName}
+                                      />
+                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {contact.isOnline && (
+                                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-foreground truncate">
+                                      {contact.displayName}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground truncate">
+                                      @{contact.username}
+                                    </p>
+                                  </div>
+                                  {createConversationMutation.isPending && (
+                                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex items-center justify-center">
+                            <div className="text-center text-muted-foreground">
+                              <div className="mx-auto mb-4">
+                                <img 
+                                  src={coynLogoPath} 
+                                  alt="COYN Logo" 
+                                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                                />
+                              </div>
+                              <h2 className="text-xl font-semibold mb-2">All Set!</h2>
+                              <p>You're connected to all available contacts</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -260,7 +391,7 @@ export default function MessengerPage() {
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-semibold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
@@ -269,6 +400,7 @@ export default function MessengerPage() {
                 className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
                 onClick={() => {
                   setIsSearchOpen(!isSearchOpen);
+                  // Clear search when closing search bar
                   if (isSearchOpen) {
                     setSearchQuery("");
                   }
@@ -281,11 +413,11 @@ export default function MessengerPage() {
               <button
                 onClick={() => setIsWalletSidebarOpen(true)}
                 className="hover:opacity-80 transition-opacity"
-                title="Open Coynful Wallet"
+                title="Open COYN Wallet"
               >
                 <img 
                   src={coynLogoPath} 
-                  alt="Coynful Logo" 
+                  alt="COYN Logo" 
                   className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
                 />
               </button>
@@ -300,7 +432,7 @@ export default function MessengerPage() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search contacts..."
+                placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
@@ -308,18 +440,35 @@ export default function MessengerPage() {
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    setSearchQuery("");
+                    // Remove any search highlighting safely
+                    try {
+                      const highlights = document.querySelectorAll('mark');
+                      highlights.forEach(mark => {
+                        if (mark && mark.parentNode) {
+                          const parent = mark.parentNode;
+                          const textNode = document.createTextNode(mark.textContent || '');
+                          parent.replaceChild(textNode, mark);
+                        }
+                      });
+                    } catch (error) {
+                      console.log('Search cleanup error:', error);
+                    }
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
                 >
-                  ×
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Mobile Content */}
-        <div className="flex-1 overflow-hidden">
+        {/* Mobile Main Content */}
+        <div className="flex-1 flex flex-col bg-background">
           {selectedConversation && currentConversation ? (
             <ChatWindow
               conversation={currentConversation}
@@ -328,86 +477,124 @@ export default function MessengerPage() {
               searchQuery={searchQuery}
             />
           ) : (
-            <div className="h-full overflow-auto p-4">
-              {/* Contact List for Mobile */}
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Contacts</h2>
-                <p className="text-muted-foreground text-sm">Tap a contact to start messaging</p>
-              </div>
+            <div className="flex-1 flex flex-col bg-background">
+              {/* Contact List and Conversations */}
+              <div className="flex-1 overflow-auto">
 
-              <div className="space-y-3">
-                {filteredContactList.map((contact) => (
-                  <div
-                    key={contact.id}
-                    onClick={() => handleContactClick(contact)}
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer transition-all duration-200 border border-border hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md active:scale-[0.98] touch-manipulation"
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={contact.profilePicture || ""} />
-                      <AvatarFallback>
-                        <UserAvatarIcon />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <p className="text-base font-medium text-foreground truncate">
-                          {contact.displayName || contact.username}
-                        </p>
-                        {contact.id === user?.id && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                            You
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-1 mt-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                        <p className="text-xs text-muted-foreground">
-                          {contact.id === user?.id ? 'Message yourself' : (contact.isOnline ? 'Online' : 'Offline')}
-                        </p>
-                      </div>
+
+                {/* Existing Conversations */}
+                {filteredConversations.length > 0 && (
+                  <div>
+                    <div className="divide-y divide-border">
+                      {filteredConversations.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          onClick={() => setSelectedConversation(conversation.id)}
+                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <Avatar className="w-12 h-12">
+                                {conversation.isGroup ? (
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                    <Users className="w-6 h-6" />
+                                  </AvatarFallback>
+                                ) : (
+                                  <>
+                                    <AvatarImage 
+                                      src={conversation.otherUser?.profilePicture || undefined} 
+                                      alt={conversation.otherUser?.displayName || "User"}
+                                    />
+                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                    </AvatarFallback>
+                                  </>
+                                )}
+                              </Avatar>
+                              {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-medium text-foreground truncate">
+                                  {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                </h3>
+                                {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {conversation.lastMessage?.content || "No messages yet"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
 
-              {filteredContactList.length === 0 && (
-                <div className="text-center py-12">
-                  <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <h3 className="text-base font-medium text-foreground mb-1">No contacts found</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {searchQuery ? 'Try adjusting your search' : 'No contacts available'}
-                  </p>
-                </div>
-              )}
+                {/* Empty State */}
+                {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <div className="mx-auto mb-4">
+                        <img 
+                          src={coynLogoPath} 
+                          alt="COYN Logo" 
+                          className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                        />
+                      </div>
+                      <h2 className="text-xl font-semibold mb-2">No contacts available</h2>
+                      <p>Add contacts to start messaging</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
+
+        {/* Mobile Sidebar */}
+        <Sidebar
+          user={user}
+          conversations={searchQuery ? filteredConversations : conversations}
+          selectedConversation={selectedConversation}
+          onSelectConversation={setSelectedConversation}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onOpenWallet={handleOpenWallet}
+          onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
       </div>
 
       {/* Modals */}
       <WalletModal 
         isOpen={isWalletOpen} 
-        onClose={handleCloseWallet} 
+        onClose={handleCloseWallet}
         initialCurrency={selectedWalletCurrency}
       />
-
       <VideoCallModal
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
         user={currentConversation?.otherUser}
       />
-
       <VoiceCallModal
         isOpen={isVoiceCallOpen}
         onClose={() => setIsVoiceCallOpen(false)}
         user={currentConversation?.otherUser}
       />
-
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        showShipping={false}
       />
-
+      
       {/* Wallet Sidebar */}
       <WalletSidebar
         isOpen={isWalletSidebarOpen}
@@ -417,9 +604,10 @@ export default function MessengerPage() {
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          style={{ touchAction: 'manipulation' }}
         />
       )}
     </div>

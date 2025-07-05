@@ -1,8 +1,8 @@
-# Coynful Messenger
+# COYN Messenger
 
 ## Overview
 
-Coynful Messenger is a modern full-stack messaging application that combines traditional chat functionality with cryptocurrency wallet integration. Built with React and Express, it provides users with the ability to send messages, manage crypto wallets, and conduct video calls within a sleek, dark-themed interface.
+COYN Messenger is a modern full-stack messaging application that combines traditional chat functionality with cryptocurrency wallet integration. Built with React and Express, it provides users with the ability to send messages, manage crypto wallets, and conduct video calls within a sleek, dark-themed interface.
 
 ## System Architecture
 
@@ -10,7 +10,7 @@ Coynful Messenger is a modern full-stack messaging application that combines tra
 - **Framework**: React 18 with TypeScript
 - **Routing**: Wouter for client-side routing
 - **UI Library**: Radix UI components with shadcn/ui styling
-- **Styling**: Tailwind CSS with custom Coynful branding
+- **Styling**: Tailwind CSS with custom COYN branding
 - **State Management**: TanStack Query for server state management
 - **Build Tool**: Vite with hot module replacement
 
@@ -116,12 +116,6 @@ The application is configured for deployment on Replit with auto-scaling:
 - July 4, 2025: Updated homepage font to perfect modern typography - implemented Inter, Space Grotesk, JetBrains Mono, and Poppins fonts for optimal readability and professional appearance, created perfect typography hierarchy with Space Grotesk for headers, Inter for body text, JetBrains Mono for technical elements, enhanced font rendering with ligatures and optimized letter spacing, added responsive font sizing and modern Web3 aesthetic suitable for cryptocurrency applications
 - July 4, 2025: Connected COYN wallet "Proceed to Checkout" button to shopping cart functionality - implemented proper cart integration in both marketplace and favorites pages, when users click "Proceed to Checkout" in the wallet modal, it now closes the wallet and opens the shopping cart modal with updated cart count, providing seamless transition from wallet balance check to purchase completion
 - July 4, 2025: Removed SiteStripe from marketplace - eliminated all SiteStripe branding, badges, affiliate tracking, commission rates, and associate tag references throughout the application, removed SiteStripe API endpoints and affiliate link generation methods, cleaned up marketplace interface to remove green SiteStripe badges from product cards, simplified product URLs to direct Amazon links without affiliate tracking
-- July 4, 2025: Implemented comprehensive video calling with camera and voice access - integrated automatic camera permission requests for video calls, added microphone permission requests for voice calls, enhanced video call interface with media controls, mute/video toggle functionality, and call duration tracking
-- July 4, 2025: Removed artistic filters from video calling - eliminated filter selection panel, palette button, and all filter-related code per user request for cleaner video call interface focused on core functionality
-- July 4, 2025: Rebranded application from "COYN" to "Coynful" throughout entire platform - updated all branding elements including sidebar headers, mobile navigation titles, logo alt text, home page features descriptions, authentication validation functions, error messages, and footer attribution, ensuring consistent Coynful branding across messenger interface, home page, and documentation while maintaining original logo assets
-- July 5, 2025: Fixed corrupted messenger page syntax errors and redesigned desktop layout to match mobile app structure - removed unwanted contact discovery features from desktop layout, implemented clean sidebar-to-chat flow with proper welcome screen, streamlined desktop interface to focus on existing conversations rather than contact discovery, eliminated broken code sections causing syntax errors
-- July 5, 2025: Implemented contact list in main messenger area with current user at top - moved contact discovery from sidebar to main content area, current user (You) appears at top of contact list followed by other setup users, eliminated all contact functionality from sidebar keeping only wallet and conversations, created clean contact list interface with search functionality and proper user indicators
-- July 5, 2025: Fixed contact list to always show signed-in user - resolved issue where contact list appeared empty when /api/users returned no results, current user now always appears as first contact regardless of external user data, ensures any wallet user (like 0xe4604E9Ae126d7fB156280D7A73C250845fEDbB3) automatically appears in their own contact list upon sign-in
 
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging
