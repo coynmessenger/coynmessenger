@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -99,44 +98,10 @@ export default function MessengerWhatsApp() {
     );
   });
 
-  // Available contacts (excluding current user and existing conversations)
-  const availableContacts = allUsers.filter((contact) => {
-    if (contact.id === connectedUserId || !contact.isSetup) return false;
-    return !conversations.some((conv) => 
-      conv.participant1Id === contact.id || conv.participant2Id === contact.id
-    );
-  });
-
-  // Filter contacts based on search
-  const filteredContacts = availableContacts.filter((contact) => {
-    if (!searchQuery) return true;
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      contact.displayName?.toLowerCase().includes(searchLower) ||
-      contact.username?.toLowerCase().includes(searchLower)
-    );
-  });
-
   // Get current conversation data
   const currentConversation = conversations.find((conv) => conv.id === selectedConversation);
 
-  // Create conversation mutation
-  const createConversationMutation = useMutation({
-    mutationFn: async (contactId: number) => {
-      return apiRequest("POST", "/api/conversations", {
-        participant1Id: connectedUserId,
-        participant2Id: contactId,
-      });
-    },
-    onSuccess: (data: Conversation) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      setSelectedConversation(data.id);
-    },
-  });
 
-  const handleContactClick = (contact: User) => {
-    createConversationMutation.mutate(contact.id);
-  };
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
@@ -231,14 +196,7 @@ export default function MessengerWhatsApp() {
                 >
                   <Users className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                  title="New Chat"
-                >
-                  <MessageSquarePlus className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </Button>
+
               </div>
             </div>
 
@@ -347,56 +305,10 @@ export default function MessengerWhatsApp() {
               </div>
             )}
 
-            {/* Available Contacts */}
-            {(searchQuery ? filteredContacts : availableContacts).length > 0 && (
-              <div>
-                <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-                  <h2 className="text-sm font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wide">
-                    Start New Conversation
-                  </h2>
-                </div>
-                <div>
-                  {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
-                    <div
-                      key={contact.id}
-                      onClick={() => handleContactClick(contact)}
-                      className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage 
-                              src={contact.profilePicture || undefined} 
-                              alt={contact.displayName}
-                            />
-                            <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                              <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            </AvatarFallback>
-                          </Avatar>
-                          {contact.isOnline && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                            {contact.displayName}
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                            @{contact.username}
-                          </p>
-                        </div>
-                        {createConversationMutation.isPending && (
-                          <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Empty State */}
-            {filteredConversations.length === 0 && (searchQuery ? filteredContacts : availableContacts).length === 0 && (
+            {filteredConversations.length === 0 && (
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center text-gray-500 dark:text-gray-400">
                   <div className="mx-auto mb-4">
@@ -406,8 +318,8 @@ export default function MessengerWhatsApp() {
                       className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
                     />
                   </div>
-                  <h2 className="text-xl font-semibold mb-2">All Set!</h2>
-                  <p>You're connected to all available contacts</p>
+                  <h2 className="text-xl font-semibold mb-2">No Conversations</h2>
+                  <p>Start messaging to see your conversations here</p>
                 </div>
               </div>
             )}
