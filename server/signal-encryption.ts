@@ -65,7 +65,7 @@ export class SimpleEncryptionService {
 
     const plaintext = JSON.stringify(data);
     const iv = crypto.randomBytes(12); // 12 bytes for GCM
-    const cipher = crypto.createCipher('aes-256-gcm', sharedSecret);
+    const cipher = crypto.createCipheriv('aes-256-gcm', sharedSecret, iv);
     cipher.setAAD(Buffer.from(recipientId)); // Additional authenticated data
 
     let encrypted = cipher.update(plaintext, 'utf8', 'hex');
@@ -86,7 +86,8 @@ export class SimpleEncryptionService {
       throw new Error(`No shared secret established with ${senderId}`);
     }
 
-    const decipher = crypto.createDecipher('aes-256-gcm', sharedSecret);
+    const iv = Buffer.from(encryptedData.iv, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-gcm', sharedSecret, iv);
     decipher.setAAD(Buffer.from(senderId));
     decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
 

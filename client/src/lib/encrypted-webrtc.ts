@@ -8,6 +8,7 @@ export interface EncryptedCall {
   localStream?: MediaStream;
   remoteStream?: MediaStream;
   peerConnection?: RTCPeerConnection;
+  remoteOffer?: RTCSessionDescriptionInit;
 }
 
 export interface CallEventHandlers {
@@ -82,30 +83,46 @@ export class EncryptedWebRTCService {
       fromUserId: string;
       type: 'voice' | 'video';
       encryptedOffer?: string;
+      offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
       console.log('Incoming encrypted call received:', data);
       console.log('Current user ID:', this.localUserId);
       console.log('Event handlers available:', !!this.eventHandlers.onIncomingCall);
       
-      if (this.eventHandlers.onIncomingCall) {
-        console.log('Triggering onIncomingCall handler');
-        this.eventHandlers.onIncomingCall({
+      try {
+        // Store call information
+        const call: EncryptedCall = {
           callId: data.callId,
-          fromUserId: data.fromUserId,
+          participants: [data.fromUserId, this.localUserId!],
           type: data.type,
-        });
-      } else {
-        console.log('No onIncomingCall handler available');
-      }
+          encrypted: data.encrypted,
+        };
+        
+        this.activeCalls.set(data.callId, call);
 
-      // Store call information
-      this.activeCalls.set(data.callId, {
-        callId: data.callId,
-        participants: [data.fromUserId, this.localUserId!],
-        type: data.type,
-        encrypted: data.encrypted,
-      });
+        // Trigger the incoming call event for UI
+        if (this.eventHandlers.onIncomingCall) {
+          console.log('Triggering onIncomingCall handler');
+          this.eventHandlers.onIncomingCall({
+            callId: data.callId,
+            fromUserId: data.fromUserId,
+            type: data.type,
+          });
+        } else {
+          console.log('No onIncomingCall handler available');
+        }
+
+        // If there's an offer, prepare for potential acceptance
+        if (data.offer || data.encryptedOffer) {
+          console.log('Call contains offer data, ready for acceptance');
+          // Store offer data for when user accepts
+          call.remoteOffer = data.offer;
+        }
+        
+      } catch (error) {
+        console.error('Failed to handle incoming call:', error);
+      }
     });
 
     this.socket.on('call-accepted', async (data: {
@@ -136,6 +153,81 @@ export class EncryptedWebRTCService {
       }
 
       this.endCall(data.callId);
+    });
+
+    // Handle ICE candidates
+    this.socket.on('ice-candidate', async (data: {
+      callId: string;
+      fromUserId: string;
+      encryptedCandidate?: string;
+      candidate?: RTCIceCandidateInit;
+      encrypted: boolean;
+    }) => {
+      console.log('Received ICE candidate:', data);
+      
+      const call = this.activeCalls.get(data.callId);
+      if (!call?.peerConnection) {
+        console.log('No peer connection found for ICE candidate');
+        return;
+      }
+
+      try {
+        let candidate = data.candidate;
+        
+        // Handle encrypted ICE candidates if available
+        if (data.encrypted && data.encryptedCandidate) {
+          // For now, decrypt on server side and use plain candidate
+          // This could be enhanced with client-side decryption
+          console.log('Encrypted ICE candidate received');
+        }
+
+        if (candidate) {
+          await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('ICE candidate added successfully');
+        }
+      } catch (error) {
+        console.error('Failed to add ICE candidate:', error);
+      }
+    });
+
+    // Handle WebRTC signaling data
+    this.socket.on('webrtc-signal', async (data: {
+      callId: string;
+      fromUserId: string;
+      encryptedSignal?: string;
+      signalData?: any;
+      type: 'offer' | 'answer' | 'ice-candidate';
+      encrypted: boolean;
+    }) => {
+      console.log('Received WebRTC signal:', data);
+      
+      const call = this.activeCalls.get(data.callId);
+      if (!call?.peerConnection) {
+        console.log('No peer connection found for WebRTC signal');
+        return;
+      }
+
+      try {
+        let signalData = data.signalData;
+        
+        // Handle encrypted signals if available
+        if (data.encrypted && data.encryptedSignal) {
+          console.log('Encrypted WebRTC signal received');
+          // For now, use plain signalData which comes as fallback
+        }
+
+        if (signalData) {
+          if (data.type === 'offer') {
+            await call.peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
+            console.log('Remote offer set successfully');
+          } else if (data.type === 'answer') {
+            await call.peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
+            console.log('Remote answer set successfully');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to handle WebRTC signal:', error);
+      }
     });
 
     this.socket.on('disconnect', () => {
@@ -275,6 +367,12 @@ export class EncryptedWebRTCService {
 
       // Set up peer connection handlers
       this.setupPeerConnectionHandlers(call);
+
+      // Set remote description if we have an offer
+      if (call.remoteOffer) {
+        console.log('Setting remote offer description');
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(call.remoteOffer));
+      }
 
       // Create answer
       const answer = await peerConnection.createAnswer();
