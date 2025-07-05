@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
+import { notificationService } from "@/lib/notification-service";
 import type { User } from "@shared/schema";
 
 interface VideoCallModalProps {
@@ -177,6 +178,12 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     } else if (callType === "incoming") {
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
+      
+      // Show notification for incoming video calls
+      if (user) {
+        const callerName = user.displayName || user.signInName || `@${user.walletAddress?.slice(-6)}` || user.username || "Unknown";
+        notificationService.showCallNotification(callerName, 'video');
+      }
     }
   }, [isOpen, isCallActive, onCallStart]);
 

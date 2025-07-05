@@ -8,9 +8,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MoreVertical, Settings, Star, MessageCircle, UserPlus, Receipt, Trash2 } from "lucide-react";
+import { MoreVertical, Settings, Star, MessageCircle, UserPlus, Receipt, Trash2, Bell } from "lucide-react";
 import type { User, Message } from "@shared/schema";
 import AddContactModal from "./add-contact-modal";
+import NotificationsModal from "./notifications-modal";
 
 interface HamburgerMenuProps {
   onOpenSettings: () => void;
@@ -42,6 +43,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
   const [showStarredMessages, setShowStarredMessages] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [messageToUnstar, setMessageToUnstar] = useState<StarredMessage | null>(null);
   const [showUnstarConfirm, setShowUnstarConfirm] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<StarredMessage | null>(null);
@@ -230,6 +232,10 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
             Transaction History
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setShowNotifications(true)}>
+            <Bell className="h-4 w-4 mr-3" />
+            Notifications
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={onOpenSettings}>
             <Settings className="h-4 w-4 mr-3" />
             Settings
@@ -442,6 +448,12 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Notifications Modal */}
+      <NotificationsModal
+        open={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </>
   );
 }

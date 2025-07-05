@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { notificationService } from "@/lib/notification-service";
 
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
@@ -428,6 +429,46 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       return data;
     },
   });
+
+  // Track previous message count for notification triggering
+  const [previousMessageCount, setPreviousMessageCount] = useState(0);
+
+  // Monitor new messages and trigger notifications
+  useEffect(() => {
+    if (messages.length > previousMessageCount && previousMessageCount > 0) {
+      // Get the newest messages since last count
+      const newMessages = messages.slice(previousMessageCount);
+      
+      newMessages.forEach(message => {
+        // Only show notifications for messages not sent by current user
+        if (message.senderId !== connectedUserId) {
+          const senderName = getEffectiveDisplayName(message.sender);
+          
+          // Determine message type and content for notification
+          let content = message.content || '';
+          let messageType: 'text' | 'crypto_transfer' | 'product_share' = 'text';
+          
+          if (message.messageType === 'crypto_transfer') {
+            messageType = 'crypto_transfer';
+            content = `Sent ${message.cryptoAmount} ${message.cryptoCurrency}`;
+          } else if (message.messageType === 'product_share') {
+            messageType = 'product_share';
+            content = message.productTitle || 'Shared a product';
+          }
+          
+          // Trigger notification
+          notificationService.showMessageNotification(
+            senderName,
+            content,
+            conversation.id.toString(),
+            messageType
+          );
+        }
+      });
+    }
+    
+    setPreviousMessageCount(messages.length);
+  }, [messages, connectedUserId, conversation.id, previousMessageCount]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {

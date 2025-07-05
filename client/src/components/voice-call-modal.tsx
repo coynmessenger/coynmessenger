@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
+import { notificationService } from "@/lib/notification-service";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -153,6 +154,12 @@ export default function VoiceCallModal({
     if (isCallActive) {
       setCallStatus("connected");
       return;
+    }
+
+    // Show notification for incoming calls
+    if (callType === "incoming" && user) {
+      const callerName = user.displayName || user.signInName || `@${user.walletAddress?.slice(-6)}` || user.username || "Unknown";
+      notificationService.showCallNotification(callerName, 'voice');
     }
 
     // Initiate encrypted WebRTC call for outgoing calls
