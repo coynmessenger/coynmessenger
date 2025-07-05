@@ -558,52 +558,97 @@ export default function HomePage() {
           }
         }
       } else if (walletType === 'zerion') {
-        // Zerion Extension integration with proper provider detection
+        // Zerion Extension integration with proper provider detection and account selection
         console.log("Attempting to connect Zerion extension...");
         
         // Check for Zerion extension via window.zerion
         if (typeof window.zerion !== 'undefined' && window.zerion.ethereum) {
           try {
-            console.log("Zerion extension detected via window.zerion, requesting account access...");
+            console.log("Zerion extension detected via window.zerion");
+            
+            // First, get all available accounts
             const accounts = await window.zerion.ethereum.request({ 
-              method: 'eth_requestAccounts' 
+              method: 'eth_accounts' 
             });
             
-            if (accounts && accounts[0]) {
-              console.log("Connecting Zerion extension with address:", accounts[0]);
+            console.log("Available Zerion accounts:", accounts);
+            
+            // If no accounts are available, request permission
+            if (!accounts || accounts.length === 0) {
+              console.log("No accounts available, requesting account access...");
+              const requestedAccounts = await window.zerion.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (requestedAccounts && requestedAccounts[0]) {
+                console.log("Connecting Zerion extension with address:", requestedAccounts[0]);
+                connectWalletMutation.mutate({
+                  walletAddress: requestedAccounts[0],
+                  displayName: undefined
+                });
+              } else {
+                alert("No Zerion accounts found. Please unlock your Zerion extension and try again.");
+              }
+            } else {
+              // Use the first available account (or let user select in the future)
+              console.log("Using available Zerion account:", accounts[0]);
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
                 displayName: undefined
               });
-            } else {
-              console.log("No Zerion accounts found");
-              alert("No Zerion accounts found. Please unlock your Zerion extension and try again.");
             }
-          } catch (error) {
+            
+          } catch (error: any) {
             console.error('Zerion extension connection failed:', error);
-            alert('Failed to connect Zerion extension. Please ensure it is installed and unlocked.');
+            
+            // Try to provide more specific error handling
+            if (error?.code === 4001) {
+              alert('Connection rejected. Please approve the connection in your Zerion extension.');
+            } else if (error?.code === -32002) {
+              alert('Connection request is already pending. Please check your Zerion extension.');
+            } else {
+              alert('Failed to connect Zerion extension. Please ensure it is installed and unlocked.');
+            }
           }
         } else if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
           // Fallback: Check if Zerion is injected into window.ethereum
           try {
-            console.log("Zerion detected via window.ethereum.isZerion, requesting account access...");
+            console.log("Zerion detected via window.ethereum.isZerion");
+            
+            // Get available accounts first
             const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
+              method: 'eth_accounts' 
             });
             
-            if (accounts && accounts[0]) {
-              console.log("Connecting Zerion wallet with address:", accounts[0]);
+            if (!accounts || accounts.length === 0) {
+              console.log("Requesting account access via ethereum provider...");
+              const requestedAccounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (requestedAccounts && requestedAccounts[0]) {
+                console.log("Connecting Zerion wallet with address:", requestedAccounts[0]);
+                connectWalletMutation.mutate({
+                  walletAddress: requestedAccounts[0],
+                  displayName: undefined
+                });
+              }
+            } else {
+              console.log("Using available account via ethereum provider:", accounts[0]);
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
                 displayName: undefined
               });
-            } else {
-              console.log("No Zerion accounts found via ethereum provider");
-              alert("No Zerion accounts found. Please unlock your Zerion extension and try again.");
             }
-          } catch (error) {
+            
+          } catch (error: any) {
             console.error('Zerion ethereum provider connection failed:', error);
-            alert('Failed to connect Zerion. Please ensure the extension is installed and unlocked.');
+            
+            if (error?.code === 4001) {
+              alert('Connection rejected. Please approve the connection in your Zerion extension.');
+            } else {
+              alert('Failed to connect Zerion. Please ensure the extension is installed and unlocked.');
+            }
           }
         } else {
           // No Zerion extension detected
@@ -776,22 +821,12 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Official Zerion Logo - Authentic Design */}
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <linearGradient id="zerionBrand" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#6366f1" />
-                              <stop offset="100%" stopColor="#8b5cf6" />
-                            </linearGradient>
-                          </defs>
-                          <rect width="32" height="32" rx="6" fill="url(#zerionBrand)" />
-                          <g transform="translate(8, 8)">
-                            <path d="M8 0L16 4V12L8 16L0 12V4L8 0Z" fill="white" fillOpacity="0.15" />
-                            <path d="M8 2L14 5V11L8 14L2 11V5L8 2Z" fill="white" fillOpacity="0.3" />
-                            <path d="M8 4L12 6V10L8 12L4 10V6L8 4Z" fill="white" />
-                            <circle cx="8" cy="8" r="1.5" fill="url(#zerionBrand)" />
-                          </g>
-                        </svg>
+                        {/* Authentic Zerion Logo */}
+                        <img 
+                          src="/attached_assets/zerion logo_1751675966662.png" 
+                          alt="Zerion Wallet" 
+                          className="w-8 h-8 object-contain"
+                        />
                       </div>
                       <span className="text-sm font-semibold">Zerion</span>
                     </Button>
