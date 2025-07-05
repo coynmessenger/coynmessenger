@@ -90,7 +90,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   // Auto-refresh Trust Wallet balances when modal opens
   useEffect(() => {
     if (isOpen && isTrustWalletUser) {
-      console.log("Auto-refreshing Trust Wallet balances in modal for:", connectedUser.walletAddress);
+
       refreshBalancesMutation.mutate();
     }
   }, [isOpen, isTrustWalletUser]);

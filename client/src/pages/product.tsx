@@ -354,14 +354,6 @@ export default function ProductPage() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('ProductPage: asin =', asin);
-    console.log('ProductPage: product =', product);
-    console.log('ProductPage: isLoading =', isLoading);
-    console.log('ProductPage: error =', error);
-  }, [asin, product, isLoading, error]);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800">

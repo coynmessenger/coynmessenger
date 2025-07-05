@@ -56,14 +56,12 @@ export default function HomePage() {
   // Listen for display name updates from settings modal
   useEffect(() => {
     const handleDisplayNameUpdate = (event: CustomEvent) => {
-      console.log("Homepage received displayNameUpdated event:", event.detail);
       
       // Only update if the event is for the current connected user
       if (connectedUser && event.detail?.userId === connectedUser.id) {
         const updatedStoredUser = localStorage.getItem('connectedUser');
         if (updatedStoredUser) {
           const parsedUser = JSON.parse(updatedStoredUser);
-          console.log("Updating homepage connectedUser state with:", parsedUser);
           
           // Verify the user ID matches before updating state
           if (parsedUser.id === connectedUser.id) {
@@ -95,7 +93,6 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
-      console.log("connectWalletMutation success - received user:", user);
       
       // Store connection state in localStorage
       localStorage.setItem('walletConnected', 'true');
@@ -127,14 +124,12 @@ export default function HomePage() {
       setConnectedUser(user);
       setIsConnected(true);
       
-      console.log("Updated homepage state with new user:", user);
       
       // Force a component re-render after a brief delay to ensure localStorage is updated
       setTimeout(() => {
         const freshUser = localStorage.getItem('connectedUser');
         if (freshUser) {
           const parsedUser = JSON.parse(freshUser);
-          console.log("Force refreshing homepage with fresh localStorage data:", parsedUser);
           setConnectedUser(parsedUser);
         }
       }, 100);
@@ -151,7 +146,6 @@ export default function HomePage() {
       // Check if user explicitly signed out - if so, don't auto-reconnect
       const userSignedOut = localStorage.getItem('userSignedOut');
       if (userSignedOut === 'true') {
-        console.log("User explicitly signed out - preventing automatic reconnection");
         return;
       }
       
@@ -160,7 +154,6 @@ export default function HomePage() {
       
       // First, sync any stored connection state
       if (storedConnected === 'true' && storedUser && !isConnected) {
-        console.log("Syncing stored connection state on page load");
         const parsedUser = JSON.parse(storedUser);
         setConnectedUser(parsedUser);
         setIsConnected(true);
@@ -171,11 +164,9 @@ export default function HomePage() {
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         isChecking = true;
         try {
-          console.log("Checking for existing wallet connection on page load");
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
-            console.log("Found existing wallet connection on page load:", accounts[0]);
             
             // Clear any pending flags
             localStorage.removeItem('pendingWalletConnection');
@@ -186,10 +177,8 @@ export default function HomePage() {
               displayName: undefined
             });
           } else {
-            console.log("No existing wallet connections found on page load");
           }
         } catch (error) {
-          console.log("Error checking for wallet connection on page load:", error);
         } finally {
           isChecking = false;
         }
@@ -206,12 +195,10 @@ export default function HomePage() {
 
     const handleVisibilityChange = async () => {
       if (!document.hidden && isMobile() && !isChecking) {
-        console.log("Page became visible - checking for wallet connection");
         
         // Check if user explicitly signed out - if so, don't auto-reconnect
         const userSignedOut = localStorage.getItem('userSignedOut');
         if (userSignedOut === 'true') {
-          console.log("User explicitly signed out - preventing automatic reconnection on visibility change");
           return;
         }
         
@@ -220,7 +207,6 @@ export default function HomePage() {
         const storedUser = localStorage.getItem('connectedUser');
         
         if (storedConnected === 'true' && storedUser && !isConnected) {
-          console.log("Found stored connection, updating state");
           const parsedUser = JSON.parse(storedUser);
           setConnectedUser(parsedUser);
           setIsConnected(true);
@@ -230,18 +216,14 @@ export default function HomePage() {
         // Check if we have a pending wallet connection
         const pendingConnection = localStorage.getItem('pendingWalletConnection');
         if (pendingConnection === 'true') {
-          console.log("Pending wallet connection detected, checking for wallet access");
           isChecking = true;
           
           // Try to detect if a wallet connection was successful
           try {
             if (typeof window.ethereum !== 'undefined') {
-              console.log("Checking ethereum provider for accounts");
               const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-              console.log("Found accounts:", accounts);
               
               if (accounts && accounts.length > 0 && !isConnected) {
-                console.log("Wallet connection successful, connecting user:", accounts[0]);
                 
                 // Remove pending flag
                 localStorage.removeItem('pendingWalletConnection');
@@ -252,17 +234,13 @@ export default function HomePage() {
                   displayName: undefined
                 });
               } else if (accounts && accounts.length > 0 && isConnected) {
-                console.log("User already connected, removing pending flag");
                 localStorage.removeItem('pendingWalletConnection');
               } else {
-                console.log("No accounts found, trying to request accounts");
                 // Try to request accounts if none found
                 try {
                   const requestedAccounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                  console.log("Requested accounts:", requestedAccounts);
                   
                   if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
-                    console.log("Account request successful, connecting user:", requestedAccounts[0]);
                     
                     // Remove pending flag
                     localStorage.removeItem('pendingWalletConnection');
@@ -274,14 +252,11 @@ export default function HomePage() {
                     });
                   }
                 } catch (requestError) {
-                  console.log("Account request failed:", requestError);
                 }
               }
             } else {
-              console.log("No ethereum provider found");
             }
           } catch (error) {
-            console.log("Error checking wallet connection:", error);
             // Remove pending flag after timeout
             setTimeout(() => {
               localStorage.removeItem('pendingWalletConnection');
@@ -295,7 +270,6 @@ export default function HomePage() {
 
     // Also listen for focus events as another way to detect return from wallet app
     const handleFocus = () => {
-      console.log("Window focused - triggering wallet check");
       handleVisibilityChange();
     };
 
@@ -328,7 +302,6 @@ export default function HomePage() {
   const handleWeb3Connect = async (walletType: string) => {
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
-      console.log("Connection already in progress, ignoring additional request");
       return;
     }
     
@@ -338,28 +311,23 @@ export default function HomePage() {
     try {
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-          console.log("MetaMask detected, requesting account access...");
           const accounts = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
           });
           
-          console.log("MetaMask returned accounts:", accounts);
           
           if (accounts && accounts[0]) {
-            console.log("Connecting MetaMask wallet with address:", accounts[0]);
             connectWalletMutation.mutate({
               walletAddress: accounts[0],
               displayName: undefined // Let the backend generate a proper display name
             });
           } else {
-            console.log("No MetaMask accounts found");
             alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
           }
         } else {
           // For mobile, try to connect through any available ethereum provider
           if (isMobile() && typeof window.ethereum !== 'undefined') {
             try {
-              console.log("Trying to connect through available ethereum provider on mobile");
               localStorage.setItem('pendingWalletConnection', 'true');
               
               // Try to request accounts directly
@@ -368,7 +336,6 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                console.log("Mobile wallet connection successful:", accounts[0]);
                 localStorage.removeItem('pendingWalletConnection');
                 connectWalletMutation.mutate({
                   walletAddress: accounts[0],
@@ -376,7 +343,6 @@ export default function HomePage() {
                 });
               }
             } catch (error) {
-              console.log("Mobile ethereum provider connection failed:", error);
               // Fallback to deep link
               const currentUrl = window.location.href;
               const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
@@ -458,7 +424,6 @@ export default function HomePage() {
             
             // Fallback message for user
             setTimeout(() => {
-              console.log('If Trust Wallet did not open, please install it from your app store');
             }, 2000);
           } else {
             window.open('https://trustwallet.com/download', '_blank');
@@ -497,7 +462,6 @@ export default function HomePage() {
               window.open(walletApps[0], '_blank');
               
               setTimeout(() => {
-                console.log('If no wallet opened, please ensure you have a compatible wallet app installed');
               }, 2000);
             } else {
               alert('For WalletConnect, please scan the QR code with your mobile wallet app, or use manual input for now.');
@@ -541,7 +505,6 @@ export default function HomePage() {
             window.open(deepLink, '_blank');
             
             setTimeout(() => {
-              console.log('If Coinbase Wallet did not open, please install it from your app store');
             }, 2000);
           } else {
             // Desktop - redirect to download page
@@ -556,7 +519,6 @@ export default function HomePage() {
   };
 
   const handleSignOut = () => {
-    console.log("Signing out user...");
     
     // Set explicit sign out flag to prevent automatic reconnection
     localStorage.setItem('userSignedOut', 'true');
@@ -585,13 +547,10 @@ export default function HomePage() {
     if (window.ethereum) {
       try {
         // Clear any ethereum provider state
-        console.log("Clearing ethereum provider state");
       } catch (error) {
-        console.log("No active ethereum connections to clear");
       }
     }
     
-    console.log("User signed out completely - all data cleared");
     
     // Force a page refresh to ensure clean state
     window.location.reload();
@@ -644,7 +603,6 @@ export default function HomePage() {
                 loading="eager"
                 decoding="async"
                 style={{ imageRendering: 'auto' }}
-                onLoad={() => console.log('Coynful logo loaded')}
               />
             </div>
           </div>

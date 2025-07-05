@@ -217,18 +217,14 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Get connected user ID from localStorage (memoized to prevent infinite re-renders)
   const connectedUserId = useMemo(() => {
     const storedUser = localStorage.getItem('connectedUser');
-    console.log('Settings modal - stored user:', storedUser);
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log('Settings modal - parsed user:', parsedUser);
-        console.log('Settings modal - using user ID:', parsedUser.id);
         return parsedUser.id;
       } catch (e) {
         console.error('Failed to parse stored user:', e);
       }
     }
-    console.log('Settings modal - no stored user, using null');
     return null;
   }, [isOpen]); // Only re-evaluate when modal opens
 
@@ -236,13 +232,11 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     queryKey: ["/api/user", connectedUserId],
     queryFn: async () => {
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
-      console.log("Settings modal fetching user from:", url);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch user');
       }
       const userData = await response.json();
-      console.log("Settings modal received user data:", userData);
       return userData;
     },
     staleTime: 0, // Always fetch fresh data
@@ -255,9 +249,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Update local state when user data changes
   React.useEffect(() => {
     if (user && isOpen && !hasInitialized) {
-      console.log("Settings modal initializing with user data:", user);
-      console.log("User profile picture:", user.profilePicture);
-      console.log("Effective display name:", getEffectiveDisplayName(user));
       
       setDisplayName(getEffectiveDisplayName(user) || "");
       setWalletAddress(user.walletAddress || "");
@@ -271,7 +262,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setCountry(user.country || "");
       
       setHasInitialized(true);
-      console.log("Initialized displayName to:", getEffectiveDisplayName(user));
     }
   }, [user, isOpen, hasInitialized]);
 
@@ -285,11 +275,9 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const updateUserMutation = useMutation({
     mutationFn: async (userData: any) => {
       const url = connectedUserId ? `/api/user?userId=${connectedUserId}` : "/api/user";
-      console.log("Making PATCH request to:", url, "with data:", userData, "for connectedUserId:", connectedUserId);
       return apiRequest("PATCH", url, userData);
     },
     onSuccess: (updatedUser) => {
-      console.log("UpdateUserMutation success - updatedUser:", updatedUser);
       
       // Aggressively clear all cache to force fresh data
       queryClient.clear();
@@ -313,7 +301,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       
       // Update localStorage for homepage and other components
       if (updatedUser) {
-        console.log("Updating localStorage with:", updatedUser);
         
         // Update all localStorage keys that might contain user data
         localStorage.setItem('userDisplayName', updatedUser.displayName || '');
@@ -337,7 +324,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               });
               
               localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
-              console.log("SAFE UPDATE: Updated connectedUser in localStorage with specific fields only:", connectedUserData);
             } else {
               console.error("User ID mismatch! Not updating localStorage.", {
                 storedUserId: connectedUserData.id,
@@ -385,7 +371,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("profileImage", file);
-      console.log("Uploading file:", file.name, file.size);
       
       // Upload avatar for connected user
       const url = connectedUserId ? `/api/user/upload-avatar?userId=${connectedUserId}` : "/api/user/upload-avatar";
@@ -401,7 +386,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       return response.json();
     },
     onSuccess: (response: { profilePicture: string }) => {
-      console.log("Upload successful, response:", response);
       setProfilePicture(response.profilePicture);
       
       // Immediately update the user cache with new profile picture
@@ -490,7 +474,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   });
 
   const handleSignOut = () => {
-    console.log("Signing out user from settings...");
     
     // Clear ALL localStorage items related to the application
     localStorage.removeItem('walletConnected');
@@ -510,7 +493,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     // Close the settings modal
     onClose();
     
-    console.log("User signed out completely - redirecting to homepage");
     
     // Redirect to homepage
     window.location.href = '/';
@@ -523,7 +505,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   };
 
   const handleSave = () => {
-    console.log("HandleSave called with displayName:", displayName);
     
     const updateData: any = {
       displayName,
@@ -540,7 +521,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       updateData.country = country;
     }
 
-    console.log("Sending update data:", updateData);
     updateUserMutation.mutate(updateData);
   };
 

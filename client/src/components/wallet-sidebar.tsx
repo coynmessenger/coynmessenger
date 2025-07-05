@@ -50,7 +50,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       const storedUser = localStorage.getItem('connectedUser');
       return storedUser ? JSON.parse(storedUser) : {};
     } catch (e) {
-      console.error('Failed to parse stored user:', e);
       return {};
     }
   };
@@ -106,7 +105,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Auto-refresh Trust Wallet balances when sidebar opens
   useEffect(() => {
     if (isOpen && isTrustWalletUser) {
-      console.log("Auto-refreshing Trust Wallet balances for:", connectedUser.walletAddress);
       refreshBalancesMutation.mutate();
     }
   }, [isOpen, isTrustWalletUser]);
@@ -120,7 +118,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
     },
     onError: (error: any) => {
-      console.error("Failed to refresh wallet balances:", error);
     },
   });
 

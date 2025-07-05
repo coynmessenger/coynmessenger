@@ -153,12 +153,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     sender: string;
   } | null>(null);
 
-  // Debug effect to track replyToMessage state changes
-  useEffect(() => {
-    if (replyToMessage) {
-      console.log("replyToMessage state updated:", replyToMessage);
-    }
-  }, [replyToMessage]);
+
 
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -430,12 +425,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       const res = await fetch(`/api/conversations/${conversation.id}/messages`);
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
-      
-      // Debug: Log messages to see if crypto message is being returned
-      console.log(`Fetched ${data.length} messages for conversation ${conversation.id}:`, 
-        data.map((m: any) => ({ id: m.id, type: m.messageType, content: m.content?.substring(0, 50) }))
-      );
-      
       return data;
     },
   });

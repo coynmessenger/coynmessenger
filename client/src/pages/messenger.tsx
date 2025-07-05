@@ -105,7 +105,6 @@ export default function MessengerPage() {
         // If no conversation exists, create one only when user actually wants to chat
         createConversationMutation.mutate(contact.id);
       } else {
-        console.log("Contact not available for new conversation:", contact.displayName);
       }
     }
   };
@@ -439,7 +438,6 @@ export default function MessengerPage() {
                         }
                       });
                     } catch (error) {
-                      console.log('Search cleanup error:', error);
                     }
                   }}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
