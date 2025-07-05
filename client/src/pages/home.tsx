@@ -148,6 +148,13 @@ export default function HomePage() {
     const syncConnectionState = async () => {
       if (isChecking) return; // Prevent duplicate execution
       
+      // Check if user explicitly signed out - if so, don't auto-reconnect
+      const userSignedOut = localStorage.getItem('userSignedOut');
+      if (userSignedOut === 'true') {
+        console.log("User explicitly signed out - preventing automatic reconnection");
+        return;
+      }
+      
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       
@@ -200,6 +207,13 @@ export default function HomePage() {
     const handleVisibilityChange = async () => {
       if (!document.hidden && isMobile() && !isChecking) {
         console.log("Page became visible - checking for wallet connection");
+        
+        // Check if user explicitly signed out - if so, don't auto-reconnect
+        const userSignedOut = localStorage.getItem('userSignedOut');
+        if (userSignedOut === 'true') {
+          console.log("User explicitly signed out - preventing automatic reconnection on visibility change");
+          return;
+        }
         
         // First, check if we're already connected but the state isn't updated
         const storedConnected = localStorage.getItem('walletConnected');
@@ -298,6 +312,9 @@ export default function HomePage() {
     e.preventDefault();
     if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
     
+    // Clear sign out flag since user is manually connecting
+    localStorage.removeItem('userSignedOut');
+    
     connectWalletMutation.mutate({
       walletAddress: walletAddress.trim(),
       displayName: displayName.trim() || undefined,
@@ -314,6 +331,9 @@ export default function HomePage() {
       console.log("Connection already in progress, ignoring additional request");
       return;
     }
+    
+    // Clear sign out flag since user is manually connecting
+    localStorage.removeItem('userSignedOut');
     
     try {
       if (walletType === 'metamask') {
@@ -538,6 +558,9 @@ export default function HomePage() {
   const handleSignOut = () => {
     console.log("Signing out user...");
     
+    // Set explicit sign out flag to prevent automatic reconnection
+    localStorage.setItem('userSignedOut', 'true');
+    
     // Clear ALL localStorage items related to the application
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
@@ -546,6 +569,8 @@ export default function HomePage() {
     localStorage.removeItem('theme');
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
+    localStorage.removeItem('connectedUserId');
+    localStorage.removeItem('userDisplayName');
     
     // Clear any session storage
     sessionStorage.clear();
