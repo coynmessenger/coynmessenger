@@ -31,6 +31,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   const [recipientAddress, setRecipientAddress] = useState("");
   const [showBalance, setShowBalance] = useState(true);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
 
   // Get current user info safely
   const getConnectedUser = () => {
@@ -246,6 +247,34 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     return changes[currency] || 0;
   };
 
+  // Function to copy wallet address to clipboard
+  const copyWalletAddress = async () => {
+    if (currentUser?.walletAddress) {
+      try {
+        await navigator.clipboard.writeText(currentUser.walletAddress);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+        toast({
+          title: "Address Copied",
+          description: "Wallet address copied to clipboard",
+        });
+      } catch (err) {
+        console.error('Failed to copy wallet address:', err);
+        toast({
+          title: "Copy Failed",
+          description: "Failed to copy wallet address",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Function to truncate wallet address for display
+  const truncateAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   const renderMainView = () => (
     <div className="p-6 sm:p-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -285,6 +314,33 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           }
         </p>
       </div>
+
+      {/* Wallet Address */}
+      {currentUser?.walletAddress && (
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Your Wallet Address</p>
+              <p className="text-sm font-mono text-gray-800 dark:text-gray-200 truncate">
+                {truncateAddress(currentUser.walletAddress)}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copyWalletAddress}
+              className="flex-shrink-0 ml-3 h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-700"
+              title="Copy wallet address"
+            >
+              {isCopied ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Crypto Holdings */}
       <div className="space-y-3">
