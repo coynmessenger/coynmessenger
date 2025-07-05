@@ -29,6 +29,7 @@ declare global {
       isTrust?: boolean;
       isCoinbaseWallet?: boolean;
       isZerion?: boolean;
+      providers?: any[];
     };
     trustWallet?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
@@ -167,6 +168,27 @@ export default function HomePage() {
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         try {
           console.log("Checking for existing wallet connection on page load");
+          
+          // Debug Zerion extension availability
+          console.log("=== ZERION EXTENSION DEBUG ===");
+          console.log("window.zerion available:", typeof window.zerion !== 'undefined');
+          console.log("window.zerion.ethereum available:", typeof window.zerion !== 'undefined' && typeof window.zerion.ethereum !== 'undefined');
+          console.log("window.ethereum available:", typeof window.ethereum !== 'undefined');
+          console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'undefined');
+          console.log("window.ethereum.providers:", typeof window.ethereum !== 'undefined' ? window.ethereum.providers : 'undefined');
+          
+          // Check for multiple providers
+          if (typeof window.ethereum !== 'undefined' && Array.isArray((window.ethereum as any).providers)) {
+            console.log("Multiple providers detected:", (window.ethereum as any).providers.length);
+            (window.ethereum as any).providers.forEach((provider: any, index: number) => {
+              console.log(`Provider ${index}:`, {
+                isZerion: provider.isZerion,
+                isMetaMask: provider.isMetaMask,
+                isTrust: provider.isTrust
+              });
+            });
+          }
+          
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
@@ -196,6 +218,21 @@ export default function HomePage() {
     
     // Also run sync after a short delay to catch slow wallet injections
     setTimeout(syncConnectionState, 1000);
+    
+    // Additional check for Zerion extension specifically with multiple delays
+    const checkZerionExtension = () => {
+      console.log("=== DELAYED ZERION CHECK ===");
+      console.log("window.zerion:", typeof window.zerion !== 'undefined' ? 'Available' : 'Not found');
+      console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'N/A');
+      
+      if (typeof window.zerion !== 'undefined' || (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion)) {
+        console.log("✓ Zerion extension detected in delayed check!");
+      }
+    };
+    
+    // Check for Zerion extension at multiple intervals
+    setTimeout(checkZerionExtension, 2000);
+    setTimeout(checkZerionExtension, 5000);
   }, []);
 
   // Handle mobile wallet returns and initial wallet detection
@@ -558,16 +595,41 @@ export default function HomePage() {
           }
         }
       } else if (walletType === 'zerion') {
-        // Zerion Extension integration with proper provider detection and account selection
-        console.log("Attempting to connect Zerion extension...");
+        // Zerion Extension integration with comprehensive debugging and detection
+        console.log("=== ZERION DEBUG: Starting connection attempt ===");
+        console.log("window.zerion:", typeof window.zerion !== 'undefined' ? window.zerion : 'undefined');
+        console.log("window.ethereum:", typeof window.ethereum !== 'undefined' ? window.ethereum : 'undefined');
+        console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'undefined');
+        console.log("Available providers:", Object.keys(window).filter(key => key.includes('erion') || key.includes('ethereum')));
         
-        // Check for Zerion extension via window.zerion
+        // Try multiple detection methods for Zerion extension
+        let zerionProvider = null;
+        
+        // Method 1: Check window.zerion.ethereum
         if (typeof window.zerion !== 'undefined' && window.zerion.ethereum) {
+          console.log("✓ Zerion extension detected via window.zerion");
+          zerionProvider = window.zerion.ethereum;
+        }
+        // Method 2: Check window.ethereum.isZerion
+        else if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
+          console.log("✓ Zerion extension detected via window.ethereum.isZerion");
+          zerionProvider = window.ethereum;
+        }
+        // Method 3: Check providers array for Zerion
+        else if (typeof window.ethereum !== 'undefined' && Array.isArray((window.ethereum as any).providers)) {
+          const zerionInProviders = (window.ethereum as any).providers.find((provider: any) => provider.isZerion);
+          if (zerionInProviders) {
+            console.log("✓ Zerion extension detected via providers array");
+            zerionProvider = zerionInProviders;
+          }
+        }
+        
+        if (zerionProvider) {
           try {
-            console.log("Zerion extension detected via window.zerion");
+            console.log("Attempting to connect to Zerion using detected provider");
             
             // First, get all available accounts
-            const accounts = await window.zerion.ethereum.request({ 
+            const accounts = await zerionProvider.request({ 
               method: 'eth_accounts' 
             });
             
@@ -576,7 +638,7 @@ export default function HomePage() {
             // If no accounts are available, request permission
             if (!accounts || accounts.length === 0) {
               console.log("No accounts available, requesting account access...");
-              const requestedAccounts = await window.zerion.ethereum.request({ 
+              const requestedAccounts = await zerionProvider.request({ 
                 method: 'eth_requestAccounts' 
               });
               
@@ -823,9 +885,19 @@ export default function HomePage() {
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         {/* Authentic Zerion Logo */}
                         <img 
-                          src="/attached_assets/zerion logo_1751675966662.png" 
+                          src="./attached_assets/zerion logo_1751675966662.png" 
                           alt="Zerion Wallet" 
                           className="w-8 h-8 object-contain"
+                          onLoad={() => console.log('Zerion logo loaded successfully')}
+                          onError={(e) => {
+                            console.error('Zerion logo failed to load:', e);
+                            console.log('Attempted to load from:', e.currentTarget.src);
+                            // Fallback to simple Z text if image fails
+                            e.currentTarget.style.display = 'none';
+                            if (e.currentTarget.parentElement) {
+                              e.currentTarget.parentElement.innerHTML = '<div class="w-8 h-8 bg-blue-500 rounded text-white flex items-center justify-center text-sm font-bold">Z</div>';
+                            }
+                          }}
                         />
                       </div>
                       <span className="text-sm font-semibold">Zerion</span>
