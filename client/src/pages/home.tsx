@@ -28,17 +28,9 @@ declare global {
       isMetaMask?: boolean;
       isTrust?: boolean;
       isCoinbaseWallet?: boolean;
-      isZerion?: boolean;
-      providers?: any[];
     };
     trustWallet?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
-    };
-    zerion?: {
-      ethereum?: {
-        request: (args: { method: string; params?: any[] }) => Promise<any>;
-        isZerion?: boolean;
-      };
     };
   }
 }
@@ -168,27 +160,6 @@ export default function HomePage() {
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         try {
           console.log("Checking for existing wallet connection on page load");
-          
-          // Debug Zerion extension availability
-          console.log("=== ZERION EXTENSION DEBUG ===");
-          console.log("window.zerion available:", typeof window.zerion !== 'undefined');
-          console.log("window.zerion.ethereum available:", typeof window.zerion !== 'undefined' && typeof window.zerion.ethereum !== 'undefined');
-          console.log("window.ethereum available:", typeof window.ethereum !== 'undefined');
-          console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'undefined');
-          console.log("window.ethereum.providers:", typeof window.ethereum !== 'undefined' ? window.ethereum.providers : 'undefined');
-          
-          // Check for multiple providers
-          if (typeof window.ethereum !== 'undefined' && Array.isArray((window.ethereum as any).providers)) {
-            console.log("Multiple providers detected:", (window.ethereum as any).providers.length);
-            (window.ethereum as any).providers.forEach((provider: any, index: number) => {
-              console.log(`Provider ${index}:`, {
-                isZerion: provider.isZerion,
-                isMetaMask: provider.isMetaMask,
-                isTrust: provider.isTrust
-              });
-            });
-          }
-          
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
@@ -218,27 +189,6 @@ export default function HomePage() {
     
     // Also run sync after a short delay to catch slow wallet injections
     setTimeout(syncConnectionState, 1000);
-    
-    // Additional check for Zerion extension specifically with multiple delays
-    const checkZerionExtension = () => {
-      console.log("=== DELAYED ZERION CHECK ===");
-      console.log("window.zerion:", typeof window.zerion !== 'undefined' ? 'Available' : 'Not found');
-      console.log("window.zerionWallet:", typeof (window as any).zerionWallet !== 'undefined' ? 'Available' : 'Not found');
-      console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'N/A');
-      
-      // Check all available providers
-      console.log("All window properties containing 'erion':", Object.keys(window).filter(key => key.toLowerCase().includes('erion')));
-      
-      if (typeof window.zerion !== 'undefined' || 
-          typeof (window as any).zerionWallet !== 'undefined' ||
-          (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion)) {
-        console.log("✓ Zerion extension detected in delayed check!");
-      }
-    };
-    
-    // Check for Zerion extension at multiple intervals
-    setTimeout(checkZerionExtension, 2000);
-    setTimeout(checkZerionExtension, 5000);
   }, []);
 
   // Handle mobile wallet returns and initial wallet detection
@@ -600,152 +550,6 @@ export default function HomePage() {
             window.open('https://www.coinbase.com/wallet', '_blank');
           }
         }
-      } else if (walletType === 'zerion') {
-        // Zerion Extension integration with comprehensive debugging and detection
-        console.log("=== ZERION DEBUG: Starting connection attempt ===");
-        console.log("window.zerion:", typeof window.zerion !== 'undefined' ? window.zerion : 'undefined');
-        console.log("window.ethereum:", typeof window.ethereum !== 'undefined' ? window.ethereum : 'undefined');
-        console.log("window.ethereum.isZerion:", typeof window.ethereum !== 'undefined' ? window.ethereum.isZerion : 'undefined');
-        console.log("Available providers:", Object.keys(window).filter(key => key.includes('erion') || key.includes('ethereum')));
-        
-        // Check specifically for zerionWallet
-        if (typeof (window as any).zerionWallet !== 'undefined') {
-          console.log("✓ Found window.zerionWallet!", (window as any).zerionWallet);
-        }
-        
-        // Try multiple detection methods for Zerion extension
-        let zerionProvider = null;
-        
-        // Method 1: Check window.zerion.ethereum
-        if (typeof window.zerion !== 'undefined' && window.zerion.ethereum) {
-          console.log("✓ Zerion extension detected via window.zerion");
-          zerionProvider = window.zerion.ethereum;
-        }
-        // Method 2: Check window.zerionWallet (alternative Zerion provider)
-        else if (typeof (window as any).zerionWallet !== 'undefined') {
-          console.log("✓ Zerion extension detected via window.zerionWallet");
-          zerionProvider = (window as any).zerionWallet;
-        }
-        // Method 3: Check window.ethereum.isZerion
-        else if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
-          console.log("✓ Zerion extension detected via window.ethereum.isZerion");
-          zerionProvider = window.ethereum;
-        }
-        // Method 4: Check providers array for Zerion
-        else if (typeof window.ethereum !== 'undefined' && Array.isArray((window.ethereum as any).providers)) {
-          const zerionInProviders = (window.ethereum as any).providers.find((provider: any) => provider.isZerion);
-          if (zerionInProviders) {
-            console.log("✓ Zerion extension detected via providers array");
-            zerionProvider = zerionInProviders;
-          }
-        }
-        
-        if (zerionProvider) {
-          try {
-            console.log("Attempting to connect to Zerion using detected provider");
-            
-            // First, get all available accounts
-            const accounts = await zerionProvider.request({ 
-              method: 'eth_accounts' 
-            });
-            
-            console.log("Available Zerion accounts:", accounts);
-            
-            // If no accounts are available, request permission
-            if (!accounts || accounts.length === 0) {
-              console.log("No accounts available, requesting account access...");
-              const requestedAccounts = await zerionProvider.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (requestedAccounts && requestedAccounts[0]) {
-                console.log("Connecting Zerion extension with address:", requestedAccounts[0]);
-                connectWalletMutation.mutate({
-                  walletAddress: requestedAccounts[0],
-                  displayName: undefined
-                });
-              } else {
-                alert("No Zerion accounts found. Please unlock your Zerion extension and try again.");
-              }
-            } else {
-              // Use the first available account (or let user select in the future)
-              console.log("Using available Zerion account:", accounts[0]);
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-            
-          } catch (error: any) {
-            console.error('Zerion extension connection failed:', error);
-            
-            // Try to provide more specific error handling
-            if (error?.code === 4001) {
-              alert('Connection rejected. Please approve the connection in your Zerion extension.');
-            } else if (error?.code === -32002) {
-              alert('Connection request is already pending. Please check your Zerion extension.');
-            } else {
-              alert('Failed to connect Zerion extension. Please ensure it is installed and unlocked.');
-            }
-          }
-        } else if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
-          // Fallback: Check if Zerion is injected into window.ethereum
-          try {
-            console.log("Zerion detected via window.ethereum.isZerion");
-            
-            // Get available accounts first
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_accounts' 
-            });
-            
-            if (!accounts || accounts.length === 0) {
-              console.log("Requesting account access via ethereum provider...");
-              const requestedAccounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (requestedAccounts && requestedAccounts[0]) {
-                console.log("Connecting Zerion wallet with address:", requestedAccounts[0]);
-                connectWalletMutation.mutate({
-                  walletAddress: requestedAccounts[0],
-                  displayName: undefined
-                });
-              }
-            } else {
-              console.log("Using available account via ethereum provider:", accounts[0]);
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-            
-          } catch (error: any) {
-            console.error('Zerion ethereum provider connection failed:', error);
-            
-            if (error?.code === 4001) {
-              alert('Connection rejected. Please approve the connection in your Zerion extension.');
-            } else {
-              alert('Failed to connect Zerion. Please ensure the extension is installed and unlocked.');
-            }
-          }
-        } else {
-          // No Zerion extension detected
-          console.log("Zerion extension not detected");
-          if (isMobile()) {
-            // Mobile - redirect to app store or deep link
-            const currentUrl = window.location.href;
-            const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
-            window.open(deepLink, '_blank');
-            
-            setTimeout(() => {
-              console.log('If Zerion did not open, please install it from your app store');
-            }, 2000);
-          } else {
-            // Desktop - direct user to install extension
-            alert('Zerion extension not detected. Please install the Zerion browser extension and try again.');
-            window.open('https://chrome.google.com/webstore/detail/zerion-wallet-for-web3-nf/klghhnkeealcohjjanjjdaeeggmfmlpl', '_blank');
-          }
-        }
       }
     } catch (error) {
       console.error(`Failed to connect ${walletType} wallet:`, error);
@@ -855,8 +659,8 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* 1x3 Grid of Wallet Options */}
-                  <div className="grid grid-cols-3 gap-3">
+                  {/* 2x2 Grid of Wallet Options */}
+                  <div className="grid grid-cols-2 gap-3">
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
@@ -890,34 +694,6 @@ export default function HomePage() {
                       </div>
                       <span className="text-sm font-semibold">Trust Wallet</span>
                     </Button>
-
-                    {/* Zerion */}
-                    <Button 
-                      onClick={() => handleWeb3Connect('zerion')}
-                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-                      disabled={connectWalletMutation.isPending}
-                      variant="outline"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {/* Authentic Zerion Logo */}
-                        <img 
-                          src="./attached_assets/zerion logo_1751675966662.png" 
-                          alt="Zerion Wallet" 
-                          className="w-8 h-8 object-contain"
-                          onLoad={() => console.log('Zerion logo loaded successfully')}
-                          onError={(e) => {
-                            console.error('Zerion logo failed to load:', e);
-                            console.log('Attempted to load from:', e.currentTarget.src);
-                            // Fallback to simple Z text if image fails
-                            e.currentTarget.style.display = 'none';
-                            if (e.currentTarget.parentElement) {
-                              e.currentTarget.parentElement.innerHTML = '<div class="w-8 h-8 bg-blue-500 rounded text-white flex items-center justify-center text-sm font-bold">Z</div>';
-                            }
-                          }}
-                        />
-                      </div>
-                      <span className="text-sm font-semibold">Zerion</span>
-                    </Button>
                   </div>
                 </div>
 
@@ -934,7 +710,7 @@ export default function HomePage() {
                 <form onSubmit={handleConnectWallet} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="walletAddress" className="text-foreground">
-                      Coynful Address
+                      COYN Address
                     </Label>
                     <div className="relative">
                       <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
