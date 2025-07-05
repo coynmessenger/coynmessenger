@@ -3,7 +3,8 @@ import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Home, Users } from "lucide-react";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
@@ -14,6 +15,7 @@ import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
+import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import type { User, Conversation, Message } from "@shared/schema";
 
 export default function MessengerPage() {
@@ -48,30 +50,37 @@ export default function MessengerPage() {
     enabled: !!connectedUserId,
   });
 
-  // Filter conversations based on search
-  const filteredConversations = conversations.filter((conversation) => {
+  // Fetch all users for contact list
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ['/api/users'],
+    queryFn: () => apiRequest("GET", "/api/users").then(res => res.json()),
+  });
+
+  // Create contact list with current user at top
+  const getContactList = () => {
+    if (!user || !allUsers.length) return [];
+    
+    // Start with current user at the top
+    const contactList = [user];
+    
+    // Add other users who are setup (excluding current user)
+    const otherUsers = allUsers.filter(u => u.id !== user.id && u.isSetup);
+    contactList.push(...otherUsers);
+    
+    return contactList;
+  };
+
+  const contactList = getContactList();
+
+  // Filter contact list based on search
+  const filteredContactList = contactList.filter((contact) => {
     if (!searchQuery) return true;
     
     const searchLower = searchQuery.toLowerCase();
-    const displayName = conversation.isGroup 
-      ? conversation.groupName?.toLowerCase() 
-      : conversation.otherUser?.displayName?.toLowerCase();
+    const displayName = contact.displayName?.toLowerCase();
+    const username = contact.username?.toLowerCase();
     
-    return displayName?.includes(searchLower) ||
-      (conversation.lastMessage?.content?.toLowerCase().includes(searchLower) ?? false);
-  }).sort((a, b) => {
-    // Sort conversations to prioritize user's own conversation at the top
-    const isUserConversationA = a.otherUser?.id === connectedUserId;
-    const isUserConversationB = b.otherUser?.id === connectedUserId;
-    
-    if (isUserConversationA && !isUserConversationB) {
-      return -1; // User's conversation comes first
-    }
-    if (!isUserConversationA && isUserConversationB) {
-      return 1; // Other user's conversation comes after
-    }
-    
-    return 0;
+    return displayName?.includes(searchLower) || username?.includes(searchLower);
   });
 
   // Handler for opening wallet with optional pre-selected currency
@@ -86,17 +95,49 @@ export default function MessengerPage() {
     setSelectedWalletCurrency(undefined);
   };
 
+  // Handler for contact click (starts new conversation)
+  const handleContactClick = async (contact: User) => {
+    if (!user?.id) return;
+
+    // Check if conversation already exists
+    const existingConversation = conversations.find(conv => 
+      conv.otherUser?.id === contact.id
+    );
+
+    if (existingConversation) {
+      setSelectedConversation(existingConversation.id);
+      return;
+    }
+
+    // Create new conversation
+    createConversationMutation.mutate(contact.id);
+  };
+
+  // Create conversation mutation
+  const createConversationMutation = useMutation({
+    mutationFn: async (otherUserId: number) => {
+      const response = await apiRequest("POST", "/api/conversations", {
+        otherUserId,
+      });
+      return response.json();
+    },
+    onSuccess: (newConversation) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      setSelectedConversation(newConversation.id);
+    },
+  });
+
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      {/* Desktop Layout - Clean and Simple */}
+      {/* Desktop Layout */}
       <div className="hidden lg:flex lg:w-full lg:h-screen">
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar - Only shows wallet and conversations */}
         {user && (
           <Sidebar
             user={user}
-            conversations={searchQuery ? filteredConversations : conversations}
+            conversations={conversations}
             selectedConversation={selectedConversation}
             onSelectConversation={setSelectedConversation}
             isOpen={false}
@@ -108,7 +149,7 @@ export default function MessengerPage() {
           />
         )}
 
-        {/* Desktop Chat Area */}
+        {/* Desktop Main Area */}
         <div className="flex-1 flex flex-col bg-background">
           {selectedConversation && currentConversation ? (
             <ChatWindow
@@ -118,18 +159,84 @@ export default function MessengerPage() {
               searchQuery={searchQuery}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-background">
-              <div className="text-center text-muted-foreground max-w-md">
-                <div className="mx-auto mb-6">
-                  <img 
-                    src={coynLogoPath} 
-                    alt="Coynful Logo" 
-                    className="w-20 h-20 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
-                  />
+            <div className="flex-1 overflow-auto">
+              {/* Contact List in Main Area */}
+              <div className="p-6">
+                <div className="mb-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <img 
+                      src={coynLogoPath} 
+                      alt="Coynful Logo" 
+                      className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                    />
+                    <h1 className="text-2xl font-semibold text-foreground">Contacts</h1>
+                  </div>
+                  <p className="text-muted-foreground">Start a conversation with someone from your contact list</p>
                 </div>
-                <h2 className="text-2xl font-semibold mb-3 text-foreground">Welcome to Coynful</h2>
-                <p className="text-lg mb-2">Select a conversation to start messaging</p>
-                <p className="text-sm">Your conversations appear in the sidebar</p>
+
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search contacts..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Contact List */}
+                <div className="grid gap-3">
+                  {filteredContactList.map((contact) => (
+                    <div
+                      key={contact.id}
+                      onClick={() => handleContactClick(contact)}
+                      className="flex items-center space-x-4 p-4 rounded-lg hover:bg-accent cursor-pointer transition-colors border border-border"
+                    >
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={contact.profilePicture || ""} />
+                        <AvatarFallback>
+                          <UserAvatarIcon />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <p className="text-lg font-medium text-foreground truncate">
+                            {contact.displayName || contact.username}
+                          </p>
+                          {contact.id === user?.id && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <div className={`w-2 h-2 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          <p className="text-sm text-muted-foreground">
+                            {contact.id === user?.id ? 'Message yourself' : (contact.isOnline ? 'Online' : 'Offline')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-muted-foreground">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredContactList.length === 0 && (
+                  <div className="text-center py-12">
+                    <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No contacts found</h3>
+                    <p className="text-muted-foreground">
+                      {searchQuery ? 'Try adjusting your search' : 'No contacts available'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -191,7 +298,7 @@ export default function MessengerPage() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search messages..."
+                placeholder="Search contacts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
@@ -219,20 +326,56 @@ export default function MessengerPage() {
               searchQuery={searchQuery}
             />
           ) : (
-            <div className="h-full overflow-auto">
-              {user && (
-                <Sidebar
-                  user={user}
-                  conversations={searchQuery ? filteredConversations : conversations}
-                  selectedConversation={selectedConversation}
-                  onSelectConversation={setSelectedConversation}
-                  isOpen={isSidebarOpen}
-                  onClose={() => setIsSidebarOpen(false)}
-                  onOpenWallet={handleOpenWallet}
-                  onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                />
+            <div className="h-full overflow-auto p-4">
+              {/* Contact List for Mobile */}
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-foreground mb-2">Contacts</h2>
+                <p className="text-muted-foreground text-sm">Tap a contact to start messaging</p>
+              </div>
+
+              <div className="space-y-3">
+                {filteredContactList.map((contact) => (
+                  <div
+                    key={contact.id}
+                    onClick={() => handleContactClick(contact)}
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors border border-border"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={contact.profilePicture || ""} />
+                      <AvatarFallback>
+                        <UserAvatarIcon />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-base font-medium text-foreground truncate">
+                          {contact.displayName || contact.username}
+                        </p>
+                        {contact.id === user?.id && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-1 mt-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${contact.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        <p className="text-xs text-muted-foreground">
+                          {contact.id === user?.id ? 'Message yourself' : (contact.isOnline ? 'Online' : 'Offline')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {filteredContactList.length === 0 && (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <h3 className="text-base font-medium text-foreground mb-1">No contacts found</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {searchQuery ? 'Try adjusting your search' : 'No contacts available'}
+                  </p>
+                </div>
               )}
             </div>
           )}
