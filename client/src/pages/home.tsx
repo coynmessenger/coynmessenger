@@ -141,9 +141,13 @@ export default function HomePage() {
     },
   });
 
-  // Comprehensive state synchronization on page load
+  // Optimized state synchronization on page load (prevent duplicate calls)
   useEffect(() => {
+    let isChecking = false; // Guard against multiple simultaneous checks
+
     const syncConnectionState = async () => {
+      if (isChecking) return; // Prevent duplicate execution
+      
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       
@@ -158,14 +162,13 @@ export default function HomePage() {
       
       // If no stored state but we have a wallet provider, check for connected accounts
       if (!isConnected && typeof window.ethereum !== 'undefined') {
+        isChecking = true;
         try {
           console.log("Checking for existing wallet connection on page load");
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
-            console.log("Found existing wallet connection on page load:");
-            console.log("- Wallet address:", accounts[0]);
-            console.log("- Provider:", window.ethereum.isMetaMask ? 'MetaMask' : 'Other');
+            console.log("Found existing wallet connection on page load:", accounts[0]);
             
             // Clear any pending flags
             localStorage.removeItem('pendingWalletConnection');
@@ -180,44 +183,19 @@ export default function HomePage() {
           }
         } catch (error) {
           console.log("Error checking for wallet connection on page load:", error);
-        }
-      }
-    };
-    
-    // Run sync immediately
-    syncConnectionState();
-    
-    // Also run sync after a short delay to catch slow wallet injections
-    setTimeout(syncConnectionState, 1000);
-  }, []);
-
-  // Handle mobile wallet returns and initial wallet detection
-  useEffect(() => {
-    let isChecking = false; // Prevent multiple simultaneous checks
-
-    // Check for existing wallet connection on page load
-    const checkInitialWalletConnection = async () => {
-      if (!isConnected && !isChecking && typeof window.ethereum !== 'undefined') {
-        isChecking = true;
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts && accounts.length > 0) {
-            console.log("Found existing wallet connection on page load:", accounts[0]);
-            connectWalletMutation.mutate({
-              walletAddress: accounts[0],
-              displayName: undefined
-            });
-          }
-        } catch (error) {
-          console.log("No existing wallet connection found");
         } finally {
           isChecking = false;
         }
       }
     };
+    
+    // Run sync once on mount
+    syncConnectionState();
+  }, []);
 
-    // Run initial check
-    checkInitialWalletConnection();
+  // Handle mobile wallet returns (optimized - no duplicate checks)
+  useEffect(() => {
+    let isChecking = false;
 
     const handleVisibilityChange = async () => {
       if (!document.hidden && isMobile() && !isChecking) {

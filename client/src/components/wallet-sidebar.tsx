@@ -46,15 +46,22 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
   // Get current user ID from localStorage
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-  const userId = connectedUser.id || 5;
+  const userId = connectedUser.id;
 
-  // Fetch wallet balances for the correct user
+  // Fetch wallet balances for the correct user (only if userId exists)
   const { data: walletBalances = [], refetch: refetchBalances } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances", userId],
     queryFn: async () => {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       const response = await fetch(`/api/wallet/balances?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet balances');
+      }
       return response.json();
     },
+    enabled: !!userId,
   });
 
   // Real-time cryptocurrency market prices

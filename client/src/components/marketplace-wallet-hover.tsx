@@ -41,25 +41,37 @@ export default function MarketplaceWalletHover({
 
   // Get current user ID from localStorage
   const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-  const userId = connectedUser.id || 5;
+  const userId = connectedUser.id;
 
-  // Fetch wallet balances for the correct user
+  // Fetch wallet balances for the correct user (only if userId exists)
   const { data: balances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances", userId],
     queryFn: async () => {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       const response = await fetch(`/api/wallet/balances?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet balances');
+      }
       return response.json();
     },
-    enabled: isVisible,
+    enabled: isVisible && !!userId,
   });
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", userId],
     queryFn: async () => {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       const response = await fetch(`/api/user?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
       return response.json();
     },
-    enabled: isVisible,
+    enabled: isVisible && !!userId,
   });
 
   // Refresh wallet balances mutation (same as sidebar)
