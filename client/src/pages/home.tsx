@@ -28,8 +28,12 @@ declare global {
       isMetaMask?: boolean;
       isTrust?: boolean;
       isCoinbaseWallet?: boolean;
+      isZerion?: boolean;
     };
     trustWallet?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+    };
+    zerion?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
     };
   }
@@ -550,6 +554,77 @@ export default function HomePage() {
             window.open('https://www.coinbase.com/wallet', '_blank');
           }
         }
+      } else if (walletType === 'zerion') {
+        // Zerion Wallet integration with Web3 provider detection
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.isZerion) {
+          try {
+            console.log("Zerion detected, requesting account access...");
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              console.log("Connecting Zerion wallet with address:", accounts[0]);
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            } else {
+              console.log("No Zerion accounts found");
+              alert("No Zerion accounts found. Please unlock Zerion and try again.");
+            }
+          } catch (error) {
+            console.error('Zerion Wallet connection failed:', error);
+            // Mobile fallback for Zerion
+            if (isMobile()) {
+              const currentUrl = window.location.href;
+              const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
+              window.open(deepLink, '_blank');
+            } else {
+              alert('Failed to connect Zerion Wallet. Please try again or use manual input.');
+            }
+          }
+        } else if (typeof window.ethereum !== 'undefined') {
+          // Try generic ethereum provider (Zerion might be available through it)
+          try {
+            console.log("Trying to connect through available ethereum provider for Zerion");
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              console.log("Generic ethereum provider connection successful for Zerion:", accounts[0]);
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            }
+          } catch (error) {
+            console.log("Generic ethereum provider connection failed for Zerion:", error);
+            // Fallback to deep link
+            if (isMobile()) {
+              const currentUrl = window.location.href;
+              const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
+              window.open(deepLink, '_blank');
+            } else {
+              window.open('https://zerion.io/download', '_blank');
+            }
+          }
+        } else {
+          // No Web3 provider detected - Enhanced mobile handling for Zerion
+          if (isMobile()) {
+            // Mobile - Zerion deep link
+            const currentUrl = window.location.href;
+            const deepLink = `https://wallet.zerion.io/connect?url=${encodeURIComponent(currentUrl)}`;
+            window.open(deepLink, '_blank');
+            
+            setTimeout(() => {
+              console.log('If Zerion did not open, please install it from your app store');
+            }, 2000);
+          } else {
+            window.open('https://zerion.io/download', '_blank');
+          }
+        }
       }
     } catch (error) {
       console.error(`Failed to connect ${walletType} wallet:`, error);
@@ -659,8 +734,8 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* 2x2 Grid of Wallet Options */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* 1x3 Grid of Wallet Options */}
+                  <div className="grid grid-cols-3 gap-3">
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
@@ -694,6 +769,22 @@ export default function HomePage() {
                       </div>
                       <span className="text-sm font-semibold">Trust Wallet</span>
                     </Button>
+
+                    {/* Zerion */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('zerion')}
+                      className="h-26 bg-white/60 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700/80 border border-white/30 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        {/* Zerion Logo - Custom SVG */}
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">Z</span>
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold">Zerion</span>
+                    </Button>
                   </div>
                 </div>
 
@@ -710,7 +801,7 @@ export default function HomePage() {
                 <form onSubmit={handleConnectWallet} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="walletAddress" className="text-foreground">
-                      COYN Address
+                      Coynful Address
                     </Label>
                     <div className="relative">
                       <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
