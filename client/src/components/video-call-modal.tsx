@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
+import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import type { User } from "@shared/schema";
 
 interface VideoCallModalProps {
@@ -23,8 +24,12 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSelfViewExpanded, setIsSelfViewExpanded] = useState(false);
+  const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
   
   const [callDuration, setCallDuration] = useState(0);
+  
+  // WebRTC service instance
+  const webrtcService = useRef<EncryptedWebRTCService | null>(null);
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -87,18 +92,56 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
+  // Initialize encrypted WebRTC service
   useEffect(() => {
-
+    if (isOpen && user && !webrtcService.current) {
+      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+      if (currentUser.id) {
+        webrtcService.current = new EncryptedWebRTCService();
+        
+        // Set event handlers for encrypted WebRTC
+        webrtcService.current.setEventHandlers({
+          onIncomingCall: (call) => {
+            if (call.type === 'video') {
+              setCallStatus("ringing");
+              setEncryptedCallId(call.callId);
+            }
+          },
+          onCallAccepted: (call) => {
+            setCallStatus("connected");
+            if (onCallStart) onCallStart();
+          },
+          onCallEnded: (call) => {
+            setCallStatus("ended");
+            if (onCallEnd) onCallEnd();
+          },
+          onEncryptionStatusChanged: (encrypted) => {
+            // Handle encryption status changes
+          }
+        });
+        
+        // Initialize with current user's wallet address as user ID
+        webrtcService.current.initialize(currentUser.id.toString());
+      }
+    }
     
+    return () => {
+      if (webrtcService.current) {
+        webrtcService.current.cleanup();
+        webrtcService.current = null;
+      }
+    };
+  }, [isOpen, user, onCallStart, onCallEnd]);
+
+  useEffect(() => {
     if (!isOpen) {
       // Only reset if call is not active (completely ending the call)
       if (!isCallActive) {
-
         setCallStatus("connecting");
         setCallDuration(0);
         setIsMuted(false);
         setIsVideoOff(false);
-        
+        setEncryptedCallId(null);
       }
       return;
     }
@@ -109,22 +152,24 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       return;
     }
 
-    // Otherwise, go through normal connection process
-    const timer1 = setTimeout(() => {
+    // Initiate encrypted WebRTC video call for outgoing calls
+    if (callType === "outgoing" && webrtcService.current && user) {
+      setCallStatus("connecting");
+      
+      // Start encrypted video call between wallets
+      webrtcService.current.initiateCall(user.id.toString(), 'video')
+        .then((callId) => {
+          setEncryptedCallId(callId);
+          setCallStatus("ringing");
+        })
+        .catch((error) => {
+          setCallStatus("ended");
+          if (onCallEnd) onCallEnd();
+        });
+    } else if (callType === "incoming") {
+      // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
-    }, 1000);
-
-    const timer2 = setTimeout(() => {
-      setCallStatus("connected");
-      if (onCallStart) {
-        onCallStart();
-      }
-    }, 3000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
+    }
   }, [isOpen, isCallActive, onCallStart]);
 
   useEffect(() => {
@@ -143,7 +188,23 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleAcceptCall = async () => {
+    if (encryptedCallId && webrtcService.current) {
+      try {
+        await webrtcService.current.acceptCall(encryptedCallId);
+        setCallStatus("connected");
+        if (onCallStart) onCallStart();
+      } catch (error) {
+        setCallStatus("ended");
+        if (onCallEnd) onCallEnd();
+      }
+    }
+  };
+
   const handleEndCall = () => {
+    if (encryptedCallId && webrtcService.current) {
+      webrtcService.current.endCall(encryptedCallId);
+    }
     setCallStatus("ended");
     if (onCallEnd) {
       onCallEnd();
@@ -572,7 +633,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                 <PhoneOff className="h-6 w-6" />
               </Button>
               <Button
-                onClick={() => setCallStatus("connected")}
+                onClick={handleAcceptCall}
                 className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
                 title="Accept video call"
               >

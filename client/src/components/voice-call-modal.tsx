@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
+import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -33,6 +34,10 @@ export default function VoiceCallModal({
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
+  
+  // WebRTC service instance
+  const webrtcService = useRef<EncryptedWebRTCService | null>(null);
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -95,6 +100,47 @@ export default function VoiceCallModal({
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
+  // Initialize encrypted WebRTC service
+  useEffect(() => {
+    if (isOpen && user && !webrtcService.current) {
+      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+      if (currentUser.id) {
+        webrtcService.current = new EncryptedWebRTCService();
+        
+        // Set event handlers for encrypted WebRTC
+        webrtcService.current.setEventHandlers({
+          onIncomingCall: (call) => {
+            if (call.type === 'voice') {
+              setCallStatus("ringing");
+              setEncryptedCallId(call.callId);
+            }
+          },
+          onCallAccepted: (call) => {
+            setCallStatus("connected");
+            if (onCallStart) onCallStart();
+          },
+          onCallEnded: (call) => {
+            setCallStatus("ended");
+            if (onCallEnd) onCallEnd();
+          },
+          onEncryptionStatusChanged: (encrypted) => {
+            // Handle encryption status changes
+          }
+        });
+        
+        // Initialize with current user's wallet address as user ID
+        webrtcService.current.initialize(currentUser.id.toString());
+      }
+    }
+    
+    return () => {
+      if (webrtcService.current) {
+        webrtcService.current.cleanup();
+        webrtcService.current = null;
+      }
+    };
+  }, [isOpen, user, onCallStart, onCallEnd]);
+
   useEffect(() => {
     
     if (!isOpen) {
@@ -104,6 +150,7 @@ export default function VoiceCallModal({
         setCallDuration(0);
         setIsMuted(false);
         setIsSpeakerOn(false);
+        setEncryptedCallId(null);
       }
       return;
     }
@@ -114,19 +161,24 @@ export default function VoiceCallModal({
       return;
     }
 
-    const timer1 = setTimeout(() => {
+    // Initiate encrypted WebRTC call for outgoing calls
+    if (callType === "outgoing" && webrtcService.current && user) {
+      setCallStatus("connecting");
+      
+      // Start encrypted voice call between wallets
+      webrtcService.current.initiateCall(user.id.toString(), 'voice')
+        .then((callId) => {
+          setEncryptedCallId(callId);
+          setCallStatus("ringing");
+        })
+        .catch((error) => {
+          setCallStatus("ended");
+          if (onCallEnd) onCallEnd();
+        });
+    } else if (callType === "incoming") {
+      // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
-    }, 1000);
-
-    const timer2 = setTimeout(() => {
-      setCallStatus("connected");
-      if (onCallStart) onCallStart();
-    }, 3000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
+    }
   }, [isOpen, isCallActive, onCallStart]);
 
   useEffect(() => {
@@ -145,7 +197,23 @@ export default function VoiceCallModal({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleAcceptCall = async () => {
+    if (encryptedCallId && webrtcService.current) {
+      try {
+        await webrtcService.current.acceptCall(encryptedCallId);
+        setCallStatus("connected");
+        if (onCallStart) onCallStart();
+      } catch (error) {
+        setCallStatus("ended");
+        if (onCallEnd) onCallEnd();
+      }
+    }
+  };
+
   const handleEndCall = () => {
+    if (encryptedCallId && webrtcService.current) {
+      webrtcService.current.endCall(encryptedCallId);
+    }
     setCallStatus("ended");
     if (onCallEnd) onCallEnd();
     setTimeout(() => {
@@ -496,7 +564,7 @@ export default function VoiceCallModal({
                 <PhoneOff className="h-8 w-8" />
               </Button>
               <Button
-                onClick={() => setCallStatus("connected")}
+                onClick={handleAcceptCall}
                 className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
               >
                 <Phone className="h-8 w-8" />
