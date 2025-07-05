@@ -102,10 +102,7 @@ export default function WalletSidebar({ isOpen, onClose, user, isPermanent = fal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
-      toast({
-        title: "Balances Updated",
-        description: "Your wallet balances have been refreshed from the blockchain",
-      });
+      // Removed toast notification for balance updates
     },
     onError: (error: any) => {
       toast({
