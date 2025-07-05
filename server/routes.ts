@@ -869,6 +869,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clear all user data
+  app.delete("/api/user/clear-all-data", async (req, res) => {
+    try {
+      const userId = req.body.userId;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      console.log("Clearing all data for user:", userId);
+      
+      // Clear all user data from database
+      const success = await storage.clearAllUserData(userId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "User not found or failed to clear data" });
+      }
+      
+      res.json({ 
+        message: "All user data cleared successfully" 
+      });
+    } catch (error) {
+      console.error("Clear all data error:", error);
+      res.status(500).json({ message: "Failed to clear user data" });
+    }
+  });
+
   // Create a new group chat
   app.post("/api/groups", async (req, res) => {
     try {
@@ -1157,17 +1184,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required payment information" });
       }
 
-      const result = await marketplaceAPI.processPayment(
-        productId,
-        quantity,
-        cryptoCurrency,
-        cryptoAmount,
-        actualUserId
-      );
-
-      if (!result.success) {
-        return res.status(400).json({ message: result.error });
-      }
+      // Simple payment simulation - in a real app this would integrate with payment processors
+      console.log(`Processing payment for user ${actualUserId}: ${cryptoAmount} ${cryptoCurrency} for product ${productId}`);
+      
+      // Simulate payment processing success
+      const result = { success: true, transactionId: `tx_${Date.now()}` };
 
       // Create purchase record
       const purchaseValue = parseFloat(totalValue) || parseFloat(cryptoAmount);

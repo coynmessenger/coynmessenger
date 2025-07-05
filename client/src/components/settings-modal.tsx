@@ -209,6 +209,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [country, setCountry] = useState("");
+  
+  // Clear data confirmation state
+  const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
+  const [clearDataConfirmText, setClearDataConfirmText] = useState("");
 
   // Get connected user ID from localStorage (memoized to prevent infinite re-renders)
   const connectedUserId = useMemo(() => {
@@ -440,6 +444,57 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     },
   });
 
+  // Clear all data mutation
+  const clearAllDataMutation = useMutation({
+    mutationFn: async () => {
+      if (!connectedUserId) {
+        throw new Error('No user ID found');
+      }
+      
+      const response = await apiRequest("DELETE", `/api/user/clear-all-data`, { 
+        userId: connectedUserId 
+      });
+      return response;
+    },
+    onSuccess: () => {
+      // Clear localStorage
+      localStorage.removeItem('connectedUser');
+      localStorage.removeItem('shopping-cart');
+      
+      // Clear all query cache
+      queryClient.clear();
+      
+      // Close modals
+      setShowClearDataConfirm(false);
+      onClose();
+      
+      toast({
+        title: "All data cleared",
+        description: "Your account and all associated data have been permanently deleted.",
+        variant: "default"
+      });
+      
+      // Redirect to homepage after a brief delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+    },
+    onError: (error) => {
+      console.error("Clear data error:", error);
+      toast({
+        title: "Failed to clear data",
+        description: "An error occurred while clearing your data. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleClearAllData = () => {
+    if (clearDataConfirmText === "DELETE ALL MY DATA") {
+      clearAllDataMutation.mutate();
+    }
+  };
+
   const handleSave = () => {
     console.log("HandleSave called with displayName:", displayName);
     
@@ -503,6 +558,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
@@ -859,7 +915,11 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   <Database className="h-4 w-4 mr-2" />
                   Export Data
                 </Button>
-                <Button variant="outline" className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                <Button 
+                  onClick={() => setShowClearDataConfirm(true)}
+                  variant="outline" 
+                  className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
                   Clear All Data
                 </Button>
               </div>
@@ -898,5 +958,64 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Clear All Data Confirmation Dialog */}
+    <Dialog open={showClearDataConfirm} onOpenChange={setShowClearDataConfirm}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-destructive">⚠️ Clear All Data</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              This action will permanently delete ALL of your data including:
+            </p>
+            <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-2">
+              <li>Your user account and profile</li>
+              <li>All conversations and messages</li>
+              <li>All wallet balances and transaction history</li>
+              <li>Purchase history and favorites</li>
+              <li>All settings and preferences</li>
+            </ul>
+            <p className="text-sm font-semibold text-destructive">
+              This action cannot be undone!
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="confirmText" className="text-sm font-medium">
+              Type "DELETE ALL MY DATA" to confirm:
+            </Label>
+            <Input
+              id="confirmText"
+              value={clearDataConfirmText}
+              onChange={(e) => setClearDataConfirmText(e.target.value)}
+              placeholder="DELETE ALL MY DATA"
+              className="font-mono"
+            />
+          </div>
+          
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowClearDataConfirm(false);
+                setClearDataConfirmText("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleClearAllData}
+              disabled={clearDataConfirmText !== "DELETE ALL MY DATA" || clearAllDataMutation.isPending}
+            >
+              {clearAllDataMutation.isPending ? "Clearing..." : "Delete Everything"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

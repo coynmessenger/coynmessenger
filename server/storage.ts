@@ -19,6 +19,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
+  clearAllUserData(userId: number): Promise<boolean>;
 
   // Conversations
   getConversation(id: number): Promise<Conversation | undefined>;
@@ -759,6 +760,69 @@ export class DatabaseStorage implements IStorage {
       sender: row.sender!,
       conversationId: row.message.conversationId
     }));
+  }
+
+  async clearAllUserData(userId: number): Promise<boolean> {
+    try {
+      console.log("Starting to clear all data for user:", userId);
+      
+      // First, get all conversations the user is part of
+      const userConversations = await db
+        .select()
+        .from(conversations)
+        .where(
+          or(
+            eq(conversations.participant1Id, userId),
+            eq(conversations.participant2Id, userId)
+          )
+        );
+
+      const conversationIds = userConversations.map(c => c.id);
+      
+      // Delete all messages from user's conversations
+      if (conversationIds.length > 0) {
+        await db.delete(messages).where(inArray(messages.conversationId, conversationIds));
+        console.log("Deleted messages from conversations");
+      }
+
+      // Delete all conversations the user is part of
+      await db.delete(conversations).where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      );
+      console.log("Deleted conversations");
+
+      // Delete wallet balances
+      await db.delete(walletBalances).where(eq(walletBalances.userId, userId));
+      console.log("Deleted wallet balances");
+
+      // Delete favorites
+      await db.delete(favorites).where(eq(favorites.userId, userId));
+      console.log("Deleted favorites");
+
+      // Delete purchases
+      await db.delete(purchases).where(eq(purchases.userId, userId));
+      console.log("Deleted purchases");
+
+      // Delete NFT rewards
+      await db.delete(nftRewards).where(eq(nftRewards.userId, userId));
+      console.log("Deleted NFT rewards");
+
+      // Delete group memberships
+      await db.delete(groupMembers).where(eq(groupMembers.userId, userId));
+      console.log("Deleted group memberships");
+
+      // Finally, delete the user record
+      await db.delete(users).where(eq(users.id, userId));
+      console.log("Deleted user record");
+
+      return true;
+    } catch (error) {
+      console.error("Error clearing user data:", error);
+      return false;
+    }
   }
 }
 
