@@ -44,8 +44,18 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get current user ID from localStorage
-  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  // Get current user ID from localStorage safely
+  const getConnectedUser = () => {
+    try {
+      const storedUser = localStorage.getItem('connectedUser');
+      return storedUser ? JSON.parse(storedUser) : {};
+    } catch (e) {
+      console.error('Failed to parse stored user:', e);
+      return {};
+    }
+  };
+  
+  const connectedUser = getConnectedUser();
   const userId = connectedUser.id;
 
   // Fetch wallet balances for the correct user (only if userId exists)

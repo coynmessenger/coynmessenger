@@ -32,16 +32,43 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   const [showBalance, setShowBalance] = useState(true);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
-  const { data: balances } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
+  // Get current user info safely
+  const getConnectedUser = () => {
+    try {
+      const storedUser = localStorage.getItem('connectedUser');
+      return storedUser ? JSON.parse(storedUser) : {};
+    } catch (e) {
+      console.error('Failed to parse stored user:', e);
+      return {};
+    }
+  };
+  
+  const connectedUser = getConnectedUser();
+  const userId = connectedUser.id;
+
+  const { data: balances = [] } = useQuery<WalletBalance[]>({
+    queryKey: ["/api/wallet/balances", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/wallet/balances?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet balances');
+      }
+      return response.json();
+    },
+    enabled: !!userId,
   });
 
   const { data: currentUser } = useQuery<User>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.json();
+    },
+    enabled: !!userId,
   });
-
-  // Get current user info for Trust Wallet detection
-  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
   const isTrustWalletUser = connectedUser.walletAddress && 
     connectedUser.walletAddress.startsWith('0x') && 
     connectedUser.walletAddress.length === 42;
@@ -49,10 +76,13 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   // Trust Wallet balance refresh mutation
   const refreshBalancesMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/wallet/balances/refresh`, { userId: connectedUser.id || 5 });
+      if (!userId) {
+        throw new Error('User ID is required for balance refresh');
+      }
+      return apiRequest("POST", `/api/wallet/balances/refresh`, { userId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
     },
   });
 
@@ -79,7 +109,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       return { txId: `tx_${Date.now()}`, ...data };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
       setView("success");
       toast({
         title: "Transaction Sent",

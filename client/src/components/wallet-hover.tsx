@@ -42,10 +42,34 @@ export default function WalletHover({ isVisible, onClose, anchorRef, onOpenSend,
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const { toast } = useToast();
 
+  // Get connected user ID safely
+  const getConnectedUserId = () => {
+    try {
+      const storedUser = localStorage.getItem('connectedUser');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.id;
+      }
+    } catch (e) {
+      console.error('Failed to parse stored user:', e);
+    }
+    return null;
+  };
+
+  const connectedUserId = getConnectedUserId();
+
   // Fetch real wallet data
   const { data: balances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
-    enabled: isVisible,
+    queryKey: ["/api/wallet/balances", connectedUserId],
+    queryFn: async () => {
+      if (!connectedUserId) return [];
+      const response = await fetch(`/api/wallet/balances?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet balances');
+      }
+      return response.json();
+    },
+    enabled: isVisible && !!connectedUserId,
   });
 
   const { data: user } = useQuery<User>({

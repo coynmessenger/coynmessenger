@@ -44,7 +44,7 @@ export default function MessengerPage() {
         console.error('Failed to parse stored user:', e);
       }
     }
-    return 5; // Fallback to default user
+    return null; // No fallback to prevent unwanted API calls
   };
 
   const connectedUserId = getConnectedUserId();
@@ -58,6 +58,7 @@ export default function MessengerPage() {
       }
       return response.json();
     },
+    enabled: !!connectedUserId,
   });
 
   const { data: conversations = [] } = useQuery<(Conversation & { otherUser: User; lastMessage?: Message })[]>({

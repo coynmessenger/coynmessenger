@@ -94,7 +94,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Query for wallet balances to enable Max button functionality
   const { data: walletBalances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances"],
+    queryKey: ["/api/wallet/balances", connectedUserId],
+    queryFn: async () => {
+      if (!connectedUserId) return [];
+      const response = await fetch(`/api/wallet/balances?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet balances');
+      }
+      return response.json();
+    },
+    enabled: !!connectedUserId,
   });
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -470,7 +479,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         startTransition(() => {
           queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
           queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", connectedUserId] });
         });
       }, 150);
       

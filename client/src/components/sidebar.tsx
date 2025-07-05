@@ -63,13 +63,22 @@ export default function Sidebar({
   });
 
   // Get current user info for Trust Wallet detection
-  const connectedUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+  const getConnectedUser = () => {
+    try {
+      const storedUser = localStorage.getItem('connectedUser');
+      return storedUser ? JSON.parse(storedUser) : {};
+    } catch (e) {
+      console.error('Failed to parse stored user:', e);
+      return {};
+    }
+  };
   
-  // Fetch wallet balances
+  const connectedUser = getConnectedUser();
+  
+  // Fetch wallet balances only when user ID exists
   const { data: walletBalances = [] } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances", connectedUser.id],
     queryFn: async () => {
-      if (!connectedUser.id) return [];
       const response = await fetch(`/api/wallet/balances?userId=${connectedUser.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balances');
