@@ -96,10 +96,18 @@ export class EncryptedWebRTCSignaling {
         offer?: RTCSessionDescriptionInit 
       }) => {
         const callerId = this.socketUsers.get(socket.id);
-        if (!callerId) return;
+        console.log(`Initiate-call received from socket ${socket.id}, callerId: ${callerId}, targetUserId: ${data.targetUserId}, type: ${data.type}`);
+        
+        if (!callerId) {
+          console.log(`No callerId found for socket ${socket.id}`);
+          return;
+        }
 
         const targetSocketId = this.userSockets.get(data.targetUserId);
         const callerEncryption = this.encryptionServices.get(callerId);
+        
+        console.log(`Target socket ID: ${targetSocketId}, caller encryption: ${!!callerEncryption}`);
+        console.log(`Active user sockets:`, Array.from(this.userSockets.entries()));
 
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -128,6 +136,7 @@ export class EncryptedWebRTCSignaling {
           }
 
           // Send encrypted call invitation
+          console.log(`Sending incoming-call event to socket ${targetSocketId} for user ${data.targetUserId}`);
           this.io.to(targetSocketId).emit('incoming-call', {
             callId,
             fromUserId: callerId,
@@ -137,6 +146,14 @@ export class EncryptedWebRTCSignaling {
           });
 
           console.log(`Encrypted ${data.type} call initiated: ${callId} from ${callerId} to ${data.targetUserId}`);
+        } else {
+          console.log(`Call initiation failed - targetSocketId: ${targetSocketId}, callerEncryption: ${!!callerEncryption}`);
+          if (!targetSocketId) {
+            console.log(`Target user ${data.targetUserId} not found in connected users`);
+          }
+          if (!callerEncryption) {
+            console.log(`Caller ${callerId} encryption service not found`);
+          }
         }
       });
 

@@ -84,14 +84,19 @@ export class EncryptedWebRTCService {
       encryptedOffer?: string;
       encrypted: boolean;
     }) => {
-      console.log('Incoming encrypted call:', data);
+      console.log('Incoming encrypted call received:', data);
+      console.log('Current user ID:', this.localUserId);
+      console.log('Event handlers available:', !!this.eventHandlers.onIncomingCall);
       
       if (this.eventHandlers.onIncomingCall) {
+        console.log('Triggering onIncomingCall handler');
         this.eventHandlers.onIncomingCall({
           callId: data.callId,
           fromUserId: data.fromUserId,
           type: data.type,
         });
+      } else {
+        console.log('No onIncomingCall handler available');
       }
 
       // Store call information
