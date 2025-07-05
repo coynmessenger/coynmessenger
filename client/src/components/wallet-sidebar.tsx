@@ -118,17 +118,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
-      toast({
-        title: "Balances Updated",
-        description: "Your wallet balances have been refreshed from the blockchain",
-      });
     },
     onError: (error: any) => {
-      toast({
-        title: "Refresh Failed",
-        description: error.message || "Failed to refresh wallet balances",
-        variant: "destructive",
-      });
+      console.error("Failed to refresh wallet balances:", error);
     },
   });
 
