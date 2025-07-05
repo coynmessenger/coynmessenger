@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
 import HomePage from "@/pages/home";
-import MessengerWhatsApp from "@/pages/messenger-whatsapp";
+import MessengerPage from "@/pages/messenger";
 import MarketplacePage from "@/pages/marketplace";
 import ProductPage from "@/pages/product";
 import FavoritesPage from "@/pages/favorites";
@@ -16,7 +16,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={HomePage} />
-      <Route path="/messenger" component={MessengerWhatsApp} />
+      <Route path="/messenger" component={MessengerPage} />
       <Route path="/marketplace" component={MarketplacePage} />
       <Route path="/product/:asin" component={ProductPage} />
       <Route path="/favorites" component={FavoritesPage} />

@@ -4,7 +4,6 @@ import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Sidebar from "@/components/sidebar";
 import ChatWindow from "@/components/chat-window";
@@ -15,7 +14,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home, User as UserIcon, Settings, Users, MessageCircle, Phone, Wallet, MoreVertical, Search, X, MessageSquarePlus } from "lucide-react";
+import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -32,8 +31,6 @@ export default function MessengerPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [, setLocation] = useLocation();
 
   // Get connected user ID from localStorage
@@ -171,397 +168,210 @@ export default function MessengerPage() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      {/* Desktop Layout - Now matches mobile exactly */}
+      {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        {/* Desktop Navigation - matches mobile */}
-        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-3">
-              <Button
-                onClick={() => setLocation("/")}
-                variant="ghost"
-                size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
-                title="Home"
-              >
-                <Home className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
-                Coynful
-              </h1>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
-                onClick={() => {
-                  setIsSearchOpen(!isSearchOpen);
-                  if (isSearchOpen) {
-                    setSearchQuery("");
-                  }
-                }}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-              <div
-                className="hover:opacity-80 transition-opacity"
-                title="Coynful Wallet (Always Open)"
-              >
-                <img 
-                  src={coynLogoPath} 
-                  alt="Coynful Logo" 
-                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
-                />
-              </div>
-              <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
-            </div>
-          </div>
-        </nav>
-
-        {/* Desktop Search Bar - matches mobile */}
-        {isSearchOpen && (
-          <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 p-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-100 border border-gray-300 dark:border-gray-300 rounded-lg text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                autoFocus
-              />
-              <svg 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-500" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Desktop WhatsApp-style Layout */}
-        <div className="flex flex-1">
-          {/* Panel 1: Navigation Sidebar (Left) */}
-          <div className="w-16 bg-slate-200 dark:bg-slate-800 border-r border-border flex flex-col items-center py-4 space-y-4">
-            {/* Profile Avatar */}
-            <div className="relative">
-              <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition-opacity">
-                <AvatarImage 
-                  src={user?.profilePicture || undefined} 
-                  alt={user?.displayName || "User"}
-                />
-                <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-xs">
-                  <UserAvatarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </AvatarFallback>
-              </Avatar>
-              {user?.isOnline && (
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-              )}
-            </div>
-
-            {/* Navigation Icons */}
-            <div className="flex flex-col space-y-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-lg hover:bg-accent"
-                title="Chats"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-lg hover:bg-accent"
-                title="Calls"
-                onClick={() => setIsVoiceCallOpen(true)}
-              >
-                <Phone className="w-5 h-5" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-lg hover:bg-accent"
-                title="Wallet"
-                onClick={() => setIsSidebarOpen(true)}
-              >
-                <Wallet className="w-5 h-5" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-lg hover:bg-accent"
-                title="Settings"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Bottom spacer */}
-            <div className="flex-1"></div>
-
-            {/* Menu button */}
+        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
             <Button
+              onClick={() => setLocation("/")}
               variant="ghost"
-              size="icon"
-              className="w-10 h-10 rounded-lg hover:bg-accent"
-              onClick={() => setIsMenuOpen(true)}
+              size="sm"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
             >
-              <MoreVertical className="w-5 h-5" />
+              <Home className="h-4 w-4 mr-2" />
+              Return to Home
             </Button>
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+              Messenger
+            </h1>
           </div>
-
-          {/* Panel 2: Chat List (Center-Left) */}
-          <div className="w-96 bg-background border-r border-border">
-            <div className="flex flex-col h-full">
-              {/* Chat List Header */}
-              <div className="p-4 border-b border-border bg-slate-50 dark:bg-slate-900/50">
-                <div className="flex items-center justify-between mb-3">
-                  <h1 className="text-xl font-semibold text-foreground">Chats</h1>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-full hover:bg-accent"
-                      title="New Group"
-                      onClick={() => setIsGroupModalOpen(true)}
-                    >
-                      <Users className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-full hover:bg-accent"
-                      title="New Chat"
-                    >
-                      <MessageSquarePlus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Search Bar */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search or start new chat"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex mt-3 space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="px-3 py-1 text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="px-3 py-1 text-xs rounded-full hover:bg-accent"
-                  >
-                    Unread
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="px-3 py-1 text-xs rounded-full hover:bg-accent"
-                  >
-                    Groups
-                  </Button>
-                </div>
-              </div>
-
-              {/* Conversations List */}
-              <div className="flex-1 overflow-auto">
-                {/* Existing Conversations */}
-                {filteredConversations.length > 0 && (
-                  <div>
-                    <div className="divide-y divide-border">
-                      {filteredConversations.map((conversation) => (
-                        <div
-                          key={conversation.id}
-                          onClick={() => setSelectedConversation(conversation.id)}
-                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <Avatar className="w-12 h-12">
-                                {conversation.isGroup ? (
-                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                                    <Users className="w-6 h-6" />
-                                  </AvatarFallback>
-                                ) : (
-                                  <>
-                                    <AvatarImage 
-                                      src={conversation.otherUser?.profilePicture || undefined} 
-                                      alt={conversation.otherUser?.displayName || "User"}
-                                    />
-                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                    </AvatarFallback>
-                                  </>
-                                )}
-                              </Avatar>
-                              {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium text-foreground truncate">
-                                  {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
-                                </h3>
-                                {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground truncate">
-                                {conversation.lastMessage?.content || "No messages yet"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Available Contacts */}
-                {(searchQuery ? filteredContacts : availableContacts).length > 0 && (
-                  <div>
-                    <div className="bg-muted/30 px-4 py-2 border-b border-border">
-                      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                        Start New Conversation
-                      </h2>
-                    </div>
-                    <div className="divide-y divide-border">
-                      {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
-                        <div
-                          key={contact.id}
-                          onClick={() => handleContactClick(contact)}
-                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <Avatar className="w-12 h-12">
-                                <AvatarImage 
-                                  src={contact.profilePicture || undefined} 
-                                  alt={contact.displayName}
-                                />
-                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                  <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                </AvatarFallback>
-                              </Avatar>
-                              {contact.isOnline && (
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-foreground truncate">
-                                {contact.displayName}
-                              </h3>
-                              <p className="text-sm text-muted-foreground truncate">
-                                @{contact.username}
-                              </p>
-                            </div>
-                            {createConversationMutation.isPending && (
-                              <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Empty State */}
-                {filteredConversations.length === 0 && (searchQuery ? filteredContacts : availableContacts).length === 0 && (
-                  <div className="flex-1 flex items-center justify-center p-8">
-                    <div className="text-center text-muted-foreground">
-                      <div className="mx-auto mb-4">
-                        <img 
-                          src={coynLogoPath} 
-                          alt="Coynful Logo" 
-                          className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
-                        />
-                      </div>
-                      <h2 className="text-xl font-semibold mb-2">All Set!</h2>
-                      <p>You're connected to all available contacts</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="flex items-center space-x-2">
+            <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
+            <button
+              onClick={() => setIsWalletSidebarOpen(true)}
+              className="hover:opacity-80 transition-opacity"
+              title="Open COYN Wallet"
+            >
+              <img 
+                src={coynLogoPath} 
+                alt="COYN Logo" 
+                className="w-8 h-8 cursor-pointer"
+              />
+            </button>
           </div>
+        </div>
 
-          {/* Center - Chat Window */}
+        {/* Desktop Main Content */}
+        <div className="flex flex-1">
+          {user && (
+            <Sidebar
+              user={user}
+              conversations={searchQuery ? filteredConversations : conversations}
+              selectedConversation={selectedConversation}
+              onSelectConversation={setSelectedConversation}
+              isOpen={false}
+              onClose={() => {}}
+              onOpenWallet={handleOpenWallet}
+              onOpenWalletSidebar={() => setIsWalletSidebarOpen(true)}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          )}
+
           <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
               <ChatWindow
                 conversation={currentConversation}
-                onToggleSidebar={() => setIsSidebarOpen(true)}
+                onToggleSidebar={() => {}}
                 onBack={() => setSelectedConversation(null)}
                 searchQuery={searchQuery}
               />
             ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <div className="mx-auto mb-4">
-                    <img 
-                      src={coynLogoPath} 
-                      alt="Coynful Logo" 
-                      className="w-20 h-20 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
-                    />
-                  </div>
-                  <h2 className="text-2xl font-semibold mb-2">Welcome to Coynful</h2>
-                  <p>Select a conversation or contact to start messaging</p>
+              <div className="flex-1 flex flex-col bg-background">
+
+
+                {/* Contact List First - Main Focus */}
+                <div className="flex-1 overflow-auto">
+
+
+                  {/* Existing Conversations - Secondary Display */}
+                  {filteredConversations.length > 0 && (
+                    <div>
+                      <div className="divide-y divide-border">
+                        {filteredConversations.map((conversation) => (
+                          <div
+                            key={conversation.id}
+                            onClick={() => {
+                              setSelectedConversation(conversation.id);
+                              // Clear search when switching conversations on mobile
+                              if (window.innerWidth < 768) {
+                                setSearchQuery("");
+                                setIsSearchOpen(false);
+                              }
+                            }}
+                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="relative">
+                                <Avatar className="w-12 h-12">
+                                  {conversation.isGroup ? (
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                      <Users className="w-6 h-6" />
+                                    </AvatarFallback>
+                                  ) : (
+                                    <>
+                                      <AvatarImage 
+                                        src={conversation.otherUser?.profilePicture || undefined} 
+                                        alt={conversation.otherUser?.displayName || "User"}
+                                      />
+                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                      </AvatarFallback>
+                                    </>
+                                  )}
+                                </Avatar>
+                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-medium text-foreground truncate">
+                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                  </h3>
+                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {conversation.lastMessage?.content || "No messages yet"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty State - Only show if no conversations AND no available contacts */}
+                  {filteredConversations.length === 0 && availableContacts.length === 0 && (
+                    <div className="flex-1 flex flex-col">
+                      <div className="bg-card border-b border-border p-4">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={coynLogoPath} 
+                            alt="COYN Logo" 
+                            className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                          />
+                          <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                            Start a Conversation
+                          </h1>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-auto">
+                        {(searchQuery ? filteredContacts : availableContacts).length > 0 ? (
+                          <div className="divide-y divide-border">
+                            {(searchQuery ? filteredContacts : availableContacts).map((contact) => (
+                              <div
+                                key={contact.id}
+                                onClick={() => handleContactClick(contact)}
+                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="relative">
+                                    <Avatar className="w-12 h-12">
+                                      <AvatarImage 
+                                        src={contact.profilePicture || undefined} 
+                                        alt={contact.displayName}
+                                      />
+                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {contact.isOnline && (
+                                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-foreground truncate">
+                                      {contact.displayName}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground truncate">
+                                      @{contact.username}
+                                    </p>
+                                  </div>
+                                  {createConversationMutation.isPending && (
+                                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex items-center justify-center">
+                            <div className="text-center text-muted-foreground">
+                              <div className="mx-auto mb-4">
+                                <img 
+                                  src={coynLogoPath} 
+                                  alt="Coynful Logo" 
+                                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                                />
+                              </div>
+                              <h2 className="text-xl font-semibold mb-2">All Set!</h2>
+                              <p>You're connected to all available contacts</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Permanent COYN Wallet Sidebar for Desktop */}
-          <div className="w-80 border-l border-border bg-card/50 backdrop-blur-sm">
-            <WalletSidebar 
-              isOpen={true}
-              onClose={() => {}}
-              user={user}
-              isPermanent={true}
-            />
           </div>
         </div>
       </div>

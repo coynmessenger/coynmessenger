@@ -31,10 +31,9 @@ interface WalletSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   user?: User;
-  isPermanent?: boolean; // For permanent desktop sidebar
 }
 
-export default function WalletSidebar({ isOpen, onClose, user, isPermanent = false }: WalletSidebarProps) {
+export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarProps) {
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const [selectedCurrency, setSelectedCurrency] = useState("");
   const [sendAmount, setSendAmount] = useState("");
@@ -102,7 +101,10 @@ export default function WalletSidebar({ isOpen, onClose, user, isPermanent = fal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
-      // Removed toast notification for balance updates
+      toast({
+        title: "Balances Updated",
+        description: "Your wallet balances have been refreshed from the blockchain",
+      });
     },
     onError: (error: any) => {
       toast({
@@ -268,19 +270,14 @@ export default function WalletSidebar({ isOpen, onClose, user, isPermanent = fal
 
   return (
     <>
-      {/* Overlay - only show for mobile/overlay mode */}
-      {!isPermanent && (
-        <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          onClick={onClose}
-        />
-      )}
+      {/* Overlay */}
+      <div 
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+        onClick={onClose}
+      />
       
       {/* Sidebar */}
-      <div className={isPermanent 
-        ? "h-full w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500"
-        : "fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500"
-      }>
+      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
@@ -316,16 +313,14 @@ export default function WalletSidebar({ isOpen, onClose, user, isPermanent = fal
                 >
                   <RefreshCw className={`h-4 w-4 ${refreshBalancesMutation.isPending ? 'animate-spin' : ''}`} />
                 </Button>
-                {!isPermanent && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onClose}
-                    className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>

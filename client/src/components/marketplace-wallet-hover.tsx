@@ -69,7 +69,10 @@ export default function MarketplaceWalletHover({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
-      // Removed toast notification for balance updates
+      toast({
+        title: "Balances Updated", 
+        description: "Your COYN Wallet balances have been refreshed",
+      });
     },
     onError: (error: any) => {
       toast({
