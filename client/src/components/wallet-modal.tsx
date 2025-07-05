@@ -318,7 +318,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
 
       {/* Portfolio Overview Section */}
-      {currentUser?.walletAddress && (
+      {currentUser && (
         <div className="space-y-3">
           <h3 className="text-lg font-medium text-black dark:text-white">Portfolio Overview</h3>
           <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
@@ -326,7 +326,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Wallet Address</p>
                 <p className="text-sm font-mono text-gray-800 dark:text-gray-200 truncate">
-                  {truncateAddress(currentUser.walletAddress)}
+                  {currentUser.walletAddress ? truncateAddress(currentUser.walletAddress) : "No wallet address"}
                 </p>
               </div>
               <Button
@@ -335,6 +335,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
                 onClick={copyWalletAddress}
                 className="flex-shrink-0 ml-3 h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-700"
                 title="Copy wallet address"
+                disabled={!currentUser.walletAddress}
               >
                 {isCopied ? (
                   <Check className="h-4 w-4 text-green-500" />

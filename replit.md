@@ -125,6 +125,7 @@ The application is configured for deployment on Replit with auto-scaling:
 - July 5, 2025: Added user wallet address with copy functionality to COYN wallet modal - integrated wallet address display section between total balance and cryptocurrencies, implemented truncated address format with copy button, added toast notifications for copy success/failure, enhanced user experience with proper visual feedback and responsive design
 - July 5, 2025: Completely removed sidebar component from messenger - eliminated desktop and mobile sidebar implementations, removed sidebar.tsx file, cleaned up all related state variables and function calls, simplified messenger layout to focus on main content area without sidebar navigation
 - July 5, 2025: Enhanced COYN wallet modal with portfolio overview section - added "Portfolio Overview" section containing user's wallet address with copy functionality, replaced previous standalone wallet address with integrated portfolio section, improved wallet organization and user experience
+- July 5, 2025: Fixed Portfolio Overview visibility issue - updated condition from checking currentUser?.walletAddress to checking currentUser only, ensuring Portfolio Overview section appears for all users including those with demo wallet addresses, added proper null checking for wallet address display
 
 - June 24, 2025: Initial setup, messaging, wallet, escrow system with dual-currency trades
 - June 24, 2025: Added emoji picker with popular crypto/finance emojis for enhanced messaging
