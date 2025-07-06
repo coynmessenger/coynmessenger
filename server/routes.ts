@@ -617,7 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send cryptocurrency
+  // Send cryptocurrency via chat
   app.post("/api/wallet/send", async (req, res) => {
     try {
       const { toUserId, currency, amount, conversationId } = req.body;
@@ -659,6 +659,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Transfer successful" });
     } catch (error) {
       console.error("Crypto send error:", error);
+      res.status(500).json({ message: "Failed to send cryptocurrency" });
+    }
+  });
+
+  // Send cryptocurrency via wallet sidebar to external address
+  app.post("/api/wallet/send-external", async (req, res) => {
+    try {
+      const { currency, amount, address, userId } = req.body;
+      
+      console.log("External wallet send request:", { currency, amount, address, userId });
+
+      if (!currency || !amount || !address) {
+        return res.status(400).json({ message: "Missing required fields: currency, amount, address" });
+      }
+
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      // Validate wallet address format
+      if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ message: "Invalid wallet address format" });
+      }
+
+      // Get current user ID from request or use connected user
+      const currentUserId = userId || 5; // Default for now, should be from auth
+      
+      // Check if sender has sufficient balance
+      const senderBalance = await storage.getUserCurrencyBalance(currentUserId, currency);
+      if (!senderBalance || parseFloat(senderBalance.balance) < numAmount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      // For external transfers, we simulate the blockchain transaction
+      // In a real implementation, this would interact with the blockchain
+      console.log(`Simulating ${currency} transfer: ${numAmount} from user ${currentUserId} to ${address}`);
+      
+      // Deduct from sender's balance
+      const newBalance = parseFloat(senderBalance.balance) - numAmount;
+      await storage.updateWalletBalance(currentUserId, currency, { 
+        balance: newBalance.toString() 
+      });
+      
+      // Log the transaction (in production, this would be on blockchain)
+      console.log(`External ${currency} transfer completed: ${numAmount} to ${address}`);
+
+      res.json({ 
+        message: "Transfer successful",
+        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`, // Mock transaction hash
+        amount: numAmount,
+        currency: currency,
+        recipient: address
+      });
+    } catch (error) {
+      console.error("External crypto send error:", error);
       res.status(500).json({ message: "Failed to send cryptocurrency" });
     }
   });

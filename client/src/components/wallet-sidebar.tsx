@@ -180,7 +180,13 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Send crypto mutation
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      return apiRequest("POST", "/api/wallet/send", { currency, amount, address });
+      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+      return apiRequest("POST", "/api/wallet/send-external", { 
+        currency, 
+        amount, 
+        address,
+        userId: currentUser.id 
+      });
     },
     onSuccess: () => {
       toast({
