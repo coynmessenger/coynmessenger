@@ -22,7 +22,7 @@ import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Sparkles } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -473,46 +473,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setPreviousMessageCount(messages.length);
   }, [messages, connectedUserId, conversation.id, previousMessageCount]);
 
-  // Handle AI image selection
-  const handleAIImageSelect = (imageUrl: string, prompt: string) => {
-    // Use the existing sendMessage mutation with AI image data
-    sendAIImageMutation.mutate({
-      content: `AI Generated: ${prompt}`,
-      imageUrl,
-      prompt
-    });
-    // Keep the AI assistant open so user can continue generating images
-  };
 
-  // Send AI generated image mutation
-  const sendAIImageMutation = useMutation({
-    mutationFn: async (data: { content: string; imageUrl: string; prompt: string }) => {
-      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-        content: data.content,
-        messageType: 'attachment',
-        senderId: connectedUserId,
-        attachmentUrl: data.imageUrl,
-        attachmentName: `AI-Generated-${Date.now()}.png`,
-        attachmentType: 'image'
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", conversation.id, "messages"]
-      });
-      toast({
-        title: "AI Image Sent",
-        description: "Your generated image has been shared",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to send AI image",
-        variant: "destructive"
-      });
-    }
-  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
@@ -2211,17 +2172,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </Popover>
           </div>
 
-          {/* AI Assistant Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setShowAIAssistant(true)}
-            className="bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 dark:from-purple-900/50 dark:to-purple-800/50 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-purple-300 dark:border-purple-600 text-purple-600 dark:text-purple-300 h-10 w-10 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
-            title="AI Image Generator"
-          >
-            <Sparkles className="h-4 w-4 sm:h-4 sm:w-4" />
-          </Button>
+
 
           <Button 
             type="submit"
@@ -2482,15 +2433,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         />
       )}
 
-      {/* AI Image Generator */}
-      <AIImageGenerator
-        isOpen={showAIAssistant}
-        onClose={() => setShowAIAssistant(false)}
-        conversationId={conversation.id}
-        userId={connectedUserId || 0}
-        onSelectImage={handleAIImageSelect}
-        context={`Conversation with ${getEffectiveDisplayName(conversation.otherUser)}`}
-      />
+
     </div>
   );
 }

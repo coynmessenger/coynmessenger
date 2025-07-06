@@ -13,7 +13,7 @@ import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
-import { AIService } from "./ai-service";
+
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
 
 // Configure multer for avatar uploads
@@ -1411,69 +1411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI image prompt suggestions endpoint
-  app.post("/api/ai/image-prompts", async (req, res) => {
-    try {
-      const { conversationId, userId, context } = req.body;
-      
-      if (!conversationId || !userId) {
-        return res.status(400).json({ message: "Conversation ID and user ID are required" });
-      }
 
-      // Get recent messages from conversation
-      const recentMessages = await db.select()
-        .from(messages)
-        .where(eq(messages.conversationId, conversationId))
-        .orderBy(desc(messages.timestamp))
-        .limit(10);
-
-      // Get user info
-      const [user] = await db.select().from(users).where(eq(users.id, userId));
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Build conversation history
-      const conversationHistory = recentMessages.map(msg => ({
-        sender: msg.senderId === userId ? user.displayName || user.username : 'Other',
-        content: msg.content || '',
-        timestamp: msg.timestamp || new Date()
-      }));
-
-      const prompts = await AIService.generateImageSuggestions(
-        conversationHistory,
-        user.displayName || user.username,
-        context
-      );
-
-      res.json({ prompts });
-    } catch (error) {
-      console.error("[AI IMAGE PROMPTS] Error:", error);
-      res.status(500).json({ message: "Failed to generate AI image prompts" });
-    }
-  });
-
-  // AI image generation endpoint
-  app.post("/api/ai/generate-image", async (req, res) => {
-    try {
-      const { prompt, style, size } = req.body;
-      
-      if (!prompt) {
-        return res.status(400).json({ message: "Image prompt is required" });
-      }
-
-      const result = await AIService.generateImage(prompt, style, size);
-      
-      if (result) {
-        res.json(result);
-      } else {
-        res.status(500).json({ message: "Failed to generate image" });
-      }
-    } catch (error) {
-      console.error("[AI IMAGE GENERATION] Error:", error);
-      res.status(500).json({ message: "Failed to generate image" });
-    }
-  });
 
   const httpServer = createServer(app);
   
