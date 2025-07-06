@@ -92,7 +92,11 @@ export function AIImageGenerator({
   const handleUseImage = () => {
     if (generatedImage) {
       onSelectImage(generatedImage.imageUrl, generatedImage.prompt);
-      onClose();
+      // Don't close the modal - let user continue generating images
+      toast({
+        title: "Image Sent!",
+        description: "Image sent to chat. You can generate more images.",
+      });
     }
   };
 
@@ -300,6 +304,16 @@ export function AIImageGenerator({
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Download
+                      </Button>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <Button
+                        variant="outline" 
+                        onClick={onClose}
+                        className="w-full"
+                      >
+                        Close Generator
                       </Button>
                     </div>
                   </div>

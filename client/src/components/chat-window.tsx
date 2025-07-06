@@ -481,7 +481,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       imageUrl,
       prompt
     });
-    setShowAIAssistant(false);
+    // Keep the AI assistant open so user can continue generating images
   };
 
   // Send AI generated image mutation
