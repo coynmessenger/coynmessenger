@@ -133,16 +133,17 @@ export function AIImageGenerator({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass-card max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0 pb-3">
-          <DialogTitle className="flex items-center justify-between">
+      <DialogContent className="glass-card max-w-2xl w-[95vw] sm:w-auto h-[90dvh] sm:max-h-[85vh] overflow-hidden flex flex-col m-2 sm:m-auto p-3 sm:p-6">
+        <DialogHeader className="flex-shrink-0 pb-2 sm:pb-3">
+          <DialogTitle className="flex items-center justify-between text-sm sm:text-base">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-500" />
-              AI Image Generator
+              <span className="hidden sm:inline">AI Image Generator</span>
+              <span className="sm:hidden">AI Generator</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Select value={selectedStyle} onValueChange={(value) => setSelectedStyle(value as any)}>
-                <SelectTrigger className="w-28 h-8">
+                <SelectTrigger className="w-20 sm:w-28 h-8 sm:h-10 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -153,7 +154,7 @@ export function AIImageGenerator({
                 </SelectContent>
               </Select>
               <Select value={selectedSize} onValueChange={(value) => setSelectedSize(value as any)}>
-                <SelectTrigger className="w-24 h-8">
+                <SelectTrigger className="w-16 sm:w-24 h-8 sm:h-10 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -222,12 +223,13 @@ export function AIImageGenerator({
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Describe your image..."
-                className="flex-1 min-h-[60px] text-sm"
+                className="flex-1 min-h-[50px] sm:min-h-[60px] text-sm resize-none"
+                rows={2}
               />
               <Button
                 onClick={handleCustomGenerate}
                 disabled={!customPrompt.trim() || generateImageMutation.isPending}
-                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 px-3"
+                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 px-2 sm:px-3 h-auto self-start"
               >
                 {generateImageMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -247,7 +249,7 @@ export function AIImageGenerator({
                 size="sm"
                 onClick={handleRefreshPrompts}
                 disabled={isLoadingPrompts}
-                className="h-6 px-2"
+                className="h-8 px-2 touch-manipulation"
               >
                 <RefreshCw className={`w-3 h-3 ${isLoadingPrompts ? 'animate-spin' : ''}`} />
               </Button>
@@ -260,16 +262,16 @@ export function AIImageGenerator({
             ) : (
               <div className="grid gap-2">
                 {prompts.slice(0, 4).map((prompt: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <p className="text-xs text-gray-700 dark:text-gray-300 flex-1 line-clamp-2">
-                      {prompt.length > 80 ? prompt.substring(0, 80) + '...' : prompt}
+                  <div key={index} className="flex items-center gap-2 p-2 sm:p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors touch-manipulation">
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 flex-1 line-clamp-2">
+                      {prompt.length > 60 ? prompt.substring(0, 60) + '...' : prompt}
                     </p>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => copyToClipboard(prompt)}
-                        className="h-6 w-6 p-0"
+                        className="h-8 w-8 p-0 touch-manipulation"
                       >
                         <Copy className="w-3 h-3" />
                       </Button>
@@ -278,7 +280,7 @@ export function AIImageGenerator({
                         size="sm"
                         onClick={() => handleGenerateImage(prompt)}
                         disabled={generateImageMutation.isPending}
-                        className="h-6 w-6 p-0"
+                        className="h-8 w-8 p-0 touch-manipulation"
                       >
                         <Wand2 className="w-3 h-3" />
                       </Button>
@@ -291,11 +293,11 @@ export function AIImageGenerator({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex-shrink-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex-shrink-0 pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-700">
           <Button
             variant="outline" 
             onClick={onClose}
-            className="w-full h-8 text-xs"
+            className="w-full h-10 sm:h-8 text-sm sm:text-xs touch-manipulation"
           >
             Close Generator
           </Button>
