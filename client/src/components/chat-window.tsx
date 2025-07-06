@@ -2284,11 +2284,30 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       {conversation.otherUser?.displayName || "Unknown User"}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Wallet Address:</span>
-                    <span className="text-xs font-mono text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
-                      {conversation.otherUser.walletAddress.slice(0, 6)}...{conversation.otherUser.walletAddress.slice(-4)}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Wallet Address:</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(conversation.otherUser.walletAddress);
+                          toast({
+                            title: "Address Copied",
+                            description: "Wallet address copied to clipboard",
+                          });
+                        }}
+                        className="h-8 px-3 text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                      <code className="text-xs font-mono text-gray-800 dark:text-gray-200 break-all leading-relaxed">
+                        {conversation.otherUser.walletAddress}
+                      </code>
+                    </div>
                   </div>
                 </div>
                 
