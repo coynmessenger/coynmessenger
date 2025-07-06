@@ -145,6 +145,73 @@ class BlockchainService {
     return this.getCryptoPrices();
   }
 
+  // Method to send BNB through blockchain
+  async sendBNB(fromAddress: string, toAddress: string, amount: string, privateKey: string): Promise<{
+    transactionHash: string;
+    gasUsed: string;
+    status: string;
+  }> {
+    try {
+      // Validate addresses
+      if (!ethers.isAddress(fromAddress) || !ethers.isAddress(toAddress)) {
+        throw new Error('Invalid wallet address format');
+      }
+
+      // Create wallet instance
+      const wallet = new ethers.Wallet(privateKey, this.provider);
+      
+      // Check if the wallet address matches
+      if (wallet.address.toLowerCase() !== fromAddress.toLowerCase()) {
+        throw new Error('Private key does not match sender address');
+      }
+
+      // Get current gas price
+      const feeData = await this.provider.getFeeData();
+      
+      // Get balance to verify sufficient funds
+      const balance = await this.provider.getBalance(fromAddress);
+      const amountWei = ethers.parseEther(amount);
+      
+      // Estimate gas for the transaction
+      const gasLimit = BigInt(21000); // Standard gas limit for BNB transfer
+      const gasPrice = feeData.gasPrice || ethers.parseUnits('5', 'gwei');
+      const gasCost = gasLimit * BigInt(gasPrice.toString());
+      
+      // Check if sufficient balance (amount + gas fees)
+      if (balance < amountWei + gasCost) {
+        throw new Error('Insufficient balance for transaction and gas fees');
+      }
+
+      // Create transaction
+      const transaction = {
+        to: toAddress,
+        value: amountWei,
+        gasLimit: gasLimit,
+        gasPrice: gasPrice,
+        nonce: await this.provider.getTransactionCount(fromAddress)
+      };
+
+      // Sign and send transaction
+      const signedTransaction = await wallet.sendTransaction(transaction);
+      
+      // Wait for transaction confirmation
+      const receipt = await signedTransaction.wait();
+      
+      if (!receipt) {
+        throw new Error('Transaction failed - no receipt');
+      }
+
+      return {
+        transactionHash: receipt.hash,
+        gasUsed: receipt.gasUsed.toString(),
+        status: receipt.status === 1 ? 'success' : 'failed'
+      };
+    } catch (error) {
+      console.error('BNB transaction error:', error);
+      throw error;
+    }
+  }
+
   // Method to calculate USD value for a given crypto amount
   calculateUSDValue(amount: string, currency: string, prices: CryptoPrice): string {
     const numAmount = parseFloat(amount);

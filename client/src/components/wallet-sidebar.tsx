@@ -27,6 +27,14 @@ import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 
+// Web3 types extension for ethereum provider
+interface EthereumProvider {
+  request: (args: { method: string; params?: any[] }) => Promise<any>;
+  isMetaMask?: boolean;
+  isTrust?: boolean;
+  isCoinbaseWallet?: boolean;
+}
+
 interface WalletSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -177,21 +185,88 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   };
 
-  // Send crypto mutation
+  // Send crypto mutation - initiates blockchain transaction via connected wallet
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
+      if (currency !== 'BNB') {
+        throw new Error('Only BNB transfers are currently supported for blockchain transactions');
+      }
+
       const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-      return apiRequest("POST", "/api/wallet/send-external", { 
-        currency, 
-        amount, 
-        address,
-        userId: currentUser.id 
-      });
+      if (!currentUser.walletAddress) {
+        throw new Error('No wallet address found. Please reconnect your wallet.');
+      }
+
+      // Check if Web3 provider is available
+      const ethereum = (window as any).ethereum;
+      if (!ethereum) {
+        throw new Error('Web3 wallet not found. Please connect your wallet first.');
+      }
+
+      try {
+        // Request account access
+        await ethereum.request({ method: 'eth_requestAccounts' });
+
+        // Switch to BSC network if needed
+        try {
+          await ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x38' }], // BSC mainnet
+          });
+        } catch (switchError: any) {
+          // If BSC is not added, add it
+          if (switchError.code === 4902) {
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x38',
+                chainName: 'Binance Smart Chain',
+                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com/']
+              }]
+            });
+          }
+        }
+
+        // Convert amount to Wei (BNB has 18 decimals)
+        const amountWei = (parseFloat(amount) * Math.pow(10, 18)).toString(16);
+
+        // Send transaction via Web3
+        const transactionHash = await ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: currentUser.walletAddress,
+            to: address,
+            value: '0x' + amountWei,
+            gas: '0x5208', // 21000 in hex
+          }],
+        });
+
+        // Update balance on backend after successful transaction
+        await apiRequest("POST", "/api/wallet/send-external", { 
+          currency, 
+          amount, 
+          address,
+          userId: currentUser.id,
+          transactionHash 
+        });
+
+        return { transactionHash, currency, amount, address };
+      } catch (error: any) {
+        console.error('Blockchain transaction error:', error);
+        if (error.code === 4001) {
+          throw new Error('Transaction rejected by user');
+        } else if (error.code === -32603) {
+          throw new Error('Insufficient funds for gas fees');
+        }
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
-        title: "Transaction Sent",
-        description: `Successfully sent ${sendAmount} ${selectedCurrency}`,
+        title: "Blockchain Transaction Initiated",
+        description: `BNB transaction sent to blockchain network`,
       });
       setShowSendModal(false);
       setSendAmount("");
