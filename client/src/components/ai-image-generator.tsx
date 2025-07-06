@@ -133,194 +133,172 @@ export function AIImageGenerator({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass-card max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-500" />
-            AI Image Generator
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Style and Size Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Style</label>
-              <Select value={selectedStyle} onValueChange={(value) => setSelectedStyle(value as 'realistic' | 'artistic' | 'cartoon' | 'abstract')}>
-                <SelectTrigger>
+      <DialogContent className="glass-card max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0 pb-3">
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              AI Image Generator
+            </div>
+            <div className="flex items-center gap-2">
+              <Select value={selectedStyle} onValueChange={(value) => setSelectedStyle(value as any)}>
+                <SelectTrigger className="w-28 h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="realistic">📸 Realistic</SelectItem>
-                  <SelectItem value="artistic">🎨 Artistic</SelectItem>
+                  <SelectItem value="realistic">📸 Real</SelectItem>
+                  <SelectItem value="artistic">🎨 Art</SelectItem>
                   <SelectItem value="cartoon">🎭 Cartoon</SelectItem>
                   <SelectItem value="abstract">🌀 Abstract</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Size</label>
-              <Select value={selectedSize} onValueChange={(value) => setSelectedSize(value as '1024x1024' | '1792x1024' | '1024x1792')}>
-                <SelectTrigger>
+              <Select value={selectedSize} onValueChange={(value) => setSelectedSize(value as any)}>
+                <SelectTrigger className="w-24 h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1024x1024">Square (1024x1024)</SelectItem>
-                  <SelectItem value="1792x1024">Landscape (1792x1024)</SelectItem>
-                  <SelectItem value="1024x1792">Portrait (1024x1792)</SelectItem>
+                  <SelectItem value="1024x1024">Square</SelectItem>
+                  <SelectItem value="1792x1024">Wide</SelectItem>
+                  <SelectItem value="1024x1792">Tall</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </DialogTitle>
+        </DialogHeader>
 
-          {/* Custom Prompt Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Custom Prompt</h3>
-            <div className="space-y-3">
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {/* Generated Image Display - Priority Position */}
+          {generatedImage && (
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+              <CardContent className="p-3">
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={generatedImage.imageUrl}
+                      alt={generatedImage.prompt}
+                      className="w-24 h-24 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                      {generatedImage.prompt}
+                    </p>
+                    <div className="flex gap-1 mb-2">
+                      <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                        {getStyleIcon(generatedImage.style)}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                        {generatedImage.size.split('x')[0]}×{generatedImage.size.split('x')[1]}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button
+                        onClick={handleUseImage}
+                        size="sm"
+                        className="flex-1 h-7 text-xs bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                      >
+                        <ImageIcon className="w-3 h-3 mr-1" />
+                        Send
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadImage}
+                        className="h-7 px-2"
+                      >
+                        <Download className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quick Prompt Input */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
               <Textarea
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Describe the image you want to generate..."
-                className="min-h-[100px]"
+                placeholder="Describe your image..."
+                className="flex-1 min-h-[60px] text-sm"
               />
               <Button
                 onClick={handleCustomGenerate}
                 disabled={!customPrompt.trim() || generateImageMutation.isPending}
-                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 px-3"
               >
                 {generateImageMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <>
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Image
-                  </>
+                  <Wand2 className="w-4 h-4" />
                 )}
               </Button>
             </div>
           </div>
 
-          {/* Suggested Prompts Section */}
-          <div className="space-y-4">
+          {/* Compact Suggested Prompts */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Suggested Prompts</h3>
+              <h4 className="text-sm font-medium">Quick Ideas</h4>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={handleRefreshPrompts}
                 disabled={isLoadingPrompts}
-                className="flex items-center gap-2"
+                className="h-6 px-2"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoadingPrompts ? 'animate-spin' : ''}`} />
-                Refresh
+                <RefreshCw className={`w-3 h-3 ${isLoadingPrompts ? 'animate-spin' : ''}`} />
               </Button>
             </div>
 
             {isLoadingPrompts ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {prompts.map((prompt: string, index: number) => (
-                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 flex-1">
-                          {prompt}
-                        </p>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(prompt)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleGenerateImage(prompt)}
-                            disabled={generateImageMutation.isPending}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Wand2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+              <div className="grid gap-2">
+                {prompts.slice(0, 4).map((prompt: string, index: number) => (
+                  <div key={index} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <p className="text-xs text-gray-700 dark:text-gray-300 flex-1 line-clamp-2">
+                      {prompt.length > 80 ? prompt.substring(0, 80) + '...' : prompt}
+                    </p>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(prompt)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleGenerateImage(prompt)}
+                        disabled={generateImageMutation.isPending}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Wand2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
           </div>
+        </div>
 
-          {/* Generated Image Display */}
-          {generatedImage && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Generated Image</h3>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <img
-                        src={generatedImage.imageUrl}
-                        alt={generatedImage.prompt}
-                        className="w-full max-w-md mx-auto rounded-lg shadow-lg"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">
-                          {getStyleIcon(generatedImage.style)} {generatedImage.style}
-                        </Badge>
-                        <Badge variant="outline">
-                          {generatedImage.size}
-                        </Badge>
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <strong>Prompt:</strong> {generatedImage.prompt}
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleUseImage}
-                        className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-                      >
-                        <ImageIcon className="w-4 h-4 mr-2" />
-                        Send to Chat
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={downloadImage}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                    
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <Button
-                        variant="outline" 
-                        onClick={onClose}
-                        className="w-full"
-                      >
-                        Close Generator
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+        {/* Footer Actions */}
+        <div className="flex-shrink-0 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <Button
+            variant="outline" 
+            onClick={onClose}
+            className="w-full h-8 text-xs"
+          >
+            Close Generator
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
