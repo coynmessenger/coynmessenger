@@ -321,8 +321,8 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Your Wallet Address</p>
-              <p className="text-sm font-mono text-gray-800 dark:text-gray-200 truncate">
-                {truncateAddress(currentUser.walletAddress)}
+              <p className="text-sm font-mono text-gray-800 dark:text-gray-200 break-all leading-relaxed">
+                {currentUser.walletAddress}
               </p>
             </div>
             <Button
