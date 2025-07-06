@@ -20,7 +20,7 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
-import { AIImageGenerator } from "@/components/ai-image-generator";
+
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Sparkles } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
@@ -123,7 +123,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [searchResultCount, setSearchResultCount] = useState(0);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
+
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
   const [contextMenuMessage, setContextMenuMessage] = useState<Message | null>(null);
