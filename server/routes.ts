@@ -1411,8 +1411,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI message suggestions endpoint
-  app.post("/api/ai/suggestions", async (req, res) => {
+  // AI image prompt suggestions endpoint
+  app.post("/api/ai/image-prompts", async (req, res) => {
     try {
       const { conversationId, userId, context } = req.body;
       
@@ -1440,33 +1440,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: msg.timestamp || new Date()
       }));
 
-      const suggestions = await AIService.generateMessageSuggestions(
+      const prompts = await AIService.generateImageSuggestions(
         conversationHistory,
         user.displayName || user.username,
         context
       );
 
-      res.json({ suggestions });
+      res.json({ prompts });
     } catch (error) {
-      console.error("[AI SUGGESTIONS] Error:", error);
-      res.status(500).json({ message: "Failed to generate AI suggestions" });
+      console.error("[AI IMAGE PROMPTS] Error:", error);
+      res.status(500).json({ message: "Failed to generate AI image prompts" });
     }
   });
 
-  // AI smart reply endpoint
-  app.post("/api/ai/smart-reply", async (req, res) => {
+  // AI image generation endpoint
+  app.post("/api/ai/generate-image", async (req, res) => {
     try {
-      const { originalMessage, conversationContext } = req.body;
+      const { prompt, style, size } = req.body;
       
-      if (!originalMessage) {
-        return res.status(400).json({ message: "Original message is required" });
+      if (!prompt) {
+        return res.status(400).json({ message: "Image prompt is required" });
       }
 
-      const reply = await AIService.generateSmartReply(originalMessage, conversationContext);
-      res.json({ reply });
+      const result = await AIService.generateImage(prompt, style, size);
+      
+      if (result) {
+        res.json(result);
+      } else {
+        res.status(500).json({ message: "Failed to generate image" });
+      }
     } catch (error) {
-      console.error("[AI SMART REPLY] Error:", error);
-      res.status(500).json({ message: "Failed to generate smart reply" });
+      console.error("[AI IMAGE GENERATION] Error:", error);
+      res.status(500).json({ message: "Failed to generate image" });
     }
   });
 

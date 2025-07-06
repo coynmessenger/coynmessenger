@@ -5,18 +5,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY 
 });
 
-export interface AIMessageSuggestion {
-  message: string;
-  tone: 'casual' | 'professional' | 'friendly' | 'formal';
-  category: 'response' | 'question' | 'greeting' | 'followup';
+export interface AIImageGeneration {
+  id: string;
+  prompt: string;
+  imageUrl: string;
+  style: 'realistic' | 'artistic' | 'cartoon' | 'abstract';
+  size: '1024x1024' | '1792x1024' | '1024x1792';
 }
 
 export class AIService {
-  static async generateMessageSuggestions(
+  static async generateImageSuggestions(
     conversationHistory: Array<{ sender: string, content: string, timestamp: Date }>,
     currentUserName: string,
     context?: string
-  ): Promise<AIMessageSuggestion[]> {
+  ): Promise<string[]> {
     try {
       // Build conversation context
       const recentMessages = conversationHistory
@@ -24,7 +26,7 @@ export class AIService {
         .map(msg => `${msg.sender}: ${msg.content}`)
         .join('\n');
 
-      const prompt = `You are an AI assistant helping a user write messages in a chat conversation. 
+      const prompt = `You are an AI assistant helping a user generate image prompts for a crypto messenger app. 
       
 Context: This is a crypto messenger app where users discuss cryptocurrency, blockchain, and general topics.
 Current user: ${currentUserName}
@@ -33,20 +35,19 @@ ${recentMessages}
 
 ${context ? `Additional context: ${context}` : ''}
 
-Generate 3 helpful message suggestions that would be appropriate responses. Each suggestion should:
-1. Be natural and conversational
-2. Match the tone of the conversation
-3. Be relevant to the context
-4. Be concise (under 100 characters)
+Generate 4 creative image prompt suggestions that would be relevant to share in this conversation. Each prompt should:
+1. Be relevant to the conversation context
+2. Be suitable for DALL-E 3 image generation
+3. Be descriptive and creative
+4. Be appropriate for a crypto/blockchain themed chat
 
 Respond with JSON in this format:
 {
-  "suggestions": [
-    {
-      "message": "suggested message text",
-      "tone": "casual|professional|friendly|formal",
-      "category": "response|question|greeting|followup"
-    }
+  "prompts": [
+    "detailed image prompt description",
+    "another creative prompt",
+    "third relevant prompt",
+    "fourth engaging prompt"
   ]
 }`;
 
@@ -55,7 +56,7 @@ Respond with JSON in this format:
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that generates appropriate message suggestions for chat conversations. Always respond with valid JSON."
+            content: "You are a helpful assistant that generates creative image prompts for DALL-E 3. Always respond with valid JSON containing 4 detailed prompts."
           },
           {
             role: "user",
@@ -64,54 +65,63 @@ Respond with JSON in this format:
         ],
         response_format: { type: "json_object" },
         max_tokens: 500,
-        temperature: 0.7
+        temperature: 0.8
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{"suggestions": []}');
-      return result.suggestions || [];
+      const result = JSON.parse(response.choices[0].message.content || '{"prompts": []}');
+      return result.prompts || [];
     } catch (error) {
-      console.error('AI service error:', error);
+      console.error('AI image prompt generation error:', error);
       return [];
     }
   }
 
-  static async generateSmartReply(
-    originalMessage: string,
-    conversationContext?: string
-  ): Promise<string> {
+  static async generateImage(
+    prompt: string,
+    style: 'realistic' | 'artistic' | 'cartoon' | 'abstract' = 'realistic',
+    size: '1024x1024' | '1792x1024' | '1024x1792' = '1024x1024'
+  ): Promise<AIImageGeneration | null> {
     try {
-      const prompt = `Generate a smart, contextual reply to this message: "${originalMessage}"
+      // Enhance prompt based on style
+      let enhancedPrompt = prompt;
       
-${conversationContext ? `Conversation context: ${conversationContext}` : ''}
+      switch (style) {
+        case 'artistic':
+          enhancedPrompt = `Artistic painting style, ${prompt}, digital art, detailed, vibrant colors`;
+          break;
+        case 'cartoon':
+          enhancedPrompt = `Cartoon style, ${prompt}, colorful, fun, animated style`;
+          break;
+        case 'abstract':
+          enhancedPrompt = `Abstract art style, ${prompt}, geometric, conceptual, modern art`;
+          break;
+        case 'realistic':
+          enhancedPrompt = `Photorealistic, ${prompt}, high quality, detailed, professional photography`;
+          break;
+      }
 
-Requirements:
-- Keep it concise and natural
-- Match the tone of the original message
-- Be helpful and relevant
-- Under 80 characters
-
-Just return the reply text, no quotes or formatting.`;
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant that generates smart, contextual replies to messages. Always respond with just the reply text."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        max_tokens: 100,
-        temperature: 0.7
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: enhancedPrompt,
+        n: 1,
+        size: size,
+        quality: "standard",
       });
 
-      return response.choices[0].message.content?.trim() || '';
+      if (response.data && response.data[0] && response.data[0].url) {
+        return {
+          id: Date.now().toString(),
+          prompt: prompt,
+          imageUrl: response.data[0].url,
+          style: style,
+          size: size
+        };
+      }
+
+      return null;
     } catch (error) {
-      console.error('AI smart reply error:', error);
-      return '';
+      console.error('AI image generation error:', error);
+      return null;
     }
   }
 }
