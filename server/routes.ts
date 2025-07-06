@@ -13,6 +13,7 @@ import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
+import { GifService } from "./gif-service";
 
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
 
@@ -1411,7 +1412,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GIF search endpoint
+  app.get("/api/gifs/search", async (req, res) => {
+    try {
+      const { q: query = 'trending', limit = '20', offset = '0' } = req.query;
+      
+      const result = await GifService.searchGifs(
+        query as string,
+        parseInt(limit as string),
+        parseInt(offset as string)
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[GIF SEARCH] Error:", error);
+      res.status(500).json({ message: "Failed to search GIFs" });
+    }
+  });
 
+  // GIF categories endpoint
+  app.get("/api/gifs/categories", async (req, res) => {
+    try {
+      const categories = await GifService.getTrendingCategories();
+      res.json({ categories });
+    } catch (error) {
+      console.error("[GIF CATEGORIES] Error:", error);
+      res.status(500).json({ message: "Failed to get GIF categories" });
+    }
+  });
+
+  // GIF by category endpoint
+  app.get("/api/gifs/category/:category", async (req, res) => {
+    try {
+      const { category } = req.params;
+      const { limit = '20', offset = '0' } = req.query;
+      
+      const result = await GifService.getGifsByCategory(
+        category,
+        parseInt(limit as string),
+        parseInt(offset as string)
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[GIF CATEGORY] Error:", error);
+      res.status(500).json({ message: "Failed to get category GIFs" });
+    }
+  });
+
+  // Register GIF view endpoint
+  app.post("/api/gifs/view", async (req, res) => {
+    try {
+      const { gifId } = req.body;
+      
+      if (!gifId) {
+        return res.status(400).json({ message: "GIF ID is required" });
+      }
+      
+      await GifService.registerGifView(gifId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[GIF VIEW] Error:", error);
+      res.status(500).json({ message: "Failed to register GIF view" });
+    }
+  });
 
   const httpServer = createServer(app);
   
