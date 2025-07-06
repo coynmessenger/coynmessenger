@@ -19,8 +19,9 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
+import { AIChatAssistant } from "@/components/ai-chat-assistant";
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Sparkles } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -121,6 +122,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [searchResultCount, setSearchResultCount] = useState(0);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
   const [contextMenuMessage, setContextMenuMessage] = useState<Message | null>(null);
@@ -469,6 +471,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     setPreviousMessageCount(messages.length);
   }, [messages, connectedUserId, conversation.id, previousMessageCount]);
+
+  // Handle AI message selection
+  const handleAIMessageSelect = (selectedMessage: string) => {
+    setMessage(selectedMessage);
+    setShowAIAssistant(false);
+  };
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
@@ -2166,6 +2174,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* AI Assistant Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setShowAIAssistant(true)}
+            className="bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 dark:from-purple-900/50 dark:to-purple-800/50 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-purple-300 dark:border-purple-600 text-purple-600 dark:text-purple-300 h-10 w-10 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
+            title="AI Chat Assistant"
+          >
+            <Sparkles className="h-4 w-4 sm:h-4 sm:w-4" />
+          </Button>
+
           <Button 
             type="submit"
             size="icon"
@@ -2424,6 +2445,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           imageName={previewImage.name || "Image"}
         />
       )}
+
+      {/* AI Chat Assistant */}
+      <AIChatAssistant
+        isOpen={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        conversationId={conversation.id}
+        userId={connectedUserId || 0}
+        onSelectMessage={handleAIMessageSelect}
+        context={`Conversation with ${getEffectiveDisplayName(conversation.otherUser)}`}
+      />
     </div>
   );
 }

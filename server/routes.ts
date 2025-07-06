@@ -5,14 +5,15 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites, type User } from "@shared/schema";
+import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites, users, type User } from "@shared/schema";
 import { db } from "./db";
 import { initializeDatabase } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
+import { AIService } from "./ai-service";
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
 
 // Configure multer for avatar uploads
@@ -1407,6 +1408,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[CRYPTO RATES] Error fetching rates:", error);
       res.status(500).json({ message: "Failed to fetch crypto rates" });
+    }
+  });
+
+  // AI message suggestions endpoint
+  app.post("/api/ai/suggestions", async (req, res) => {
+    try {
+      const { conversationId, userId, context } = req.body;
+      
+      if (!conversationId || !userId) {
+        return res.status(400).json({ message: "Conversation ID and user ID are required" });
+      }
+
+      // Get recent messages from conversation
+      const recentMessages = await db.select()
+        .from(messages)
+        .where(eq(messages.conversationId, conversationId))
+        .orderBy(desc(messages.timestamp))
+        .limit(10);
+
+      // Get user info
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Build conversation history
+      const conversationHistory = recentMessages.map(msg => ({
+        sender: msg.senderId === userId ? user.displayName || user.username : 'Other',
+        content: msg.content || '',
+        timestamp: msg.timestamp || new Date()
+      }));
+
+      const suggestions = await AIService.generateMessageSuggestions(
+        conversationHistory,
+        user.displayName || user.username,
+        context
+      );
+
+      res.json({ suggestions });
+    } catch (error) {
+      console.error("[AI SUGGESTIONS] Error:", error);
+      res.status(500).json({ message: "Failed to generate AI suggestions" });
+    }
+  });
+
+  // AI smart reply endpoint
+  app.post("/api/ai/smart-reply", async (req, res) => {
+    try {
+      const { originalMessage, conversationContext } = req.body;
+      
+      if (!originalMessage) {
+        return res.status(400).json({ message: "Original message is required" });
+      }
+
+      const reply = await AIService.generateSmartReply(originalMessage, conversationContext);
+      res.json({ reply });
+    } catch (error) {
+      console.error("[AI SMART REPLY] Error:", error);
+      res.status(500).json({ message: "Failed to generate smart reply" });
     }
   });
 
