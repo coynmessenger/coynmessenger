@@ -1046,7 +1046,9 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
   if (!product) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col max-h-[70vh]">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4">
       {/* Product Preview Card */}
       <div className="bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-950/20 dark:to-pink-950/20 rounded-xl p-4 border border-orange-200/30 dark:border-orange-800/30">
         <div className="flex items-center gap-4">
@@ -1155,38 +1157,43 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          variant="outline"
-          onClick={onClose}
-          className="flex-1 h-12 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
-          disabled={isSharing}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleShare}
-          disabled={selectedConversations.size === 0 || isSharing}
-          className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSharing ? (
-            <div className="flex items-center gap-2">
-              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Sharing...</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Send className="h-4 w-4" />
-              <span>Share Product</span>
-              {selectedConversations.size > 0 && (
-                <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
-                  {selectedConversations.size}
-                </Badge>
-              )}
-            </div>
-          )}
-        </Button>
+
+      </div>
+
+      {/* Sticky Action Buttons */}
+      <div className="sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-gray-200 dark:border-slate-700 p-4 mt-4">
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1 h-12 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
+            disabled={isSharing}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleShare}
+            disabled={selectedConversations.size === 0 || isSharing}
+            className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSharing ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Sharing...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Send className="h-4 w-4" />
+                <span>Share Product</span>
+                {selectedConversations.size > 0 && (
+                  <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
+                    {selectedConversations.size}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
