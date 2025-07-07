@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, startTransition } from "react";
+import React, { useState, useRef, useEffect, startTransition, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -66,8 +66,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
 
-  // Get connected user ID from localStorage
-  const getConnectedUserId = () => {
+  // Get connected user ID from localStorage (memoized to prevent re-renders)
+  const connectedUserId = useMemo(() => {
     const storedUser = localStorage.getItem('connectedUser');
     if (storedUser) {
       try {
@@ -78,9 +78,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
     }
     return null;
-  };
-
-  const connectedUserId = getConnectedUserId();
+  }, []);
   
   // Check if this is a self-conversation (messaging yourself)
   const isSelfConversation = connectedUserId === conversation.otherUser.id;
