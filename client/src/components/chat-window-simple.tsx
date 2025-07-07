@@ -89,7 +89,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         method: 'POST',
         body: {
           content: messageData.content,
-          type: messageData.type,
+          messageType: messageData.type,
           senderId: connectedUserId,
         },
       });
@@ -161,7 +161,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Group messages by date
   const groupedMessages = messages.reduce((groups, message) => {
-    const date = new Date(message.createdAt).toDateString();
+    const date = new Date(message.timestamp).toDateString();
     if (!groups[date]) {
       groups[date] = [];
     }
@@ -267,13 +267,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     )}
                   >
                     {/* Message content */}
-                    {msg.type === 'text' && (
+                    {msg.messageType === 'text' && (
                       <p className="text-sm whitespace-pre-wrap break-words">
                         {msg.content}
                       </p>
                     )}
                     
-                    {msg.type === 'gif' && (
+                    {msg.messageType === 'gif' && (
                       <div className="rounded-lg overflow-hidden">
                         <img
                           src={msg.content}
@@ -284,14 +284,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </div>
                     )}
                     
-                    {msg.type === 'crypto_transfer' && (
+                    {msg.messageType === 'crypto_transfer' && (
                       <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-lg">
                         <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-xs">₿</span>
                         </div>
                         <div>
                           <p className="font-semibold text-sm">
-                            {msg.cryptoAmount} {msg.cryptoType}
+                            {msg.cryptoAmount} {msg.cryptoCurrency}
                           </p>
                           <p className="text-xs opacity-75">
                             Crypto Transfer
@@ -300,7 +300,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </div>
                     )}
                     
-                    {msg.type === 'product_share' && (
+                    {msg.messageType === 'product_share' && (
                       <div className="border rounded-lg p-3 bg-card cursor-pointer hover:bg-accent transition-colors">
                         <div className="flex items-center space-x-3">
                           <img
@@ -327,7 +327,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         isOwnMessage ? "text-right" : "text-left"
                       )}
                     >
-                      {formatMessageTime(msg.createdAt)}
+                      {formatMessageTime(msg.timestamp)}
                     </div>
                   </div>
                 </div>
@@ -341,7 +341,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       {/* Message Input */}
       <div className="p-3 sm:p-4 border-t border-border bg-card">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           {/* Attachment Button */}
           <Button
             type="button"
@@ -352,45 +352,40 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             <Paperclip className="h-4 w-4" />
           </Button>
 
-          {/* Message Input */}
-          <div className="flex-1 relative">
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type a message..."
-              disabled={sendMessageMutation.isPending}
-            />
-            
-
-          </div>
-
-          {/* Send Button */}
-          <Button
-            type="submit"
-            size="icon"
-            className="h-8 w-8"
-            disabled={sendMessageMutation.isPending || !message.trim()}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-
-        {/* Emoji Picker */}
-        <div className="relative">
+          {/* Emoji Picker */}
           <EmojiPicker
             onEmojiSelect={handleEmojiSelect}
             isOpen={showEmojiPicker}
             onOpenChange={setShowEmojiPicker}
           />
-        </div>
 
-        {/* GIF Picker */}
-        <div className="relative">
+          {/* GIF Picker */}
           <GifPicker
             onGifSelect={handleGifSelect}
             isOpen={showGifPicker}
             onOpenChange={setShowGifPicker}
           />
+
+          {/* Message Input */}
+          <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-2">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message..."
+              disabled={sendMessageMutation.isPending}
+              className="flex-1"
+            />
+
+            {/* Send Button */}
+            <Button
+              type="submit"
+              size="icon"
+              className="h-8 w-8"
+              disabled={sendMessageMutation.isPending || !message.trim()}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
         </div>
       </div>
     </div>
