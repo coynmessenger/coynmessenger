@@ -424,17 +424,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use senderId from request body (current connected user)
       const senderId = req.body.senderId || 5; // Fallback to 5 for backward compatibility
 
-      const messageData = {
+      const messageData: any = {
         conversationId,
         senderId,
         content: req.body.content,
-        messageType: req.body.messageType || "text",
-        cryptoAmount: req.body.cryptoAmount,
-        cryptoCurrency: req.body.cryptoCurrency,
-        audioFilePath: req.body.audioFilePath,
-        transcription: req.body.transcription,
-        audioDuration: req.body.audioDuration
+        messageType: req.body.messageType || "text"
       };
+
+      // Only include fields that have values to avoid Drizzle issues with undefined
+      if (req.body.cryptoAmount) messageData.cryptoAmount = req.body.cryptoAmount;
+      if (req.body.cryptoCurrency) messageData.cryptoCurrency = req.body.cryptoCurrency;
+      if (req.body.audioFilePath) messageData.audioFilePath = req.body.audioFilePath;
+      if (req.body.transcription) messageData.transcription = req.body.transcription;
+      if (req.body.audioDuration) messageData.audioDuration = req.body.audioDuration;
+      
+      // Attachment fields for GIFs and other attachments
+      if (req.body.attachmentUrl) messageData.attachmentUrl = req.body.attachmentUrl;
+      if (req.body.attachmentType) messageData.attachmentType = req.body.attachmentType;
+      if (req.body.attachmentName) messageData.attachmentName = req.body.attachmentName;
+      if (req.body.attachmentSize) messageData.attachmentSize = req.body.attachmentSize;
+      
+      // Product sharing fields
+      if (req.body.productId) messageData.productId = req.body.productId;
+      if (req.body.productTitle) messageData.productTitle = req.body.productTitle;
+      if (req.body.productPrice) messageData.productPrice = req.body.productPrice;
+      if (req.body.productImage) messageData.productImage = req.body.productImage;
 
       const message = await storage.createMessage(messageData);
       res.status(201).json(message);
