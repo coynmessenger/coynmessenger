@@ -24,7 +24,6 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-
   Plus,
   Minus,
   CreditCard,
@@ -951,27 +950,34 @@ export default function ProductPage() {
 
       {/* Product Share Modal */}
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Share Product</DialogTitle>
+        <DialogContent className="w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[55vw] max-w-2xl max-h-[90vh] overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
+          <DialogHeader className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+            <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <Share className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              Share Product
+            </DialogTitle>
           </DialogHeader>
           
-          <ProductShareModalContent 
-            product={product}
-            onShare={(conversationIds) => {
-              if (product) {
-                shareProductMutation.mutate({
-                  conversationIds,
-                  productId: product.ASIN,
-                  productTitle: product.title,
-                  productPrice: product.price,
-                  productImage: product.imageUrl,
-                });
-              }
-            }}
-            onClose={() => setShowShareModal(false)}
-            isSharing={shareProductMutation.isPending}
-          />
+          <div className="flex-1 overflow-y-auto p-6">
+            <ProductShareModalContent 
+              product={product}
+              onShare={(conversationIds) => {
+                if (product) {
+                  shareProductMutation.mutate({
+                    conversationIds,
+                    productId: product.ASIN,
+                    productTitle: product.title,
+                    productPrice: product.price,
+                    productImage: product.imageUrl,
+                  });
+                }
+              }}
+              onClose={() => setShowShareModal(false)}
+              isSharing={shareProductMutation.isPending}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -999,13 +1005,23 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConversations, setSelectedConversations] = useState<Set<number>>(new Set());
 
+  // Get connected user from localStorage for API calls
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+
   const { data: conversations = [] } = useQuery<any[]>({
-    queryKey: ["/api/conversations"],
+    queryKey: ["/api/conversations", connectedUser?.id],
+    queryFn: () => {
+      if (!connectedUser?.id) return [];
+      return fetch(`/api/conversations?userId=${connectedUser.id}`).then(res => res.json());
+    },
+    enabled: !!connectedUser?.id
   });
 
   const filteredConversations = conversations.filter(conv => 
     conv.otherUser?.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.otherUser?.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.otherUser?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.otherUser?.signInName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleConversationSelection = (conversationId: number) => {
@@ -1026,18 +1042,19 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
   if (!product) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 sm:space-y-6">
       {/* Product Preview */}
-      <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
-        <div className="flex items-center gap-3">
+      <div className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl p-4 border border-orange-200/30 dark:border-orange-800/30">
+        <div className="flex items-center gap-3 sm:gap-4">
           <img
             src={product.imageUrl}
             alt={product.title}
-            className="w-12 h-12 object-cover rounded"
+            className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg border border-orange-200 dark:border-orange-700"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{product.title}</p>
-            <p className="text-sm text-muted-foreground">${product.price}</p>
+            <p className="text-sm sm:text-base font-semibold text-foreground line-clamp-2">{product.title}</p>
+            <p className="text-lg font-bold text-orange-600 dark:text-orange-400">${product.price}</p>
+            <p className="text-xs text-muted-foreground">Share this product with your contacts</p>
           </div>
         </div>
       </div>
@@ -1049,69 +1066,100 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
           placeholder="Search conversations..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-12 text-base border-orange-200 dark:border-orange-800 focus:border-orange-500 dark:focus:border-orange-400"
         />
-        <MessageCircle className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+        <MessageCircle className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
       </div>
 
       {/* Conversations List */}
-      <div className="max-h-64 overflow-y-auto space-y-2">
-        {filteredConversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            onClick={() => toggleConversationSelection(conversation.id)}
-            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-              selectedConversations.has(conversation.id)
-                ? 'bg-orange-50 dark:bg-cyan-900/20 border-orange-200 dark:border-cyan-600'
-                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
-            }`}
-          >
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
-              <AvatarFallback className="bg-orange-500 dark:bg-cyan-500 text-white text-sm font-medium">
-                {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">
-                {conversation.otherUser?.displayName || conversation.otherUser?.username}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {conversation.otherUser?.username && conversation.otherUser?.displayName !== conversation.otherUser?.username 
-                  ? `@${conversation.otherUser.username}` 
-                  : 'User'}
-              </p>
+      <div className="max-h-48 sm:max-h-64 overflow-y-auto space-y-2 pr-2" style={{scrollbarWidth: 'thin'}}>
+        {filteredConversations.map((conversation) => {
+          const isSelected = selectedConversations.has(conversation.id);
+          const displayName = conversation.otherUser?.displayName || 
+                             conversation.otherUser?.signInName || 
+                             conversation.otherUser?.username ||
+                             `@${conversation.otherUser?.walletAddress?.slice(-6)}`;
+          
+          return (
+            <div
+              key={conversation.id}
+              onClick={() => toggleConversationSelection(conversation.id)}
+              className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                isSelected
+                  ? 'bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/30 dark:to-yellow-900/30 border-orange-300 dark:border-orange-600 shadow-lg'
+                  : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-orange-200 dark:hover:border-orange-800'
+              }`}
+            >
+              <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-orange-200 dark:border-orange-700">
+                <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
+                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-yellow-500 dark:from-orange-600 dark:to-yellow-600 text-white text-sm font-bold">
+                  {displayName?.charAt(0)?.toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm sm:text-base font-semibold text-foreground truncate">
+                  {displayName}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                  {conversation.otherUser?.username && displayName !== conversation.otherUser?.username 
+                    ? `@${conversation.otherUser.username}` 
+                    : 'Tap to select'}
+                </p>
+              </div>
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                isSelected 
+                  ? 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600' 
+                  : 'border-gray-300 dark:border-gray-600'
+              }`}>
+                {isSelected && (
+                  <Check className="h-3 w-3 text-white" />
+                )}
+              </div>
             </div>
-            {selectedConversations.has(conversation.id) && (
-              <Check className="h-4 w-4 text-orange-600 dark:text-cyan-400" />
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredConversations.length === 0 && (
         <div className="text-center py-8">
-          <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-          <p className="text-muted-foreground">No conversations found</p>
+          <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+          </div>
+          <p className="text-muted-foreground font-medium">No conversations found</p>
+          <p className="text-sm text-muted-foreground mt-1">Try searching for a different contact</p>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex justify-between items-center pt-4 border-t">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-orange-200 dark:border-orange-800">
+        <div className="flex-1 text-sm text-muted-foreground flex items-center gap-2">
+          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
           {selectedConversations.size} conversation{selectedConversations.size !== 1 ? 's' : ''} selected
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex gap-2 sm:gap-3">
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="flex-1 sm:flex-none h-11 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+          >
             Cancel
           </Button>
           <Button
             onClick={handleShare}
             disabled={selectedConversations.size === 0 || isSharing}
-            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+            className="flex-1 sm:flex-none h-11 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 dark:from-orange-600 dark:to-yellow-600 dark:hover:from-orange-700 dark:hover:to-yellow-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="h-4 w-4 mr-2" />
-            Share
+            {isSharing ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Sharing...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Share Product
+              </>
+            )}
           </Button>
         </div>
       </div>
