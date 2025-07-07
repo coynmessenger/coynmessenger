@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
+import { ProductShareModal } from "@/components/product-share-modal";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
 
@@ -956,35 +957,23 @@ export default function ProductPage() {
       </Dialog>
 
       {/* Product Share Modal */}
-      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogContent className="max-w-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl">
-          <DialogHeader className="space-y-3 pb-4 border-b border-gray-200 dark:border-slate-700">
-            <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-              Share Product
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Share this product with your contacts in COYN Messenger
-            </p>
-          </DialogHeader>
-          
-          <ProductShareModalContent 
-            product={product}
-            onShare={(conversationIds) => {
-              if (product) {
-                shareProductMutation.mutate({
-                  conversationIds,
-                  productId: product.ASIN,
-                  productTitle: product.title,
-                  productPrice: product.price,
-                  productImage: product.imageUrl,
-                });
-              }
-            }}
-            onClose={() => setShowShareModal(false)}
-            isSharing={shareProductMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      <ProductShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        product={product}
+        onShare={(conversationIds) => {
+          if (product) {
+            shareProductMutation.mutate({
+              conversationIds,
+              productId: product.ASIN,
+              productTitle: product.title,
+              productPrice: product.price,
+              productImage: product.imageUrl,
+            });
+          }
+        }}
+        isSharing={shareProductMutation.isPending}
+      />
 
       {/* Shopping Cart Modal */}
       <ShoppingCartComponent 
