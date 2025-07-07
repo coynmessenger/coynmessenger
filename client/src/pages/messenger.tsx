@@ -6,7 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import ChatWindow from "@/components/chat-window";
+import ChatWindow from "@/components/chat-window-simple";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
