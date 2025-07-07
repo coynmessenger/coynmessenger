@@ -244,6 +244,7 @@ export default function ProductPage() {
       productTitle: string;
       productPrice: string;
       productImage: string;
+      userId: number;
     }) => {
       return apiRequest("POST", "/api/messages/share-product", data);
     },
@@ -252,6 +253,14 @@ export default function ProductPage() {
         title: "Product shared successfully",
         description: `Shared to ${variables.conversationIds.length} conversation${variables.conversationIds.length > 1 ? 's' : ''}`,
       });
+      
+      // Invalidate conversation and message caches to trigger refresh
+      variables.conversationIds.forEach(conversationId => {
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
+      });
+      // Invalidate conversations list to refresh last message and timestamps
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      
       setShowShareModal(false);
     },
     onError: () => {
@@ -966,12 +975,26 @@ export default function ProductPage() {
                 product={product}
                 onShare={(conversationIds) => {
                   if (product) {
+                    // Get connected user ID from localStorage
+                    const connectedUserString = localStorage.getItem('connectedUser');
+                    const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+                    
+                    if (!connectedUser?.id) {
+                      toast({
+                        title: "Error",
+                        description: "Please connect your wallet to share products",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
                     shareProductMutation.mutate({
                       conversationIds,
                       productId: product.ASIN,
                       productTitle: product.title,
                       productPrice: product.price,
                       productImage: product.imageUrl,
+                      userId: connectedUser.id,
                     });
                   }
                 }}
