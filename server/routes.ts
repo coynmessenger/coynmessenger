@@ -964,53 +964,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Chat endpoint using Hugging Face
+  // ChatGPT endpoint using OpenAI API
   app.post("/api/ai/chat", async (req, res) => {
     try {
-      const { message, history } = req.body;
+      const { message, history, conversationHistory } = req.body;
       
       if (!message) {
         return res.status(400).json({ message: "Message is required" });
       }
       
-      // Use Hugging Face Inference API for text generation
-      const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-      if (!HUGGING_FACE_API_KEY) {
-        return res.status(500).json({ message: "Hugging Face API key not configured" });
+      // Use OpenAI API key
+      const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+      if (!OPENAI_API_KEY) {
+        return res.status(500).json({ message: "OpenAI API key not configured" });
       }
       
-      // Prepare conversation context
-      let conversationContext = "";
-      if (history && history.length > 0) {
-        conversationContext = history.map((msg: any) => 
-          `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
-        ).join('\n') + '\n';
-      }
-      
-      const prompt = `${conversationContext}Human: ${message}\nAssistant:`;
-      
-      // Call Hugging Face API
-      const response = await fetch(
-        "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large",
+      // Prepare conversation messages for ChatGPT
+      const messages = [
         {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${HUGGING_FACE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-              max_length: 200,
-              temperature: 0.7,
-              do_sample: true,
-              pad_token_id: 50256
-            }
-          }),
+          role: "system",
+          content: "You are a helpful AI assistant integrated into the COYN Messenger application. You can assist users with questions, provide information, and have friendly conversations. Be concise, helpful, and engaging in your responses."
         }
-      );
+      ];
+      
+      // Add conversation history if provided
+      const recentHistory = (conversationHistory || history || []).slice(-8); // Keep last 8 messages for context
+      recentHistory.forEach((msg: any) => {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+          messages.push({
+            role: msg.role,
+            content: msg.content
+          });
+        }
+      });
+      
+      // Add current message
+      messages.push({
+        role: "user",
+        content: message
+      });
+      
+      // Call OpenAI ChatGPT API
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: messages,
+          max_tokens: 300,
+          temperature: 0.7,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1
+        }),
+      });
       
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error(`OpenAI API error: ${response.status}`, errorData);
+        
         // Fallback response if API fails
         const fallbackResponses = [
           "I'm here to help! Could you please tell me more about what you need assistance with?",
@@ -1025,21 +1039,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const data = await response.json();
-      let aiResponse = "";
       
-      if (data && data.length > 0 && data[0].generated_text) {
-        // Extract only the assistant's response from the generated text
-        const fullText = data[0].generated_text;
-        const assistantIndex = fullText.lastIndexOf('Assistant:');
-        if (assistantIndex !== -1) {
-          aiResponse = fullText.substring(assistantIndex + 10).trim();
-          // Clean up the response
-          aiResponse = aiResponse.split('\n')[0].trim();
-        }
+      let aiResponse = "";
+      if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+        aiResponse = data.choices[0].message.content.trim();
       }
       
-      // If no valid response, use fallback
-      if (!aiResponse || aiResponse.length < 10) {
+      // Fallback if no valid response
+      if (!aiResponse || aiResponse.length < 3) {
         const fallbackResponses = [
           "I'm here to help! Could you please tell me more about what you need assistance with?",
           "That's an interesting question. Let me think about that and provide you with a helpful response.",
@@ -1051,8 +1058,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ response: aiResponse });
       
     } catch (error) {
-      console.error('AI Chat error:', error);
-      const fallbackResponse = "I apologize, but I'm having trouble processing your request right now. Please try again later.";
+      console.error('ChatGPT API error:', error);
+      const fallbackResponse = "I apologize, but I'm having trouble connecting to ChatGPT right now. Please try again in a moment.";
       res.json({ response: fallbackResponse });
     }
   });

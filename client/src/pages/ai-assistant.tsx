@@ -102,10 +102,22 @@ export default function AIAssistantPage() {
     };
   }, []);
 
-  // Initialize AI Assistant with user interaction
+  // Initialize AI Assistant with ChatGPT welcome
   const initializeAIAssistant = async () => {
     try {
-      console.log('Initializing AI Assistant...');
+      console.log('Initializing ChatGPT AI Assistant...');
+      
+      // Add welcome message to show ChatGPT is active
+      const welcomeMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "Hello! I'm your ChatGPT-powered AI Assistant. I can help you with questions, have conversations, and assist with various tasks. You can speak to me or type messages. How can I help you today?",
+        timestamp: new Date()
+      };
+      setMessages([welcomeMessage]);
+      
+      // Speak welcome message
+      speakResponse("Hello! I'm your ChatGPT-powered AI Assistant. I'm ready to help you with questions and conversations. How can I assist you today?");
       
       // Try to get permissions gracefully
       try {
@@ -257,7 +269,7 @@ export default function AIAssistantPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           message,
-          history: messages.slice(-5) // Send last 5 messages for context
+          conversationHistory: messages.slice(-10) // Send last 10 messages for better context
         }),
       });
       return response;
