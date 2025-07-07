@@ -21,6 +21,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import { EmojiPicker } from "@/components/emoji-picker";
+import { GifPicker } from "@/components/gif-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
 
@@ -113,6 +114,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   });
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -669,6 +671,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             replyContent = message.productTitle || message.content || "Shared product";
           } else if (message.messageType === "attachment") {
             replyContent = message.attachmentName || "File attachment";
+          } else if (message.messageType === "gif") {
+            replyContent = message.gifTitle || "GIF";
           } else {
             replyContent = message.content || "Message";
           }
@@ -1703,6 +1707,80 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </div>
                   </div>
                 </div>
+              ) : msg.messageType === "gif" ? (
+                // GIF message
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-4`} data-message-id={msg.id}>
+                  <div className="relative max-w-xs lg:max-w-md">
+                    {/* GIF bubble */}
+                    <div 
+                      className={`
+                        rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
+                        ${msg.senderId === connectedUserId 
+                          ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
+                          : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
+                        }
+                      `}
+                    >
+                      {/* GIF Display */}
+                      {msg.gifUrl && (
+                        <div className="mb-2 w-full max-w-[200px] overflow-hidden">
+                          <img 
+                            src={msg.gifUrl} 
+                            alt={msg.gifTitle || "GIF"} 
+                            className="w-full h-auto max-h-32 object-cover rounded-lg"
+                            loading="lazy"
+                          />
+                          {msg.gifTitle && (
+                            <div className="mt-2 text-xs opacity-75">
+                              {msg.gifTitle}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Timestamp */}
+                      <div className={`text-xs ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`}>
+                        {formatTimestamp(msg.timestamp)}
+                      </div>
+                    </div>
+
+                    {/* Hover options */}
+                    <div className={`absolute -top-2 ${msg.senderId === connectedUserId ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleCopyMessage(msg)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleStarMessage(msg)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm"
+                      >
+                        <Star className={`h-3 w-3 ${msg.isStarred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleForwardMessage(msg)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm"
+                      >
+                        <Forward className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteMessage(msg.id)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-red-50 dark:hover:bg-red-950/50 border border-gray-200/50 dark:border-slate-600/50 shadow-sm text-red-600 dark:text-red-400"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               ) : null}
             </div>
           ))}
@@ -2009,6 +2087,43 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               }}
               isOpen={showEmojiPicker}
               onOpenChange={setShowEmojiPicker}
+            />
+
+            {/* GIF Picker */}
+            <GifPicker
+              onGifSelect={(gif) => {
+                // Send GIF as a message
+                const gifMessage = {
+                  messageType: "gif" as const,
+                  gifUrl: gif.images.original.url,
+                  gifTitle: gif.title,
+                  gifId: gif.id
+                };
+                
+                // Use API request directly since mutation expects different format
+                apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
+                  senderId: connectedUserId,
+                  content: gif.title,
+                  messageType: "gif",
+                  gifUrl: gif.images.original.url,
+                  gifTitle: gif.title,
+                  gifId: gif.id
+                }).then(() => {
+                  // Refresh messages after sending
+                  queryClient.invalidateQueries({ 
+                    queryKey: ["/api/conversations", conversation.id, "messages"] 
+                  });
+                }).catch((error) => {
+                  console.error('Failed to send GIF:', error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to send GIF. Please try again.",
+                    variant: "destructive",
+                  });
+                });
+              }}
+              isOpen={showGifPicker}
+              onOpenChange={setShowGifPicker}
             />
           </div>
 

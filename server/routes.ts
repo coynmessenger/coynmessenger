@@ -432,7 +432,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cryptoCurrency: req.body.cryptoCurrency,
         audioFilePath: req.body.audioFilePath,
         transcription: req.body.transcription,
-        audioDuration: req.body.audioDuration
+        audioDuration: req.body.audioDuration,
+        productId: req.body.productId,
+        productTitle: req.body.productTitle,
+        productPrice: req.body.productPrice,
+        productImage: req.body.productImage,
+        attachmentUrl: req.body.attachmentUrl,
+        attachmentType: req.body.attachmentType,
+        attachmentName: req.body.attachmentName,
+        attachmentSize: req.body.attachmentSize,
+        gifUrl: req.body.gifUrl,
+        gifTitle: req.body.gifTitle,
+        gifId: req.body.gifId
       };
 
       const message = await storage.createMessage(messageData);

@@ -48,7 +48,7 @@ export const messages = pgTable("messages", {
   conversationId: integer("conversation_id").notNull(),
   senderId: integer("sender_id").notNull(),
   content: text("content"),
-  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share, attachment
+  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share, attachment, gif
   cryptoAmount: decimal("crypto_amount", { precision: 18, scale: 8 }),
   cryptoCurrency: text("crypto_currency"),
   audioFilePath: text("audio_file_path"), // for voice messages
@@ -64,6 +64,10 @@ export const messages = pgTable("messages", {
   attachmentType: text("attachment_type"), // image, video, file
   attachmentName: text("attachment_name"), // Original filename
   attachmentSize: integer("attachment_size"), // File size in bytes
+  // GIF fields
+  gifUrl: text("gif_url"), // GIF URL from GIPHY
+  gifTitle: text("gif_title"), // GIF title/description
+  gifId: text("gif_id"), // GIPHY ID for the GIF
   isStarred: boolean("is_starred").default(false),
   timestamp: timestamp("timestamp").defaultNow(),
 });
