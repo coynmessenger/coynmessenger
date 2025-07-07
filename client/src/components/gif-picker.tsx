@@ -183,14 +183,14 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
                     variant={selectedCategory === category.id ? "default" : "ghost"}
                     size="sm"
                     onClick={() => handleCategoryChange(category.id)}
-                    className={`flex-shrink-0 h-8 px-3 text-xs font-medium transition-all duration-200 ${
+                    className={`flex-shrink-0 h-8 w-8 p-0 text-xs font-medium transition-all duration-200 ${
                       selectedCategory === category.id
                         ? "bg-orange-500 text-white hover:bg-orange-600"
                         : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700"
                     }`}
+                    title={category.label}
                   >
-                    <span className="mr-1">{category.emoji}</span>
-                    {category.label}
+                    {category.emoji}
                   </Button>
                 ))}
               </div>
