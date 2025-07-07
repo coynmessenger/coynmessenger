@@ -13,6 +13,7 @@ interface Gif {
   preview_url: string;
   width: number;
   height: number;
+  size: number;
 }
 
 interface GifPickerProps {
@@ -48,7 +49,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ isOpen, onClose, onSelectG
     enabled: isOpen,
   });
 
-  const categories = categoriesData?.categories || ['trending', 'reaction', 'happy', 'love', 'sad'];
+  const categories = (categoriesData as any)?.categories || ['trending', 'reaction', 'happy', 'love', 'sad'];
 
   // Fetch GIFs
   const { data: gifsData, isLoading, refetch } = useQuery({

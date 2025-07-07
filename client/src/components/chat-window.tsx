@@ -1619,6 +1619,30 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }
                       `}
                     >
+                      {/* GIF Preview */}
+                      {msg.attachmentType === 'gif' && msg.attachmentUrl && (
+                        <div className="mb-2 w-full max-w-[240px] overflow-hidden">
+                          <img 
+                            src={msg.attachmentUrl} 
+                            alt={msg.attachmentName || "GIF"} 
+                            className="w-full h-auto max-h-40 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-all duration-300 hover:scale-105"
+                            loading="lazy"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Haptic feedback for mobile GIF tap
+                              if ('ontouchstart' in window && 'vibrate' in navigator) {
+                                navigator.vibrate(30);
+                              }
+                              handleImagePreview(
+                                msg.attachmentUrl!, 
+                                msg.attachmentName ?? undefined, 
+                                msg.attachmentSize ?? undefined
+                              );
+                            }}
+                          />
+                        </div>
+                      )}
+
                       {/* Image Preview */}
                       {msg.attachmentType === 'image' && msg.attachmentUrl && (
                         <div className="mb-2 w-full max-w-[200px] overflow-hidden">
