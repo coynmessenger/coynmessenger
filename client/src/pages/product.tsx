@@ -246,7 +246,10 @@ export default function ProductPage() {
       productPrice: string;
       productImage: string;
     }) => {
-      return apiRequest("POST", "/api/messages/share-product", data);
+      return apiRequest("POST", "/api/messages/share-product", {
+        ...data,
+        userId: connectedUser?.id
+      });
     },
     onSuccess: (data, variables) => {
       toast({
@@ -442,14 +445,16 @@ export default function ProductPage() {
                 )}
               </Button>
 
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="hover:bg-accent"
-                onClick={() => setShowShareModal(true)}
-              >
-                <Share className="h-5 w-5" />
-              </Button>
+              {connectedUser && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="hover:bg-accent"
+                  onClick={() => setShowShareModal(true)}
+                >
+                  <Share className="h-5 w-5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -999,8 +1004,17 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConversations, setSelectedConversations] = useState<Set<number>>(new Set());
 
+  // Get connected user from localStorage for conversation query
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+
   const { data: conversations = [] } = useQuery<any[]>({
-    queryKey: ["/api/conversations"],
+    queryKey: ["/api/conversations", connectedUser?.id],
+    queryFn: () => {
+      if (!connectedUser?.id) return [];
+      return fetch(`/api/conversations?userId=${connectedUser.id}`).then(res => res.json());
+    },
+    enabled: !!connectedUser?.id
   });
 
   const filteredConversations = conversations.filter(conv => 

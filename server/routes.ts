@@ -1097,11 +1097,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Share product to conversations
   app.post("/api/messages/share-product", async (req, res) => {
     try {
-      const { conversationIds, productId, productTitle, productPrice, productImage } = req.body;
-      const userId = 5; // Current user
+      const { conversationIds, productId, productTitle, productPrice, productImage, userId } = req.body;
       
-      if (!conversationIds || conversationIds.length === 0 || !productId || !productTitle) {
-        return res.status(400).json({ message: "Missing required product information" });
+      if (!conversationIds || conversationIds.length === 0 || !productId || !productTitle || !userId) {
+        return res.status(400).json({ message: "Missing required product information or user ID" });
       }
 
       // Create product sharing messages in each target conversation
