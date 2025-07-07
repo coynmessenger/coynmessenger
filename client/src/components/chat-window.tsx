@@ -21,7 +21,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import { EmojiPicker } from "@/components/emoji-picker";
-import { GifPicker } from "@/components/gif-picker";
+
 import { CryptoSender } from "@/components/crypto-sender";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
@@ -113,8 +113,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   });
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showGifPicker, setShowGifPicker] = useState(false);
-  const [gifSearchQuery, setGifSearchQuery] = useState("");
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageVideoInputRef = useRef<HTMLInputElement>(null);
@@ -2000,16 +1999,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               className="pr-16 sm:pr-20 h-11 sm:h-10 text-sm sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
             />
             
-            {/* GIF Picker */}
-            <GifPicker
-              onGifSelect={(gif) => {
-                setMessage(prev => prev + ` [GIF: ${gif.title}] `);
-                setShowGifPicker(false);
-              }}
-              isOpen={showGifPicker}
-              onOpenChange={setShowGifPicker}
-              currentMessage={message}
-            />
+
 
             {/* Emoji Picker */}
             <EmojiPicker
