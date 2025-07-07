@@ -22,7 +22,7 @@ import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Laugh, Hand, Heart, DollarSign, TreePine, Package, UtensilsCrossed, Plane } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -420,6 +420,30 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         );
       default:
         return <Coins className="w-5 h-5" />;
+    }
+  };
+
+  // Emoji category icon helper function
+  const getEmojiCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'faces':
+        return <Laugh className="w-4 h-4" />;
+      case 'gestures':
+        return <Hand className="w-4 h-4" />;
+      case 'hearts':
+        return <Heart className="w-4 h-4" />;
+      case 'finance':
+        return <DollarSign className="w-4 h-4" />;
+      case 'nature':
+        return <TreePine className="w-4 h-4" />;
+      case 'objects':
+        return <Package className="w-4 h-4" />;
+      case 'food':
+        return <UtensilsCrossed className="w-4 h-4" />;
+      case 'travel':
+        return <Plane className="w-4 h-4" />;
+      default:
+        return <Smile className="w-4 h-4" />;
     }
   };
 
@@ -2137,13 +2161,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         key={category}
                         type="button"
                         onClick={() => setSelectedEmojiCategory(category as keyof typeof emojiCategories)}
-                        className={`px-2 py-1 text-xs rounded-md transition-colors capitalize ${
+                        className={`p-2 rounded-md transition-colors flex items-center justify-center ${
                           selectedEmojiCategory === category
                             ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-600"
                             : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
                         }`}
+                        title={category.charAt(0).toUpperCase() + category.slice(1)}
                       >
-                        {category}
+                        {getEmojiCategoryIcon(category)}
                       </button>
                     ))}
                   </div>
