@@ -950,8 +950,8 @@ export default function ProductPage() {
 
       {/* Product Share Modal */}
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogContent className="w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[55vw] max-w-2xl max-h-[90vh] overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
-          <DialogHeader className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+        <DialogContent className="w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[55vw] max-w-2xl h-[90vh] flex flex-col bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
+          <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
             <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
               <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
                 <Share className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -960,23 +960,25 @@ export default function ProductPage() {
             </DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto p-6">
-            <ProductShareModalContent 
-              product={product}
-              onShare={(conversationIds) => {
-                if (product) {
-                  shareProductMutation.mutate({
-                    conversationIds,
-                    productId: product.ASIN,
-                    productTitle: product.title,
-                    productPrice: product.price,
-                    productImage: product.imageUrl,
-                  });
-                }
-              }}
-              onClose={() => setShowShareModal(false)}
-              isSharing={shareProductMutation.isPending}
-            />
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="p-4 sm:p-6">
+              <ProductShareModalContent 
+                product={product}
+                onShare={(conversationIds) => {
+                  if (product) {
+                    shareProductMutation.mutate({
+                      conversationIds,
+                      productId: product.ASIN,
+                      productTitle: product.title,
+                      productPrice: product.price,
+                      productImage: product.imageUrl,
+                    });
+                  }
+                }}
+                onClose={() => setShowShareModal(false)}
+                isSharing={shareProductMutation.isPending}
+              />
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1042,37 +1044,37 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
   if (!product) return null;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="flex flex-col h-full space-y-3 sm:space-y-4">
       {/* Product Preview */}
-      <div className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl p-4 border border-orange-200/30 dark:border-orange-800/30">
+      <div className="flex-shrink-0 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl p-3 sm:p-4 border border-orange-200/30 dark:border-orange-800/30">
         <div className="flex items-center gap-3 sm:gap-4">
           <img
             src={product.imageUrl}
             alt={product.title}
-            className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg border border-orange-200 dark:border-orange-700"
+            className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-lg border border-orange-200 dark:border-orange-700"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm sm:text-base font-semibold text-foreground line-clamp-2">{product.title}</p>
-            <p className="text-lg font-bold text-orange-600 dark:text-orange-400">${product.price}</p>
+            <p className="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400">${product.price}</p>
             <p className="text-xs text-muted-foreground">Share this product with your contacts</p>
           </div>
         </div>
       </div>
 
       {/* Search Conversations */}
-      <div className="relative">
+      <div className="flex-shrink-0 relative">
         <Input
           type="text"
           placeholder="Search conversations..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-12 text-base border-orange-200 dark:border-orange-800 focus:border-orange-500 dark:focus:border-orange-400"
+          className="pl-10 h-10 sm:h-12 text-sm sm:text-base border-orange-200 dark:border-orange-800 focus:border-orange-500 dark:focus:border-orange-400"
         />
-        <MessageCircle className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+        <MessageCircle className="absolute left-3 top-2 sm:top-3 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
       </div>
 
       {/* Conversations List */}
-      <div className="max-h-48 sm:max-h-64 overflow-y-auto space-y-2 pr-2" style={{scrollbarWidth: 'thin'}}>
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1" style={{scrollbarWidth: 'thin'}}>
         {filteredConversations.map((conversation) => {
           const isSelected = selectedConversations.has(conversation.id);
           const displayName = conversation.otherUser?.displayName || 
@@ -1121,46 +1123,48 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
       </div>
 
       {filteredConversations.length === 0 && (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MessageCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+        <div className="text-center py-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-3">
+            <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 dark:text-orange-400" />
           </div>
-          <p className="text-muted-foreground font-medium">No conversations found</p>
-          <p className="text-sm text-muted-foreground mt-1">Try searching for a different contact</p>
+          <p className="text-sm sm:text-base text-muted-foreground font-medium">No conversations found</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Try searching for a different contact</p>
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-orange-200 dark:border-orange-800">
-        <div className="flex-1 text-sm text-muted-foreground flex items-center gap-2">
-          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-          {selectedConversations.size} conversation{selectedConversations.size !== 1 ? 's' : ''} selected
-        </div>
-        <div className="flex gap-2 sm:gap-3">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            className="flex-1 sm:flex-none h-11 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleShare}
-            disabled={selectedConversations.size === 0 || isSharing}
-            className="flex-1 sm:flex-none h-11 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 dark:from-orange-600 dark:to-yellow-600 dark:hover:from-orange-700 dark:hover:to-yellow-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSharing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Sharing...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Share Product
-              </>
-            )}
-          </Button>
+      {/* Actions - Fixed to bottom */}
+      <div className="flex-shrink-0 mt-auto">
+        <div className="flex flex-col gap-2 sm:gap-3 pt-3 border-t border-orange-200 dark:border-orange-800 bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-b-xl">
+          <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 px-1">
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+            {selectedConversations.size} conversation{selectedConversations.size !== 1 ? 's' : ''} selected
+          </div>
+          <div className="flex gap-2 sm:gap-3">
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="flex-1 h-10 sm:h-11 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleShare}
+              disabled={selectedConversations.size === 0 || isSharing}
+              className="flex-1 h-10 sm:h-11 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 dark:from-orange-600 dark:to-yellow-600 dark:hover:from-orange-700 dark:hover:to-yellow-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {isSharing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Sharing...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Share
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
