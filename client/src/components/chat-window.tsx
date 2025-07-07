@@ -20,7 +20,6 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
-import { GifPicker } from "@/components/gif-picker";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
@@ -112,6 +111,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [gifSearchQuery, setGifSearchQuery] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageVideoInputRef = useRef<HTMLInputElement>(null);
@@ -251,16 +251,36 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof emojiCategories>("faces");
 
-  // Handle real GIF selection from GIF picker
-  const handleGifSelect = (gif: { id: string; title: string; url: string; preview_url: string; width: number; height: number; size: number }) => {
-    // Send GIF as a message with attachment
-    sendMessageMutation.mutate({
-      content: `GIF: ${gif.title}`,
-      messageType: 'attachment',
-      attachmentUrl: gif.url,
-      attachmentName: `${gif.title}.gif`,
-      attachmentType: 'gif'
-    });
+  // Mock GIF data with expanded contextual categories
+  const mockGifs = {
+    trending: [
+      { id: 1, url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", title: "Hello Wave" },
+      { id: 2, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Thank You" },
+      { id: 3, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Good Morning" },
+      { id: 4, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Thumbs Up" },
+      { id: 5, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Goodbye" },
+      { id: 6, url: "https://media.giphy.com/media/l0HlPystfePnAI3G8/giphy.gif", title: "See You Later" }
+    ],
+    reactions: [
+      { id: 7, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "OMG Surprised" },
+      { id: 8, url: "https://media.giphy.com/media/26tn6jEVRIelPhdJC/giphy.gif", title: "Mind Blown" },
+      { id: 9, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Love Heart" },
+      { id: 10, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "LOL Laughing" },
+      { id: 14, url: "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif", title: "Wow Amazing" },
+      { id: 15, url: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif", title: "Funny Reaction" }
+    ],
+    celebration: [
+      { id: 11, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Party Time" },
+      { id: 12, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Success Dance" },
+      { id: 13, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Winner Champion" },
+      { id: 16, url: "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif", title: "Congratulations" },
+      { id: 17, url: "https://media.giphy.com/media/3o6fIShUdNpuOaWWha/giphy.gif", title: "Great Job" },
+      { id: 18, url: "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif", title: "Awesome Win" }
+    ]
+  };
+
+  const handleGifSelect = (gif: any) => {
+    setMessage(prev => prev + ` [GIF: ${gif.title}] `);
     setShowGifPicker(false);
   };
 
@@ -336,7 +356,47 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
+  // Analyze conversation context to suggest relevant GIFs
+  const getContextualGifs = () => {
+    const recentMessages = messages.slice(-5); // Last 5 messages
+    const messageText = recentMessages
+      .filter(m => m.content)
+      .map(m => m.content!.toLowerCase())
+      .join(' ');
+    
+    // Keywords that trigger specific GIF categories
+    const contextKeywords = {
+      celebration: ['congrats', 'celebration', 'party', 'awesome', 'great', 'amazing', 'win', 'success', 'good job', 'well done', 'fantastic', 'excellent'],
+      reactions: ['wow', 'omg', 'shocked', 'surprised', 'love', 'heart', 'like', 'funny', 'lol', 'haha', 'laugh'],
+      trending: ['hello', 'hi', 'thanks', 'thank you', 'bye', 'goodbye', 'see you', 'good morning', 'good night']
+    };
+    
+    // Check which category has the most keyword matches
+    let bestCategory = 'trending';
+    let maxMatches = 0;
+    
+    Object.entries(contextKeywords).forEach(([category, keywords]) => {
+      const matches = keywords.filter(keyword => messageText.includes(keyword)).length;
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        bestCategory = category;
+      }
+    });
+    
+    return mockGifs[bestCategory as keyof typeof mockGifs] || mockGifs.trending;
+  };
 
+  // Filter GIFs based on search query or context
+  const getFilteredGifs = () => {
+    if (!gifSearchQuery.trim()) {
+      return getContextualGifs();
+    }
+    
+    const allGifs = [...mockGifs.trending, ...mockGifs.reactions, ...mockGifs.celebration];
+    return allGifs.filter(gif => 
+      gif.title.toLowerCase().includes(gifSearchQuery.toLowerCase())
+    );
+  };
 
   // Cryptocurrency icon helper function with optimized rendering
   const getCryptoIcon = (crypto: string) => {
@@ -416,13 +476,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageData: { 
-      content: string; 
-      messageType: string; 
-      attachmentUrl?: string; 
-      attachmentName?: string; 
-      attachmentType?: string; 
-    }) => {
+    mutationFn: async (messageData: { content: string; messageType: string }) => {
       return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
         ...messageData,
         senderId: connectedUserId // Pass the current connected user ID
@@ -1619,30 +1673,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }
                       `}
                     >
-                      {/* GIF Preview */}
-                      {msg.attachmentType === 'gif' && msg.attachmentUrl && (
-                        <div className="mb-2 w-full max-w-[240px] overflow-hidden">
-                          <img 
-                            src={msg.attachmentUrl} 
-                            alt={msg.attachmentName || "GIF"} 
-                            className="w-full h-auto max-h-40 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-all duration-300 hover:scale-105"
-                            loading="lazy"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Haptic feedback for mobile GIF tap
-                              if ('ontouchstart' in window && 'vibrate' in navigator) {
-                                navigator.vibrate(30);
-                              }
-                              handleImagePreview(
-                                msg.attachmentUrl!, 
-                                msg.attachmentName ?? undefined, 
-                                msg.attachmentSize ?? undefined
-                              );
-                            }}
-                          />
-                        </div>
-                      )}
-
                       {/* Image Preview */}
                       {msg.attachmentType === 'image' && msg.attachmentUrl && (
                         <div className="mb-2 w-full max-w-[200px] overflow-hidden">
@@ -2036,25 +2066,49 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </PopoverTrigger>
               <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
                 <div className="space-y-2">
-                  <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                    <p className="text-sm text-gray-500 dark:text-slate-400 text-center">
-                      Search thousands of GIFs with our advanced GIF picker
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">GIFs</h3>
+                    {!gifSearchQuery.trim() && (
+                      <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full">
+                        ✨ Smart suggestions
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Input
+                      placeholder="Search GIFs..."
+                      value={gifSearchQuery}
+                      onChange={(e) => setGifSearchQuery(e.target.value)}
+                      className="h-8 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400"
+                    />
+                  </div>
+
+                  
+
+                  {/* GIF Grid */}
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                    {getFilteredGifs().map((gif) => (
+                      <button
+                        key={gif.id}
+                        type="button"
+                        onClick={() => handleGifSelect(gif)}
+                        className="relative aspect-square bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden hover:bg-orange-100 dark:hover:bg-slate-600 transition-colors group"
+                      >
+                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 dark:from-slate-600 dark:to-slate-700 flex items-center justify-center">
+                          <span className="text-xs text-gray-600 dark:text-slate-300 text-center p-2 group-hover:text-orange-600 dark:group-hover:text-orange-300">
+                            {gif.title}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-1.5 border-t border-gray-200 dark:border-slate-700">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      {getFilteredGifs().length} GIFs {gifSearchQuery.trim() ? 'found' : 'suggested'}
                     </p>
-                    <Button
-                      onClick={() => {
-                        setShowGifPicker(true);
-                        // Close this popover when opening the main GIF picker
-                        const button = document.querySelector('[data-state="open"]');
-                        if (button) {
-                          (button as HTMLElement).click();
-                        }
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30"
-                    >
-                      Open GIF Picker
-                    </Button>
                   </div>
                 </div>
               </PopoverContent>
@@ -2379,12 +2433,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         />
       )}
 
-      {/* GIF Picker Modal */}
-      <GifPicker
-        isOpen={showGifPicker}
-        onClose={() => setShowGifPicker(false)}
-        onSelectGif={handleGifSelect}
-      />
 
     </div>
   );

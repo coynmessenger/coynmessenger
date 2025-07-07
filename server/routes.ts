@@ -13,7 +13,6 @@ import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
-import { GifService } from "./gif-service";
 
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
 
@@ -424,31 +423,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use senderId from request body (current connected user)
       const senderId = req.body.senderId || 5; // Fallback to 5 for backward compatibility
 
-      const messageData: any = {
+      const messageData = {
         conversationId,
         senderId,
         content: req.body.content,
-        messageType: req.body.messageType || "text"
+        messageType: req.body.messageType || "text",
+        cryptoAmount: req.body.cryptoAmount,
+        cryptoCurrency: req.body.cryptoCurrency,
+        audioFilePath: req.body.audioFilePath,
+        transcription: req.body.transcription,
+        audioDuration: req.body.audioDuration
       };
-
-      // Only include fields that have values to avoid Drizzle issues with undefined
-      if (req.body.cryptoAmount) messageData.cryptoAmount = req.body.cryptoAmount;
-      if (req.body.cryptoCurrency) messageData.cryptoCurrency = req.body.cryptoCurrency;
-      if (req.body.audioFilePath) messageData.audioFilePath = req.body.audioFilePath;
-      if (req.body.transcription) messageData.transcription = req.body.transcription;
-      if (req.body.audioDuration) messageData.audioDuration = req.body.audioDuration;
-      
-      // Attachment fields for GIFs and other attachments
-      if (req.body.attachmentUrl) messageData.attachmentUrl = req.body.attachmentUrl;
-      if (req.body.attachmentType) messageData.attachmentType = req.body.attachmentType;
-      if (req.body.attachmentName) messageData.attachmentName = req.body.attachmentName;
-      if (req.body.attachmentSize) messageData.attachmentSize = req.body.attachmentSize;
-      
-      // Product sharing fields
-      if (req.body.productId) messageData.productId = req.body.productId;
-      if (req.body.productTitle) messageData.productTitle = req.body.productTitle;
-      if (req.body.productPrice) messageData.productPrice = req.body.productPrice;
-      if (req.body.productImage) messageData.productImage = req.body.productImage;
 
       const message = await storage.createMessage(messageData);
       res.status(201).json(message);
@@ -1426,81 +1411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GIF search endpoint
-  app.get("/api/gifs/search", async (req, res) => {
-    try {
-      const { q: query = 'trending', limit = '20', offset = '0', category = '' } = req.query;
-      
-      let result;
-      if (category && category !== 'trending') {
-        // Search by category
-        result = await GifService.getGifsByCategory(
-          category as string,
-          parseInt(limit as string),
-          parseInt(offset as string)
-        );
-      } else {
-        // General search
-        result = await GifService.searchGifs(
-          query as string,
-          parseInt(limit as string),
-          parseInt(offset as string)
-        );
-      }
-      
-      res.json(result);
-    } catch (error) {
-      console.error("[GIF SEARCH] Error:", error);
-      res.status(500).json({ message: "Failed to search GIFs" });
-    }
-  });
 
-  // GIF categories endpoint
-  app.get("/api/gifs/categories", async (req, res) => {
-    try {
-      const categories = await GifService.getTrendingCategories();
-      res.json({ categories });
-    } catch (error) {
-      console.error("[GIF CATEGORIES] Error:", error);
-      res.status(500).json({ message: "Failed to get GIF categories" });
-    }
-  });
-
-  // GIF by category endpoint
-  app.get("/api/gifs/category/:category", async (req, res) => {
-    try {
-      const { category } = req.params;
-      const { limit = '20', offset = '0' } = req.query;
-      
-      const result = await GifService.getGifsByCategory(
-        category,
-        parseInt(limit as string),
-        parseInt(offset as string)
-      );
-      
-      res.json(result);
-    } catch (error) {
-      console.error("[GIF CATEGORY] Error:", error);
-      res.status(500).json({ message: "Failed to get category GIFs" });
-    }
-  });
-
-  // Register GIF view endpoint
-  app.post("/api/gifs/view", async (req, res) => {
-    try {
-      const { gifId } = req.body;
-      
-      if (!gifId) {
-        return res.status(400).json({ message: "GIF ID is required" });
-      }
-      
-      await GifService.registerGifView(gifId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("[GIF VIEW] Error:", error);
-      res.status(500).json({ message: "Failed to register GIF view" });
-    }
-  });
 
   const httpServer = createServer(app);
   
