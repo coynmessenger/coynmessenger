@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
+import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag, Sparkles } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
@@ -884,6 +884,14 @@ export default function HomePage() {
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
+                    </Button>
+                    <Button
+                      onClick={() => setLocation("/ai-assistant")}
+                      variant="outline"
+                      className="w-full border-purple-500 text-purple-500 hover:bg-purple-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                    >
+                      <Sparkles className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
+                      AI Assistant
                     </Button>
 
                     <Button

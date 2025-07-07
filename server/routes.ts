@@ -964,6 +964,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Chat endpoint using Hugging Face
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      // Use Hugging Face Inference API for text generation
+      const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+      if (!HUGGING_FACE_API_KEY) {
+        return res.status(500).json({ message: "Hugging Face API key not configured" });
+      }
+      
+      // Prepare conversation context
+      let conversationContext = "";
+      if (history && history.length > 0) {
+        conversationContext = history.map((msg: any) => 
+          `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+        ).join('\n') + '\n';
+      }
+      
+      const prompt = `${conversationContext}Human: ${message}\nAssistant:`;
+      
+      // Call Hugging Face API
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+              max_length: 200,
+              temperature: 0.7,
+              do_sample: true,
+              pad_token_id: 50256
+            }
+          }),
+        }
+      );
+      
+      if (!response.ok) {
+        // Fallback response if API fails
+        const fallbackResponses = [
+          "I'm here to help! Could you please tell me more about what you need assistance with?",
+          "That's an interesting question. Let me think about that and provide you with a helpful response.",
+          "I'd be happy to help you with that. Could you provide more details so I can give you a better answer?",
+          "Thanks for reaching out! I'm here to assist you with any questions or tasks you might have.",
+          "I understand you're looking for assistance. How can I help you today?"
+        ];
+        const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        
+        return res.json({ response: randomResponse });
+      }
+      
+      const data = await response.json();
+      let aiResponse = "";
+      
+      if (data && data.length > 0 && data[0].generated_text) {
+        // Extract only the assistant's response from the generated text
+        const fullText = data[0].generated_text;
+        const assistantIndex = fullText.lastIndexOf('Assistant:');
+        if (assistantIndex !== -1) {
+          aiResponse = fullText.substring(assistantIndex + 10).trim();
+          // Clean up the response
+          aiResponse = aiResponse.split('\n')[0].trim();
+        }
+      }
+      
+      // If no valid response, use fallback
+      if (!aiResponse || aiResponse.length < 10) {
+        const fallbackResponses = [
+          "I'm here to help! Could you please tell me more about what you need assistance with?",
+          "That's an interesting question. Let me think about that and provide you with a helpful response.",
+          "I'd be happy to help you with that. Could you provide more details so I can give you a better answer?",
+        ];
+        aiResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      }
+      
+      res.json({ response: aiResponse });
+      
+    } catch (error) {
+      console.error('AI Chat error:', error);
+      const fallbackResponse = "I apologize, but I'm having trouble processing your request right now. Please try again later.";
+      res.json({ response: fallbackResponse });
+    }
+  });
+
   // Create a new group chat
   app.post("/api/groups", async (req, res) => {
     try {

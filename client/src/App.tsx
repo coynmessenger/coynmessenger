@@ -10,6 +10,7 @@ import MarketplacePage from "@/pages/marketplace";
 import ProductPage from "@/pages/product";
 import FavoritesPage from "@/pages/favorites";
 import PurchaseHistoryPage from "@/pages/purchase-history";
+import AIAssistantPage from "@/pages/ai-assistant";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/product/:asin" component={ProductPage} />
       <Route path="/favorites" component={FavoritesPage} />
       <Route path="/purchase-history" component={PurchaseHistoryPage} />
+      <Route path="/ai-assistant" component={AIAssistantPage} />
       <Route component={NotFound} />
     </Switch>
   );
