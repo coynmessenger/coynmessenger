@@ -79,7 +79,7 @@ class MarketplaceAPI {
         reviewCount: 45231,
         category: 'Electronics',
         brand: 'Amazon',
-        description: 'Smart speaker with Alexa voice control and premium sound quality.'
+        description: 'Echo Dot 4th generation smart speaker with Alexa voice assistant in charcoal finish.'
       },
       {
         ASIN: 'B087CQR456',
@@ -117,7 +117,7 @@ class MarketplaceAPI {
         reviewCount: 8234,
         category: 'Electronics',
         brand: 'Samsung',
-        description: 'Advanced smartwatch with health tracking and GPS.'
+        description: 'Samsung Galaxy Watch 4 smartwatch with advanced health tracking and built-in GPS.'
       },
       {
         ASIN: 'B0BSHF7LKS',
@@ -136,7 +136,7 @@ class MarketplaceAPI {
         reviewCount: 15642,
         category: 'Electronics',
         brand: 'Sony',
-        description: 'Industry-leading noise cancellation with exceptional sound quality.'
+        description: 'Sony WH-1000XM5 wireless headphones with industry-leading noise cancellation technology.'
       },
       {
         ASIN: 'B09JQMJHXY',
@@ -233,7 +233,7 @@ class MarketplaceAPI {
         reviewCount: 34521,
         category: 'Home & Kitchen',
         brand: 'Ninja',
-        description: 'Professional blender with Total Crushing Technology.'
+        description: 'Ninja BL610 Professional Blender with Total Crushing Technology for smoothies and ice.'
       },
       {
         ASIN: 'B07VBDFQRT',
@@ -410,7 +410,7 @@ class MarketplaceAPI {
         reviewCount: 25643,
         category: 'Clothing & Fashion',
         brand: 'Levi\'s',
-        description: 'Classic straight-leg jeans with authentic five-pocket styling.'
+        description: 'Levi\'s 501 Original Fit Jeans - classic straight-leg denim with five-pocket styling.'
       },
       {
         ASIN: 'B08HQXYZ12',
@@ -488,7 +488,7 @@ class MarketplaceAPI {
         reviewCount: 34567,
         category: 'Beauty & Personal Care',
         brand: 'The Ordinary',
-        description: 'High-strength serum to reduce appearance of blemishes and congestion.'
+        description: 'The Ordinary Niacinamide 10% + Zinc 1% serum for reducing blemishes and congestion.'
       },
       {
         ASIN: 'B07MNOPQR8',
@@ -568,7 +568,7 @@ class MarketplaceAPI {
         reviewCount: 78901,
         category: 'Health & Wellness',
         brand: 'Vitafusion',
-        description: 'Delicious multivitamin gummies with essential vitamins and minerals.'
+        description: 'Vitafusion Multivitamin Gummies - delicious daily vitamins with essential nutrients.'
       },
       {
         ASIN: 'B07HIJKLMN',
@@ -627,7 +627,7 @@ class MarketplaceAPI {
         reviewCount: 89012,
         category: 'Toys & Games',
         brand: 'Hasbro',
-        description: 'The classic property trading game for family game night.'
+        description: 'Monopoly Classic Board Game - the original property trading game for family fun.'
       },
 
       // Pet Supplies
@@ -648,10 +648,10 @@ class MarketplaceAPI {
         reviewCount: 56789,
         category: 'Pet Supplies',
         brand: 'KONG',
-        description: 'Durable natural rubber toy that can be stuffed with treats.'
+        description: 'KONG Classic Dog Toy - durable natural rubber toy that can be stuffed with treats.'
       },
       {
-        ASIN: 'B08HIJKLMN',
+        ASIN: 'B08GHIJKLM',
         title: 'Purina Pro Plan Dog Food',
         price: '54.99',
         currency: 'USD',
@@ -662,17 +662,17 @@ class MarketplaceAPI {
           'https://m.media-amazon.com/images/I/81JKLMNpL._AC_SL1500_.jpg',
           'https://m.media-amazon.com/images/I/81KLMNpL._AC_SL1500_.jpg'
         ],
-        productUrl: 'https://amazon.com/dp/B08HIJKLMN',
+        productUrl: 'https://amazon.com/dp/B08GHIJKLM',
         rating: 4.7,
         reviewCount: 23456,
         category: 'Pet Supplies',
         brand: 'Purina',
-        description: 'High-protein dog food with real chicken as the first ingredient.'
+        description: 'Pro Plan high-protein dog food formula with real chicken as #1 ingredient.'
       },
 
       // Office Products
       {
-        ASIN: 'B09OPQRSTU',
+        ASIN: 'B09MNOPQRS',
         title: 'Staples Arc Customizable Notebook',
         price: '24.99',
         currency: 'USD',
@@ -683,12 +683,12 @@ class MarketplaceAPI {
           'https://m.media-amazon.com/images/I/71QRSTUvL._AC_SL1500_.jpg',
           'https://m.media-amazon.com/images/I/71RSTUvL._AC_SL1500_.jpg'
         ],
-        productUrl: 'https://amazon.com/dp/B09OPQRSTU',
+        productUrl: 'https://amazon.com/dp/B09MNOPQRS',
         rating: 4.5,
         reviewCount: 12345,
         category: 'Office Products',
         brand: 'Staples',
-        description: 'Customizable notebook system with removable pages and accessories.'
+        description: 'Arc Customizable Notebook with removable pages and expandable disc system.'
       },
       {
         ASIN: 'B07VWXYZ01',
@@ -707,7 +707,7 @@ class MarketplaceAPI {
         reviewCount: 45678,
         category: 'Office Products',
         brand: 'Logitech',
-        description: 'Advanced wireless mouse with precision tracking and customizable buttons.'
+        description: 'Logitech MX Master 3 advanced wireless mouse with precision tracking and customizable buttons.'
       }
     ];
   }
