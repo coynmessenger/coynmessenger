@@ -1135,7 +1135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Favorites API routes
   app.get("/api/favorites", async (req, res) => {
     try {
-      const userId = 5; // Current user
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
       const favorites = await storage.getFavorites(userId);
       res.json(favorites);
     } catch (error) {
@@ -1146,8 +1151,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/favorites", async (req, res) => {
     try {
-      const userId = 5; // Current user
-      const { productId, productTitle, productPrice, productImage, productCategory, productRating } = req.body;
+      const { userId, productId, productTitle, productPrice, productImage, productCategory, productRating } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
       
       if (!productId || !productTitle) {
         return res.status(400).json({ message: "Product ID and title are required" });
@@ -1182,8 +1190,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/favorites/:productId", async (req, res) => {
     try {
-      const userId = 5; // Current user
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
       const { productId } = req.params;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
       
       const success = await storage.removeFromFavorites(userId, productId);
       

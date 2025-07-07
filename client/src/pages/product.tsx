@@ -147,16 +147,20 @@ export default function ProductPage() {
 
   // Fetch favorites
   const { data: favorites = [] } = useQuery({
-    queryKey: ['/api/favorites'],
-    queryFn: () => fetch('/api/favorites').then(res => res.json())
+    queryKey: ['/api/favorites', connectedUser?.id],
+    queryFn: () => {
+      if (!connectedUser?.id) return [];
+      return fetch(`/api/favorites?userId=${connectedUser.id}`).then(res => res.json());
+    },
+    enabled: !!connectedUser?.id
   });
 
   // Add favorite mutation
   const addFavoriteMutation = useMutation({
     mutationFn: (productData: any) => 
-      apiRequest('POST', '/api/favorites', productData),
+      apiRequest('POST', '/api/favorites', { ...productData, userId: connectedUser?.id }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites', connectedUser?.id] });
       toast({
         title: "Added to favorites",
         description: "Product has been added to your favorites",
@@ -167,9 +171,9 @@ export default function ProductPage() {
   // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: (productId: string) => 
-      apiRequest('DELETE', `/api/favorites/${productId}`),
+      apiRequest('DELETE', `/api/favorites/${productId}?userId=${connectedUser?.id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites', connectedUser?.id] });
       toast({
         title: "Removed from favorites",
         description: "Product has been removed from your favorites",

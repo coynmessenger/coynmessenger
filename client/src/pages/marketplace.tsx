@@ -192,6 +192,10 @@ export default function MarketplacePage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
 
+  // Get connected user from localStorage
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+
   // Fetch marketplace products - always enabled to show all products by default
   const { data: marketplaceProducts = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ["/api/marketplace/search", searchQuery, selectedCategory],
@@ -225,12 +229,14 @@ export default function MarketplacePage() {
 
   // Fetch user favorites
   const { data: favorites = [] } = useQuery({
-    queryKey: ["/api/favorites"],
+    queryKey: ["/api/favorites", connectedUser?.id],
     queryFn: async () => {
-      const res = await fetch("/api/favorites");
+      if (!connectedUser?.id) return [];
+      const res = await fetch(`/api/favorites?userId=${connectedUser.id}`);
       if (!res.ok) throw new Error("Failed to fetch favorites");
       return res.json();
-    }
+    },
+    enabled: !!connectedUser?.id
   });
 
   const queryClient = useQueryClient();
@@ -246,7 +252,7 @@ export default function MarketplacePage() {
       
       if (isCurrentlyFavorited) {
         // Remove from favorites
-        const res = await fetch(`/api/favorites/${productId}`, {
+        const res = await fetch(`/api/favorites/${productId}?userId=${connectedUser?.id}`, {
           method: "DELETE"
         });
         if (!res.ok) throw new Error("Failed to remove favorite");
@@ -254,6 +260,7 @@ export default function MarketplacePage() {
       } else {
         // Add to favorites
         const favoriteData = {
+          userId: connectedUser?.id,
           productId: productId,
           productTitle: product.title,
           productPrice: product.price.toString(),
@@ -271,7 +278,7 @@ export default function MarketplacePage() {
       }
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites", connectedUser?.id] });
       
       // The success message should be based on the action taken
       const isMarketplaceProduct = 'ASIN' in variables;

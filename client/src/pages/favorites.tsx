@@ -66,16 +66,25 @@ export default function FavoritesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get connected user from localStorage
+  const connectedUserString = localStorage.getItem('connectedUser');
+  const connectedUser = connectedUserString ? JSON.parse(connectedUserString) : null;
+
   const { data: favorites = [] } = useQuery<Favorite[]>({
-    queryKey: ['/api/favorites'],
+    queryKey: ['/api/favorites', connectedUser?.id],
+    queryFn: () => {
+      if (!connectedUser?.id) return [];
+      return fetch(`/api/favorites?userId=${connectedUser.id}`).then(res => res.json());
+    },
+    enabled: !!connectedUser?.id
   });
 
   const removeFavoriteMutation = useMutation({
     mutationFn: async (productId: string) => {
-      return apiRequest('DELETE', `/api/favorites/${productId}`);
+      return apiRequest('DELETE', `/api/favorites/${productId}?userId=${connectedUser?.id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites', connectedUser?.id] });
       toast({
         title: "Removed from Favorites",
         description: "Item has been removed from your favorites list.",
