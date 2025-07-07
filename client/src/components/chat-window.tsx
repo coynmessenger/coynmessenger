@@ -1907,7 +1907,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-3 sm:p-4 shadow-lg">
+      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-2 sm:p-3 shadow-lg">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border-l-4 border-orange-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -1937,7 +1937,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center space-x-2 sm:space-x-3">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-2">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -1946,7 +1946,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
@@ -2010,7 +2010,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
               >
                 <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
@@ -2074,7 +2074,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }
               }}
               placeholder="Type a message..."
-              className="pr-16 sm:pr-20 h-11 sm:h-10 text-sm sm:text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
+              className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
             />
             
 
@@ -2089,50 +2089,49 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               onOpenChange={setShowEmojiPicker}
             />
 
-            {/* GIF Picker */}
-            <GifPicker
-              onGifSelect={(gif) => {
-                // Send GIF as a message
-                const gifMessage = {
-                  messageType: "gif" as const,
-                  gifUrl: gif.images.original.url,
-                  gifTitle: gif.title,
-                  gifId: gif.id
-                };
-                
-                // Use API request directly since mutation expects different format
-                apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-                  senderId: connectedUserId,
-                  content: gif.title,
-                  messageType: "gif",
-                  gifUrl: gif.images.original.url,
-                  gifTitle: gif.title,
-                  gifId: gif.id
-                }).then(() => {
-                  // Refresh messages after sending
-                  queryClient.invalidateQueries({ 
-                    queryKey: ["/api/conversations", conversation.id, "messages"] 
-                  });
-                }).catch((error) => {
-                  console.error('Failed to send GIF:', error);
-                  toast({
-                    title: "Error",
-                    description: "Failed to send GIF. Please try again.",
-                    variant: "destructive",
-                  });
-                });
-              }}
-              isOpen={showGifPicker}
-              onOpenChange={setShowGifPicker}
-            />
           </div>
 
-
+          {/* GIF Picker */}
+          <GifPicker
+            onGifSelect={(gif) => {
+              // Send GIF as a message
+              const gifMessage = {
+                messageType: "gif" as const,
+                gifUrl: gif.images.original.url,
+                gifTitle: gif.title,
+                gifId: gif.id
+              };
+              
+              // Use API request directly since mutation expects different format
+              apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
+                senderId: connectedUserId,
+                content: gif.title,
+                messageType: "gif",
+                gifUrl: gif.images.original.url,
+                gifTitle: gif.title,
+                gifId: gif.id
+              }).then(() => {
+                // Refresh messages after sending
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/conversations", conversation.id, "messages"] 
+                });
+              }).catch((error) => {
+                console.error('Failed to send GIF:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to send GIF. Please try again.",
+                  variant: "destructive",
+                });
+              });
+            }}
+            isOpen={showGifPicker}
+            onOpenChange={setShowGifPicker}
+          />
 
           <Button 
             type="submit"
             size="icon"
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white h-10 w-10 sm:h-10 sm:w-10 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white h-8 w-8 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <Send className="h-4 w-4 sm:h-4 sm:w-4" />

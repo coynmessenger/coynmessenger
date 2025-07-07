@@ -44,7 +44,11 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
           type="button"
           variant="ghost"
           size="icon"
-          className="absolute right-1 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
+          className={`absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 backdrop-blur-sm transition-all duration-300 rounded-xl h-7 w-7 sm:h-8 sm:w-8 touch-manipulation ${
+            isOpen 
+              ? 'bg-orange-500 text-white shadow-md' 
+              : 'text-gray-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+          }`}
         >
           <Smile className="h-4 w-4 sm:h-4 sm:w-4" />
         </Button>

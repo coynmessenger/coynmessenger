@@ -136,7 +136,11 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
           type="button"
           variant="ghost"
           size="icon"
-          className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 sm:h-10 sm:w-10"
+          className={`backdrop-blur-sm transition-all duration-300 rounded-xl h-8 w-8 sm:h-8 sm:w-8 touch-manipulation ${
+            isOpen 
+              ? 'bg-orange-500 text-white shadow-md' 
+              : 'text-gray-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+          }`}
         >
           <Image className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
