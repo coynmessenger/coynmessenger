@@ -33,7 +33,8 @@ import {
   Clock,
   Package,
   Send,
-  MessageCircle
+  MessageCircle,
+  Search
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
@@ -956,9 +957,14 @@ export default function ProductPage() {
 
       {/* Product Share Modal */}
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Share Product</DialogTitle>
+        <DialogContent className="max-w-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl">
+          <DialogHeader className="space-y-3 pb-4 border-b border-gray-200 dark:border-slate-700">
+            <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+              Share Product
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Share this product with your contacts in COYN Messenger
+            </p>
           </DialogHeader>
           
           <ProductShareModalContent 
@@ -1041,93 +1047,146 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
 
   return (
     <div className="space-y-4">
-      {/* Product Preview */}
-      <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
-        <div className="flex items-center gap-3">
-          <img
-            src={product.imageUrl}
-            alt={product.title}
-            className="w-12 h-12 object-cover rounded"
-          />
+      {/* Product Preview Card */}
+      <div className="bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-950/20 dark:to-pink-950/20 rounded-xl p-4 border border-orange-200/30 dark:border-orange-800/30">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="w-16 h-16 object-cover rounded-lg shadow-md"
+            />
+            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full p-1">
+              <Share className="h-3 w-3 text-white" />
+            </div>
+          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{product.title}</p>
-            <p className="text-sm text-muted-foreground">${product.price}</p>
+            <h3 className="text-sm font-semibold text-foreground line-clamp-2 mb-1">{product.title}</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-orange-600 dark:text-orange-400">${formatPrice(product.price)}</span>
+              <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Search Conversations */}
-      <div className="relative">
-        <Input
-          type="text"
-          placeholder="Search conversations..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-        <MessageCircle className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+      {/* Search and Header */}
+      <div className="space-y-3">
+        <div className="text-center">
+          <h4 className="text-sm font-medium text-foreground mb-1">Select Contacts</h4>
+          <p className="text-xs text-muted-foreground">Choose who to share this product with</p>
+        </div>
+        
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="Search your contacts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 focus:border-orange-400 dark:focus:border-orange-500"
+          />
+          <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+        </div>
       </div>
 
       {/* Conversations List */}
-      <div className="max-h-64 overflow-y-auto space-y-2">
-        {filteredConversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            onClick={() => toggleConversationSelection(conversation.id)}
-            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-              selectedConversations.has(conversation.id)
-                ? 'bg-orange-50 dark:bg-cyan-900/20 border-orange-200 dark:border-cyan-600'
-                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
-            }`}
-          >
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
-              <AvatarFallback className="bg-orange-500 dark:bg-cyan-500 text-white text-sm font-medium">
-                {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">
-                {conversation.otherUser?.displayName || conversation.otherUser?.username}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {conversation.otherUser?.username && conversation.otherUser?.displayName !== conversation.otherUser?.username 
-                  ? `@${conversation.otherUser.username}` 
-                  : 'User'}
-              </p>
-            </div>
-            {selectedConversations.has(conversation.id) && (
-              <Check className="h-4 w-4 text-orange-600 dark:text-cyan-400" />
-            )}
+      <div className="space-y-2">
+        {filteredConversations.length > 0 ? (
+          <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+            {filteredConversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                onClick={() => toggleConversationSelection(conversation.id)}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
+                  selectedConversations.has(conversation.id)
+                    ? 'bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30 border-orange-300 dark:border-orange-600 shadow-md scale-[1.02]'
+                    : 'bg-white/70 dark:bg-slate-800/70 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/70 hover:border-gray-300 dark:hover:border-slate-600'
+                }`}
+              >
+                <Avatar className="w-10 h-10 ring-2 ring-white dark:ring-slate-800">
+                  <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-pink-500 text-white text-sm font-semibold">
+                    {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {conversation.otherUser?.displayName || conversation.otherUser?.username || 'Unknown User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {conversation.otherUser?.username && conversation.otherUser?.displayName !== conversation.otherUser?.username 
+                      ? `@${conversation.otherUser.username}` 
+                      : 'COYN Contact'}
+                  </p>
+                </div>
+                <div className={`transition-all duration-200 ${
+                  selectedConversations.has(conversation.id) ? 'scale-110' : 'scale-100'
+                }`}>
+                  {selectedConversations.has(conversation.id) ? (
+                    <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 border-2 border-gray-300 dark:border-slate-600 rounded-full"></div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <div className="text-center py-12">
+            <div className="bg-gray-100 dark:bg-slate-800 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-sm font-medium text-foreground mb-1">No contacts found</h3>
+            <p className="text-xs text-muted-foreground">
+              {searchQuery ? 'Try a different search term' : 'Start chatting to see contacts here'}
+            </p>
+          </div>
+        )}
       </div>
 
-      {filteredConversations.length === 0 && (
-        <div className="text-center py-8">
-          <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-          <p className="text-muted-foreground">No conversations found</p>
+      {/* Selected Count */}
+      {selectedConversations.size > 0 && (
+        <div className="bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 rounded-lg p-3 border border-orange-200/50 dark:border-orange-800/50">
+          <p className="text-sm font-medium text-orange-700 dark:text-orange-300 text-center">
+            {selectedConversations.size} contact{selectedConversations.size > 1 ? 's' : ''} selected
+          </p>
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex justify-between items-center pt-4 border-t">
-        <div className="text-sm text-muted-foreground">
-          {selectedConversations.size} conversation{selectedConversations.size !== 1 ? 's' : ''} selected
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleShare}
-            disabled={selectedConversations.size === 0 || isSharing}
-            className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-600 dark:hover:bg-cyan-700"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-        </div>
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <Button
+          variant="outline"
+          onClick={onClose}
+          className="flex-1 h-12 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
+          disabled={isSharing}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleShare}
+          disabled={selectedConversations.size === 0 || isSharing}
+          className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSharing ? (
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Sharing...</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              <span>Share Product</span>
+              {selectedConversations.size > 0 && (
+                <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
+                  {selectedConversations.size}
+                </Badge>
+              )}
+            </div>
+          )}
+        </Button>
       </div>
     </div>
   );
