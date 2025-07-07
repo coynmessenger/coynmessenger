@@ -202,19 +202,19 @@ class MarketplaceAPI {
         title: 'Instant Pot Duo 7-in-1 Electric Pressure Cooker',
         price: '89.99',
         currency: 'USD',
-        imageUrl: 'https://m.media-amazon.com/images/I/71wF7YDIQkL._AC_SL1500_.jpg',
+        imageUrl: 'https://m.media-amazon.com/images/I/71QGpGOmXmL._AC_SL1500_.jpg',
         images: [
-          'https://m.media-amazon.com/images/I/71wF7YDIQkL._AC_SL1500_.jpg',
-          'https://m.media-amazon.com/images/I/717V8t5JLSL._AC_SL1500_.jpg',
-          'https://m.media-amazon.com/images/I/71QGLxGGvdL._AC_SL1500_.jpg',
-          'https://m.media-amazon.com/images/I/71G0eaWM7WL._AC_SL1500_.jpg'
+          'https://m.media-amazon.com/images/I/71QGpGOmXmL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71lnOTm3XiL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/81OXrJHKpjL._AC_SL1500_.jpg',
+          'https://m.media-amazon.com/images/I/71bEomT0ZjL._AC_SL1500_.jpg'
         ],
         productUrl: 'https://amazon.com/dp/B07DFBQZPX',
         rating: 4.7,
         reviewCount: 89542,
         category: 'Home & Kitchen',
         brand: 'Instant Pot',
-        description: 'Multi-functional electric pressure cooker with 7 cooking programs.'
+        description: 'Instant Pot Duo 7-in-1 Electric Pressure Cooker with multiple cooking programs.'
       },
       {
         ASIN: 'B082WJP1FG',
