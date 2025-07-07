@@ -1362,7 +1362,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.senderId === connectedUserId ? (
                   // Sent message (current user) - with swipe-to-reply
-                  <div className="flex justify-end items-start space-x-3 mb-1" data-message-id={msg.id}>
+                  <div className="flex justify-end items-start space-x-3 mb-4" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
                       
                       {/* Swipeable message */}
@@ -1451,7 +1451,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 ) : (
                   // Received message - with swipe-to-reply
-                  <div className="flex items-start space-x-3 mb-1" data-message-id={msg.id}>
+                  <div className="flex items-start space-x-3 mb-4" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender?.profilePicture || ""} />
                       <AvatarFallback>{msg.sender?.displayName?.charAt(0) || msg.sender?.username?.charAt(0) || "U"}</AvatarFallback>
@@ -1558,7 +1558,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "product_share" ? (
                 // Product sharing message
-                <div className="flex justify-center group mb-1" data-message-id={msg.id}>
+                <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">
 
                     <Card className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"

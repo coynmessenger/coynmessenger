@@ -252,7 +252,7 @@ export default function HomePage() {
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [connectWalletMutation]);
+  }, []);
 
   // Handle mobile wallet returns (optimized - no duplicate checks)
   useEffect(() => {
