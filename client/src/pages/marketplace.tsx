@@ -376,10 +376,16 @@ export default function MarketplacePage() {
   const categories = [
     { value: "all", label: "All Categories", icon: Package },
     { value: "electronics", label: "Electronics", icon: Zap },
-    { value: "home-garden", label: "Home & Garden", icon: Home },
-    { value: "clothing", label: "Clothing & Fashion", icon: Star },
-    { value: "books", label: "Books & Media", icon: TrendingUp },
-    { value: "sports", label: "Sports & Outdoors", icon: Users }
+    { value: "home & kitchen", label: "Home & Kitchen", icon: Home },
+    { value: "books", label: "Books", icon: TrendingUp },
+    { value: "sports & outdoors", label: "Sports & Outdoors", icon: Users },
+    { value: "clothing & fashion", label: "Clothing & Fashion", icon: Star },
+    { value: "beauty & personal care", label: "Beauty & Personal Care", icon: Heart },
+    { value: "automotive", label: "Automotive", icon: CreditCard },
+    { value: "health & wellness", label: "Health & Wellness", icon: Coins },
+    { value: "toys & games", label: "Toys & Games", icon: ArrowRight },
+    { value: "pet supplies", label: "Pet Supplies", icon: Filter },
+    { value: "office products", label: "Office Products", icon: FileText }
   ];
 
   const allItems = [...marketplaceProducts, ...legacyItems];
