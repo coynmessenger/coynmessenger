@@ -70,9 +70,17 @@ export default function AIAssistantPage() {
     }
   }, [messages]);
 
-  // Request permissions and initialize voice mode
+  // Initialize AI Assistant immediately
   useEffect(() => {
-    requestPermissions();
+    // Set permissions as granted by default
+    setPermissionsGranted(true);
+    
+    // Initialize voice mode immediately
+    if (voiceMode.isActive && !voiceMode.isPaused) {
+      setTimeout(() => {
+        initializeAIAssistant();
+      }, 1000);
+    }
     
     return () => {
       if (recognitionRef.current) {
@@ -94,38 +102,45 @@ export default function AIAssistantPage() {
     };
   }, []);
 
-  // Request microphone and camera permissions
-  const requestPermissions = async () => {
+  // Initialize AI Assistant with user interaction
+  const initializeAIAssistant = async () => {
     try {
-      setPermissionError(null);
+      console.log('Initializing AI Assistant...');
       
-      // Request microphone permission
-      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Try to get permissions gracefully
+      try {
+        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioStream.getTracks().forEach(track => track.stop());
+        
+        // Initialize voice recognition
+        startVoiceRecognition();
+        startAudioVisualization();
+      } catch (error) {
+        console.log('Audio permissions not granted, voice recognition disabled');
+      }
       
-      // Request camera permission
-      const videoStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 } 
-      });
-      
-      // Stop the streams after permission check
-      audioStream.getTracks().forEach(track => track.stop());
-      videoStream.getTracks().forEach(track => track.stop());
-      
-      setPermissionsGranted(true);
-      
-      // Initialize voice mode after permissions granted
-      if (voiceMode.isActive && !voiceMode.isPaused) {
-        setTimeout(() => {
-          startVoiceRecognition();
-          startAudioVisualization();
-          startGestureRecognition();
-        }, 500);
+      // Try gesture recognition
+      try {
+        const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoStream.getTracks().forEach(track => track.stop());
+        startGestureRecognition();
+      } catch (error) {
+        console.log('Camera permissions not granted, gesture recognition disabled');
       }
       
     } catch (error) {
-      console.error('Permission denied:', error);
-      setPermissionError('Microphone and camera access required for voice and gesture control');
-      setPermissionsGranted(false);
+      console.error('AI Assistant initialization error:', error);
+    }
+  };
+
+  // User-triggered speech test
+  const testSpeech = () => {
+    console.log('Testing speech synthesis...');
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const testMessage = "Hello! I can hear you and speak back to you. Voice system is working!";
+      speakResponse(testMessage);
+    } else {
+      console.error('Speech synthesis not available');
     }
   };
 
@@ -287,60 +302,52 @@ export default function AIAssistantPage() {
     }
   });
 
-  // Enhanced text-to-speech function
+  // Direct text-to-speech function
   const speakResponse = (text: string) => {
-    if ('speechSynthesis' in window && permissionsGranted) {
+    console.log('Attempting to speak:', text);
+    
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       // Clear any existing speech
-      speechSynthesis.cancel();
+      try {
+        speechSynthesis.cancel();
+      } catch (e) {
+        console.log('Cancel speech error:', e);
+      }
       
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Enhanced speech settings
-      utterance.rate = 0.85;
-      utterance.pitch = 1.1;
+      // Simple, reliable settings
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
       utterance.volume = 1.0;
       utterance.lang = 'en-US';
       
-      // Try to use a more natural voice
-      const voices = speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.name.includes('Google') || 
-        voice.name.includes('Microsoft') ||
-        voice.name.includes('Natural') ||
-        voice.lang.includes('en-US')
-      );
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      
       utterance.onstart = () => {
-        console.log('AI Assistant started speaking');
+        console.log('✓ AI Assistant started speaking');
+        setVoiceMode(prev => ({ ...prev, currentResponse: text }));
       };
       
       utterance.onend = () => {
-        console.log('AI Assistant finished speaking');
-        // Clear the current response after speaking
+        console.log('✓ AI Assistant finished speaking');
         setTimeout(() => {
           setVoiceMode(prev => ({ ...prev, currentResponse: "" }));
-        }, 1000);
+        }, 200);
       };
       
       utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event);
+        console.error('Speech error:', event.error);
         setVoiceMode(prev => ({ ...prev, currentResponse: "" }));
       };
       
-      // Ensure voices are loaded
-      if (voices.length === 0) {
-        speechSynthesis.addEventListener('voiceschanged', () => {
-          speechSynthesis.speak(utterance);
-        }, { once: true });
-      } else {
+      // Force speech to work
+      try {
         speechSynthesis.speak(utterance);
+        console.log('✓ Speech command sent');
+      } catch (error) {
+        console.error('Speech failed:', error);
       }
     } else {
-      console.warn('Speech synthesis not available or permissions not granted');
+      console.error('Speech synthesis not available');
     }
   };
 
@@ -681,7 +688,7 @@ export default function AIAssistantPage() {
                   </Button>
                 )}
                 <Button
-                  onClick={() => speakResponse("Hello! I can hear you and speak back to you. Voice system is working properly.")}
+                  onClick={testSpeech}
                   variant="outline"
                   size="sm"
                   className="border-blue-500 text-blue-600 hover:bg-blue-50"
@@ -705,43 +712,8 @@ export default function AIAssistantPage() {
         </div>
       </div>
 
-      {/* Permission Request Interface */}
-      {!permissionsGranted && permissionError ? (
-        <div className="flex flex-col h-[calc(100vh-80px)] justify-center items-center p-8">
-          <div className="text-center space-y-6 max-w-md">
-            <div className="w-24 h-24 mx-auto bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center">
-              <Mic className="h-12 w-12 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Microphone & Camera Access Required
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {permissionError}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                Please allow access to your microphone and camera to enable voice conversation and gesture control with the AI Assistant.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Button
-                onClick={requestPermissions}
-                className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-              >
-                <Mic className="h-5 w-5 mr-2" />
-                Grant Permissions
-              </Button>
-              <Button
-                onClick={() => setShowChatMode(true)}
-                variant="outline"
-                className="w-full"
-              >
-                Use Text Chat Instead
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : voiceMode.isActive && !showChatMode ? (
+      {/* Voice Mode Interface */}
+      {voiceMode.isActive && !showChatMode ? (
         <div className="flex flex-col h-[calc(100vh-80px)] justify-center items-center p-8">
           <div className="text-center space-y-8">
             {/* Voice-Sensitive COYN Logo */}
