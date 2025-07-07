@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, Send, Bot, User, Sparkles, Mic, MicOff, Pause, Square, Play } from "lucide-react";
+import { Home, Send, Bot, User, Sparkles, Mic, MicOff, Pause, Square, Play, Hand } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
@@ -25,6 +25,8 @@ interface VoiceMode {
   audioLevel: number;
   isProcessing: boolean;
   currentResponse: string;
+  gestureDetected: string | null;
+  gestureConfidence: number;
 }
 
 export default function AIAssistantPage() {
@@ -39,7 +41,9 @@ export default function AIAssistantPage() {
     transcript: "",
     audioLevel: 0,
     isProcessing: false,
-    currentResponse: ""
+    currentResponse: "",
+    gestureDetected: null,
+    gestureConfidence: 0
   });
   const [showChatMode, setShowChatMode] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -50,6 +54,9 @@ export default function AIAssistantPage() {
   const animationRef = useRef<number>(0);
   const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTranscriptRef = useRef<string>("");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gestureIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -66,6 +73,7 @@ export default function AIAssistantPage() {
     if (voiceMode.isActive && !voiceMode.isPaused) {
       startVoiceRecognition();
       startAudioVisualization();
+      startGestureRecognition();
     }
     
     return () => {
@@ -78,6 +86,13 @@ export default function AIAssistantPage() {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+      }
+      stopGestureRecognition();
     };
   }, []);
 
@@ -124,14 +139,16 @@ export default function AIAssistantPage() {
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
+    stopGestureRecognition();
     setVoiceMode(prev => ({ ...prev, isPaused: true }));
     setIsListening(false);
   };
 
   const resumeVoiceMode = () => {
-    setVoiceMode(prev => ({ ...prev, isPaused: false, currentResponse: "" }));
+    setVoiceMode(prev => ({ ...prev, isPaused: false, currentResponse: "", gestureDetected: null, gestureConfidence: 0 }));
     startVoiceRecognition();
     startAudioVisualization();
+    startGestureRecognition();
   };
 
   const stopVoiceMode = () => {
@@ -151,6 +168,7 @@ export default function AIAssistantPage() {
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
+    stopGestureRecognition();
     
     // Add current transcript and response to messages if available
     if (voiceMode.transcript.trim()) {
@@ -177,7 +195,9 @@ export default function AIAssistantPage() {
       isPaused: false, 
       transcript: "", 
       currentResponse: "",
-      isProcessing: false 
+      isProcessing: false,
+      gestureDetected: null,
+      gestureConfidence: 0
     }));
     setShowChatMode(true);
   };
@@ -272,23 +292,184 @@ export default function AIAssistantPage() {
       if (voiceMode.isActive && !voiceMode.isPaused && transcript.trim()) {
         setVoiceMode(prev => ({ ...prev, isProcessing: true }));
         
+        // Include gesture context in the message if detected
+        let finalTranscript = transcript;
+        if (voiceMode.gestureDetected && voiceMode.gestureConfidence > 0.7) {
+          finalTranscript = `${transcript} [Gesture: ${voiceMode.gestureDetected}]`;
+        }
+        
         // Add user message to conversation
         const userMessage: Message = {
           id: Date.now().toString(),
           role: 'user',
-          content: transcript,
+          content: finalTranscript,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, userMessage]);
         
         // Send to AI
-        chatMutation.mutate(transcript);
+        chatMutation.mutate(finalTranscript);
         
         // Clear transcript after processing
-        setVoiceMode(prev => ({ ...prev, transcript: "" }));
+        setVoiceMode(prev => ({ ...prev, transcript: "", gestureDetected: null, gestureConfidence: 0 }));
         lastTranscriptRef.current = "";
       }
     }, 2000);
+  };
+
+  // Start camera for gesture recognition
+  const startGestureRecognition = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { width: 640, height: 480 },
+        audio: false 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        
+        // Start gesture detection loop
+        gestureIntervalRef.current = setInterval(() => {
+          detectGestures();
+        }, 500); // Check for gestures every 500ms
+      }
+    } catch (error) {
+      console.error('Error accessing camera for gesture recognition:', error);
+    }
+  };
+
+  // Simple gesture detection based on hand position analysis
+  const detectGestures = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx || video.videoWidth === 0 || video.videoHeight === 0) return;
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw current video frame to canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Get image data for analysis
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Simple gesture detection based on motion and color analysis
+    const gesture = analyzeHandGesture(data, canvas.width, canvas.height);
+    
+    if (gesture.type && gesture.confidence > 0.6) {
+      setVoiceMode(prev => ({
+        ...prev,
+        gestureDetected: gesture.type,
+        gestureConfidence: gesture.confidence
+      }));
+      
+      // Handle specific gestures
+      handleGestureCommand(gesture.type, gesture.confidence);
+    }
+  };
+
+  // Analyze hand gesture from image data
+  const analyzeHandGesture = (data: Uint8ClampedArray, width: number, height: number) => {
+    // Simple analysis based on movement patterns and positioning
+    let motionPixels = 0;
+    let skinColorPixels = 0;
+    let topQuadrantMotion = 0;
+    let bottomQuadrantMotion = 0;
+    let leftMotion = 0;
+    let rightMotion = 0;
+    
+    // Analyze pixels for skin-like colors and motion patterns
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      // Simple skin color detection
+      if (r > 95 && g > 40 && b > 20 && 
+          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+          Math.abs(r - g) > 15 && r > g && r > b) {
+        skinColorPixels++;
+        
+        const pixelIndex = i / 4;
+        const x = pixelIndex % width;
+        const y = Math.floor(pixelIndex / width);
+        
+        // Quadrant analysis
+        if (y < height / 2) topQuadrantMotion++;
+        else bottomQuadrantMotion++;
+        
+        if (x < width / 2) leftMotion++;
+        else rightMotion++;
+      }
+    }
+    
+    // Gesture recognition based on patterns
+    const totalPixels = data.length / 4;
+    const skinRatio = skinColorPixels / totalPixels;
+    
+    if (skinRatio > 0.02) { // Hand detected
+      if (topQuadrantMotion > bottomQuadrantMotion * 2) {
+        return { type: 'wave', confidence: Math.min(0.9, skinRatio * 10) };
+      } else if (leftMotion > rightMotion * 1.5) {
+        return { type: 'point-left', confidence: Math.min(0.8, skinRatio * 8) };
+      } else if (rightMotion > leftMotion * 1.5) {
+        return { type: 'point-right', confidence: Math.min(0.8, skinRatio * 8) };
+      } else if (skinRatio > 0.05) {
+        return { type: 'open-palm', confidence: Math.min(0.7, skinRatio * 6) };
+      }
+    }
+    
+    return { type: null, confidence: 0 };
+  };
+
+  // Handle gesture commands
+  const handleGestureCommand = (gestureType: string, confidence: number) => {
+    if (confidence < 0.7) return;
+    
+    switch (gestureType) {
+      case 'wave':
+        // Wave gesture could trigger a greeting or attention
+        if (!voiceMode.isProcessing && !voiceMode.isPaused) {
+          console.log('Wave gesture detected - AI attention activated');
+        }
+        break;
+      case 'open-palm':
+        // Open palm could pause/resume
+        if (!voiceMode.isPaused && !voiceMode.isProcessing) {
+          pauseVoiceMode();
+          console.log('Open palm gesture - pausing voice mode');
+        }
+        break;
+      case 'point-left':
+        // Point left could trigger previous/back action
+        console.log('Point left gesture detected');
+        break;
+      case 'point-right':
+        // Point right could trigger next/forward action
+        console.log('Point right gesture detected');
+        break;
+    }
+  };
+
+  // Stop gesture recognition
+  const stopGestureRecognition = () => {
+    if (gestureIntervalRef.current) {
+      clearInterval(gestureIntervalRef.current);
+      gestureIntervalRef.current = null;
+    }
+    
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
   };
 
   const handleSendMessage = async () => {
@@ -625,6 +806,21 @@ export default function AIAssistantPage() {
                 </div>
               )}
 
+              {/* Gesture Detection Status */}
+              {voiceMode.gestureDetected && voiceMode.gestureConfidence > 0.6 && (
+                <div className="max-w-sm mx-auto p-3 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 backdrop-blur-md rounded-lg border border-blue-300/30">
+                  <div className="flex items-center space-x-2 justify-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                      Gesture: {voiceMode.gestureDetected.replace('-', ' ')} 
+                      <span className="text-xs ml-1">
+                        ({Math.round(voiceMode.gestureConfidence * 100)}%)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Interactive Instructions */}
               <div className="max-w-md mx-auto text-center">
                 {voiceMode.isProcessing ? (
@@ -636,11 +832,31 @@ export default function AIAssistantPage() {
                     🔊 Speaking response - continue the conversation naturally
                   </p>
                 ) : (
-                  <p className="text-gray-600 dark:text-gray-400">
-                    💬 Speak naturally and I'll respond automatically after you finish
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      💬 Speak naturally and I'll respond automatically after you finish
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      ✋ Use hand gestures for voice control: wave to get attention, open palm to pause
+                    </p>
+                  </div>
                 )}
               </div>
+            </div>
+
+            {/* Hidden camera and canvas for gesture detection */}
+            <div className="hidden">
+              <video 
+                ref={videoRef} 
+                className="w-1 h-1" 
+                autoPlay 
+                muted 
+                playsInline
+              />
+              <canvas 
+                ref={canvasRef} 
+                className="w-1 h-1"
+              />
             </div>
           </div>
         </div>
