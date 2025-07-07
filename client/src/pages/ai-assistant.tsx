@@ -23,6 +23,8 @@ interface VoiceMode {
   isPaused: boolean;
   transcript: string;
   audioLevel: number;
+  isProcessing: boolean;
+  currentResponse: string;
 }
 
 export default function AIAssistantPage() {
@@ -35,7 +37,9 @@ export default function AIAssistantPage() {
     isActive: true,
     isPaused: false,
     transcript: "",
-    audioLevel: 0
+    audioLevel: 0,
+    isProcessing: false,
+    currentResponse: ""
   });
   const [showChatMode, setShowChatMode] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -44,6 +48,8 @@ export default function AIAssistantPage() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationRef = useRef<number>(0);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTranscriptRef = useRef<string>("");
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -111,17 +117,25 @@ export default function AIAssistantPage() {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+    }
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
     setVoiceMode(prev => ({ ...prev, isPaused: true }));
     setIsListening(false);
   };
 
   const resumeVoiceMode = () => {
-    setVoiceMode(prev => ({ ...prev, isPaused: false }));
+    setVoiceMode(prev => ({ ...prev, isPaused: false, currentResponse: "" }));
     startVoiceRecognition();
     startAudioVisualization();
   };
 
   const stopVoiceMode = () => {
+    // Cleanup all voice mode resources
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
@@ -131,8 +145,14 @@ export default function AIAssistantPage() {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+    }
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
     
-    // Add transcript to messages if available
+    // Add current transcript and response to messages if available
     if (voiceMode.transcript.trim()) {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
@@ -142,7 +162,23 @@ export default function AIAssistantPage() {
       }]);
     }
     
-    setVoiceMode(prev => ({ ...prev, isActive: false, isPaused: false }));
+    if (voiceMode.currentResponse.trim()) {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString() + '-ai',
+        role: 'assistant',
+        content: voiceMode.currentResponse,
+        timestamp: new Date()
+      }]);
+    }
+    
+    setVoiceMode(prev => ({ 
+      ...prev, 
+      isActive: false, 
+      isPaused: false, 
+      transcript: "", 
+      currentResponse: "",
+      isProcessing: false 
+    }));
     setShowChatMode(true);
   };
 
@@ -159,23 +195,101 @@ export default function AIAssistantPage() {
       return response;
     },
     onSuccess: (data) => {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + '-ai',
-        role: 'assistant',
-        content: data.response,
-        timestamp: new Date()
-      }]);
+      if (voiceMode.isActive) {
+        setVoiceMode(prev => ({ 
+          ...prev, 
+          isProcessing: false, 
+          currentResponse: data.response 
+        }));
+        // Speak the response if voice mode is active
+        speakResponse(data.response);
+      } else {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString() + '-ai',
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date()
+        }]);
+      }
     },
     onError: (error) => {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + '-error',
-        role: 'assistant',
-        content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
-        timestamp: new Date()
-      }]);
+      const errorMessage = "I apologize, but I'm having trouble processing your request right now. Please try again.";
+      
+      if (voiceMode.isActive) {
+        setVoiceMode(prev => ({ 
+          ...prev, 
+          isProcessing: false, 
+          currentResponse: errorMessage 
+        }));
+        speakResponse(errorMessage);
+      } else {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString() + '-error',
+          role: 'assistant',
+          content: errorMessage,
+          timestamp: new Date()
+        }]);
+      }
     }
   });
+
+  // Text-to-speech function
+  const speakResponse = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      // Clear any existing speech
+      speechSynthesis.cancel();
+      
+      utterance.onend = () => {
+        // Clear the current response after speaking
+        setTimeout(() => {
+          setVoiceMode(prev => ({ ...prev, currentResponse: "" }));
+        }, 1000);
+      };
+      
+      speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Process voice input automatically when user pauses
+  const processVoiceInput = (transcript: string) => {
+    if (!transcript.trim() || transcript === lastTranscriptRef.current) return;
+    
+    lastTranscriptRef.current = transcript;
+    
+    // Clear existing timeout
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+    }
+    
+    // Set timeout to process after 2 seconds of silence
+    silenceTimeoutRef.current = setTimeout(() => {
+      if (voiceMode.isActive && !voiceMode.isPaused && transcript.trim()) {
+        setVoiceMode(prev => ({ ...prev, isProcessing: true }));
+        
+        // Add user message to conversation
+        const userMessage: Message = {
+          id: Date.now().toString(),
+          role: 'user',
+          content: transcript,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+        
+        // Send to AI
+        chatMutation.mutate(transcript);
+        
+        // Clear transcript after processing
+        setVoiceMode(prev => ({ ...prev, transcript: "" }));
+        lastTranscriptRef.current = "";
+      }
+    }, 2000);
+  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -236,6 +350,11 @@ export default function AIAssistantPage() {
       
       if (voiceMode.isActive) {
         setVoiceMode(prev => ({ ...prev, transcript: fullTranscript }));
+        
+        // Process final transcript for AI response
+        if (finalTranscript.trim()) {
+          processVoiceInput(finalTranscript.trim());
+        }
       } else {
         setInputMessage(fullTranscript);
       }
@@ -342,40 +461,96 @@ export default function AIAssistantPage() {
                   transition: 'transform 0.1s ease-out'
                 }}
               >
+                {/* Background glow based on state */}
                 <div 
-                  className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse"
+                  className={`absolute inset-0 rounded-full animate-pulse ${
+                    voiceMode.isProcessing 
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
+                      : voiceMode.currentResponse 
+                      ? 'bg-gradient-to-r from-green-400 to-blue-400'
+                      : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                  }`}
                   style={{
-                    opacity: 0.2 + voiceMode.audioLevel * 0.8,
-                    filter: `blur(${voiceMode.audioLevel * 10}px)`
+                    opacity: voiceMode.isProcessing 
+                      ? 0.6 
+                      : voiceMode.currentResponse 
+                      ? 0.5
+                      : 0.2 + voiceMode.audioLevel * 0.8,
+                    filter: `blur(${voiceMode.isProcessing ? 15 : voiceMode.audioLevel * 10}px)`,
+                    animation: voiceMode.isProcessing 
+                      ? 'pulse 1s ease-in-out infinite' 
+                      : voiceMode.currentResponse
+                      ? 'pulse 2s ease-in-out infinite'
+                      : undefined
                   }}
                 />
+                
+                {/* Rotating ring */}
                 <div 
-                  className="absolute inset-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full"
+                  className={`absolute inset-2 rounded-full ${
+                    voiceMode.isProcessing 
+                      ? 'bg-gradient-to-r from-purple-400 to-blue-400' 
+                      : voiceMode.currentResponse
+                      ? 'bg-gradient-to-r from-green-300 to-blue-300'
+                      : 'bg-gradient-to-r from-purple-400 to-blue-400'
+                  }`}
                   style={{
-                    opacity: 0.3 + voiceMode.audioLevel * 0.7,
-                    animation: `spin ${2 - voiceMode.audioLevel}s linear infinite`
+                    opacity: voiceMode.isProcessing 
+                      ? 0.8 
+                      : voiceMode.currentResponse 
+                      ? 0.6
+                      : 0.3 + voiceMode.audioLevel * 0.7,
+                    animation: voiceMode.isProcessing 
+                      ? 'spin 1s linear infinite' 
+                      : voiceMode.currentResponse
+                      ? 'spin 3s linear infinite'
+                      : `spin ${2 - voiceMode.audioLevel}s linear infinite`
                   }}
                 />
+                
+                {/* Logo container */}
                 <div className="absolute inset-4 rounded-full overflow-hidden border-4 border-white/30 backdrop-blur-sm">
                   <img 
                     src={coynLogoPath} 
                     alt="COYN" 
                     className="w-full h-full object-cover"
                     style={{
-                      filter: `brightness(${1 + voiceMode.audioLevel * 0.5}) saturate(${1 + voiceMode.audioLevel * 0.3})`
+                      filter: voiceMode.isProcessing 
+                        ? 'brightness(1.3) saturate(1.2) hue-rotate(10deg)' 
+                        : voiceMode.currentResponse
+                        ? 'brightness(1.1) saturate(1.1) hue-rotate(-10deg)'
+                        : `brightness(${1 + voiceMode.audioLevel * 0.5}) saturate(${1 + voiceMode.audioLevel * 0.3})`
                     }}
                   />
                 </div>
                 
-                {/* Audio visualization rings */}
-                {Array.from({ length: 3 }).map((_, i) => (
+                {/* Dynamic visualization rings */}
+                {Array.from({ length: voiceMode.isProcessing ? 4 : 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="absolute inset-0 border-2 border-purple-400/30 rounded-full"
+                    className={`absolute inset-0 border-2 rounded-full ${
+                      voiceMode.isProcessing 
+                        ? 'border-purple-400/40' 
+                        : voiceMode.currentResponse
+                        ? 'border-green-400/40'
+                        : 'border-purple-400/30'
+                    }`}
                     style={{
-                      transform: `scale(${1 + (voiceMode.audioLevel * (i + 1) * 0.2)})`,
-                      opacity: voiceMode.audioLevel * (1 - i * 0.3),
-                      animation: `pulse ${1 + i * 0.5}s ease-in-out infinite`
+                      transform: voiceMode.isProcessing 
+                        ? `scale(${1 + (i + 1) * 0.15})` 
+                        : voiceMode.currentResponse
+                        ? `scale(${1 + (i + 1) * 0.1})`
+                        : `scale(${1 + (voiceMode.audioLevel * (i + 1) * 0.2)})`,
+                      opacity: voiceMode.isProcessing 
+                        ? 0.6 * (1 - i * 0.15) 
+                        : voiceMode.currentResponse
+                        ? 0.5 * (1 - i * 0.2)
+                        : voiceMode.audioLevel * (1 - i * 0.3),
+                      animation: voiceMode.isProcessing 
+                        ? `pulse ${0.8 + i * 0.2}s ease-in-out infinite` 
+                        : voiceMode.currentResponse
+                        ? `pulse ${1.5 + i * 0.3}s ease-in-out infinite`
+                        : `pulse ${1 + i * 0.5}s ease-in-out infinite`
                     }}
                   />
                 ))}
@@ -385,7 +560,18 @@ export default function AIAssistantPage() {
             {/* Status and Transcript */}
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-2">
-                {isListening && !voiceMode.isPaused ? (
+                {voiceMode.isProcessing ? (
+                  <>
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <span className="text-lg font-medium text-purple-600 dark:text-purple-400">
+                      AI is thinking...
+                    </span>
+                  </>
+                ) : isListening && !voiceMode.isPaused ? (
                   <>
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
                     <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
@@ -401,7 +587,7 @@ export default function AIAssistantPage() {
                   </>
                 ) : (
                   <>
-                    <div className="w-3 h-3 bg-gray-400 rounded-full" />
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
                     <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
                       Ready to listen
                     </span>
@@ -409,19 +595,52 @@ export default function AIAssistantPage() {
                 )}
               </div>
 
-              {/* Live Transcript */}
-              {voiceMode.transcript && (
-                <div className="max-w-2xl mx-auto p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg border border-white/20">
-                  <p className="text-gray-800 dark:text-gray-200 text-center">
-                    "{voiceMode.transcript}"
-                  </p>
+              {/* AI Response Display */}
+              {voiceMode.currentResponse && (
+                <div className="max-w-2xl mx-auto p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 backdrop-blur-md rounded-lg border border-purple-300/30">
+                  <div className="flex items-start space-x-3">
+                    <Bot className="h-6 w-6 text-purple-500 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">AI Assistant</p>
+                      <p className="text-gray-800 dark:text-gray-200">
+                        {voiceMode.currentResponse}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Instructions */}
-              <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                Speak naturally and I'll transcribe your words. Use the pause button to temporarily stop listening, or stop to switch to chat mode.
-              </p>
+              {/* Live Transcript */}
+              {voiceMode.transcript && !voiceMode.currentResponse && (
+                <div className="max-w-2xl mx-auto p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg border border-white/20">
+                  <div className="flex items-start space-x-3">
+                    <User className="h-6 w-6 text-blue-500 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">You</p>
+                      <p className="text-gray-800 dark:text-gray-200">
+                        "{voiceMode.transcript}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Interactive Instructions */}
+              <div className="max-w-md mx-auto text-center">
+                {voiceMode.isProcessing ? (
+                  <p className="text-purple-600 dark:text-purple-400 animate-pulse">
+                    Processing your request and preparing response...
+                  </p>
+                ) : voiceMode.currentResponse ? (
+                  <p className="text-green-600 dark:text-green-400">
+                    🔊 Speaking response - continue the conversation naturally
+                  </p>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    💬 Speak naturally and I'll respond automatically after you finish
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
