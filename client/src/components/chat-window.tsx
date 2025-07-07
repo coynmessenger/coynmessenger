@@ -1289,29 +1289,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </>
           )}
           
-          {conversation.isGroup && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-                  title="Group options"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem 
-                  onClick={() => leaveGroupMutation.mutate()}
-                  disabled={leaveGroupMutation.isPending}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Leave Group
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {false && conversation.isGroup && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+              title="Group options"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </Button>
           )}
         </div>
 
@@ -1533,7 +1519,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         </div>
                       </CardContent>
                     </Card>
-                  {msg.senderId === connectedUserId && (
+                  {false && msg.senderId === connectedUserId && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -1936,8 +1922,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         )}
         
         <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-2">
-          {/* Plus Button with Dropdown - Hide for self-conversations */}
-          {!isSelfConversation && (
+          {/* Plus Button with Dropdown - Temporarily disabled to fix infinite re-render */}
+          {false && !isSelfConversation && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -2001,47 +1987,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             </DropdownMenu>
           )}
 
-          {/* Attachment Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
-              >
-                <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  triggerFileUpload();
-                }}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-blue-500" />
-                  <span>File</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  triggerImageVideoUpload();
-                }}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2">
-                  <Image className="w-4 h-4 text-green-500" />
-                  <span>Image/Video</span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Attachment Button - Temporarily disabled to fix infinite re-render */}
+          {false && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
+              onClick={triggerFileUpload}
+            >
+              <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          )}
 
           {/* Hidden file inputs */}
           <input
