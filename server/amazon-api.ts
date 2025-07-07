@@ -200,7 +200,7 @@ class MarketplaceAPI {
 
   // Simplified search using catalog (no external API dependencies)
   async searchProducts(query: string, category?: string, minPrice?: number, maxPrice?: number): Promise<Product[]> {
-    console.log('[MARKETPLACE] Searching catalog for products');
+    
     return this.getAmazonCatalogProducts(query, category);
   }
 

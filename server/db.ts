@@ -28,10 +28,10 @@ export async function initializeDatabase() {
   try {
     // Test database connection
     const result = await db.execute('SELECT 1 as test');
-    console.log('Database connection successful');
+    
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error);
+    
     // Don't throw here, let the app start with fallback
     return false;
   }
@@ -39,13 +39,13 @@ export async function initializeDatabase() {
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('Closing database connection...');
+  
   await pool.end();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('Closing database connection...');
+  
   await pool.end();
   process.exit(0);
 });

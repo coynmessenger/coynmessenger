@@ -48,7 +48,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
       
-      console.error('Server error:', err);
+      
       res.status(status).json({ message });
     });
 
@@ -73,7 +73,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
       log(`serving on port ${port}`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    
     process.exit(1);
   }
 })();

@@ -76,7 +76,7 @@ class BlockchainService {
 
       return balances;
     } catch (error) {
-      console.error('Error fetching wallet balances:', error);
+      
       // Return zero balances as fallback
       return [
         { currency: 'BTC', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
@@ -92,7 +92,7 @@ class BlockchainService {
       const balance = await this.provider.getBalance(walletAddress);
       return ethers.formatEther(balance);
     } catch (error) {
-      console.error('Error fetching BNB balance:', error);
+      
       return '0.00000000';
     }
   }
@@ -106,7 +106,7 @@ class BlockchainService {
       const balance = await contract.balanceOf(walletAddress);
       return ethers.formatUnits(balance, decimals);
     } catch (error) {
-      console.error(`Error fetching token balance for ${tokenAddress}:`, error);
+      
       return '0.00000000';
     }
   }
@@ -122,7 +122,7 @@ class BlockchainService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error fetching crypto prices:', error);
+      
       // Return fallback prices
       return {
         bitcoin: { usd: 100000, usd_24h_change: 0 },
@@ -207,7 +207,7 @@ class BlockchainService {
         status: receipt.status === 1 ? 'success' : 'failed'
       };
     } catch (error) {
-      console.error('BNB transaction error:', error);
+      
       throw error;
     }
   }
@@ -266,7 +266,7 @@ class BlockchainService {
       
       return updatedBalances;
     } catch (error) {
-      console.error('Error refreshing demo balances:', error);
+      
       // Return original balances if refresh fails
       return currentBalances;
     }

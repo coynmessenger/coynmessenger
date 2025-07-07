@@ -2,7 +2,7 @@ import { db } from "./db";
 import { users, conversations, messages, walletBalances } from "@shared/schema";
 
 async function seedDatabase() {
-  console.log("Seeding database...");
+  
 
   // Create users
   const seedUsers = [
@@ -44,7 +44,7 @@ async function seedDatabase() {
   ];
 
   const insertedUsers = await db.insert(users).values(seedUsers).returning();
-  console.log(`Created ${insertedUsers.length} users`);
+  
 
   // Create conversations
   const seedConversations = [
@@ -55,7 +55,7 @@ async function seedDatabase() {
   ];
 
   const insertedConversations = await db.insert(conversations).values(seedConversations).returning();
-  console.log(`Created ${insertedConversations.length} conversations`);
+  
 
   // Create messages for Chris conversation (conversation ID 1)
   const seedMessages = [
@@ -190,7 +190,7 @@ async function seedDatabase() {
   ];
 
   const insertedMessages = await db.insert(messages).values(seedMessages).returning();
-  console.log(`Created ${insertedMessages.length} messages`);
+  
 
   // Create wallet balances for current user (user ID 5) - 2025 market prices
   const seedBalances = [
@@ -225,16 +225,16 @@ async function seedDatabase() {
   ];
 
   const insertedBalances = await db.insert(walletBalances).values(seedBalances).returning();
-  console.log(`Created ${insertedBalances.length} wallet balances`);
+  
 
-  console.log("Database seeded successfully!");
+  
 }
 
 // Run if called directly
 seedDatabase()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error("Error seeding database:", error);
+    
     process.exit(1);
   });
 

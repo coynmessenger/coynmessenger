@@ -168,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/contacts/add", async (req, res) => {
     try {
       const { walletAddress } = req.body;
-      console.log("Add contact request:", { walletAddress });
+      
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const updatedUser = await storage.updateUser(existingUser.id, {
             isSetup: true
           });
-          console.log("Updated existing user for contact list:", updatedUser);
+          
           
           if (updatedUser) {
             // Initialize wallet balances if not already done
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Initialize wallet balances for new user
         await storage.initializeWalletBalances(contactUser.id);
-        console.log("Created new contact with wallet balances:", contactUser);
+        
       }
 
       // Check if conversation already exists between current user and contact
@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!existingConversation) {
         // Create conversation between current user and new contact
         const newConversation = await storage.createConversation(currentUserId, contactUser.id);
-        console.log("Created conversation for new contact:", newConversation);
+        
         
         // Don't create automatic welcome message to prevent unwanted highlighted conversations
       }
@@ -244,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.json(userWithEffectiveName);
     } catch (error) {
-      console.error("Add contact error:", error);
+      
       res.status(500).json({ message: "Failed to add contact" });
     }
   });
@@ -253,12 +253,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
       const { walletAddress, displayName } = req.body;
-      console.log("Find-or-create request:", { walletAddress, displayName });
-      console.log("Wallet address details:");
-      console.log("- Raw address:", walletAddress);
-      console.log("- Address length:", walletAddress?.length);
-      console.log("- Starts with 0x:", walletAddress?.startsWith('0x'));
-      console.log("- Display name:", displayName || "Not provided");
+      
+      
+      
+      
+      
+      
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -280,7 +280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Update display name if provided and different
         if (displayName && displayName !== existingUser.signInName) {
-          console.log(`Updating user ${existingUser.id} sign-in name from "${existingUser.signInName}" to "${displayName}"`);
+          
           updateData.signInName = displayName;
           updateData.displayName = displayName; // Also update displayName to match sign-in name
           needsUpdate = true;
@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Ensure user is set up for contact list
         if (!existingUser.isSetup) {
-          console.log(`Setting up user ${existingUser.id} for contact list`);
+          
           updateData.isSetup = true;
           needsUpdate = true;
         }
@@ -298,14 +298,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const updatedUser = await storage.updateUser(existingUser.id, updateData);
           if (updatedUser) {
             userToUpdate = updatedUser;
-            console.log("Updated user:", userToUpdate);
+            
           }
         }
         
         // Ensure user has a self-conversation for messaging themselves
         const selfConversation = await storage.getConversationBetweenUsers(existingUser.id, existingUser.id);
         if (!selfConversation) {
-          console.log(`Creating self-conversation for user ${existingUser.id}`);
+          
           await storage.createConversation(existingUser.id, existingUser.id);
         }
         
@@ -331,7 +331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await storage.createUser(userData);
       
       // Fetch real blockchain balances for the wallet address
-      console.log("Fetching blockchain balances for wallet:", walletAddress);
+      
       const blockchainBalances = await blockchainService.getWalletBalances(walletAddress);
       
       // Create wallet balances with real blockchain data
@@ -345,11 +345,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log("Created user with real blockchain balances:", newUser.id);
+      
       
       // Create self-conversation for messaging yourself
       const selfConversation = await storage.createConversation(newUser.id, newUser.id);
-      console.log("Created self-conversation for new user:", selfConversation.id);
+      
       
       // Return user with effective display name
       const userWithEffectiveName = {
@@ -359,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.json(userWithEffectiveName);
     } catch (error) {
-      console.error("Find/create user error:", error);
+      
       res.status(500).json({ message: "Failed to find or create user" });
     }
   });
@@ -480,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = await storage.createMessage(messageData);
       res.status(201).json(message);
     } catch (error) {
-      console.error("File upload error:", error);
+      
       res.status(500).json({ message: "Failed to upload file" });
     }
   });
@@ -515,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = parseInt(req.params.id);
       const { currentUserId } = req.body;
       
-      console.log("Delete conversation request:", { conversationId, currentUserId });
+      
 
       if (!conversationId) {
         return res.status(400).json({ message: "Invalid conversation ID" });
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "Contact deleted successfully" });
     } catch (error) {
-      console.error('Delete conversation error:', error);
+      
       res.status(500).json({ message: "Failed to delete contact" });
     }
   });
@@ -567,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
 
-      console.log("Refreshing wallet balances with real-time blockchain data for user:", userId);
+      
 
       // Get user info to check if they have a real wallet address
       const user = await storage.getUser(parseInt(userId));
@@ -579,7 +579,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (user.walletAddress && user.walletAddress.startsWith('0x') && user.walletAddress.length === 42) {
         // Real Trust Wallet user - fetch actual blockchain balances
-        console.log("Fetching real blockchain balances for Trust Wallet:", user.walletAddress);
+        
         refreshedBalances = await blockchainService.getWalletBalances(user.walletAddress);
         
         // Update all balances with real blockchain data
@@ -590,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             changePercent: balance.changePercent
           });
         }
-        console.log("Updated Trust Wallet with real blockchain balances:", refreshedBalances);
+        
       } else {
         // Demo user - use demo-friendly refresh to maintain balances and update USD values
         const currentBalances = await storage.getUserWalletBalances(parseInt(userId));
@@ -604,16 +604,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             changePercent: balance.changePercent
           });
         }
-        console.log("Updated demo user with price refresh only");
+        
       }
 
       // Return updated balances
       const updatedBalances = await storage.getUserWalletBalances(parseInt(userId));
-      console.log("Refreshed balances for user", userId, "- Real wallet:", !!user.walletAddress?.startsWith('0x'));
+      
       
       res.json(updatedBalances);
     } catch (error) {
-      console.error("Error refreshing wallet balances:", error);
+      
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -659,7 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ message: "Transfer successful" });
     } catch (error) {
-      console.error("Crypto send error:", error);
+      
       res.status(500).json({ message: "Failed to send cryptocurrency" });
     }
   });
@@ -669,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { currency, amount, address, userId } = req.body;
       
-      console.log("External wallet send request:", { currency, amount, address, userId });
+      
 
       if (!currency || !amount || !address) {
         return res.status(400).json({ message: "Missing required fields: currency, amount, address" });
@@ -696,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // For external transfers, we simulate the blockchain transaction
       // In a real implementation, this would interact with the blockchain
-      console.log(`Simulating ${currency} transfer: ${numAmount} from user ${currentUserId} to ${address}`);
+      
       
       // Deduct from sender's balance
       const newBalance = parseFloat(senderBalance.balance) - numAmount;
@@ -705,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Log the transaction (in production, this would be on blockchain)
-      console.log(`External ${currency} transfer completed: ${numAmount} to ${address}`);
+      
 
       res.json({ 
         message: "Transfer successful",
@@ -715,7 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recipient: address
       });
     } catch (error) {
-      console.error("External crypto send error:", error);
+      
       res.status(500).json({ message: "Failed to send cryptocurrency" });
     }
   });
@@ -749,7 +749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const starredMessages = await storage.getStarredMessages(userId);
       res.json(starredMessages);
     } catch (error) {
-      console.error("Get starred messages error:", error);
+      
       res.status(500).json({ message: "Failed to get starred messages" });
     }
   });
@@ -762,7 +762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transactions = await storage.getUserTransactionHistory(userId);
       res.json(transactions);
     } catch (error) {
-      console.error("Get transaction history error:", error);
+      
       res.status(500).json({ message: "Failed to get transaction history" });
     }
   });
@@ -786,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ message: "Message star status updated", isStarred });
     } catch (error) {
-      console.error("Toggle star error:", error);
+      
       res.status(500).json({ message: "Failed to update star status" });
     }
   });
@@ -845,7 +845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(user);
     } catch (error) {
-      console.error("Add contact error:", error);
+      
       res.status(500).json({ message: "Failed to add contact" });
     }
   });
@@ -855,7 +855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get user ID from query parameter or default to session user (5)
       const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
-      console.log("PATCH /api/user - Query params:", req.query, "Extracted userId:", userId);
+      
       
       // Simple validation for user update
       const allowedFields = ['displayName', 'fullName', 'email', 'addressLine1', 'addressLine2', 'city', 'state', 'zipCode', 'country', 'profilePicture'];
@@ -873,7 +873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log("Updating user", userId, "with data:", updates);
+      
       
       const user = await storage.updateUser(userId, updates);
       
@@ -881,10 +881,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      console.log("Updated user:", user);
+      
       res.json(user);
     } catch (error) {
-      console.error("Error updating user:", error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           message: "Invalid user data", 
@@ -906,7 +906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
       const profilePicture = `/uploads/avatars/${req.file.filename}`;
       
-      console.log("Uploading avatar for user:", userId, "file:", req.file.filename);
+      
       
       // Update user's profile picture in database
       const user = await storage.updateUser(userId, { profilePicture });
@@ -921,7 +921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user
       });
     } catch (error) {
-      console.error("Upload error:", error);
+      
       res.status(500).json({ message: "Failed to upload profile picture" });
     }
   });
@@ -935,7 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
       
-      console.log("Clearing all data for user:", userId);
+      
       
       // Clear all user data from database
       const success = await storage.clearAllUserData(userId);
@@ -948,7 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "All user data cleared successfully" 
       });
     } catch (error) {
-      console.error("Clear all data error:", error);
+      
       res.status(500).json({ message: "Failed to clear user data" });
     }
   });
@@ -980,7 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Group created successfully" 
       });
     } catch (error) {
-      console.error("Failed to create group:", error);
+      
       res.status(500).json({ message: "Failed to create group" });
     }
   });
@@ -1020,7 +1020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "Left group successfully" });
     } catch (error) {
-      console.error("Failed to leave group:", error);
+      
       res.status(500).json({ message: "Failed to leave group" });
     }
   });
@@ -1037,7 +1037,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const members = await storage.getGroupMembers(conversationId);
       res.json(members);
     } catch (error) {
-      console.error("Failed to get group members:", error);
+      
       res.status(500).json({ message: "Failed to get group members" });
     }
   });
@@ -1078,7 +1078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messagesShared: messageIds.length
       });
     } catch (error) {
-      console.error("Share messages error:", error);
+      
       res.status(500).json({ message: "Failed to share messages" });
     }
   });
@@ -1114,7 +1114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         productTitle
       });
     } catch (error) {
-      console.error("Share product error:", error);
+      
       res.status(500).json({ message: "Failed to share product" });
     }
   });
@@ -1128,7 +1128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const favorites = await storage.getFavorites(userId);
       res.json(favorites);
     } catch (error) {
-      console.error("Get favorites error:", error);
+      
       res.status(500).json({ message: "Failed to fetch favorites" });
     }
   });
@@ -1164,7 +1164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "added"
       });
     } catch (error) {
-      console.error("Add favorite error:", error);
+      
       res.status(500).json({ message: "Failed to add to favorites" });
     }
   });
@@ -1185,7 +1185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "removed"
       });
     } catch (error) {
-      console.error("Remove favorite error:", error);
+      
       res.status(500).json({ message: "Failed to remove from favorites" });
     }
   });
@@ -1204,10 +1204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxPrice ? parseFloat(maxPrice as string) : undefined
       );
       
-      console.log(`[MARKETPLACE] Returning ${products.length} products for query: "${searchQuery}", category: "${searchCategory}"`);
+      
       res.json(products);
     } catch (error) {
-      console.error("[MARKETPLACE] Search error:", error);
+      
       res.status(500).json({ message: "Failed to search products" });
     }
   });
@@ -1226,7 +1226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(product);
     } catch (error) {
-      console.error("[MARKETPLACE] Product details error:", error);
+      
       res.status(500).json({ message: "Failed to fetch product details" });
     }
   });
@@ -1242,7 +1242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Simple payment simulation - in a real app this would integrate with payment processors
-      console.log(`Processing payment for user ${actualUserId}: ${cryptoAmount} ${cryptoCurrency} for product ${productId}`);
+      
       
       // Simulate payment processing success
       const result = { success: true, transactionId: `tx_${Date.now()}` };
@@ -1276,11 +1276,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRedeemed: false
         });
         
-        console.log(`[NFT REWARD] User ${actualUserId} earned ${rewardTier} tier NFT reward for purchase of $${purchaseValue}`);
+        
       }
 
-      console.log(`[PURCHASE] User ${actualUserId} purchased ${quantity}x ${productId} with ${cryptoAmount} ${cryptoCurrency}`);
-      console.log(`[PURCHASE] Transaction ID: ${result.transactionId}`);
+      
+      
       
       res.json({
         success: true,
@@ -1289,7 +1289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nftReward: rewardTier ? { tier: rewardTier, earned: true } : null
       });
     } catch (error) {
-      console.error("[MARKETPLACE] Purchase error:", error);
+      
       res.status(500).json({ message: "Purchase failed" });
     }
   });
@@ -1301,7 +1301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rewards = await storage.getNFTRewards(userId);
       res.json(rewards);
     } catch (error) {
-      console.error("[NFT REWARDS] Error fetching rewards:", error);
+      
       res.status(500).json({ message: "Failed to fetch NFT rewards" });
     }
   });
@@ -1321,7 +1321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ message: "Failed to redeem NFT reward" });
       }
     } catch (error) {
-      console.error("[NFT REWARDS] Error redeeming reward:", error);
+      
       res.status(500).json({ message: "Failed to redeem NFT reward" });
     }
   });
@@ -1334,7 +1334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const purchases = await storage.getPurchases(userId);
       res.json(purchases);
     } catch (error) {
-      console.error("[PURCHASES] Error fetching purchases:", error);
+      
       res.status(500).json({ message: "Failed to fetch purchases" });
     }
   });
@@ -1395,7 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         estimatedDelivery: req.body.estimatedDelivery
       });
     } catch (error) {
-      console.error("[PURCHASES] Error creating purchase:", error);
+      
       res.status(500).json({ message: "Failed to create purchase" });
     }
   });
@@ -1406,7 +1406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rates = await marketplaceAPI.getCryptoRates();
       res.json(rates);
     } catch (error) {
-      console.error("[CRYPTO RATES] Error fetching rates:", error);
+      
       res.status(500).json({ message: "Failed to fetch crypto rates" });
     }
   });
@@ -1417,7 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize encrypted WebRTC signaling server
   const webrtcSignaling = new EncryptedWebRTCSignaling(httpServer);
-  console.log('Encrypted WebRTC signaling server initialized');
+  
   
   return httpServer;
 }

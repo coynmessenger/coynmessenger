@@ -20,9 +20,12 @@ import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import ImagePreviewModal from "@/components/image-preview-modal";
+import { EmojiPicker } from "@/components/emoji-picker";
+import { GifPicker } from "@/components/gif-picker";
+import { CryptoSender } from "@/components/crypto-sender";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Laugh, Hand, Heart, DollarSign, TreePine, Package, UtensilsCrossed, Plane } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -70,7 +73,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         const parsedUser = JSON.parse(storedUser);
         return parsedUser.id;
       } catch (e) {
-        console.error('Failed to parse stored user:', e);
+        
       }
     }
     return null;
@@ -204,7 +207,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           const parsedUser = JSON.parse(storedUser);
           currentUserId = parsedUser.id;
         } catch (e) {
-          console.error('Failed to parse stored user:', e);
+          // Use fallback user ID
         }
       }
       
@@ -227,7 +230,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
     },
     onError: (error) => {
-      console.error('Delete contact error:', error);
+      
       toast({
         title: "Error",
         description: "Failed to delete contact. Please try again.",
@@ -237,52 +240,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   });
 
-  // Popular emojis for quick access - organized by categories
-  const emojiCategories = {
-    faces: ["😀", "😂", "🤣", "😊", "😍", "🥰", "😘", "😎", "🤔", "😮", "😤", "😔", "🥺", "😭", "😱", "🤗"],
-    gestures: ["👍", "👎", "👏", "🙏", "💪", "✌️", "🤝", "👋", "🤙", "👌", "🤞", "🙌", "👐", "🤲", "🫶", "👊"],
-    hearts: ["❤️", "💙", "💚", "💛", "🧡", "💜", "🖤", "🤍", "🤎", "💗", "💖", "💕", "💓", "💘", "💯", "💋"],
-    finance: ["💰", "💸", "🪙", "💎", "📈", "📉", "💳", "🏦", "🚀", "⚡", "🔥", "💯", "🎯", "⭐", "🌟", "🎉"],
-    nature: ["🌞", "🌙", "⭐", "🌟", "☀️", "🌈", "🔥", "💧", "🌸", "🌺", "🌻", "🌹", "🍀", "🌿", "🌱", "🎄"],
-    objects: ["🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🎖️", "🏅", "⚽", "🏀", "🎯", "🎪", "🎭", "🎨", "🎵", "🎶"],
-    food: ["🍕", "🍔", "🌮", "🍝", "🍜", "🍱", "🍣", "🧀", "🥓", "🍎", "🍌", "🍓", "🥑", "🍰", "🍦", "☕"],
-    travel: ["✈️", "🚗", "🚢", "🏖️", "🏔️", "🗽", "🏛️", "🎡", "🎢", "🌍", "🗺️", "🧳", "📸", "🎒", "🏨", "🎫"]
-  };
 
-  const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof emojiCategories>("faces");
-
-  // Mock GIF data with expanded contextual categories
-  const mockGifs = {
-    trending: [
-      { id: 1, url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", title: "Hello Wave" },
-      { id: 2, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Thank You" },
-      { id: 3, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Good Morning" },
-      { id: 4, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Thumbs Up" },
-      { id: 5, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Goodbye" },
-      { id: 6, url: "https://media.giphy.com/media/l0HlPystfePnAI3G8/giphy.gif", title: "See You Later" }
-    ],
-    reactions: [
-      { id: 7, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "OMG Surprised" },
-      { id: 8, url: "https://media.giphy.com/media/26tn6jEVRIelPhdJC/giphy.gif", title: "Mind Blown" },
-      { id: 9, url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "Love Heart" },
-      { id: 10, url: "https://media.giphy.com/media/l0MYzxkg0o1tkGSaI/giphy.gif", title: "LOL Laughing" },
-      { id: 14, url: "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif", title: "Wow Amazing" },
-      { id: 15, url: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif", title: "Funny Reaction" }
-    ],
-    celebration: [
-      { id: 11, url: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif", title: "Party Time" },
-      { id: 12, url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "Success Dance" },
-      { id: 13, url: "https://media.giphy.com/media/l0MYP6WAFfaR7Q1jO/giphy.gif", title: "Winner Champion" },
-      { id: 16, url: "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif", title: "Congratulations" },
-      { id: 17, url: "https://media.giphy.com/media/3o6fIShUdNpuOaWWha/giphy.gif", title: "Great Job" },
-      { id: 18, url: "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif", title: "Awesome Win" }
-    ]
-  };
-
-  const handleGifSelect = (gif: any) => {
-    setMessage(prev => prev + ` [GIF: ${gif.title}] `);
-    setShowGifPicker(false);
-  };
 
   // File upload function
   const uploadFile = async (file: File, textContent?: string) => {
@@ -316,7 +274,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       });
 
     } catch (error) {
-      console.error('Upload error:', error);
+      
       toast({
         title: "Upload failed",
         description: "Please try again",
@@ -383,20 +341,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
     });
     
-    return mockGifs[bestCategory as keyof typeof mockGifs] || mockGifs.trending;
+    return []; // Simplified for modular component
   };
 
-  // Filter GIFs based on search query or context
-  const getFilteredGifs = () => {
-    if (!gifSearchQuery.trim()) {
-      return getContextualGifs();
-    }
-    
-    const allGifs = [...mockGifs.trending, ...mockGifs.reactions, ...mockGifs.celebration];
-    return allGifs.filter(gif => 
-      gif.title.toLowerCase().includes(gifSearchQuery.toLowerCase())
-    );
-  };
+  // GIF filtering moved to modular component
 
   // Cryptocurrency icon helper function with optimized rendering
   const getCryptoIcon = (crypto: string) => {
@@ -423,29 +371,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Emoji category icon helper function
-  const getEmojiCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'faces':
-        return <Laugh className="w-4 h-4" />;
-      case 'gestures':
-        return <Hand className="w-4 h-4" />;
-      case 'hearts':
-        return <Heart className="w-4 h-4" />;
-      case 'finance':
-        return <DollarSign className="w-4 h-4" />;
-      case 'nature':
-        return <TreePine className="w-4 h-4" />;
-      case 'objects':
-        return <Package className="w-4 h-4" />;
-      case 'food':
-        return <UtensilsCrossed className="w-4 h-4" />;
-      case 'travel':
-        return <Plane className="w-4 h-4" />;
-      default:
-        return <Smile className="w-4 h-4" />;
-    }
-  };
+  // Emoji functionality moved to modular component
 
   const { data: messages = [] } = useQuery<(Message & { sender: User })[]>({
     queryKey: ["/api/conversations", conversation.id, "messages"],
@@ -686,7 +612,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Swipe-to-reply handlers
   const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    console.log("Swipe started for message ID:", messageId);
+    // Swipe initiated
     setSwipeState({
       messageId,
       offsetX: 0,
@@ -715,9 +641,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       // Trigger reply to message with haptic-like feedback
       const targetMessageId = swipeState.messageId;
       const message = messages.find(m => m.id === targetMessageId);
-      console.log("Swipe-to-reply triggered for message ID:", targetMessageId);
-      console.log("Found message:", message);
-      console.log("All available messages:", messages.map(m => ({ id: m.id, content: m.content, type: m.messageType })));
+      // Reply triggered
       
       if (message && message.id === targetMessageId) {
         // Clear any existing reply state first
@@ -730,11 +654,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           if (connectedUserId && (message.sender as any)?.id === connectedUserId && connectedUser) {
             // Use current connected user's display name for their own messages
             effectiveName = getEffectiveDisplayName(connectedUser);
-            console.log("Using connected user display name for reply:", effectiveName);
+            
           } else {
             // Use the original sender's display name for other users' messages
             effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
-            console.log("Using original sender display name for reply:", effectiveName);
+            
           }
           // Get appropriate content based on message type
           let replyContent = "Message content";
@@ -756,7 +680,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             sender: effectiveName
           };
           
-          console.log("Setting fresh reply data:", newReplyData);
+          
           console.log("Message details:", {
             messageType: message.messageType,
             originalContent: message.content,
@@ -774,7 +698,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         }, 50);
       }
       // Reset swipe state with smooth animation
-      console.log("Resetting swipe state after successful reply setup");
+      
       setSwipeState({
         messageId: null,
         offsetX: 0,
@@ -831,7 +755,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       });
     },
     onError: (error) => {
-      console.error("Star message error:", error);
+      
       toast({
         title: "Failed to update star",
         description: "Please try again",
@@ -879,7 +803,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleReplyCancel = () => {
-    console.log("Canceling reply");
+    
     setReplyToMessage(null);
   };
 
@@ -1037,7 +961,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         ) : part;
       });
     } catch (error) {
-      console.log('Highlight text error:', error);
+      
       return text;
     }
   };
@@ -1094,10 +1018,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           }, i * 100); // Staggered animation
         });
       } else {
-        console.warn(`Could not find message element with ID: ${messageId}`);
+        
         // Debug: log all available message IDs
         const allMessages = document.querySelectorAll('[data-message-id]');
-        console.log('Available message IDs:', Array.from(allMessages).map(el => el.getAttribute('data-message-id')));
+        
       }
     }, 100);
   };
@@ -1152,7 +1076,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           }
         });
       } catch (error) {
-        console.log('Search cleanup error:', error);
+        
       }
     }
   }, [searchQuery, messages]);
@@ -1170,7 +1094,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           }
         });
       } catch (error) {
-        console.log('Component unmount cleanup error:', error);
+        
       }
     };
   }, []);
@@ -1333,7 +1257,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  console.log('ChatWindow: Voice call button clicked');
+                  
                   setShowVoiceCall(true);
                 }}
                 className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
@@ -1349,7 +1273,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  console.log('ChatWindow: Video call button clicked');
+                  
                   setShowVideoCall(true);
                 }}
                 className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
@@ -1918,7 +1842,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 max-w-xs">
                   {(() => {
-                    console.log("Rendering reply content:", replyToMessage.content, "for message ID:", replyToMessage.id);
+                    
                     return replyToMessage.content;
                   })()}
                 </div>
@@ -2077,124 +2001,25 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             />
             
             {/* GIF Picker */}
-            <Popover open={showGifPicker} onOpenChange={setShowGifPicker}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-8 sm:right-11 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
-                >
-                  <Image className="h-4 w-4 sm:h-4 sm:w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">GIFs</h3>
-                    {!gifSearchQuery.trim() && (
-                      <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full">
-                        ✨ Smart suggestions
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Search Bar */}
-                  <div className="relative">
-                    <Input
-                      placeholder="Search GIFs..."
-                      value={gifSearchQuery}
-                      onChange={(e) => setGifSearchQuery(e.target.value)}
-                      className="h-8 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400"
-                    />
-                  </div>
-
-                  
-
-                  {/* GIF Grid */}
-                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                    {getFilteredGifs().map((gif) => (
-                      <button
-                        key={gif.id}
-                        type="button"
-                        onClick={() => handleGifSelect(gif)}
-                        className="relative aspect-square bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden hover:bg-orange-100 dark:hover:bg-slate-600 transition-colors group"
-                      >
-                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 dark:from-slate-600 dark:to-slate-700 flex items-center justify-center">
-                          <span className="text-xs text-gray-600 dark:text-slate-300 text-center p-2 group-hover:text-orange-600 dark:group-hover:text-orange-300">
-                            {gif.title}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <div className="pt-1.5 border-t border-gray-200 dark:border-slate-700">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                      {getFilteredGifs().length} GIFs {gifSearchQuery.trim() ? 'found' : 'suggested'}
-                    </p>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <GifPicker
+              onGifSelect={(gif) => {
+                setMessage(prev => prev + ` [GIF: ${gif.title}] `);
+                setShowGifPicker(false);
+              }}
+              isOpen={showGifPicker}
+              onOpenChange={setShowGifPicker}
+              currentMessage={message}
+            />
 
             {/* Emoji Picker */}
-            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
-                >
-                  <Smile className="h-4 w-4 sm:h-4 sm:w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
-                <div className="space-y-2">
-                  <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm">Emojis</h3>
-                  
-                  {/* Category Tabs */}
-                  <div className="flex flex-wrap gap-1 border-b border-gray-200 dark:border-slate-700 pb-2">
-                    {Object.keys(emojiCategories).map((category) => (
-                      <button
-                        key={category}
-                        type="button"
-                        onClick={() => setSelectedEmojiCategory(category as keyof typeof emojiCategories)}
-                        className={`p-2 rounded-md transition-colors flex items-center justify-center ${
-                          selectedEmojiCategory === category
-                            ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-600"
-                            : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
-                        }`}
-                        title={category.charAt(0).toUpperCase() + category.slice(1)}
-                      >
-                        {getEmojiCategoryIcon(category)}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Emoji Grid */}
-                  <div className="grid grid-cols-8 gap-0.5">
-                    {emojiCategories[selectedEmojiCategory].map((emoji, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleEmojiSelect(emoji)}
-                        className="text-lg hover:bg-orange-100 dark:hover:bg-slate-700 rounded p-1.5 transition-colors duration-200 hover:scale-110 active:scale-95 flex items-center justify-center h-8 w-8"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <div className="pt-1.5 border-t border-gray-200 dark:border-slate-700">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                      Tip: You can also type emojis directly!
-                    </p>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <EmojiPicker
+              onEmojiSelect={(emoji) => {
+                setMessage(prev => prev + emoji);
+                setShowEmojiPicker(false);
+              }}
+              isOpen={showEmojiPicker}
+              onOpenChange={setShowEmojiPicker}
+            />
           </div>
 
 
@@ -2409,25 +2234,25 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         onClose={() => setShowVoiceCall(false)}
         onHide={() => setShowVoiceCall(false)}
         onCallStart={() => {
-          console.log('ChatWindow: Voice call started');
+          
           setIsVoiceCallActive(true);
         }}
         onCallEnd={() => {
-          console.log('ChatWindow: Voice call ended');
+          
           setIsVoiceCallActive(false);
         }}
         user={conversation.otherUser}
         isCallActive={isVoiceCallActive}
         onSwitchToVideo={() => {
-          console.log('ChatWindow: Switching from voice to video call');
+          
           // End voice call properly
           setIsVoiceCallActive(false);
           setShowVoiceCall(false);
-          console.log('ChatWindow: Voice call ended, starting video call');
+          
           // Start video call immediately with active state
           setIsVideoCallActive(true);
           setShowVideoCall(true);
-          console.log('ChatWindow: Video call started with isCallActive=true');
+          
         }}
       />
 
@@ -2437,11 +2262,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         onClose={() => setShowVideoCall(false)}
         onHide={() => setShowVideoCall(false)}
         onCallStart={() => {
-          console.log('ChatWindow: Video call started');
+          
           setIsVideoCallActive(true);
         }}
         onCallEnd={() => {
-          console.log('ChatWindow: Video call ended');
+          
           setIsVideoCallActive(false);
         }}
         user={conversation.otherUser}

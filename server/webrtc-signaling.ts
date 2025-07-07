@@ -37,7 +37,7 @@ export class EncryptedWebRTCSignaling {
 
   private setupEventHandlers(): void {
     this.io.on('connection', (socket) => {
-      console.log('User connected:', socket.id);
+      
 
       // User authentication and encryption setup
       socket.on('authenticate', async (data: { userId: string }) => {
@@ -63,7 +63,7 @@ export class EncryptedWebRTCSignaling {
           encryptionEnabled: true 
         });
 
-        console.log(`User ${userId} authenticated with encryption`);
+        
       });
 
       // Exchange encryption keys between users
@@ -85,7 +85,7 @@ export class EncryptedWebRTCSignaling {
             publicKey: senderPublicKey
           });
 
-          console.log(`Encryption keys exchanged between ${senderId} and ${data.targetUserId}`);
+          
         }
       });
 
@@ -96,18 +96,18 @@ export class EncryptedWebRTCSignaling {
         offer?: RTCSessionDescriptionInit 
       }) => {
         const callerId = this.socketUsers.get(socket.id);
-        console.log(`Initiate-call received from socket ${socket.id}, callerId: ${callerId}, targetUserId: ${data.targetUserId}, type: ${data.type}`);
+        
         
         if (!callerId) {
-          console.log(`No callerId found for socket ${socket.id}`);
+          
           return;
         }
 
         const targetSocketId = this.userSockets.get(data.targetUserId);
         const callerEncryption = this.encryptionServices.get(callerId);
         
-        console.log(`Target socket ID: ${targetSocketId}, caller encryption: ${!!callerEncryption}`);
-        console.log(`Active user sockets:`, Array.from(this.userSockets.entries()));
+        
+        
 
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -115,7 +115,7 @@ export class EncryptedWebRTCSignaling {
           // Get target user's encryption service
           const targetEncryption = this.encryptionServices.get(data.targetUserId);
           if (!targetEncryption) {
-            console.log(`Target user ${data.targetUserId} encryption service not found`);
+            
             return;
           }
 
@@ -128,7 +128,7 @@ export class EncryptedWebRTCSignaling {
             await callerEncryption.establishSession(data.targetUserId, targetPublicKey);
             await targetEncryption.establishSession(callerId, callerPublicKey);
             
-            console.log(`Shared secret established between ${callerId} and ${data.targetUserId}`);
+            
             
             // Create active call record
             const call: ActiveCall = {
@@ -154,7 +154,7 @@ export class EncryptedWebRTCSignaling {
             }
 
             // Send encrypted call invitation
-            console.log(`Sending incoming-call event to socket ${targetSocketId} for user ${data.targetUserId}`);
+            
             this.io.to(targetSocketId).emit('incoming-call', {
               callId,
               fromUserId: callerId,
@@ -163,9 +163,9 @@ export class EncryptedWebRTCSignaling {
               encrypted: true
             });
 
-            console.log(`Encrypted ${data.type} call initiated: ${callId} from ${callerId} to ${data.targetUserId}`);
+            
           } catch (error) {
-            console.error(`Failed to establish encryption for call between ${callerId} and ${data.targetUserId}:`, error);
+            
             // Send unencrypted call as fallback
             const call: ActiveCall = {
               id: callId,
@@ -191,15 +191,15 @@ export class EncryptedWebRTCSignaling {
               encrypted: false
             });
 
-            console.log(`Fallback unencrypted ${data.type} call initiated: ${callId} from ${callerId} to ${data.targetUserId}`);
+            
           }
         } else {
-          console.log(`Call initiation failed - targetSocketId: ${targetSocketId}, callerEncryption: ${!!callerEncryption}`);
+          
           if (!targetSocketId) {
-            console.log(`Target user ${data.targetUserId} not found in connected users`);
+            
           }
           if (!callerEncryption) {
-            console.log(`Caller ${callerId} encryption service not found`);
+            
           }
         }
       });
@@ -234,7 +234,7 @@ export class EncryptedWebRTCSignaling {
           try {
             encryptedAnswer = await accepterEncryption.encryptSignalingData(callerId, data.answer);
           } catch (error) {
-            console.error(`Failed to encrypt answer for call ${data.callId}:`, error);
+            
             // Fall back to unencrypted
             isEncrypted = false;
           }
@@ -250,7 +250,7 @@ export class EncryptedWebRTCSignaling {
           encrypted: isEncrypted
         });
 
-        console.log(`${isEncrypted ? 'Encrypted' : 'Unencrypted'} call ${data.callId} accepted by ${accepterId}`);
+        
       });
 
       // Handle encrypted ICE candidates
@@ -280,7 +280,7 @@ export class EncryptedWebRTCSignaling {
               encrypted: true
             });
           } catch (error) {
-            console.error(`Failed to encrypt ICE candidate from ${senderId} to ${data.targetUserId}:`, error);
+            
             // Send unencrypted as fallback
             this.io.to(targetSocketId).emit('ice-candidate', {
               callId: data.callId,
@@ -321,7 +321,7 @@ export class EncryptedWebRTCSignaling {
               encrypted: true
             });
           } catch (error) {
-            console.error(`Failed to encrypt WebRTC signal from ${senderId} to ${data.targetUserId}:`, error);
+            
             // Send unencrypted as fallback
             this.io.to(targetSocketId).emit('webrtc-signal', {
               callId: data.callId,
@@ -352,7 +352,7 @@ export class EncryptedWebRTCSignaling {
 
         // Remove call from active calls
         this.activeCalls.delete(data.callId);
-        console.log(`Call ${data.callId} ended`);
+        
       });
 
       // Handle disconnection
@@ -387,7 +387,7 @@ export class EncryptedWebRTCSignaling {
           this.socketUsers.delete(socket.id);
         }
 
-        console.log('User disconnected:', socket.id);
+        
       });
     });
   }
