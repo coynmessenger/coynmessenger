@@ -256,12 +256,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
             )}
           </div>
 
-          {/* Footer */}
-          <div className="p-2 border-t border-gray-200 dark:border-slate-700">
-            <p className="text-xs text-gray-500 dark:text-slate-400 text-center">
-              Powered by GIPHY
-            </p>
-          </div>
+
         </div>
       </PopoverContent>
     </Popover>
