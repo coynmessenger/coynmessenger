@@ -167,7 +167,7 @@ export default function HomePage() {
     },
   });
 
-  // Enhanced state synchronization on page load with immediate UI updates
+  // Enhanced state synchronization with Trust Wallet mobile support
   useEffect(() => {
     let isChecking = false; // Guard against multiple simultaneous checks
 
@@ -183,7 +183,7 @@ export default function HomePage() {
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       
-      // First, sync any stored connection state - KEY FIX: Always update UI immediately
+      // First, sync any stored connection state - Always update UI immediately
       if (storedConnected === 'true' && storedUser) {
         const parsedUser = JSON.parse(storedUser);
         setConnectedUser(parsedUser);
@@ -191,15 +191,25 @@ export default function HomePage() {
         return;
       }
       
-      // If no stored state but we have a wallet provider, check for connected accounts
+      // Enhanced Trust Wallet detection for mobile returns
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         isChecking = true;
         try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          let accounts = [];
+          
+          // Try Trust Wallet specific detection first
+          if (window.ethereum.isTrust || window.trustWallet) {
+            const provider = window.trustWallet || window.ethereum;
+            accounts = await provider.request({ method: 'eth_accounts' });
+          } else {
+            accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          }
           
           if (accounts && accounts.length > 0) {
             // Clear any pending flags
             localStorage.removeItem('pendingWalletConnection');
+            localStorage.removeItem('pendingWalletType');
+            localStorage.removeItem('walletConnectionAttempt');
             
             // Connect the wallet
             connectWalletMutation.mutate({
@@ -215,10 +225,14 @@ export default function HomePage() {
       }
     };
     
-    // Run sync once on mount
+    // Run sync immediately on mount
     syncConnectionState();
     
-    // Also check for localStorage changes (for cross-tab sync)
+    // Add multiple event listeners for Trust Wallet mobile detection
+    const handlePageShow = () => {
+      setTimeout(syncConnectionState, 100);
+    };
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' && e.newValue === 'true') {
         const storedUser = localStorage.getItem('connectedUser');
@@ -230,12 +244,15 @@ export default function HomePage() {
       }
     };
     
+    // Listen for page show events (when returning from Trust Wallet)
+    window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
+      window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [connectWalletMutation]);
 
   // Handle mobile wallet returns (optimized - no duplicate checks)
   useEffect(() => {
@@ -261,10 +278,26 @@ export default function HomePage() {
           return;
         }
         
-        // Check if we have a pending wallet connection
+        // Enhanced pending wallet connection detection for Trust Wallet
         const pendingConnection = localStorage.getItem('pendingWalletConnection');
+        const pendingWalletType = localStorage.getItem('pendingWalletType');
+        const connectionAttempt = localStorage.getItem('walletConnectionAttempt');
+        
         if (pendingConnection === 'true') {
           isChecking = true;
+          
+          // Check if connection attempt is too old (older than 5 minutes)
+          if (connectionAttempt) {
+            const attemptTime = parseInt(connectionAttempt);
+            const currentTime = Date.now();
+            if (currentTime - attemptTime > 300000) { // 5 minutes
+              localStorage.removeItem('pendingWalletConnection');
+              localStorage.removeItem('pendingWalletType');
+              localStorage.removeItem('walletConnectionAttempt');
+              isChecking = false;
+              return;
+            }
+          }
           
           // Try to detect if a wallet connection was successful
           try {
@@ -272,9 +305,10 @@ export default function HomePage() {
               const accounts = await window.ethereum.request({ method: 'eth_accounts' });
               
               if (accounts && accounts.length > 0 && !isConnected) {
-                
-                // Remove pending flag
+                // Remove pending flags
                 localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
                 
                 // Connect the wallet
                 connectWalletMutation.mutate({
@@ -283,32 +317,45 @@ export default function HomePage() {
                 });
               } else if (accounts && accounts.length > 0 && isConnected) {
                 localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
               } else {
-                // Try to request accounts if none found
-                try {
-                  const requestedAccounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                  
-                  if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
+                // For Trust Wallet, try more aggressive account detection
+                if (pendingWalletType === 'trustwallet') {
+                  try {
+                    // Try multiple providers for Trust Wallet
+                    let provider = window.ethereum;
+                    if (window.trustWallet) {
+                      provider = window.trustWallet;
+                    }
                     
-                    // Remove pending flag
-                    localStorage.removeItem('pendingWalletConnection');
+                    const requestedAccounts = await provider.request({ method: 'eth_requestAccounts' });
                     
-                    // Connect the wallet
-                    connectWalletMutation.mutate({
-                      walletAddress: requestedAccounts[0],
-                      displayName: undefined
-                    });
+                    if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
+                      // Remove pending flags
+                      localStorage.removeItem('pendingWalletConnection');
+                      localStorage.removeItem('pendingWalletType');
+                      localStorage.removeItem('walletConnectionAttempt');
+                      
+                      // Connect the wallet
+                      connectWalletMutation.mutate({
+                        walletAddress: requestedAccounts[0],
+                        displayName: undefined
+                      });
+                    }
+                  } catch (requestError) {
+                    // Trust Wallet specific error handling
                   }
-                } catch (requestError) {
                 }
               }
-            } else {
             }
           } catch (error) {
-            // Remove pending flag after timeout
+            // Remove pending flags after error
             setTimeout(() => {
               localStorage.removeItem('pendingWalletConnection');
-            }, 5000);
+              localStorage.removeItem('pendingWalletType');
+              localStorage.removeItem('walletConnectionAttempt');
+            }, 10000);
           } finally {
             isChecking = false;
           }
@@ -434,13 +481,18 @@ export default function HomePage() {
                 });
               }
             } catch (error) {
-              console.error('Trust Wallet connection failed:', error);
-              // On mobile, try deep link fallback
+              // Enhanced mobile Trust Wallet connection handling
               if (isMobile()) {
+                // Set pending connection with Trust Wallet specific flag
                 localStorage.setItem('pendingWalletConnection', 'true');
+                localStorage.setItem('pendingWalletType', 'trustwallet');
+                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+                
                 const currentUrl = window.location.href;
                 const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                window.open(deepLink, '_blank');
+                
+                // Use window.location instead of window.open for better mobile handling
+                window.location.href = deepLink;
               } else {
                 alert('Failed to connect Trust Wallet. Please try again or use manual input.');
               }
