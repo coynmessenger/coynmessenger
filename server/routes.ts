@@ -1415,13 +1415,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GIF search endpoint
   app.get("/api/gifs/search", async (req, res) => {
     try {
-      const { q: query = 'trending', limit = '20', offset = '0' } = req.query;
+      const { q: query = 'trending', limit = '20', offset = '0', category = '' } = req.query;
       
-      const result = await GifService.searchGifs(
-        query as string,
-        parseInt(limit as string),
-        parseInt(offset as string)
-      );
+      let result;
+      if (category && category !== 'trending') {
+        // Search by category
+        result = await GifService.getGifsByCategory(
+          category as string,
+          parseInt(limit as string),
+          parseInt(offset as string)
+        );
+      } else {
+        // General search
+        result = await GifService.searchGifs(
+          query as string,
+          parseInt(limit as string),
+          parseInt(offset as string)
+        );
+      }
       
       res.json(result);
     } catch (error) {
