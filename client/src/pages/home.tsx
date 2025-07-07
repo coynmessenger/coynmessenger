@@ -81,6 +81,35 @@ export default function HomePage() {
     };
   }, [connectedUser?.id]);
 
+  // Add window event listener for wallet connection updates
+  useEffect(() => {
+    const handleWalletConnectionUpdate = () => {
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      if (storedConnected === 'true' && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setConnectedUser(parsedUser);
+        setIsConnected(true);
+      }
+    };
+
+    // Listen for custom wallet connection events
+    window.addEventListener('walletConnected', handleWalletConnectionUpdate);
+    
+    // Also listen for storage events (cross-tab sync)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'walletConnected' && e.newValue === 'true') {
+        handleWalletConnectionUpdate();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('walletConnected', handleWalletConnectionUpdate);
+      window.removeEventListener('storage', handleWalletConnectionUpdate);
+    };
+  }, []);
+
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
       try {
@@ -94,7 +123,6 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
-      
       // Store connection state in localStorage
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
@@ -121,23 +149,25 @@ export default function HomePage() {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", user.id] });
       
-      // Force immediate state update
+      // Force immediate state update - this is the key fix
       setConnectedUser(user);
       setIsConnected(true);
       
+      // Clear any pending connection flags
+      localStorage.removeItem('pendingWalletConnection');
       
-      // Force a component re-render after a brief delay to ensure localStorage is updated
+      // Dispatch custom event to trigger UI updates
+      window.dispatchEvent(new CustomEvent('walletConnected', { detail: user }));
+      
+      // Force a component re-render to ensure UI updates
       setTimeout(() => {
-        const freshUser = localStorage.getItem('connectedUser');
-        if (freshUser) {
-          const parsedUser = JSON.parse(freshUser);
-          setConnectedUser(parsedUser);
-        }
-      }, 100);
+        setConnectedUser(user);
+        setIsConnected(true);
+      }, 50);
     },
   });
 
-  // Optimized state synchronization on page load (prevent duplicate calls)
+  // Enhanced state synchronization on page load with immediate UI updates
   useEffect(() => {
     let isChecking = false; // Guard against multiple simultaneous checks
 
@@ -153,8 +183,8 @@ export default function HomePage() {
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       
-      // First, sync any stored connection state
-      if (storedConnected === 'true' && storedUser && !isConnected) {
+      // First, sync any stored connection state - KEY FIX: Always update UI immediately
+      if (storedConnected === 'true' && storedUser) {
         const parsedUser = JSON.parse(storedUser);
         setConnectedUser(parsedUser);
         setIsConnected(true);
@@ -168,7 +198,6 @@ export default function HomePage() {
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
-            
             // Clear any pending flags
             localStorage.removeItem('pendingWalletConnection');
             
@@ -177,9 +206,9 @@ export default function HomePage() {
               walletAddress: accounts[0],
               displayName: undefined
             });
-          } else {
           }
         } catch (error) {
+          // Silently handle errors
         } finally {
           isChecking = false;
         }
@@ -188,6 +217,24 @@ export default function HomePage() {
     
     // Run sync once on mount
     syncConnectionState();
+    
+    // Also check for localStorage changes (for cross-tab sync)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'walletConnected' && e.newValue === 'true') {
+        const storedUser = localStorage.getItem('connectedUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // Handle mobile wallet returns (optimized - no duplicate checks)
@@ -322,6 +369,16 @@ export default function HomePage() {
               walletAddress: accounts[0],
               displayName: undefined // Let the backend generate a proper display name
             });
+            
+            // Force immediate UI update for MetaMask
+            setTimeout(() => {
+              const storedUser = localStorage.getItem('connectedUser');
+              if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                setConnectedUser(parsedUser);
+                setIsConnected(true);
+              }
+            }, 500);
           } else {
             alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
           }
