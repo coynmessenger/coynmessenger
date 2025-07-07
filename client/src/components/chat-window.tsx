@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -1292,16 +1292,28 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           )}
           
           {conversation.isGroup && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
-              title="Group options"
-              onClick={() => leaveGroupMutation.mutate()}
-              disabled={leaveGroupMutation.isPending}
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                  title="Group options"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => leaveGroupMutation.mutate()}
+                  disabled={leaveGroupMutation.isPending}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Leave Group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 
@@ -1524,15 +1536,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </CardContent>
                     </Card>
                   {msg.senderId === connectedUserId && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-300 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 dark:hover:bg-slate-700/20 rounded-full"
-                      onClick={() => deleteMessageMutation.mutate(msg.id)}
-                      disabled={deleteMessageMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute -top-1 -right-8 h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-300 dark:hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent hover:bg-slate-700/20 dark:hover:bg-slate-700/20 rounded-full"
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+                        <DropdownMenuItem
+                          onClick={() => deleteMessageMutation.mutate(msg.id)}
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 justify-center p-2 h-8 w-8 min-w-0"
+                          disabled={deleteMessageMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                   </div>
                 </div>
@@ -1917,18 +1940,110 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-2">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
-              onClick={() => handleCryptoClick('BTC')}
-            >
-              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
+                >
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+              <DropdownMenuItem
+                onClick={() => handleCryptoClick('BTC')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <FaBitcoin className="w-4 h-4 text-orange-500" />
+                  <span>Send BTC</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleCryptoClick('BNB')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <SiBinance className="w-4 h-4 text-yellow-500" />
+                  <span>Send BNB</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleCryptoClick('USDT')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <SiTether className="w-4 h-4 text-green-500" />
+                  <span>Send USDT</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleCryptoClick('COYN')}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <img 
+                    src={coynLogoPath} 
+                    alt="COYN" 
+                    className="w-4 h-4 rounded-full"
+                    loading="eager"
+                    decoding="async"
+                    style={{ imageRendering: 'auto' }}
+                  />
+                  <span>Send COYN</span>
+                </div>
+              </DropdownMenuItem>
+              <div className="px-2 py-1">
+                <div className="h-px bg-gray-200 dark:bg-slate-600" />
+              </div>
+
+            </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
-          {/* Attachment Button - Temporarily removed */}
+          {/* Attachment Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
+              >
+                <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  triggerFileUpload();
+                }}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-blue-500" />
+                  <span>File</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  triggerImageVideoUpload();
+                }}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <Image className="w-4 h-4 text-green-500" />
+                  <span>Image/Video</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Hidden file inputs */}
           <input

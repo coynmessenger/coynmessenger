@@ -259,7 +259,7 @@ export default function HomePage() {
     let isChecking = false;
 
     const handleVisibilityChange = async () => {
-      if (!document.hidden && isMobile() && !isChecking && !connectWalletMutation.isPending) {
+      if (!document.hidden && isMobile() && !isChecking) {
         
         // Check if user explicitly signed out - if so, don't auto-reconnect
         const userSignedOut = localStorage.getItem('userSignedOut');
@@ -304,7 +304,7 @@ export default function HomePage() {
             if (typeof window.ethereum !== 'undefined') {
               const accounts = await window.ethereum.request({ method: 'eth_accounts' });
               
-              if (accounts && accounts.length > 0 && !isConnected && !connectWalletMutation.isPending) {
+              if (accounts && accounts.length > 0 && !isConnected) {
                 // Remove pending flags
                 localStorage.removeItem('pendingWalletConnection');
                 localStorage.removeItem('pendingWalletType');
@@ -321,7 +321,7 @@ export default function HomePage() {
                 localStorage.removeItem('walletConnectionAttempt');
               } else {
                 // For Trust Wallet, try more aggressive account detection
-                if (pendingWalletType === 'trustwallet' && !connectWalletMutation.isPending) {
+                if (pendingWalletType === 'trustwallet') {
                   try {
                     // Try multiple providers for Trust Wallet
                     let provider = window.ethereum;

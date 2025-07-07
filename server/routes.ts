@@ -1097,21 +1097,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Share product to conversations
   app.post("/api/messages/share-product", async (req, res) => {
     try {
-      const { conversationIds, productId, productTitle, productPrice, productImage, userId } = req.body;
+      const { conversationIds, productId, productTitle, productPrice, productImage } = req.body;
+      const userId = 5; // Current user
       
       if (!conversationIds || conversationIds.length === 0 || !productId || !productTitle) {
         return res.status(400).json({ message: "Missing required product information" });
-      }
-
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
       }
 
       // Create product sharing messages in each target conversation
       for (const conversationId of conversationIds) {
         const productMessage = {
           conversationId,
-          senderId: parseInt(userId),
+          senderId: userId,
           content: `🛍️ Check out this product: ${productTitle} - $${productPrice}`,
           messageType: "product_share" as const,
           productId,
