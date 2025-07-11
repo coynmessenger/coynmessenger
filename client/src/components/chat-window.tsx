@@ -297,11 +297,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+    // Add a small delay to ensure dropdown closes first
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
   };
 
   const triggerImageVideoUpload = () => {
-    imageVideoInputRef.current?.click();
+    // Add a small delay to ensure dropdown closes first
+    setTimeout(() => {
+      imageVideoInputRef.current?.click();
+    }, 100);
   };
 
   const handleImageVideoSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -2015,9 +2021,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[160px]">
+            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[180px]">
               <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                Choose Action
+                Choose File Type
               </div>
               <DropdownMenuItem
                 onClick={(e) => {
@@ -2031,7 +2037,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                     <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <span className="font-medium">Document</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Document</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, TXT, ZIP</span>
+                  </div>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -2046,7 +2055,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                     <Image className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <span className="font-medium">Photo & Video</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Photo & Video</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG, MP4, MOV</span>
+                  </div>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -2056,10 +2068,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <input
             ref={fileInputRef}
             type="file"
-            accept="*/*"
+            accept=".pdf,.doc,.docx,.txt,.zip,.rar,.xls,.xlsx,.ppt,.pptx"
             onChange={handleFileSelect}
             className="hidden"
             style={{ display: 'none' }}
+            multiple={false}
           />
           <input
             ref={imageVideoInputRef}
@@ -2068,6 +2081,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             onChange={handleImageVideoSelect}
             className="hidden"
             style={{ display: 'none' }}
+            multiple={false}
           />
 
           <div className="flex-1 relative">
