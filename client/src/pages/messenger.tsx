@@ -19,6 +19,17 @@ import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 
+// Preload the COYN logo image
+const preloadImage = (src: string) => {
+  const img = new Image();
+  img.src = src;
+  img.loading = 'eager';
+  img.decoding = 'async';
+};
+
+// Preload immediately when module loads
+preloadImage(coynLogoPath);
+
 export default function MessengerPage() {
   useScrollToTop(); // Clean contact list
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
@@ -196,6 +207,9 @@ export default function MessengerPage() {
                 src={coynLogoPath} 
                 alt="COYN Logo" 
                 className="w-8 h-8 cursor-pointer"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
             </button>
           </div>
@@ -404,6 +418,9 @@ export default function MessengerPage() {
                   src={coynLogoPath} 
                   alt="COYN Logo" 
                   className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                 />
               </button>
               <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
