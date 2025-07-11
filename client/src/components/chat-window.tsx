@@ -127,6 +127,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [searchResultCount, setSearchResultCount] = useState(0);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [showFilePickerModal, setShowFilePickerModal] = useState(false);
 
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
@@ -288,6 +289,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Show loading toast
+      toast({
+        title: "Uploading file...",
+        description: "Please wait while we upload your file",
+        duration: 1000,
+      });
+      
       // Upload file immediately
       await uploadFile(file, message);
       // Reset file input and message
@@ -299,20 +307,35 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const triggerFileUpload = () => {
     // Add a small delay to ensure dropdown closes first
     setTimeout(() => {
-      fileInputRef.current?.click();
-    }, 100);
+      if (fileInputRef.current) {
+        // Reset the input first
+        fileInputRef.current.value = '';
+        fileInputRef.current.click();
+      }
+    }, 150);
   };
 
   const triggerImageVideoUpload = () => {
     // Add a small delay to ensure dropdown closes first
     setTimeout(() => {
-      imageVideoInputRef.current?.click();
-    }, 100);
+      if (imageVideoInputRef.current) {
+        // Reset the input first
+        imageVideoInputRef.current.value = '';
+        imageVideoInputRef.current.click();
+      }
+    }, 150);
   };
 
   const handleImageVideoSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Show loading toast
+      toast({
+        title: "Uploading media...",
+        description: "Please wait while we upload your photo or video",
+        duration: 1000,
+      });
+      
       // Upload file immediately
       await uploadFile(file, message);
       // Reset file input and message
@@ -2057,7 +2080,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                   <div className="flex flex-col">
                     <span className="font-medium">Photo & Video</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG, MP4, MOV</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Camera, Gallery, Files</span>
                   </div>
                 </div>
               </DropdownMenuItem>
@@ -2077,11 +2100,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <input
             ref={imageVideoInputRef}
             type="file"
-            accept="image/*,video/*"
+            accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm"
             onChange={handleImageVideoSelect}
             className="hidden"
             style={{ display: 'none' }}
             multiple={false}
+            capture={false}
           />
 
           <div className="flex-1 relative">
