@@ -111,13 +111,11 @@ export default function HomePage() {
   }, []);
 
   const connectWalletMutation = useMutation({
-    mutationFn: async ({ walletAddress, displayName, signature, authMessage }: { walletAddress: string; displayName?: string; signature?: string; authMessage?: string }) => {
+    mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
       try {
         return await apiRequest("POST", "/api/users/find-or-create", {
           walletAddress,
-          displayName,
-          signature,
-          authMessage
+          displayName
         });
       } catch (error: any) {
         // Re-throw the actual error from the server
@@ -412,24 +410,11 @@ export default function HomePage() {
             method: 'eth_requestAccounts' 
           });
           
+          
           if (accounts && accounts[0]) {
-            const walletAddress = accounts[0];
-            
-            // Create authentication message for wallet to sign
-            const timestamp = Date.now();
-            const authMessage = `Welcome to COYN Messenger!\n\nSign this message to authenticate your wallet:\n${walletAddress}\n\nTimestamp: ${timestamp}`;
-            
-            // Request wallet signature for authentication
-            const signature = await window.ethereum.request({
-              method: 'personal_sign',
-              params: [authMessage, walletAddress]
-            });
-            
             connectWalletMutation.mutate({
-              walletAddress,
-              displayName: undefined,
-              signature,
-              authMessage // Pass the original message for verification
+              walletAddress: accounts[0],
+              displayName: undefined // Let the backend generate a proper display name
             });
             
             // Force immediate UI update for MetaMask
@@ -490,23 +475,9 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                const walletAddress = accounts[0];
-                
-                // Create authentication message for wallet to sign
-                const timestamp = Date.now();
-                const authMessage = `Welcome to COYN Messenger!\n\nSign this message to authenticate your wallet:\n${walletAddress}\n\nTimestamp: ${timestamp}`;
-                
-                // Request wallet signature for authentication
-                const signature = await provider.request({
-                  method: 'personal_sign',
-                  params: [authMessage, walletAddress]
-                });
-                
                 connectWalletMutation.mutate({
-                  walletAddress,
-                  displayName: undefined,
-                  signature,
-                  authMessage
+                  walletAddress: accounts[0],
+                  displayName: undefined
                 });
               }
             } catch (error) {
@@ -534,23 +505,9 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                const walletAddress = accounts[0];
-                
-                // Create authentication message for wallet to sign
-                const timestamp = Date.now();
-                const authMessage = `Welcome to COYN Messenger!\n\nSign this message to authenticate your wallet:\n${walletAddress}\n\nTimestamp: ${timestamp}`;
-                
-                // Request wallet signature for authentication
-                const signature = await window.ethereum.request({
-                  method: 'personal_sign',
-                  params: [authMessage, walletAddress]
-                });
-                
                 connectWalletMutation.mutate({
-                  walletAddress,
-                  displayName: undefined,
-                  signature,
-                  authMessage
+                  walletAddress: accounts[0],
+                  displayName: undefined
                 });
               }
             } catch (error) {

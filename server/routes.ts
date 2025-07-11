@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Find or create user by wallet address
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
-      const { walletAddress, displayName, signature, authMessage } = req.body;
+      const { walletAddress, displayName } = req.body;
       
       
       
@@ -268,41 +268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isValidWallet = await blockchainService.validateWalletAddress(walletAddress);
       if (!isValidWallet) {
         return res.status(400).json({ message: "Invalid wallet address format" });
-      }
-
-      // Verify signature if provided (for Web3 wallet authentication)
-      if (signature) {
-        try {
-          const { ethers } = await import('ethers');
-          
-          // Use the provided authMessage if available, otherwise try common formats
-          const messagesToTry = authMessage ? [authMessage] : [
-            `Welcome to COYN Messenger!\n\nSign this message to authenticate your wallet:\n${walletAddress}`,
-            `Welcome to COYN Messenger!\n\nSign this message to authenticate your wallet:\n${walletAddress}\n\nTimestamp: ${Date.now()}`,
-          ];
-          
-          let recoveredAddress;
-          for (const message of messagesToTry) {
-            try {
-              recoveredAddress = ethers.utils.verifyMessage(message, signature);
-              if (recoveredAddress.toLowerCase() === walletAddress.toLowerCase()) {
-                console.log(`✅ Wallet signature verified for: ${walletAddress}`);
-                break;
-              }
-            } catch (e) {
-              // Try next message format
-              continue;
-            }
-          }
-          
-          if (!recoveredAddress || recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-            return res.status(401).json({ message: "Invalid signature - wallet authentication failed" });
-          }
-          
-        } catch (error) {
-          console.error('Signature verification failed:', error);
-          return res.status(401).json({ message: "Signature verification failed" });
-        }
       }
 
       // Check if user already exists
