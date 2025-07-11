@@ -105,22 +105,140 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       amount: string; 
       recipientAddress: string;
     }) => {
-      // Direct crypto transfer
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return { txId: `tx_${Date.now()}`, ...data };
+      // Real Web3 transaction processing
+      if (typeof window.ethereum !== 'undefined' && currentUser?.walletAddress) {
+        try {
+          // Request wallet permissions first
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          if (accounts.length === 0) {
+            throw new Error('No wallet accounts found. Please connect your wallet.');
+          }
+
+          // Verify the connected account matches the user's wallet
+          const connectedAccount = accounts[0].toLowerCase();
+          const userWallet = currentUser.walletAddress.toLowerCase();
+          if (connectedAccount !== userWallet) {
+            throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+          }
+
+          // Handle different networks based on currency
+          let targetChainId = '0x38'; // BSC Mainnet for BNB
+          
+          if (data.currency === 'BTC') {
+            throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
+          }
+
+          // Switch to appropriate network
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: targetChainId }],
+            });
+          } catch (switchError: any) {
+            if (switchError.code === 4902) {
+              // Add BSC network if it doesn't exist
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x38',
+                  chainName: 'Binance Smart Chain',
+                  nativeCurrency: {
+                    name: 'BNB',
+                    symbol: 'BNB',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                  blockExplorerUrls: ['https://bscscan.com/']
+                }]
+              });
+            } else {
+              throw new Error('Please switch to Binance Smart Chain network in your wallet.');
+            }
+          }
+
+          let transactionParameters;
+          
+          if (data.currency === 'BNB') {
+            // Native BNB transfer
+            const amountInWei = (parseFloat(data.amount) * Math.pow(10, 18)).toString(16);
+            transactionParameters = {
+              to: data.recipientAddress,
+              from: currentUser.walletAddress,
+              value: '0x' + amountInWei,
+              gas: '0x5208', // 21000 gas limit
+              gasPrice: '0x4A817C800', // 20 Gwei
+            };
+          } else if (data.currency === 'USDT' || data.currency === 'COYN') {
+            // ERC-20 token transfer
+            const tokenAddresses = {
+              'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+              'COYN': '0x...', // COYN token address (placeholder)
+            };
+            
+            const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
+            if (!tokenAddress) {
+              throw new Error(`Token address not configured for ${data.currency}`);
+            }
+            
+            // Create ERC-20 transfer data
+            const decimals = data.currency === 'USDT' ? 18 : 18; // Both use 18 decimals on BSC
+            const amountInWei = (parseFloat(data.amount) * Math.pow(10, decimals)).toString(16);
+            
+            // ERC-20 transfer function signature: transfer(address,uint256)
+            const transferData = '0xa9059cbb' + 
+              data.recipientAddress.slice(2).padStart(64, '0') + 
+              amountInWei.padStart(64, '0');
+            
+            transactionParameters = {
+              to: tokenAddress,
+              from: currentUser.walletAddress,
+              value: '0x0',
+              data: transferData,
+              gas: '0x15F90', // 90000 gas limit for token transfers
+              gasPrice: '0x4A817C800', // 20 Gwei
+            };
+          } else {
+            throw new Error(`Unsupported currency: ${data.currency}`);
+          }
+
+          // Send transaction
+          const txHash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [transactionParameters],
+          });
+
+          return { txId: txHash, ...data };
+        } catch (error: any) {
+          throw new Error(error.message || 'Transaction failed');
+        }
+      } else {
+        throw new Error('Web3 wallet not detected. Please install MetaMask or Trust Wallet.');
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
       setView("success");
       toast({
-        title: "Transaction Sent",
-        description: `Successfully sent ${amount} ${selectedCurrency}`,
+        title: "Transaction Sent Successfully",
+        description: `Sent ${amount} ${selectedCurrency} to ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}`,
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "Failed to send transaction. Please try again.";
+      
+      if (error.message.includes("User rejected")) {
+        errorMessage = "Transaction was cancelled by user.";
+      } else if (error.message.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for this transaction.";
+      } else if (error.message.includes("network")) {
+        errorMessage = "Please check your network connection and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Transaction Failed",
-        description: "Failed to send transaction. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -449,11 +567,22 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full border-gray-300 dark:border-slate-600 pr-16"
+              className="w-full border-gray-300 dark:border-slate-600 pr-24"
               step="0.00000001"
               min="0"
               max={availableBalance.toString()}
             />
+            <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setAmount(selectedBalance?.balance || "0")}
+                className="h-6 px-2 text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20"
+              >
+                Max
+              </Button>
+            </div>
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
               {selectedCurrency}
             </div>
@@ -478,11 +607,18 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
         {/* Send Button */}
         <Button
-          onClick={() => setView("success")}
+          onClick={handleSend}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white h-12 mt-6"
-          disabled={!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance}
+          disabled={!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance || sendMutation.isPending}
         >
-          Continue
+          {sendMutation.isPending ? (
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Sending...</span>
+            </div>
+          ) : (
+            "Send Transaction"
+          )}
         </Button>
       </div>
 
