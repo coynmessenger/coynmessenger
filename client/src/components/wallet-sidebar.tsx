@@ -188,10 +188,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Send crypto mutation - initiates blockchain transaction via connected wallet
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      if (currency !== 'BNB') {
-        throw new Error('Only BNB transfers are currently supported for blockchain transactions');
-      }
-
       const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
       if (!currentUser.walletAddress) {
         throw new Error('No wallet address found. Please reconnect your wallet.');
@@ -204,8 +200,18 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       }
 
       try {
-        // Request account access
-        await ethereum.request({ method: 'eth_requestAccounts' });
+        // Request account access and verify wallet
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length === 0) {
+          throw new Error('No wallet accounts found. Please connect your wallet.');
+        }
+
+        // Verify connected account matches user's wallet
+        const connectedAccount = accounts[0].toLowerCase();
+        const userWallet = currentUser.walletAddress.toLowerCase();
+        if (connectedAccount !== userWallet) {
+          throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+        }
 
         // Switch to BSC network if needed
         try {
@@ -226,21 +232,61 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 blockExplorerUrls: ['https://bscscan.com/']
               }]
             });
+          } else {
+            throw new Error('Please switch to Binance Smart Chain network in your wallet.');
           }
         }
 
-        // Convert amount to Wei (BNB has 18 decimals)
-        const amountWei = (parseFloat(amount) * Math.pow(10, 18)).toString(16);
-
-        // Send transaction via Web3
-        const transactionHash = await ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [{
+        let transactionParameters;
+        
+        if (currency === 'BNB') {
+          // Native BNB transfer
+          const amountWei = (parseFloat(amount) * Math.pow(10, 18)).toString(16);
+          transactionParameters = {
             from: currentUser.walletAddress,
             to: address,
             value: '0x' + amountWei,
             gas: '0x5208', // 21000 in hex
-          }],
+            gasPrice: '0x4A817C800', // 20 Gwei
+          };
+        } else if (currency === 'USDT' || currency === 'COYN') {
+          // ERC-20 token transfer
+          const tokenAddresses = {
+            'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+            'COYN': '0x...', // COYN token address (placeholder)
+          };
+          
+          const tokenAddress = tokenAddresses[currency as keyof typeof tokenAddresses];
+          if (!tokenAddress) {
+            throw new Error(`Token address not configured for ${currency}`);
+          }
+          
+          const decimals = 18;
+          const amountInWei = (parseFloat(amount) * Math.pow(10, decimals)).toString(16);
+          
+          // ERC-20 transfer function signature
+          const transferData = '0xa9059cbb' + 
+            address.slice(2).padStart(64, '0') + 
+            amountInWei.padStart(64, '0');
+          
+          transactionParameters = {
+            from: currentUser.walletAddress,
+            to: tokenAddress,
+            value: '0x0',
+            data: transferData,
+            gas: '0x15F90', // 90000 gas limit
+            gasPrice: '0x4A817C800', // 20 Gwei
+          };
+        } else if (currency === 'BTC') {
+          throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
+        } else {
+          throw new Error(`Unsupported currency: ${currency}`);
+        }
+
+        // Send transaction via Web3
+        const transactionHash = await ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [transactionParameters],
         });
 
         // Update balance on backend after successful transaction
@@ -259,24 +305,40 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           throw new Error('Transaction rejected by user');
         } else if (error.code === -32603) {
           throw new Error('Insufficient funds for gas fees');
+        } else if (error.message.includes('insufficient funds')) {
+          throw new Error('Insufficient funds for this transaction');
         }
-        throw error;
+        throw new Error(error.message || 'Transaction failed');
       }
     },
     onSuccess: (data) => {
       toast({
-        title: "Blockchain Transaction Initiated",
-        description: `BNB transaction sent to blockchain network`,
+        title: "Transaction Sent Successfully",
+        description: `${data.currency} transaction sent to blockchain network`,
       });
       setShowSendModal(false);
       setSendAmount("");
       setRecipientAddress("");
       refetchBalances();
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "Failed to send transaction. Please try again.";
+      
+      if (error.message.includes("User rejected") || error.message.includes("rejected by user")) {
+        errorMessage = "Transaction was cancelled by user.";
+      } else if (error.message.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for this transaction.";
+      } else if (error.message.includes("network") || error.message.includes("connection")) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.message.includes("switch to")) {
+        errorMessage = "Please switch to Binance Smart Chain network in your wallet.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Transaction Failed",
-        description: "Failed to send transaction. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },

@@ -51,13 +51,134 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (data: { amount: string; currency: string }) => {
-      return apiRequest("POST", `/api/conversations/${conversationId}/messages`, {
-        content: `Sent ${data.amount} ${data.currency}`,
-        messageType: 'crypto_transfer',
-        senderId: connectedUserId,
-        cryptoAmount: parseFloat(data.amount),
-        cryptoCurrency: data.currency
-      });
+      // Get current user's wallet address
+      const storedUser = localStorage.getItem('connectedUser');
+      const currentUser = storedUser ? JSON.parse(storedUser) : null;
+      
+      if (!currentUser?.walletAddress) {
+        throw new Error('No wallet address found. Please connect your wallet.');
+      }
+
+      // Get recipient's wallet address from conversation
+      const conversationResponse = await fetch(`/api/conversations/${conversationId}`);
+      const conversationData = await conversationResponse.json();
+      const recipientId = conversationData.participants.find((p: any) => p.id !== connectedUserId)?.id;
+      
+      if (!recipientId) {
+        throw new Error('Recipient not found in conversation.');
+      }
+
+      const recipientResponse = await fetch(`/api/user?userId=${recipientId}`);
+      const recipientData = await recipientResponse.json();
+      
+      if (!recipientData.walletAddress) {
+        throw new Error('Recipient wallet address not found.');
+      }
+
+      // Perform real Web3 transaction if wallet is connected
+      if (typeof window.ethereum !== 'undefined' && currentUser.walletAddress) {
+        try {
+          // Request wallet permissions
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          if (accounts.length === 0) {
+            throw new Error('No wallet accounts found. Please connect your wallet.');
+          }
+
+          // Verify connected account matches user's wallet
+          const connectedAccount = accounts[0].toLowerCase();
+          const userWallet = currentUser.walletAddress.toLowerCase();
+          if (connectedAccount !== userWallet) {
+            throw new Error('Connected wallet does not match your account.');
+          }
+
+          // Switch to BSC network
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x38' }], // BSC Mainnet
+            });
+          } catch (switchError: any) {
+            if (switchError.code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x38',
+                  chainName: 'Binance Smart Chain',
+                  nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                  blockExplorerUrls: ['https://bscscan.com/']
+                }]
+              });
+            }
+          }
+
+          let transactionParameters;
+          
+          if (data.currency === 'BNB') {
+            // Native BNB transfer
+            const amountInWei = (parseFloat(data.amount) * Math.pow(10, 18)).toString(16);
+            transactionParameters = {
+              to: recipientData.walletAddress,
+              from: currentUser.walletAddress,
+              value: '0x' + amountInWei,
+              gas: '0x5208', // 21000 gas limit
+              gasPrice: '0x4A817C800', // 20 Gwei
+            };
+          } else if (data.currency === 'USDT' || data.currency === 'COYN') {
+            // ERC-20 token transfer
+            const tokenAddresses = {
+              'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+              'COYN': '0x...', // COYN token address (placeholder)
+            };
+            
+            const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
+            if (!tokenAddress) {
+              throw new Error(`Token address not configured for ${data.currency}`);
+            }
+            
+            const decimals = 18;
+            const amountInWei = (parseFloat(data.amount) * Math.pow(10, decimals)).toString(16);
+            
+            // ERC-20 transfer function signature
+            const transferData = '0xa9059cbb' + 
+              recipientData.walletAddress.slice(2).padStart(64, '0') + 
+              amountInWei.padStart(64, '0');
+            
+            transactionParameters = {
+              to: tokenAddress,
+              from: currentUser.walletAddress,
+              value: '0x0',
+              data: transferData,
+              gas: '0x15F90', // 90000 gas limit
+              gasPrice: '0x4A817C800', // 20 Gwei
+            };
+          } else if (data.currency === 'BTC') {
+            throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
+          } else {
+            throw new Error(`Unsupported currency: ${data.currency}`);
+          }
+
+          // Send transaction
+          const txHash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [transactionParameters],
+          });
+
+          // Save transaction to database
+          return apiRequest("POST", `/api/conversations/${conversationId}/messages`, {
+            content: `Sent ${data.amount} ${data.currency}`,
+            messageType: 'crypto_transfer',
+            senderId: connectedUserId,
+            cryptoAmount: parseFloat(data.amount),
+            cryptoCurrency: data.currency,
+            transactionHash: txHash
+          });
+        } catch (error: any) {
+          throw new Error(error.message || 'Transaction failed');
+        }
+      } else {
+        throw new Error('Web3 wallet not detected. Please install MetaMask or Trust Wallet.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
@@ -67,18 +188,30 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         queryKey: ["/api/wallet/balances", connectedUserId] 
       });
       toast({
-        title: "Crypto sent!",
-        description: `${cryptoAmount} ${selectedCrypto} has been sent successfully`,
+        title: "Transaction Sent Successfully",
+        description: `${cryptoAmount} ${selectedCrypto} has been sent via blockchain`,
       });
       setShowCryptoModal(false);
       setCryptoAmount("");
       setSelectedCrypto("");
       setCryptoStep("amount");
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "Failed to send crypto transaction.";
+      
+      if (error.message.includes("User rejected")) {
+        errorMessage = "Transaction was cancelled by user.";
+      } else if (error.message.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for this transaction.";
+      } else if (error.message.includes("network")) {
+        errorMessage = "Network error. Please check your connection.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to send crypto. Please try again.",
+        title: "Transaction Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     }
