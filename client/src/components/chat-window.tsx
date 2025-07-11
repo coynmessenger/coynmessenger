@@ -2015,18 +2015,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[160px]">
+              <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Choose Action
+              </div>
               <DropdownMenuItem
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   triggerFileUpload();
                 }}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+                className="text-black dark:text-white hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer rounded-md mx-1 transition-colors"
               >
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-blue-500" />
-                  <span>File</span>
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="font-medium">Document</span>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -2035,11 +2040,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   e.stopPropagation();
                   triggerImageVideoUpload();
                 }}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+                className="text-black dark:text-white hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer rounded-md mx-1 transition-colors"
               >
-                <div className="flex items-center space-x-2">
-                  <Image className="w-4 h-4 text-green-500" />
-                  <span>Image/Video</span>
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <Image className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="font-medium">Photo & Video</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
