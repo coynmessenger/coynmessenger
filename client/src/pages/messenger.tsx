@@ -45,13 +45,13 @@ export default function MessengerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   
   // Socket.IO connection for real-time updates
   const [socket, setSocket] = useState<any>(null);
   
-  // Track active toast notifications by conversation ID
-  const [activeToasts, setActiveToasts] = useState<Map<string, any>>(new Map());
+  // Track active toast notifications by conversation ID (store toast IDs)
+  const [activeToasts, setActiveToasts] = useState<Map<string, string>>(new Map());
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -110,10 +110,10 @@ export default function MessengerPage() {
 
   // Function to clear notifications for a conversation
   const clearNotificationsForConversation = (conversationId: string) => {
-    // Dismiss active toast notification immediately
-    const existingToast = activeToasts.get(conversationId);
-    if (existingToast && existingToast.dismiss) {
-      existingToast.dismiss();
+    // Dismiss active toast notification immediately using toast ID
+    const existingToastId = activeToasts.get(conversationId);
+    if (existingToastId) {
+      dismiss(existingToastId);
       setActiveToasts(prev => {
         const newMap = new Map(prev);
         newMap.delete(conversationId);
@@ -245,20 +245,20 @@ export default function MessengerPage() {
         
         if (!isConversationOpen) {
           // Dismiss any existing toast for this conversation
-          const existingToast = activeToasts.get(data.conversationId);
-          if (existingToast && existingToast.dismiss) {
-            existingToast.dismiss();
+          const existingToastId = activeToasts.get(data.conversationId);
+          if (existingToastId) {
+            dismiss(existingToastId);
           }
           
-          // Create new toast and track it
+          // Create new toast and track its ID
           const newToast = toast({
             title: `New message from ${data.senderName}`,
             description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
             duration: 3000,
           });
           
-          // Store toast reference for dismissal
-          setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast)));
+          // Store toast ID for dismissal
+          setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
           
           // Clean up toast reference when it expires
           setTimeout(() => {
@@ -277,9 +277,9 @@ export default function MessengerPage() {
       console.log('Notifications cleared for conversation:', data.conversationId);
       
       // Dismiss active toast notification for this conversation
-      const existingToast = activeToasts.get(data.conversationId);
-      if (existingToast && existingToast.dismiss) {
-        existingToast.dismiss();
+      const existingToastId = activeToasts.get(data.conversationId);
+      if (existingToastId) {
+        dismiss(existingToastId);
         setActiveToasts(prev => {
           const newMap = new Map(prev);
           newMap.delete(data.conversationId);
