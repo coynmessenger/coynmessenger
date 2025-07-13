@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { notificationService } from "@/lib/notification-service";
-import { socketService } from "@/lib/socket";
 
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
@@ -251,25 +250,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       window.removeEventListener('resize', handleViewportChange);
     };
   }, []);
-
-  // Socket.IO connection and real-time message handling
-  useEffect(() => {
-    // Initialize socket connection
-    socketService.connect();
-
-    // Join the current conversation room
-    socketService.joinConversation(conversation.id);
-
-    // Request notification permissions for mobile
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
-    return () => {
-      // Leave conversation room when component unmounts
-      socketService.leaveConversation();
-    };
-  }, [conversation.id]);
 
   
   const { toast } = useToast();
@@ -540,7 +520,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       });
     },
     onSuccess: () => {
-      // Message will be updated in real-time via socket, but invalidate for consistency
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setMessage("");
@@ -2204,7 +2183,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 100);
               }}
               placeholder="Type a message..."
-              className="chat-input-highlight pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/90 dark:bg-slate-800/90 border-2 border-gray-200 dark:border-slate-600 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+              className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
             />
             
 

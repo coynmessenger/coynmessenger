@@ -1,6 +1,4 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { createServer } from "http";
-import { Server } from "socket.io";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -44,36 +42,6 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 (async () => {
   try {
-    const httpServer = createServer(app);
-    const io = new Server(httpServer, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-      }
-    });
-
-    // Setup Socket.IO for real-time message notifications
-    io.on("connection", (socket) => {
-      console.log("User connected:", socket.id);
-      
-      socket.on("join-conversation", (conversationId) => {
-        socket.join(`conversation-${conversationId}`);
-        console.log(`User ${socket.id} joined conversation ${conversationId}`);
-      });
-      
-      socket.on("leave-conversation", (conversationId) => {
-        socket.leave(`conversation-${conversationId}`);
-        console.log(`User ${socket.id} left conversation ${conversationId}`);
-      });
-      
-      socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-      });
-    });
-
-    // Make io available in routes
-    app.set('io', io);
-
     const server = await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -88,7 +56,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
     // setting up all the other routes so the catch-all route
     // doesn't interfere with the other routes
     if (app.get("env") === "development") {
-      await setupVite(app, httpServer);
+      await setupVite(app, server);
     } else {
       serveStatic(app);
     }
@@ -97,7 +65,11 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
     // this serves both the API and the client.
     // It is the only port that is not firewalled.
     const port = 5000;
-    httpServer.listen(port, "0.0.0.0", () => {
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
       log(`serving on port ${port}`);
     });
   } catch (error) {
