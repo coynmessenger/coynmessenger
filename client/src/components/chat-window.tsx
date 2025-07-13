@@ -70,6 +70,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   
   // Get queryClient instance
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -352,8 +353,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, []);
 
-  
-  const { toast } = useToast();
+
   
   // Delete contact mutation
   const deleteContactMutation = useMutation({
