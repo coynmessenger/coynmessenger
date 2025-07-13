@@ -5,6 +5,8 @@ import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { io } from "socket.io-client";
+import { useToast } from "@/hooks/use-toast";
 
 import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
@@ -43,6 +45,10 @@ export default function MessengerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  // Socket.IO connection for real-time updates
+  const [socket, setSocket] = useState<any>(null);
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -176,6 +182,53 @@ export default function MessengerPage() {
   // Keep messenger open to contact list view by default
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
+
+  // Socket.IO connection for real-time updates
+  useEffect(() => {
+    if (!connectedUserId) return;
+
+    const socketConnection = io();
+    setSocket(socketConnection);
+
+    // Handle connection event
+    socketConnection.on('connect', () => {
+      console.log('Connected to Socket.IO server for conversations');
+      
+      // Authenticate with server
+      socketConnection.emit('authenticate', { userId: connectedUserId });
+      
+      // Join all conversation rooms for this user
+      if (conversations && conversations.length > 0) {
+        conversations.forEach(conversation => {
+          socketConnection.emit('join-conversation', { 
+            conversationId: conversation.id.toString() 
+          });
+        });
+      }
+    });
+
+    // Listen for new messages
+    socketConnection.on('new_message', (data) => {
+      console.log('New message received via Socket.IO:', data);
+      
+      // Invalidate conversation queries to refresh the list immediately
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
+      
+      // Show notification for new messages from other users
+      if (data.senderId !== connectedUserId && data.senderName) {
+        toast({
+          title: `New message from ${data.senderName}`,
+          description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
+          duration: 3000,
+        });
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socketConnection.disconnect();
+    };
+  }, [connectedUserId, conversations]);
 
   return (
     <div className="flex h-screen bg-background text-foreground">

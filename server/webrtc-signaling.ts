@@ -450,9 +450,12 @@ export class EncryptedWebRTCSignaling {
   broadcastNewMessage(conversationId: string, message: any): void {
     const roomName = `conversation-${conversationId}`;
     console.log(`Broadcasting message to room: ${roomName}`);
-    this.io.to(roomName).emit('new-message', {
+    this.io.to(roomName).emit('new_message', {
       conversationId,
-      message,
+      senderId: message.senderId,
+      senderName: message.sender?.effectiveDisplayName || 'Unknown User',
+      content: message.content,
+      messageType: message.messageType,
       timestamp: new Date().toISOString()
     });
   }
