@@ -357,10 +357,8 @@ export default function MessengerPage() {
                     <div>
                       <div className="divide-y divide-border">
                         {filteredConversations.map((conversation) => {
-                          // Check if this conversation has unread messages
-                          const hasUnreadMessages = conversation.lastMessage && 
-                            conversation.lastMessage.senderId !== connectedUserId &&
-                            conversation.id !== selectedConversation;
+                          // Check if this conversation has unread messages (show notification only if there's an active toast)
+                          const hasUnreadMessages = activeToasts.has(conversation.id.toString());
                           
                           return (
                             <div
@@ -629,10 +627,8 @@ export default function MessengerPage() {
                   <div>
                     <div className="divide-y divide-border">
                       {filteredConversations.map((conversation) => {
-                        // Check if this conversation has unread messages
-                        const hasUnreadMessages = conversation.lastMessage && 
-                          conversation.lastMessage.senderId !== connectedUserId &&
-                          conversation.id !== selectedConversation;
+                        // Check if this conversation has unread messages (show notification only if there's an active toast)
+                        const hasUnreadMessages = activeToasts.has(conversation.id.toString());
                         
                         return (
                           <div
