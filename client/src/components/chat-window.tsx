@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { notificationService } from "@/lib/notification-service";
+import { io, Socket } from "socket.io-client";
 
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
@@ -164,8 +165,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     sender: string;
   } | null>(null);
 
-
-
+  // Socket.IO state for real-time messaging
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -196,6 +199,102 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
   }, [swipeState.isDragging]); // Only depend on the boolean property, not the entire object
+
+  // Socket.IO connection for real-time messaging
+  useEffect(() => {
+    if (!connectedUserId) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socketUrl = `${protocol}//${window.location.host}`;
+    
+    const newSocket = io(socketUrl, {
+      transports: ['websocket'],
+      forceNew: true,
+      path: '/socket.io/',
+    });
+    
+    console.log('Connected to Socket.IO server');
+    setSocket(newSocket);
+
+    // Handle connection events
+    newSocket.on('connect', () => {
+      console.log('Connected to Socket.IO server');
+      setIsConnected(true);
+      
+      // Join the conversation room
+      newSocket.emit('join-conversation', { 
+        conversationId: conversation.id.toString() 
+      });
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from Socket.IO server');
+      setIsConnected(false);
+    });
+
+    // Handle new messages from other users
+    newSocket.on('new-message', (data: {
+      conversationId: string;
+      message: Message;
+      timestamp: string;
+    }) => {
+      console.log('Received new message:', data);
+      
+      // Only update if it's for this conversation and not from current user
+      if (data.conversationId === conversation.id.toString() && 
+          data.message.senderId !== connectedUserId) {
+        
+        // Invalidate messages query to refetch latest messages
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/conversations", conversation.id, "messages"] 
+        });
+        
+        // Auto-scroll to bottom for new messages
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    });
+
+    // Handle instant notifications
+    newSocket.on('instant-notification', (notification: {
+      type: 'message' | 'call' | 'transaction';
+      title: string;
+      body: string;
+      conversationId?: string;
+      messageId?: string;
+      fromUserId?: string;
+      fromUserName?: string;
+      timestamp: string;
+    }) => {
+      console.log('Received instant notification:', notification);
+      
+      // Show browser notification if supported
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(notification.title, {
+          body: notification.body,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico'
+        });
+      }
+      
+      // Show toast notification
+      toast({
+        title: notification.title,
+        description: notification.body,
+        duration: 3000,
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      console.log('Left conversation');
+      newSocket.emit('leave-conversation', { 
+        conversationId: conversation.id.toString() 
+      });
+      newSocket.disconnect();
+    };
+  }, [connectedUserId, conversation.id, queryClient, toast]);
 
   // Mobile keyboard detection for intuitive input bar rising
   useEffect(() => {
@@ -519,12 +618,76 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         senderId: connectedUserId // Pass the current connected user ID
       });
     },
+    onMutate: async (variables) => {
+      // Optimistic update for instant UI feedback
+      await queryClient.cancelQueries({ 
+        queryKey: ["/api/conversations", conversation.id, "messages"] 
+      });
+      
+      // Get current messages
+      const previousMessages = queryClient.getQueryData<(Message & { sender: User })[]>(
+        ["/api/conversations", conversation.id, "messages"]
+      ) ?? [];
+      
+      // Create optimistic message
+      const optimisticMessage = {
+        id: Date.now(), // Temporary ID
+        conversationId: conversation.id,
+        senderId: connectedUserId,
+        content: variables.content,
+        messageType: variables.messageType,
+        timestamp: new Date().toISOString(),
+        sender: connectedUser || { 
+          id: connectedUserId, 
+          displayName: 'You', 
+          username: 'you' 
+        },
+        cryptoAmount: null,
+        cryptoCurrency: null,
+        attachmentUrl: null,
+        attachmentType: null,
+        attachmentName: null,
+        attachmentSize: null,
+        audioFilePath: null,
+        transcription: null,
+        audioDuration: null,
+        productId: null,
+        productTitle: null,
+        productPrice: null,
+        productImage: null,
+        gifUrl: null,
+        gifTitle: null,
+        gifId: null
+      };
+      
+      // Add optimistic message to cache
+      queryClient.setQueryData<(Message & { sender: User })[]>(
+        ["/api/conversations", conversation.id, "messages"],
+        old => [...(old || []), optimisticMessage]
+      );
+      
+      // Auto-scroll to bottom for new message
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+      
+      return { previousMessages };
+    },
     onSuccess: () => {
+      // Invalidate and refetch messages to get server response
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setMessage("");
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      // Rollback optimistic update on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ["/api/conversations", conversation.id, "messages"],
+          context.previousMessages
+        );
+      }
+      
       toast({
         title: "Failed to send message",
         description: "Please try again.",
@@ -681,9 +844,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       messageContent = `@${replyToMessage.sender}: ${message}`;
     }
 
+    setIsSendingMessage(true);
+    
     sendMessageMutation.mutate({
       content: messageContent,
       messageType: "text"
+    }, {
+      onSettled: () => {
+        setIsSendingMessage(false);
+      }
     });
 
     setMessage("");
@@ -1335,6 +1504,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Connection Status */}
+        {isConnected && (
+          <div className="px-3 py-1 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Real-time messaging active</span>
+            </div>
           </div>
         )}
 
@@ -2240,10 +2419,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <Button 
             type="submit"
             size="icon"
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white h-8 w-8 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm"
+            className={`${isSendingMessage || sendMessageMutation.isPending 
+              ? 'bg-gradient-to-r from-green-500 to-green-600 animate-pulse' 
+              : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700'
+            } text-white h-8 w-8 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <Send className="h-4 w-4 sm:h-4 sm:w-4" />
+            <Send className={`h-4 w-4 sm:h-4 sm:w-4 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
           </Button>
         </form>
       </div>

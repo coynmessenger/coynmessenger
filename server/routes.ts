@@ -447,6 +447,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const message = await storage.createMessage(messageData);
+
+      // Get signaling system for instant notifications and real-time updates
+      const webrtcSignaling = app.get('webrtcSignaling');
+      
+      if (webrtcSignaling) {
+        // Get sender info for notification
+        const sender = await storage.getUser(senderId);
+        const senderDisplayName = sender ? (sender.displayName || sender.signInName || `@${sender.username}`) : 'Unknown User';
+        
+        // Get conversation participants for notifications
+        const conversation = await storage.getConversation(conversationId);
+        
+        // Broadcast message to all users in the conversation room
+        webrtcSignaling.broadcastNewMessage(conversationId.toString(), {
+          ...message,
+          sender: {
+            ...sender,
+            effectiveDisplayName: senderDisplayName
+          }
+        });
+        
+        // Send instant notifications to other participants
+        if (conversation) {
+          const participants = conversation.isGroup ? 
+            await storage.getGroupMembers(conversationId) : 
+            [conversation.user1, conversation.user2];
+          
+          participants.forEach(participant => {
+            if (participant.id !== senderId) {
+              let notificationBody = '';
+              
+              if (messageData.messageType === 'text') {
+                notificationBody = messageData.content || 'New message';
+              } else if (messageData.messageType === 'crypto') {
+                notificationBody = `Sent ${messageData.cryptoAmount} ${messageData.cryptoCurrency}`;
+              } else if (messageData.messageType === 'attachment') {
+                notificationBody = `Sent a file: ${messageData.attachmentName}`;
+              } else if (messageData.messageType === 'gif') {
+                notificationBody = `Sent a GIF: ${messageData.gifTitle}`;
+              } else if (messageData.messageType === 'product_share') {
+                notificationBody = `Shared a product: ${messageData.productTitle}`;
+              } else {
+                notificationBody = 'New message';
+              }
+              
+              webrtcSignaling.sendInstantNotification(participant.id.toString(), {
+                type: 'message',
+                title: `New message from ${senderDisplayName}`,
+                body: notificationBody,
+                conversationId: conversationId.toString(),
+                messageId: message.id.toString(),
+                fromUserId: senderId.toString(),
+                fromUserName: senderDisplayName
+              });
+            }
+          });
+        }
+      }
+
       res.status(201).json(message);
     } catch (error) {
       res.status(500).json({ message: "Failed to send message" });
@@ -1441,6 +1500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize encrypted WebRTC signaling server
   const webrtcSignaling = new EncryptedWebRTCSignaling(httpServer);
+  
+  // Make signaling system available for message broadcasting
+  app.set('webrtcSignaling', webrtcSignaling);
   
   
   return httpServer;

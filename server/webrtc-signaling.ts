@@ -22,6 +22,7 @@ export class EncryptedWebRTCSignaling {
   private userSockets = new Map<string, string>(); // userId -> socketId
   private socketUsers = new Map<string, string>(); // socketId -> userId
   private encryptionServices = new Map<string, SignalEncryptionService>(); // userId -> service
+  private conversationRooms = new Map<string, Set<string>>(); // conversationId -> Set of socketIds
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -64,6 +65,37 @@ export class EncryptedWebRTCSignaling {
         });
 
         
+      });
+
+      // Join conversation room for real-time messages
+      socket.on('join-conversation', (data: { conversationId: string }) => {
+        const { conversationId } = data;
+        console.log('User joined conversation:', conversationId);
+        
+        socket.join(`conversation-${conversationId}`);
+        
+        // Track this connection in conversation rooms
+        if (!this.conversationRooms.has(conversationId)) {
+          this.conversationRooms.set(conversationId, new Set());
+        }
+        this.conversationRooms.get(conversationId)!.add(socket.id);
+      });
+
+      // Leave conversation room
+      socket.on('leave-conversation', (data: { conversationId: string }) => {
+        const { conversationId } = data;
+        console.log('User left conversation:', conversationId);
+        
+        socket.leave(`conversation-${conversationId}`);
+        
+        // Remove from conversation rooms tracking
+        const roomUsers = this.conversationRooms.get(conversationId);
+        if (roomUsers) {
+          roomUsers.delete(socket.id);
+          if (roomUsers.size === 0) {
+            this.conversationRooms.delete(conversationId);
+          }
+        }
       });
 
       // Exchange encryption keys between users
@@ -412,5 +444,41 @@ export class EncryptedWebRTCSignaling {
 
     this.activeCalls.delete(callId);
     return true;
+  }
+
+  // Broadcast new message to all users in a conversation
+  broadcastNewMessage(conversationId: string, message: any): void {
+    const roomName = `conversation-${conversationId}`;
+    console.log(`Broadcasting message to room: ${roomName}`);
+    this.io.to(roomName).emit('new-message', {
+      conversationId,
+      message,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Send instant notification to specific user
+  sendInstantNotification(userId: string, notification: {
+    type: 'message' | 'call' | 'transaction';
+    title: string;
+    body: string;
+    conversationId?: string;
+    messageId?: string;
+    fromUserId?: string;
+    fromUserName?: string;
+  }): void {
+    const socketId = this.userSockets.get(userId);
+    if (socketId) {
+      console.log(`Sending instant notification to user ${userId}`);
+      this.io.to(socketId).emit('instant-notification', {
+        ...notification,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  // Get Socket.IO instance for external use
+  getSocketIOInstance(): any {
+    return this.io;
   }
 }
