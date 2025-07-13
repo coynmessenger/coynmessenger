@@ -420,62 +420,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid conversation ID" });
       }
 
-      // Use senderId from request body (current connected user)
-      const senderId = req.body.senderId || 5; // Fallback to 5 for backward compatibility
+      // Validate senderId from request body
+      const senderId = req.body.senderId;
+      if (!senderId) {
+        return res.status(400).json({ message: "Sender ID is required" });
+      }
+
+      const actualSenderId = parseInt(senderId);
+      if (isNaN(actualSenderId)) {
+        return res.status(400).json({ message: "Invalid sender ID" });
+      }
+
+      // Validate content for text messages
+      if (req.body.messageType === 'text' && (!req.body.content || req.body.content.trim() === '')) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+
+      // Check if conversation exists
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
 
       const messageData = {
         conversationId,
-        senderId,
-        content: req.body.content,
+        senderId: actualSenderId,
+        content: req.body.content || null,
         messageType: req.body.messageType || "text",
-        cryptoAmount: req.body.cryptoAmount,
-        cryptoCurrency: req.body.cryptoCurrency,
-        audioFilePath: req.body.audioFilePath,
-        transcription: req.body.transcription,
-        audioDuration: req.body.audioDuration,
-        productId: req.body.productId,
-        productTitle: req.body.productTitle,
-        productPrice: req.body.productPrice,
-        productImage: req.body.productImage,
-        attachmentUrl: req.body.attachmentUrl,
-        attachmentType: req.body.attachmentType,
-        attachmentName: req.body.attachmentName,
-        attachmentSize: req.body.attachmentSize,
-        gifUrl: req.body.gifUrl,
-        gifTitle: req.body.gifTitle,
-        gifId: req.body.gifId
+        cryptoAmount: req.body.cryptoAmount || null,
+        cryptoCurrency: req.body.cryptoCurrency || null,
+        audioFilePath: req.body.audioFilePath || null,
+        transcription: req.body.transcription || null,
+        audioDuration: req.body.audioDuration || null,
+        productId: req.body.productId || null,
+        productTitle: req.body.productTitle || null,
+        productPrice: req.body.productPrice || null,
+        productImage: req.body.productImage || null,
+        attachmentUrl: req.body.attachmentUrl || null,
+        attachmentType: req.body.attachmentType || null,
+        attachmentName: req.body.attachmentName || null,
+        attachmentSize: req.body.attachmentSize || null,
+        gifUrl: req.body.gifUrl || null,
+        gifTitle: req.body.gifTitle || null,
+        gifId: req.body.gifId || null
       };
 
       const message = await storage.createMessage(messageData);
+      
+      if (!message) {
+        return res.status(500).json({ message: "Failed to create message" });
+      }
 
       // Get signaling system for instant notifications and real-time updates
       const webrtcSignaling = app.get('webrtcSignaling');
       
       if (webrtcSignaling) {
-        // Get sender info for notification
-        const sender = await storage.getUser(senderId);
-        const senderDisplayName = sender ? (sender.displayName || sender.signInName || `@${sender.username}`) : 'Unknown User';
-        
-        // Get conversation participants for notifications
-        const conversation = await storage.getConversation(conversationId);
-        
-        // Broadcast message to all users in the conversation room
-        webrtcSignaling.broadcastNewMessage(conversationId.toString(), {
-          ...message,
-          sender: {
-            ...sender,
-            effectiveDisplayName: senderDisplayName
-          }
-        });
-        
-        // Send instant notifications to other participants
-        if (conversation) {
+        try {
+          // Get sender info for notification
+          const sender = await storage.getUser(actualSenderId);
+          const senderDisplayName = sender ? (sender.displayName || sender.signInName || `@${sender.username}`) : 'Unknown User';
+          
+          // Broadcast message to all users in the conversation room
+          webrtcSignaling.broadcastNewMessage(conversationId.toString(), {
+            ...message,
+            sender: {
+              ...sender,
+              effectiveDisplayName: senderDisplayName
+            }
+          });
+          
+          // Send instant notifications to other participants
           const participants = conversation.isGroup ? 
             await storage.getGroupMembers(conversationId) : 
             [conversation.user1, conversation.user2];
           
           participants.forEach(participant => {
-            if (participant.id !== senderId) {
+            if (participant.id !== actualSenderId) {
               let notificationBody = '';
               
               if (messageData.messageType === 'text') {
@@ -498,17 +518,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 body: notificationBody,
                 conversationId: conversationId.toString(),
                 messageId: message.id.toString(),
-                fromUserId: senderId.toString(),
+                fromUserId: actualSenderId.toString(),
                 fromUserName: senderDisplayName
               });
             }
           });
+        } catch (notificationError) {
+          console.error('Failed to send notifications:', notificationError);
+          // Don't fail the message send if notifications fail
         }
       }
 
       res.status(201).json(message);
     } catch (error) {
-      res.status(500).json({ message: "Failed to send message" });
+      console.error('Message send error:', error);
+      res.status(500).json({ 
+        message: "Failed to send message", 
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      });
     }
   });
 

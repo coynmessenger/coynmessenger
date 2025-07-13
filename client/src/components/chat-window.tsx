@@ -214,6 +214,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       transports: ['websocket'],
       forceNew: true,
       path: '/socket.io/',
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      maxReconnectionAttempts: 5,
+      timeout: 10000,
     });
     
     console.log('Connected to Socket.IO server');
@@ -230,8 +235,28 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       });
     });
 
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from Socket.IO server');
+    newSocket.on('disconnect', (reason) => {
+      console.log('Disconnected from Socket.IO server:', reason);
+      setIsConnected(false);
+    });
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('Reconnected to Socket.IO server after', attemptNumber, 'attempts');
+      setIsConnected(true);
+      
+      // Rejoin the conversation room after reconnection
+      newSocket.emit('join-conversation', { 
+        conversationId: conversation.id.toString() 
+      });
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.log('Reconnection error:', error);
+      setIsConnected(false);
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.log('Connection error:', error);
       setIsConnected(false);
     });
 
@@ -614,11 +639,45 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
-      return apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-        ...messageData,
-        senderId: connectedUserId // Pass the current connected user ID
-      });
+      if (!connectedUserId) {
+        throw new Error("User not authenticated");
+      }
+      
+      // Enhanced error handling with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      try {
+        const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...messageData,
+            senderId: connectedUserId
+          }),
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error("Request timed out");
+        }
+        throw error;
+      }
     },
+    retry: 3, // Retry failed requests up to 3 times
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 10000), // Exponential backoff with max 10s
     onMutate: async (variables) => {
       // Optimistic update for instant UI feedback
       await queryClient.cancelQueries({ 
@@ -689,9 +748,29 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         );
       }
       
+      console.error("Message send error:", error);
+      
+      // Show specific error messages based on error type
+      let errorMessage = "Please try again.";
+      let errorTitle = "Failed to send message";
+      
+      if (error.message.includes("timeout") || error.message.includes("timed out")) {
+        errorMessage = "Request timed out. Please check your connection and try again.";
+        errorTitle = "Connection timeout";
+      } else if (error.message.includes("Server error: 5")) {
+        errorMessage = "Server is temporarily unavailable. Please try again in a moment.";
+        errorTitle = "Server error";
+      } else if (error.message.includes("User not authenticated")) {
+        errorMessage = "Please refresh the page and sign in again.";
+        errorTitle = "Authentication error";
+      } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+        errorMessage = "Network error. Please check your internet connection.";
+        errorTitle = "Connection error";
+      }
+      
       toast({
-        title: "Failed to send message",
-        description: "Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     },
