@@ -43,7 +43,7 @@ body::before {
   z-index: -1;
 }
 
-/* Fix for mobile viewport scrolling */
+/* Fix for mobile viewport scrolling and keyboard handling */
 @media (max-width: 768px) {
   html, body {
     height: 100%;
@@ -54,6 +54,92 @@ body::before {
   .container {
     max-width: 100vw;
     overflow-x: hidden;
+  }
+  
+  /* Mobile keyboard viewport adjustments */
+  .mobile-keyboard-aware {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile keyboards */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Input area positioning for mobile keyboard */
+  .mobile-input-area {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    transition: all 0.3s ease-in-out;
+    padding: env(safe-area-inset-bottom, 0);
+    transform: translateY(0);
+  }
+  
+  .dark .mobile-input-area {
+    background: #1e293b;
+    border-top-color: #374151;
+  }
+  
+  /* Ensure input area rises with keyboard */
+  .mobile-input-area.keyboard-open {
+    transform: translateY(0);
+    position: fixed;
+    bottom: 0;
+  }
+  
+  /* Chat container adjustments for keyboard */
+  .chat-container {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .chat-container.mobile-keyboard-aware {
+    height: 100vh;
+    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  .chat-container.keyboard-open {
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  /* Chat messages area adjustment for mobile */
+  .mobile-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 80px; /* Space for input area */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure proper scrolling behavior on mobile */
+  .chat-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+  
+  /* Prevent zoom on input focus for mobile */
+  @media screen and (max-width: 768px) {
+    input, textarea, select {
+      font-size: 16px !important;
+      transform: scale(1) !important;
+    }
+  }
+  
+  /* Improve touch targets for mobile */
+  @media (hover: none) and (pointer: coarse) {
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 }
 

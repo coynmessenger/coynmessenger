@@ -65,6 +65,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -167,6 +169,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
   
   // Add global mouse event listeners for swipe functionality
   useEffect(() => {
@@ -193,6 +196,60 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
   }, [swipeState.isDragging]); // Only depend on the boolean property, not the entire object
+
+  // Mobile keyboard detection for intuitive input bar rising
+  useEffect(() => {
+    const handleViewportChange = () => {
+      if (window.innerHeight && window.visualViewport) {
+        const heightDiff = window.innerHeight - window.visualViewport.height;
+        const isKeyboard = heightDiff > 150; // threshold for keyboard detection
+        
+        setKeyboardHeight(heightDiff);
+        setIsKeyboardOpen(isKeyboard);
+        
+        // Apply mobile keyboard aware class to main container
+        const mainContainer = document.querySelector('.chat-container');
+        if (mainContainer) {
+          if (isKeyboard) {
+            mainContainer.classList.add('keyboard-open');
+            // Auto-scroll to bottom when keyboard opens
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          } else {
+            mainContainer.classList.remove('keyboard-open');
+          }
+        }
+        
+        // Apply proper viewport unit (dvh) for mobile
+        if (isKeyboard) {
+          document.documentElement.style.setProperty('--vh', `${window.visualViewport.height * 0.01}px`);
+        } else {
+          document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+        }
+      }
+    };
+
+    // Listen for visual viewport changes (mobile keyboard opening/closing)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      window.visualViewport.addEventListener('scroll', handleViewportChange);
+    }
+
+    // Fallback for older browsers
+    window.addEventListener('resize', handleViewportChange);
+    
+    // Initial check
+    handleViewportChange();
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportChange);
+        window.visualViewport.removeEventListener('scroll', handleViewportChange);
+      }
+      window.removeEventListener('resize', handleViewportChange);
+    };
+  }, []);
 
   
   const { toast } = useToast();
@@ -1158,7 +1215,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   }, [searchQuery, searchResults]);
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className={`flex flex-col h-full bg-background chat-container ${isKeyboardOpen ? 'mobile-keyboard-aware' : ''}`}>
       {/* Chat Header */}
       <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between relative z-50">
         <div className="flex items-center space-x-3">
@@ -1351,7 +1408,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)]"
+        className={`flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)] ${isKeyboardOpen ? 'chat-messages-container mobile-messages-area' : ''}`}
       >
 
         
@@ -1936,7 +1993,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-2 sm:p-3 shadow-lg">
+      <div className={`border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-2 sm:p-3 shadow-lg ${isKeyboardOpen ? 'mobile-input-area keyboard-open' : ''}`}>
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border-l-4 border-orange-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2110,6 +2167,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
           <div className="flex-1 relative">
             <Input
+              ref={messageInputRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => {
@@ -2117,6 +2175,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   e.preventDefault();
                   handleSendMessage(e);
                 }
+              }}
+              onFocus={() => {
+                // Scroll to bottom when keyboard opens
+                setTimeout(() => {
+                  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
               }}
               placeholder="Type a message..."
               className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
