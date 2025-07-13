@@ -2204,7 +2204,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 100);
               }}
               placeholder="Type a message..."
-              className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
+              className="chat-input-highlight pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/90 dark:bg-slate-800/90 border-2 border-gray-200 dark:border-slate-600 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
             />
             
 

@@ -43,6 +43,47 @@ body::before {
   z-index: -1;
 }
 
+/* Enhanced input field focus styles with orange highlighting */
+.chat-input-highlight:focus {
+  border-color: #f97316 !important; /* Orange-500 */
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3) !important;
+  outline: none !important;
+}
+
+.dark .chat-input-highlight:focus {
+  border-color: #fb923c !important; /* Orange-400 */
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.3) !important;
+  outline: none !important;
+}
+
+/* Hover effects for better interaction feedback */
+.chat-input-highlight:hover {
+  border-color: #f97316 !important; /* Orange-500 */
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+}
+
+.dark .chat-input-highlight:hover {
+  border-color: #fb923c !important; /* Orange-400 */
+  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2) !important;
+}
+
+/* Mobile-specific focus styles for better visibility */
+@media (max-width: 768px) {
+  .chat-input-highlight:focus {
+    border-color: #f97316 !important; /* Orange-500 */
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.4) !important;
+    outline: none !important;
+    transform: scale(1.02);
+  }
+  
+  .dark .chat-input-highlight:focus {
+    border-color: #fb923c !important; /* Orange-400 */
+    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.4) !important;
+    outline: none !important;
+    transform: scale(1.02);
+  }
+}
+
 /* Fix for mobile viewport scrolling and keyboard handling */
 @media (max-width: 768px) {
   html, body {
