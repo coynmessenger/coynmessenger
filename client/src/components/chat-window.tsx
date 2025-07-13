@@ -597,14 +597,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Emoji functionality moved to modular component
 
-  const { data: messages = [] } = useQuery<(Message & { sender: User })[]>({
+  const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useQuery<(Message & { sender: User })[]>({
     queryKey: ["/api/conversations", conversation.id, "messages"],
     queryFn: async () => {
+      console.log('💬 Fetching messages for conversation:', conversation.id);
       const res = await fetch(`/api/conversations/${conversation.id}/messages`);
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
+      console.log('📥 Received messages:', data.length, 'messages');
       return data;
     },
+    refetchInterval: 1000, // Refetch every second to ensure real-time updates
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Track previous message count for notification triggering
@@ -651,6 +656,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
+      console.log('📤 Sending message:', messageData);
+      
       if (!connectedUserId) {
         throw new Error("User not authenticated");
       }
@@ -660,15 +667,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
       
       try {
+        const requestBody = {
+          ...messageData,
+          senderId: connectedUserId
+        };
+        
+        console.log('📝 Request body:', requestBody);
+        console.log('🎯 Sending to conversation:', conversation.id);
+        
         const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...messageData,
-            senderId: connectedUserId
-          }),
+          body: JSON.stringify(requestBody),
           signal: controller.signal,
         });
         
@@ -676,12 +688,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         if (!response.ok) {
           const errorText = await response.text();
+          console.error('❌ Server error:', response.status, errorText);
           throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
         
-        return response.json();
+        const result = await response.json();
+        console.log('✅ Message sent successfully:', result);
+        return result;
       } catch (error) {
         clearTimeout(timeoutId);
+        console.error('❌ Send message error:', error);
         if (error.name === 'AbortError') {
           throw new Error("Request timed out");
         }
@@ -745,8 +761,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       
       return { previousMessages };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Message send onSuccess triggered with data:', data);
       // Invalidate and refetch messages to get server response
+      console.log('🔄 Invalidating queries for conversation:', conversation.id);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setMessage("");

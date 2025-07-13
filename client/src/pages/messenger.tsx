@@ -234,14 +234,33 @@ export default function MessengerPage() {
 
     // Listen for new messages
     socketConnection.on('new_message', (data) => {
-      console.log('New message received via Socket.IO:', data);
+      console.log('🔔 New message received via Socket.IO:', data);
+      console.log('📧 Message details:', {
+        senderId: data.senderId,
+        senderName: data.senderName,
+        conversationId: data.conversationId,
+        content: data.content,
+        currentUserId: connectedUserId,
+        selectedConversation: selectedConversation
+      });
       
       // Invalidate conversation queries to refresh the list immediately
+      console.log('🔄 Invalidating conversation queries for user:', connectedUserId);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
+      
+      // If this is the currently selected conversation, also invalidate messages query
+      if (selectedConversation && selectedConversation.toString() === data.conversationId) {
+        console.log('💬 Invalidating messages query for conversation:', data.conversationId);
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations", parseInt(data.conversationId), "messages"] });
+      }
       
       // Show notification for new messages from other users only if conversation is not currently open
       if (data.senderId !== connectedUserId && data.senderName) {
         const isConversationOpen = selectedConversation && selectedConversation.toString() === data.conversationId;
+        console.log('🔔 Notification check:', {
+          isConversationOpen,
+          shouldShowNotification: !isConversationOpen
+        });
         
         if (!isConversationOpen) {
           // Dismiss any existing toast for this conversation
