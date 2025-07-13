@@ -10,6 +10,7 @@ import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
+import { socketService } from "@/lib/socket";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -140,6 +141,9 @@ export default function HomePage() {
       queryClient.setQueryData(["/api/user"], user);
       queryClient.setQueryData(["/api/user", user.id], user);
       queryClient.setQueryData(["/api/user", { userId: user.id }], user);
+      
+      // Initialize socket connection after successful wallet connection
+      socketService.connect();
       
       // Invalidate user queries to ensure fresh data across all components
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });

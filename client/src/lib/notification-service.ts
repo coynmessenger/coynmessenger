@@ -74,6 +74,43 @@ export class NotificationService {
     });
   }
 
+  showNotification(title: string, body: string, icon?: string): void {
+    if (!this.settings.pushNotifications) return;
+    
+    if (Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: icon || '/favicon.ico',
+        badge: '/favicon.ico',
+        vibrate: [200, 100, 200],
+        silent: false
+      });
+    }
+  }
+
+  playNotificationSound(): void {
+    try {
+      // Create a simple beep sound using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800; // 800 Hz tone
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Audio notification failed:', error);
+    }
+  }
+
   async showMessageNotification(
     senderName: string,
     messageContent: string,

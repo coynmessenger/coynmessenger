@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { socketService } from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -59,6 +60,17 @@ export default function MessengerPage() {
   };
 
   const connectedUserId = getConnectedUserId();
+
+  // Initialize socket connection when messenger loads
+  useEffect(() => {
+    if (connectedUserId) {
+      socketService.connect();
+    }
+    
+    return () => {
+      // Don't disconnect here as we want the socket to persist across pages
+    };
+  }, [connectedUserId]);
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", connectedUserId],

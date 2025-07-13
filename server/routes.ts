@@ -447,6 +447,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const message = await storage.createMessage(messageData);
+      
+      // Emit real-time notification to all users in the conversation
+      const io = req.app.get('io');
+      if (io) {
+        // Get enhanced message with effective display name
+        const enhancedMessage = {
+          ...message,
+          sender: {
+            ...message.sender,
+            effectiveDisplayName: getEffectiveDisplayName(message.sender)
+          }
+        };
+        
+        // Emit to all users in the conversation room
+        io.to(`conversation-${conversationId}`).emit('new-message', enhancedMessage);
+        
+        // Also emit general notification for instant updates
+        io.to(`conversation-${conversationId}`).emit('message-notification', {
+          conversationId,
+          messageId: message.id,
+          senderId: message.senderId,
+          content: message.content,
+          messageType: message.messageType,
+          timestamp: message.timestamp
+        });
+      }
+      
       res.status(201).json(message);
     } catch (error) {
       res.status(500).json({ message: "Failed to send message" });
@@ -489,6 +516,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const message = await storage.createMessage(messageData);
+      
+      // Emit real-time notification for attachment uploads
+      const io = req.app.get('io');
+      if (io) {
+        const enhancedMessage = {
+          ...message,
+          sender: {
+            ...message.sender,
+            effectiveDisplayName: getEffectiveDisplayName(message.sender)
+          }
+        };
+        
+        io.to(`conversation-${conversationId}`).emit('new-message', enhancedMessage);
+        io.to(`conversation-${conversationId}`).emit('message-notification', {
+          conversationId,
+          messageId: message.id,
+          senderId: message.senderId,
+          content: message.content,
+          messageType: message.messageType,
+          timestamp: message.timestamp
+        });
+      }
+      
       res.status(201).json(message);
     } catch (error) {
       
