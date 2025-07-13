@@ -49,6 +49,9 @@ export default function MessengerPage() {
   
   // Socket.IO connection for real-time updates
   const [socket, setSocket] = useState<any>(null);
+  
+  // Track active toast notifications by conversation ID
+  const [activeToasts, setActiveToasts] = useState<Map<string, any>>(new Map());
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -105,6 +108,25 @@ export default function MessengerPage() {
     },
   });
 
+  // Function to clear notifications for a conversation
+  const clearNotificationsForConversation = (conversationId: string) => {
+    // Dismiss active toast notification immediately
+    const existingToast = activeToasts.get(conversationId);
+    if (existingToast && existingToast.dismiss) {
+      existingToast.dismiss();
+      setActiveToasts(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(conversationId);
+        return newMap;
+      });
+    }
+    
+    // Notify server to clear notifications
+    if (socket) {
+      socket.emit('clear-notifications', { conversationId });
+    }
+  };
+
   // Handler for clicking on a contact - don't auto-create conversations
   const handleContactClick = (contact: User) => {
     // Check if conversation already exists
@@ -117,9 +139,7 @@ export default function MessengerPage() {
       setSelectedConversation(existingConversation.id);
       
       // Clear notifications for this conversation when opened
-      if (socket) {
-        socket.emit('clear-notifications', { conversationId: existingConversation.id.toString() });
-      }
+      clearNotificationsForConversation(existingConversation.id.toString());
     } else {
       // Only create conversation if the contact is actually in the available contacts list
       const isContactAvailable = availableContacts.some(c => c.id === contact.id);
@@ -224,11 +244,30 @@ export default function MessengerPage() {
         const isConversationOpen = selectedConversation && selectedConversation.toString() === data.conversationId;
         
         if (!isConversationOpen) {
-          toast({
+          // Dismiss any existing toast for this conversation
+          const existingToast = activeToasts.get(data.conversationId);
+          if (existingToast && existingToast.dismiss) {
+            existingToast.dismiss();
+          }
+          
+          // Create new toast and track it
+          const newToast = toast({
             title: `New message from ${data.senderName}`,
             description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
             duration: 3000,
           });
+          
+          // Store toast reference for dismissal
+          setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast)));
+          
+          // Clean up toast reference when it expires
+          setTimeout(() => {
+            setActiveToasts(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(data.conversationId);
+              return newMap;
+            });
+          }, 3000);
         }
       }
     });
@@ -236,6 +275,18 @@ export default function MessengerPage() {
     // Listen for notification clearing confirmation
     socketConnection.on('notifications-cleared', (data) => {
       console.log('Notifications cleared for conversation:', data.conversationId);
+      
+      // Dismiss active toast notification for this conversation
+      const existingToast = activeToasts.get(data.conversationId);
+      if (existingToast && existingToast.dismiss) {
+        existingToast.dismiss();
+        setActiveToasts(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(data.conversationId);
+          return newMap;
+        });
+      }
+      
       // Refresh conversation list to update unread indicators
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
     });
@@ -322,9 +373,7 @@ export default function MessengerPage() {
                                   setIsSearchOpen(false);
                                 }
                                 // Clear notifications for this conversation when opened
-                                if (socket) {
-                                  socket.emit('clear-notifications', { conversationId: conversation.id.toString() });
-                                }
+                                clearNotificationsForConversation(conversation.id.toString());
                               }}
                               className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
                                 hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
@@ -591,9 +640,7 @@ export default function MessengerPage() {
                             onClick={() => {
                               setSelectedConversation(conversation.id);
                               // Clear notifications for this conversation when opened
-                              if (socket) {
-                                socket.emit('clear-notifications', { conversationId: conversation.id.toString() });
-                              }
+                              clearNotificationsForConversation(conversation.id.toString());
                             }}
                             className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
                               hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
