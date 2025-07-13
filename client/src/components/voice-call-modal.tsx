@@ -193,6 +193,26 @@ export default function VoiceCallModal({
           .catch((error) => {
             console.error('Failed to initiate voice call:', error);
             setCallStatus("ended");
+            
+            // Show user-friendly error messages
+            let errorMessage = 'Failed to start call';
+            if (error.message.includes('Microphone access denied')) {
+              errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings and try again.';
+            } else if (error.message.includes('No microphone found')) {
+              errorMessage = 'No microphone found. Please connect a microphone and try again.';
+            } else if (error.message.includes('already in use')) {
+              errorMessage = 'Microphone is already in use by another application. Please close other apps using the microphone and try again.';
+            }
+            
+            // Show toast notification
+            import("@/hooks/use-toast").then(({ toast }) => {
+              toast({
+                title: "Call Failed",
+                description: errorMessage,
+                variant: "destructive",
+              });
+            });
+            
             if (onCallEnd) onCallEnd();
           });
       } else {
@@ -228,8 +248,29 @@ export default function VoiceCallModal({
         await webrtcService.current.acceptCall(encryptedCallId);
         setCallStatus("connected");
         if (onCallStart) onCallStart();
-      } catch (error) {
+      } catch (error: any) {
+        console.error('Failed to accept call:', error);
         setCallStatus("ended");
+        
+        // Show user-friendly error messages
+        let errorMessage = 'Failed to accept call';
+        if (error.message && error.message.includes('Microphone access denied')) {
+          errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings and try again.';
+        } else if (error.message && error.message.includes('No microphone found')) {
+          errorMessage = 'No microphone found. Please connect a microphone and try again.';
+        } else if (error.message && error.message.includes('already in use')) {
+          errorMessage = 'Microphone is already in use by another application. Please close other apps using the microphone and try again.';
+        }
+        
+        // Show toast notification
+        import("@/hooks/use-toast").then(({ toast }) => {
+          toast({
+            title: "Call Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        });
+        
         if (onCallEnd) onCallEnd();
       }
     }

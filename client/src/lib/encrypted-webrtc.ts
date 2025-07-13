@@ -282,13 +282,31 @@ export class EncryptedWebRTCService {
     }
 
     try {
-      // Get user media
+      // Get user media with proper error handling
       const constraints: MediaStreamConstraints = {
         audio: true,
         video: type === 'video',
       };
 
-      const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      let localStream: MediaStream;
+      try {
+        console.log('🎤 Requesting microphone permissions...');
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✅ Microphone access granted');
+      } catch (error: any) {
+        console.error('❌ Microphone permission error:', error);
+        
+        // Provide specific error messages
+        if (error.name === 'NotAllowedError') {
+          throw new Error('Microphone access denied. Please allow microphone permissions to make calls.');
+        } else if (error.name === 'NotFoundError') {
+          throw new Error('No microphone found. Please connect a microphone to make calls.');
+        } else if (error.name === 'NotReadableError') {
+          throw new Error('Microphone is already in use by another application.');
+        } else {
+          throw new Error(`Failed to access microphone: ${error.message}`);
+        }
+      }
       
       // Create peer connection
       const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
@@ -349,13 +367,31 @@ export class EncryptedWebRTCService {
     }
 
     try {
-      // Get user media
+      // Get user media with proper error handling
       const constraints: MediaStreamConstraints = {
         audio: true,
         video: call.type === 'video',
       };
 
-      const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      let localStream: MediaStream;
+      try {
+        console.log('🎤 Requesting microphone permissions for incoming call...');
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✅ Microphone access granted for incoming call');
+      } catch (error: any) {
+        console.error('❌ Microphone permission error on accept:', error);
+        
+        // Provide specific error messages
+        if (error.name === 'NotAllowedError') {
+          throw new Error('Microphone access denied. Please allow microphone permissions to accept calls.');
+        } else if (error.name === 'NotFoundError') {
+          throw new Error('No microphone found. Please connect a microphone to accept calls.');
+        } else if (error.name === 'NotReadableError') {
+          throw new Error('Microphone is already in use by another application.');
+        } else {
+          throw new Error(`Failed to access microphone: ${error.message}`);
+        }
+      }
       
       // Create peer connection
       const peerConnection = new RTCPeerConnection(this.rtcConfiguration);

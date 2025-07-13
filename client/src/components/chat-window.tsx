@@ -167,6 +167,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     content: string;
     sender: string;
   } | null>(null);
+  
+  // Add call debouncing state
+  const [isInitiatingCall, setIsInitiatingCall] = useState(false);
 
   // Socket.IO state for real-time messaging
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -1627,9 +1630,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  
-                  setShowVoiceCall(true);
+                  if (!isInitiatingCall) {
+                    setIsInitiatingCall(true);
+                    setShowVoiceCall(true);
+                    // Reset debounce after 1 second
+                    setTimeout(() => setIsInitiatingCall(false), 1000);
+                  }
                 }}
+                disabled={isInitiatingCall}
                 className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVoiceCallActive 
                     ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
@@ -1643,9 +1651,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  
-                  setShowVideoCall(true);
+                  if (!isInitiatingCall) {
+                    setIsInitiatingCall(true);
+                    setShowVideoCall(true);
+                    // Reset debounce after 1 second
+                    setTimeout(() => setIsInitiatingCall(false), 1000);
+                  }
                 }}
+                disabled={isInitiatingCall}
                 className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVideoCallActive 
                     ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 

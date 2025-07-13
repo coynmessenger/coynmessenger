@@ -170,6 +170,26 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           .catch((error) => {
             console.error('Failed to initiate video call:', error);
             setCallStatus("ended");
+            
+            // Show user-friendly error messages
+            let errorMessage = 'Failed to start video call';
+            if (error.message.includes('Microphone access denied')) {
+              errorMessage = 'Camera/microphone access denied. Please allow camera and microphone permissions in your browser settings and try again.';
+            } else if (error.message.includes('No microphone found')) {
+              errorMessage = 'No microphone or camera found. Please connect a microphone and camera and try again.';
+            } else if (error.message.includes('already in use')) {
+              errorMessage = 'Camera/microphone is already in use by another application. Please close other apps using the camera or microphone and try again.';
+            }
+            
+            // Show toast notification
+            import("@/hooks/use-toast").then(({ toast }) => {
+              toast({
+                title: "Video Call Failed",
+                description: errorMessage,
+                variant: "destructive",
+              });
+            });
+            
             if (onCallEnd) onCallEnd();
           });
       } else {
@@ -217,8 +237,29 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         await webrtcService.current.acceptCall(encryptedCallId);
         setCallStatus("connected");
         if (onCallStart) onCallStart();
-      } catch (error) {
+      } catch (error: any) {
+        console.error('Failed to accept video call:', error);
         setCallStatus("ended");
+        
+        // Show user-friendly error messages
+        let errorMessage = 'Failed to accept video call';
+        if (error.message && error.message.includes('Microphone access denied')) {
+          errorMessage = 'Camera/microphone access denied. Please allow camera and microphone permissions in your browser settings and try again.';
+        } else if (error.message && error.message.includes('No microphone found')) {
+          errorMessage = 'No microphone or camera found. Please connect a microphone and camera and try again.';
+        } else if (error.message && error.message.includes('already in use')) {
+          errorMessage = 'Camera/microphone is already in use by another application. Please close other apps using the camera or microphone and try again.';
+        }
+        
+        // Show toast notification
+        import("@/hooks/use-toast").then(({ toast }) => {
+          toast({
+            title: "Video Call Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        });
+        
         if (onCallEnd) onCallEnd();
       }
     }
