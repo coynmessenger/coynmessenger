@@ -20,6 +20,7 @@ import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
+import { initializeGlobalWebRTC, getGlobalWebRTC, setGlobalWebRTCHandlers, cleanupGlobalWebRTC } from "@/lib/global-webrtc";
 
 // Preload the COYN logo image
 const preloadImage = (src: string) => {
@@ -230,6 +231,47 @@ export default function MessengerPage() {
           });
         });
       }
+      
+      // Initialize global WebRTC service for calls
+      initializeGlobalWebRTC(connectedUserId.toString())
+        .then(() => {
+          console.log('Global WebRTC service initialized for user:', connectedUserId);
+          
+          // Set up global WebRTC handlers for incoming calls
+          setGlobalWebRTCHandlers({
+            onIncomingCall: (call) => {
+              console.log('Global WebRTC incoming call:', call);
+              
+              // Find the user for this call
+              const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
+              
+              if (callerUser) {
+                if (call.type === 'voice') {
+                  // Show voice call modal for incoming call
+                  setIsVoiceCallOpen(true);
+                  // Set up call state for incoming call
+                  // This will be handled by the voice call modal
+                } else if (call.type === 'video') {
+                  // Show video call modal for incoming call
+                  setIsVideoCallOpen(true);
+                  // Set up call state for incoming call
+                  // This will be handled by the video call modal
+                }
+              }
+            },
+            onCallAccepted: (call) => {
+              console.log('Global WebRTC call accepted:', call);
+            },
+            onCallEnded: (call) => {
+              console.log('Global WebRTC call ended:', call);
+              setIsVoiceCallOpen(false);
+              setIsVideoCallOpen(false);
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Failed to initialize global WebRTC service:', error);
+        });
     });
 
     // Listen for new messages
@@ -313,6 +355,7 @@ export default function MessengerPage() {
     // Cleanup on unmount
     return () => {
       socketConnection.disconnect();
+      cleanupGlobalWebRTC();
     };
   }, [connectedUserId, conversations, selectedConversation]);
 

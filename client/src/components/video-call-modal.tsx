@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
+import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
 import type { User } from "@shared/schema";
 
@@ -93,38 +94,38 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
-  // Initialize encrypted WebRTC service
+  // Use global WebRTC service instead of creating new instances
   useEffect(() => {
-    if (isOpen && user && !webrtcService.current) {
-      webrtcService.current = new EncryptedWebRTCService();
+    if (isOpen && user) {
+      webrtcService.current = getGlobalWebRTC();
       
-      // Set event handlers for encrypted WebRTC
-      webrtcService.current.setEventHandlers({
-        onIncomingCall: (call) => {
-          if (call.type === 'video') {
-            setCallStatus("ringing");
-            setEncryptedCallId(call.callId);
+      if (webrtcService.current) {
+        // Set event handlers for encrypted WebRTC
+        webrtcService.current.setEventHandlers({
+          onIncomingCall: (call) => {
+            if (call.type === 'video') {
+              setCallStatus("ringing");
+              setEncryptedCallId(call.callId);
+            }
+          },
+          onCallAccepted: (call) => {
+            setCallStatus("connected");
+            if (onCallStart) onCallStart();
+          },
+          onCallEnded: (call) => {
+            setCallStatus("ended");
+            if (onCallEnd) onCallEnd();
+          },
+          onEncryptionStatusChanged: (encrypted) => {
+            // Handle encryption status changes
           }
-        },
-        onCallAccepted: (call) => {
-          setCallStatus("connected");
-          if (onCallStart) onCallStart();
-        },
-        onCallEnded: (call) => {
-          setCallStatus("ended");
-          if (onCallEnd) onCallEnd();
-        },
-        onEncryptionStatusChanged: (encrypted) => {
-          // Handle encryption status changes
-        }
-      });
+        });
+      }
     }
     
     return () => {
-      if (webrtcService.current) {
-        webrtcService.current.cleanup();
-        webrtcService.current = null;
-      }
+      // Don't cleanup global service, just clear reference
+      webrtcService.current = null;
     };
   }, [isOpen, user, onCallStart, onCallEnd]);
 
