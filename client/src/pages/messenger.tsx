@@ -115,6 +115,11 @@ export default function MessengerPage() {
     if (existingConversation) {
       // If conversation exists, open it
       setSelectedConversation(existingConversation.id);
+      
+      // Clear notifications for this conversation when opened
+      if (socket) {
+        socket.emit('clear-notifications', { conversationId: existingConversation.id.toString() });
+      }
     } else {
       // Only create conversation if the contact is actually in the available contacts list
       const isContactAvailable = availableContacts.some(c => c.id === contact.id);
@@ -214,21 +219,32 @@ export default function MessengerPage() {
       // Invalidate conversation queries to refresh the list immediately
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
       
-      // Show notification for new messages from other users
+      // Show notification for new messages from other users only if conversation is not currently open
       if (data.senderId !== connectedUserId && data.senderName) {
-        toast({
-          title: `New message from ${data.senderName}`,
-          description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
-          duration: 3000,
-        });
+        const isConversationOpen = selectedConversation && selectedConversation.toString() === data.conversationId;
+        
+        if (!isConversationOpen) {
+          toast({
+            title: `New message from ${data.senderName}`,
+            description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
+            duration: 3000,
+          });
+        }
       }
+    });
+
+    // Listen for notification clearing confirmation
+    socketConnection.on('notifications-cleared', (data) => {
+      console.log('Notifications cleared for conversation:', data.conversationId);
+      // Refresh conversation list to update unread indicators
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
     });
 
     // Cleanup on unmount
     return () => {
       socketConnection.disconnect();
     };
-  }, [connectedUserId, conversations]);
+  }, [connectedUserId, conversations, selectedConversation]);
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -304,6 +320,10 @@ export default function MessengerPage() {
                                 if (window.innerWidth < 768) {
                                   setSearchQuery("");
                                   setIsSearchOpen(false);
+                                }
+                                // Clear notifications for this conversation when opened
+                                if (socket) {
+                                  socket.emit('clear-notifications', { conversationId: conversation.id.toString() });
                                 }
                               }}
                               className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
@@ -568,7 +588,13 @@ export default function MessengerPage() {
                         return (
                           <div
                             key={conversation.id}
-                            onClick={() => setSelectedConversation(conversation.id)}
+                            onClick={() => {
+                              setSelectedConversation(conversation.id);
+                              // Clear notifications for this conversation when opened
+                              if (socket) {
+                                socket.emit('clear-notifications', { conversationId: conversation.id.toString() });
+                              }
+                            }}
                             className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
                               hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
                             }`}

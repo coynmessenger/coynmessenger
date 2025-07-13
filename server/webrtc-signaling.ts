@@ -98,6 +98,19 @@ export class EncryptedWebRTCSignaling {
         }
       });
 
+      // Clear notifications for a specific conversation
+      socket.on('clear-notifications', (data: { conversationId: string }) => {
+        const { conversationId } = data;
+        const userId = this.socketUsers.get(socket.id);
+        
+        if (userId) {
+          console.log(`Clearing notifications for user ${userId} in conversation ${conversationId}`);
+          
+          // Send clear notification event to the user
+          socket.emit('notifications-cleared', { conversationId });
+        }
+      });
+
       // Exchange encryption keys between users
       socket.on('exchange-keys', async (data: { targetUserId: string, publicKey: string }) => {
         const senderId = this.socketUsers.get(socket.id);
