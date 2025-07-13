@@ -44,6 +44,9 @@ export const setGlobalWebRTCHandlers = (handlers: {
   onEncryptionStatusChanged?: (encrypted: boolean) => void;
 }): void => {
   if (globalWebRTCService) {
+    console.log('🔧 Setting global WebRTC handlers:', Object.keys(handlers));
     globalWebRTCService.setEventHandlers(handlers);
+  } else {
+    console.log('❌ Cannot set global WebRTC handlers - service not initialized');
   }
 };

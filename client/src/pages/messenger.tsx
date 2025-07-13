@@ -233,30 +233,37 @@ export default function MessengerPage() {
       }
       
       // Initialize global WebRTC service for calls
-      initializeGlobalWebRTC(connectedUserId.toString())
-        .then(() => {
+      const initializeWebRTC = async () => {
+        try {
+          await initializeGlobalWebRTC(connectedUserId.toString());
           console.log('Global WebRTC service initialized for user:', connectedUserId);
           
-          // Set up global WebRTC handlers for incoming calls
+          // Set up global WebRTC handlers for incoming calls IMMEDIATELY after initialization
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
-              console.log('Global WebRTC incoming call:', call);
+              console.log('🔔 MESSENGER: Global WebRTC incoming call received:', call);
+              console.log('🔔 MESSENGER: Available users:', allUsers.map(u => ({ id: u.id, name: u.displayName })));
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
+              console.log('🔔 MESSENGER: Caller user found:', callerUser);
               
               if (callerUser) {
                 if (call.type === 'voice') {
+                  console.log('🔔 MESSENGER: Opening voice call modal');
                   // Show voice call modal for incoming call
                   setIsVoiceCallOpen(true);
                   // Set up call state for incoming call
                   // This will be handled by the voice call modal
                 } else if (call.type === 'video') {
+                  console.log('🔔 MESSENGER: Opening video call modal');
                   // Show video call modal for incoming call
                   setIsVideoCallOpen(true);
                   // Set up call state for incoming call
                   // This will be handled by the video call modal
                 }
+              } else {
+                console.log('🔔 MESSENGER: No caller user found for ID:', call.fromUserId);
               }
             },
             onCallAccepted: (call) => {
@@ -268,10 +275,13 @@ export default function MessengerPage() {
               setIsVideoCallOpen(false);
             }
           });
-        })
-        .catch(error => {
+        } catch (error) {
           console.error('Failed to initialize global WebRTC service:', error);
-        });
+        }
+      };
+      
+      // Call the async initialization
+      initializeWebRTC();
     });
 
     // Listen for new messages

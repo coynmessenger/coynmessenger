@@ -142,17 +142,25 @@ export class EncryptedWebRTCSignaling {
       }) => {
         const callerId = this.socketUsers.get(socket.id);
         
+        console.log(`🔥 CALL INITIATION DEBUG:`);
+        console.log(`- Caller socket ID: ${socket.id}`);
+        console.log(`- Caller user ID: ${callerId}`);
+        console.log(`- Target user ID: ${data.targetUserId}`);
+        console.log(`- Call type: ${data.type}`);
+        console.log(`- User sockets map:`, Array.from(this.userSockets.entries()));
+        console.log(`- Socket users map:`, Array.from(this.socketUsers.entries()));
         
         if (!callerId) {
-          
+          console.log(`❌ No caller ID found for socket ${socket.id}`);
           return;
         }
 
         const targetSocketId = this.userSockets.get(data.targetUserId);
         const callerEncryption = this.encryptionServices.get(callerId);
         
-        
-        
+        console.log(`- Target socket ID: ${targetSocketId}`);
+        console.log(`- Caller encryption service exists: ${!!callerEncryption}`);
+        console.log(`- Available encryption services:`, Array.from(this.encryptionServices.keys()));
 
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -199,6 +207,11 @@ export class EncryptedWebRTCSignaling {
             }
 
             // Send encrypted call invitation
+            console.log(`📞 Sending incoming-call event to target socket ${targetSocketId}`);
+            console.log(`- Call ID: ${callId}`);
+            console.log(`- From user: ${callerId}`);
+            console.log(`- Call type: ${data.type}`);
+            console.log(`- Encrypted offer available: ${!!encryptedOffer}`);
             
             this.io.to(targetSocketId).emit('incoming-call', {
               callId,
@@ -208,6 +221,7 @@ export class EncryptedWebRTCSignaling {
               encrypted: true
             });
 
+            console.log(`✅ Encrypted call invitation sent successfully`);
             
           } catch (error) {
             

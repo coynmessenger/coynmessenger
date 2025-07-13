@@ -86,9 +86,13 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('Incoming encrypted call received:', data);
-      console.log('Current user ID:', this.localUserId);
-      console.log('Event handlers available:', !!this.eventHandlers.onIncomingCall);
+      console.log('🔔 INCOMING CALL DEBUG - Client received incoming-call event');
+      console.log('- Call data:', data);
+      console.log('- Current user ID:', this.localUserId);
+      console.log('- Event handlers available:', !!this.eventHandlers.onIncomingCall);
+      console.log('- All event handlers:', Object.keys(this.eventHandlers));
+      console.log('- Socket connected:', this.socket?.connected);
+      console.log('- Service initialized:', this.isInitialized);
       
       try {
         // Store call information
