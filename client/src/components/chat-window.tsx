@@ -263,24 +263,36 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     // Handle new messages from other users
     newSocket.on('new-message', (data: {
       conversationId: string;
-      message: Message;
+      message: Message & { sender: User };
       timestamp: string;
     }) => {
       console.log('Received new message:', data);
       
-      // Only update if it's for this conversation and not from current user
-      if (data.conversationId === conversation.id.toString() && 
-          data.message.senderId !== connectedUserId) {
+      // Update conversations list to show new message and embolden
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/conversations"] 
+      });
+      
+      // If it's for this conversation, update messages instantly
+      if (data.conversationId === conversation.id.toString()) {
+        // Add message immediately to cache for instant display
+        const currentMessages = queryClient.getQueryData<(Message & { sender: User })[]>(
+          ["/api/conversations", conversation.id, "messages"]
+        ) || [];
         
-        // Invalidate messages query to refetch latest messages
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/conversations", conversation.id, "messages"] 
-        });
+        // Check if message already exists to avoid duplicates
+        const messageExists = currentMessages.some(msg => msg.id === data.message.id);
+        if (!messageExists) {
+          queryClient.setQueryData<(Message & { sender: User })[]>(
+            ["/api/conversations", conversation.id, "messages"],
+            [...currentMessages, data.message]
+          );
+        }
         
         // Auto-scroll to bottom for new messages
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+        }, 50);
       }
     });
 

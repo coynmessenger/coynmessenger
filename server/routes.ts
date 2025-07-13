@@ -490,12 +490,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           // Send instant notifications to other participants
-          const participants = conversation.isGroup ? 
-            await storage.getGroupMembers(conversationId) : 
-            [conversation.user1, conversation.user2];
+          let participants = [];
+          if (conversation.isGroup) {
+            participants = await storage.getGroupMembers(conversationId);
+          } else {
+            // For regular conversations, get participants from user1 and user2
+            participants = [conversation.user1, conversation.user2].filter(Boolean);
+          }
           
           participants.forEach(participant => {
-            if (participant.id !== actualSenderId) {
+            if (participant && participant.id !== actualSenderId) {
               let notificationBody = '';
               
               if (messageData.messageType === 'text') {

@@ -236,60 +236,81 @@ export default function MessengerPage() {
                   {filteredConversations.length > 0 && (
                     <div>
                       <div className="divide-y divide-border">
-                        {filteredConversations.map((conversation) => (
-                          <div
-                            key={conversation.id}
-                            onClick={() => {
-                              setSelectedConversation(conversation.id);
-                              // Clear search when switching conversations on mobile
-                              if (window.innerWidth < 768) {
-                                setSearchQuery("");
-                                setIsSearchOpen(false);
-                              }
-                            }}
-                            className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="relative">
-                                <Avatar className="w-12 h-12">
-                                  {conversation.isGroup ? (
-                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                                      <Users className="w-6 h-6" />
-                                    </AvatarFallback>
-                                  ) : (
-                                    <>
-                                      <AvatarImage 
-                                        src={conversation.otherUser?.profilePicture || undefined} 
-                                        alt={conversation.otherUser?.displayName || "User"}
-                                      />
-                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                        {filteredConversations.map((conversation) => {
+                          // Check if this conversation has unread messages
+                          const hasUnreadMessages = conversation.lastMessage && 
+                            conversation.lastMessage.senderId !== connectedUserId &&
+                            conversation.id !== selectedConversation;
+                          
+                          return (
+                            <div
+                              key={conversation.id}
+                              onClick={() => {
+                                setSelectedConversation(conversation.id);
+                                // Clear search when switching conversations on mobile
+                                if (window.innerWidth < 768) {
+                                  setSearchQuery("");
+                                  setIsSearchOpen(false);
+                                }
+                              }}
+                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
+                                hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="relative">
+                                  <Avatar className="w-12 h-12">
+                                    {conversation.isGroup ? (
+                                      <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                        <Users className="w-6 h-6" />
                                       </AvatarFallback>
-                                    </>
+                                    ) : (
+                                      <>
+                                        <AvatarImage 
+                                          src={conversation.otherUser?.profilePicture || undefined} 
+                                          alt={conversation.otherUser?.displayName || "User"}
+                                        />
+                                        <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                          <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                        </AvatarFallback>
+                                      </>
+                                    )}
+                                  </Avatar>
+                                  {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                   )}
-                                </Avatar>
-                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                  <h3 className="font-medium text-foreground truncate">
-                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
-                                  </h3>
-                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
+                                  {/* Unread message indicator */}
+                                  {hasUnreadMessages && (
+                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                                    </div>
                                   )}
                                 </div>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {conversation.lastMessage?.content || "No messages yet"}
-                                </p>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between">
+                                    <h3 className={`font-medium text-foreground truncate ${
+                                      hasUnreadMessages ? 'font-bold' : ''
+                                    }`}>
+                                      {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                    </h3>
+                                    {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                      <span className={`text-xs ${
+                                        hasUnreadMessages ? 'text-orange-600 dark:text-orange-400 font-semibold' : 'text-muted-foreground'
+                                      }`}>
+                                        {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className={`text-sm truncate ${
+                                    hasUnreadMessages ? 'text-orange-800 dark:text-orange-200 font-medium' : 'text-muted-foreground'
+                                  }`}>
+                                    {conversation.lastMessage?.content || "No messages yet"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -485,53 +506,74 @@ export default function MessengerPage() {
                 {filteredConversations.length > 0 && (
                   <div>
                     <div className="divide-y divide-border">
-                      {filteredConversations.map((conversation) => (
-                        <div
-                          key={conversation.id}
-                          onClick={() => setSelectedConversation(conversation.id)}
-                          className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <Avatar className="w-12 h-12">
-                                {conversation.isGroup ? (
-                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                                    <Users className="w-6 h-6" />
-                                  </AvatarFallback>
-                                ) : (
-                                  <>
-                                    <AvatarImage 
-                                      src={conversation.otherUser?.profilePicture || undefined} 
-                                      alt={conversation.otherUser?.displayName || "User"}
-                                    />
-                                    <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                      <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                      {filteredConversations.map((conversation) => {
+                        // Check if this conversation has unread messages
+                        const hasUnreadMessages = conversation.lastMessage && 
+                          conversation.lastMessage.senderId !== connectedUserId &&
+                          conversation.id !== selectedConversation;
+                        
+                        return (
+                          <div
+                            key={conversation.id}
+                            onClick={() => setSelectedConversation(conversation.id)}
+                            className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
+                              hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="relative">
+                                <Avatar className="w-12 h-12">
+                                  {conversation.isGroup ? (
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                      <Users className="w-6 h-6" />
                                     </AvatarFallback>
-                                  </>
+                                  ) : (
+                                    <>
+                                      <AvatarImage 
+                                        src={conversation.otherUser?.profilePicture || undefined} 
+                                        alt={conversation.otherUser?.displayName || "User"}
+                                      />
+                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                      </AvatarFallback>
+                                    </>
+                                  )}
+                                </Avatar>
+                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
+                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                                 )}
-                              </Avatar>
-                              {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium text-foreground truncate">
-                                  {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
-                                </h3>
-                                {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
+                                {/* Unread message indicator */}
+                                {hasUnreadMessages && (
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  </div>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground truncate">
-                                {conversation.lastMessage?.content || "No messages yet"}
-                              </p>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h3 className={`font-medium text-foreground truncate ${
+                                    hasUnreadMessages ? 'font-bold' : ''
+                                  }`}>
+                                    {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                  </h3>
+                                  {conversation.lastMessage && conversation.lastMessage.timestamp && (
+                                    <span className={`text-xs ${
+                                      hasUnreadMessages ? 'text-orange-600 dark:text-orange-400 font-semibold' : 'text-muted-foreground'
+                                    }`}>
+                                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className={`text-sm truncate ${
+                                  hasUnreadMessages ? 'text-orange-800 dark:text-orange-200 font-medium' : 'text-muted-foreground'
+                                }`}>
+                                  {conversation.lastMessage?.content || "No messages yet"}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
