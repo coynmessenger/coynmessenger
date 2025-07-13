@@ -41,6 +41,7 @@ export default function MessengerPage() {
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video' } | null>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -249,18 +250,17 @@ export default function MessengerPage() {
               console.log('🔔 MESSENGER: Caller user found:', callerUser);
               
               if (callerUser) {
+                // Store incoming call data
+                setIncomingCallData({ fromUserId: call.fromUserId, type: call.type });
+                
                 if (call.type === 'voice') {
-                  console.log('🔔 MESSENGER: Opening voice call modal');
+                  console.log('🔔 MESSENGER: Opening voice call modal for incoming call');
                   // Show voice call modal for incoming call
                   setIsVoiceCallOpen(true);
-                  // Set up call state for incoming call
-                  // This will be handled by the voice call modal
                 } else if (call.type === 'video') {
-                  console.log('🔔 MESSENGER: Opening video call modal');
+                  console.log('🔔 MESSENGER: Opening video call modal for incoming call');
                   // Show video call modal for incoming call
                   setIsVideoCallOpen(true);
-                  // Set up call state for incoming call
-                  // This will be handled by the video call modal
                 }
               } else {
                 console.log('🔔 MESSENGER: No caller user found for ID:', call.fromUserId);
@@ -273,6 +273,7 @@ export default function MessengerPage() {
               console.log('Global WebRTC call ended:', call);
               setIsVoiceCallOpen(false);
               setIsVideoCallOpen(false);
+              setIncomingCallData(null);
             }
           });
         } catch (error) {
@@ -800,13 +801,37 @@ export default function MessengerPage() {
       />
       <VideoCallModal
         isOpen={isVideoCallOpen}
-        onClose={() => setIsVideoCallOpen(false)}
-        user={currentConversation?.otherUser}
+        onClose={() => {
+          setIsVideoCallOpen(false);
+          setIncomingCallData(null);
+        }}
+        user={
+          incomingCallData && incomingCallData.type === 'video'
+            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId)
+            : currentConversation?.otherUser
+        }
+        callType={
+          incomingCallData && incomingCallData.type === 'video'
+            ? 'incoming'
+            : 'outgoing'
+        }
       />
       <VoiceCallModal
         isOpen={isVoiceCallOpen}
-        onClose={() => setIsVoiceCallOpen(false)}
-        user={currentConversation?.otherUser}
+        onClose={() => {
+          setIsVoiceCallOpen(false);
+          setIncomingCallData(null);
+        }}
+        user={
+          incomingCallData && incomingCallData.type === 'voice'
+            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId)
+            : currentConversation?.otherUser
+        }
+        callType={
+          incomingCallData && incomingCallData.type === 'voice'
+            ? 'incoming'
+            : 'outgoing'
+        }
       />
       <SettingsModal
         isOpen={isSettingsOpen}
