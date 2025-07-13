@@ -41,7 +41,7 @@ export default function MessengerPage() {
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
-  const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video' } | null>(null);
+  const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video'; callId: string } | null>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -250,15 +250,15 @@ export default function MessengerPage() {
               console.log('🔔 MESSENGER: Caller user found:', callerUser);
               
               if (callerUser) {
-                // Store incoming call data
-                setIncomingCallData({ fromUserId: call.fromUserId, type: call.type });
+                // Store incoming call data with call ID
+                setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
                 
                 if (call.type === 'voice') {
-                  console.log('🔔 MESSENGER: Opening voice call modal for incoming call');
+                  console.log('🔔 MESSENGER: Opening voice call modal for incoming call with ID:', call.callId);
                   // Show voice call modal for incoming call
                   setIsVoiceCallOpen(true);
                 } else if (call.type === 'video') {
-                  console.log('🔔 MESSENGER: Opening video call modal for incoming call');
+                  console.log('🔔 MESSENGER: Opening video call modal for incoming call with ID:', call.callId);
                   // Show video call modal for incoming call
                   setIsVideoCallOpen(true);
                 }
@@ -815,6 +815,11 @@ export default function MessengerPage() {
             ? 'incoming'
             : 'outgoing'
         }
+        incomingCallId={
+          incomingCallData && incomingCallData.type === 'video'
+            ? incomingCallData.callId
+            : undefined
+        }
       />
       <VoiceCallModal
         isOpen={isVoiceCallOpen}
@@ -831,6 +836,11 @@ export default function MessengerPage() {
           incomingCallData && incomingCallData.type === 'voice'
             ? 'incoming'
             : 'outgoing'
+        }
+        incomingCallId={
+          incomingCallData && incomingCallData.type === 'voice'
+            ? incomingCallData.callId
+            : undefined
         }
       />
       <SettingsModal

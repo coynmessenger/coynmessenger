@@ -19,6 +19,7 @@ interface VoiceCallModalProps {
   callType?: "incoming" | "outgoing";
   onSwitchToVideo?: () => void;
   isCallActive?: boolean;
+  incomingCallId?: string;
 }
 
 export default function VoiceCallModal({ 
@@ -30,7 +31,8 @@ export default function VoiceCallModal({
   user, 
   callType = "outgoing", 
   onSwitchToVideo,
-  isCallActive = false 
+  isCallActive = false,
+  incomingCallId
 }: VoiceCallModalProps) {
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
@@ -161,6 +163,13 @@ export default function VoiceCallModal({
     if (callType === "incoming" && user) {
       const callerName = user.displayName || user.signInName || `@${user.walletAddress?.slice(-6)}` || user.username || "Unknown";
       notificationService.showCallNotification(callerName, 'voice');
+      
+      // Set the encrypted call ID for incoming calls
+      if (incomingCallId) {
+        console.log('📞 VOICE MODAL: Setting incoming call ID:', incomingCallId);
+        setEncryptedCallId(incomingCallId);
+        setCallStatus("ringing");
+      }
     }
 
     // Initiate encrypted WebRTC call for outgoing calls
@@ -195,7 +204,7 @@ export default function VoiceCallModal({
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
     }
-  }, [isOpen, isCallActive, onCallStart]);
+  }, [isOpen, isCallActive, onCallStart, incomingCallId]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

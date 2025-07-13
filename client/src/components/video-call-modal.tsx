@@ -18,9 +18,10 @@ interface VideoCallModalProps {
   user?: User;
   callType?: "incoming" | "outgoing";
   isCallActive?: boolean;
+  incomingCallId?: string;
 }
 
-export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing", isCallActive = false }: VideoCallModalProps) {
+export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, onCallEnd, user, callType = "outgoing", isCallActive = false, incomingCallId }: VideoCallModalProps) {
   
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
@@ -185,8 +186,14 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         const callerName = user.displayName || user.signInName || `@${user.walletAddress?.slice(-6)}` || user.username || "Unknown";
         notificationService.showCallNotification(callerName, 'video');
       }
+      
+      // Set the encrypted call ID for incoming calls
+      if (incomingCallId) {
+        console.log('📹 VIDEO MODAL: Setting incoming call ID:', incomingCallId);
+        setEncryptedCallId(incomingCallId);
+      }
     }
-  }, [isOpen, isCallActive, onCallStart]);
+  }, [isOpen, isCallActive, onCallStart, incomingCallId]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
