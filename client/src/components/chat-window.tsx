@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +67,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  
+  // Get queryClient instance
+  const queryClient = useQueryClient();
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -294,7 +296,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       });
       newSocket.disconnect();
     };
-  }, [connectedUserId, conversation.id, queryClient, toast]);
+  }, [connectedUserId, conversation.id, toast]);
 
   // Mobile keyboard detection for intuitive input bar rising
   useEffect(() => {
@@ -352,7 +354,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   
   // Delete contact mutation
   const deleteContactMutation = useMutation({
