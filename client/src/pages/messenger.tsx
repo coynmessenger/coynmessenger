@@ -415,9 +415,7 @@ export default function MessengerPage() {
                                       </>
                                     )}
                                   </Avatar>
-                                  {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                  )}
+
                                   {/* Unread message indicator */}
                                   {hasUnreadMessages && (
                                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
@@ -680,9 +678,7 @@ export default function MessengerPage() {
                                     </>
                                   )}
                                 </Avatar>
-                                {!conversation.isGroup && conversation.otherUser?.isOnline && (
-                                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                )}
+
                                 {/* Unread message indicator */}
                                 {hasUnreadMessages && (
                                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
