@@ -18,8 +18,7 @@ import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
 
-// WalletConnect Web3Provider (commented out due to compatibility issues)
-// import WalletConnectProvider from "@walletconnect/web3-provider";
+
 
 // Web3 Wallet type declarations
 declare global {
@@ -28,7 +27,7 @@ declare global {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
       isMetaMask?: boolean;
       isTrust?: boolean;
-      isCoinbaseWallet?: boolean;
+  
     };
     trustWallet?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
@@ -539,88 +538,6 @@ export default function HomePage() {
             window.open('https://trustwallet.com/download', '_blank');
           }
         }
-      } else if (walletType === 'walletconnect') {
-        // WalletConnect integration - simplified approach
-        try {
-          // Check if WalletConnect is available through injected provider
-          if (typeof window.ethereum !== 'undefined') {
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
-            });
-            
-            if (accounts && accounts[0]) {
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-          } else {
-            // Redirect to WalletConnect-supported wallets
-            const wcUri = `wc:${Math.random().toString(36).substring(2)}@2?relay-protocol=irn&symKey=${Math.random().toString(36).substring(2)}`;
-            if (isMobile()) {
-              // Enhanced mobile WalletConnect support
-              const currentUrl = window.location.href;
-              
-              // Try opening in various mobile wallets
-              const walletApps = [
-                `https://link.trustwallet.com/wc?uri=${encodeURIComponent(wcUri)}`,
-                `https://metamask.app.link/wc?uri=${encodeURIComponent(wcUri)}`,
-                `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`
-              ];
-              
-              // Try the first available wallet
-              window.open(walletApps[0], '_blank');
-              
-              setTimeout(() => {
-              }, 2000);
-            } else {
-              alert('For WalletConnect, please scan the QR code with your mobile wallet app, or use manual input for now.');
-            }
-          }
-        } catch (error) {
-          console.error('WalletConnect connection failed:', error);
-          alert('Failed to connect WalletConnect. Please try again or use manual input.');
-        }
-      } else if (walletType === 'coinbase') {
-        // Enhanced Coinbase Wallet integration with mobile support
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
-          try {
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
-            });
-            
-            if (accounts && accounts[0]) {
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-          } catch (error) {
-            console.error('Coinbase Wallet connection failed:', error);
-            // Mobile fallback for Coinbase Wallet
-            if (isMobile()) {
-              const currentUrl = window.location.href;
-              const deepLink = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
-              window.open(deepLink, '_blank');
-            } else {
-              alert('Failed to connect Coinbase Wallet. Please try again or use manual input.');
-            }
-          }
-        } else {
-          // Enhanced mobile detection for Coinbase Wallet
-          if (isMobile()) {
-            // Mobile - try deep link to Coinbase Wallet app
-            const currentUrl = window.location.href;
-            const deepLink = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
-            window.open(deepLink, '_blank');
-            
-            setTimeout(() => {
-            }, 2000);
-          } else {
-            // Desktop - redirect to download page
-            window.open('https://www.coinbase.com/wallet', '_blank');
-          }
-        }
       }
     } catch (error) {
       console.error(`Failed to connect ${walletType} wallet:`, error);
@@ -749,7 +666,7 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* 2x2 Grid of Wallet Options */}
+                  {/* 2x1 Grid of Wallet Options */}
                   <div className="grid grid-cols-2 gap-3">
                     {/* MetaMask */}
                     <Button 

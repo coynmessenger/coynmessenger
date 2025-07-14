@@ -32,7 +32,7 @@ interface EthereumProvider {
   request: (args: { method: string; params?: any[] }) => Promise<any>;
   isMetaMask?: boolean;
   isTrust?: boolean;
-  isCoinbaseWallet?: boolean;
+
 }
 
 interface WalletSidebarProps {
