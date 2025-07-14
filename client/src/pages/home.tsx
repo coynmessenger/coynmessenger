@@ -239,92 +239,73 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
-    try {
-      if (walletType === 'metamask') {
-        // Try to connect MetaMask within the app (no external redirects)
+    // Wait for provider injection on mobile
+    const waitForProvider = () => {
+      return new Promise((resolve) => {
         if (typeof window.ethereum !== 'undefined') {
-          // Check if MetaMask is available or use any Web3 provider
-          try {
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
-            });
-            
-            if (accounts && accounts[0]) {
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined // Let the backend generate a proper display name
-              });
-              
-              // Force immediate UI update
-              setTimeout(() => {
-                const storedUser = localStorage.getItem('connectedUser');
-                if (storedUser) {
-                  const parsedUser = JSON.parse(storedUser);
-                  setConnectedUser(parsedUser);
-                  setIsConnected(true);
-                }
-              }, 500);
-            } else {
-              alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
-            }
-          } catch (error: any) {
-            console.error('MetaMask connection failed:', error);
-            
-            // Show user-friendly error message
-            if (error.code === 4001) {
-              alert("MetaMask connection was rejected. Please approve the connection request to continue.");
-            } else if (error.code === -32002) {
-              alert("MetaMask connection request is already pending. Please check your MetaMask extension.");
-            } else {
-              alert(`Failed to connect MetaMask: ${error.message || 'Unknown error'}`);
-            }
-          }
+          resolve(window.ethereum);
         } else {
-          // No Web3 provider available
-          alert("MetaMask not detected. Please install MetaMask extension or use manual wallet connection.");
+          // Wait a bit for provider injection
+          setTimeout(() => {
+            resolve(window.ethereum);
+          }, 100);
         }
-      } else if (walletType === 'trust') {
-        // Trust Wallet Web3 integration - connect within the app
-        if (typeof window.ethereum !== 'undefined') {
-          try {
-            // Try to connect using any available Web3 provider
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
+      });
+    };
+    
+    try {
+      const provider = await waitForProvider();
+      
+      if (provider) {
+        try {
+          const accounts = await provider.request({ 
+            method: 'eth_requestAccounts' 
+          });
+          
+          if (accounts && accounts[0]) {
+            connectWalletMutation.mutate({
+              walletAddress: accounts[0],
+              displayName: undefined
             });
             
-            if (accounts && accounts[0]) {
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-              
-              // Force immediate UI update
-              setTimeout(() => {
-                const storedUser = localStorage.getItem('connectedUser');
-                if (storedUser) {
-                  const parsedUser = JSON.parse(storedUser);
-                  setConnectedUser(parsedUser);
-                  setIsConnected(true);
-                }
-              }, 500);
-            } else {
-              alert("No Trust Wallet accounts found. Please unlock Trust Wallet and try again.");
-            }
-          } catch (error: any) {
-            console.error('Trust Wallet connection failed:', error);
-            
-            // Show user-friendly error message
-            if (error.code === 4001) {
-              alert("Trust Wallet connection was rejected. Please approve the connection request to continue.");
-            } else if (error.code === -32002) {
-              alert("Trust Wallet connection request is already pending. Please check your Trust Wallet app.");
-            } else {
-              alert(`Failed to connect Trust Wallet: ${error.message || 'Unknown error'}`);
-            }
+            // Force immediate UI update
+            setTimeout(() => {
+              const storedUser = localStorage.getItem('connectedUser');
+              if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                setConnectedUser(parsedUser);
+                setIsConnected(true);
+              }
+            }, 500);
+          } else {
+            alert("No accounts found. Please unlock your wallet and try again.");
+          }
+        } catch (error: any) {
+          console.error('Wallet connection failed:', error);
+          
+          // Show user-friendly error message
+          if (error.code === 4001) {
+            alert("Connection was rejected. Please approve the connection request to continue.");
+          } else if (error.code === -32002) {
+            alert("Connection request is already pending. Please check your wallet.");
+          } else {
+            alert(`Failed to connect: ${error.message || 'Please try again'}`);
+          }
+        }
+      } else {
+        // No provider detected
+        if (isMobile()) {
+          if (walletType === 'metamask') {
+            alert("Please open MetaMask app first, then return to this page and try again. Or use manual wallet connection.");
+          } else if (walletType === 'trust') {
+            alert("Please open Trust Wallet app first, then return to this page and try again. Or use manual wallet connection.");
           }
         } else {
-          // No Web3 provider available
-          alert("Trust Wallet not detected. Please install Trust Wallet extension or use manual wallet connection.");
+          if (walletType === 'metamask') {
+            alert("MetaMask not detected. Please install MetaMask extension or use manual wallet connection.");
+          } else if (walletType === 'trust') {
+            alert("Trust Wallet not detected. Please install Trust Wallet extension or use manual wallet connection.");
+          }
         }
       }
     } catch (error) {
