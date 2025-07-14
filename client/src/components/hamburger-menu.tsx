@@ -58,7 +58,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
         const parsedUser = JSON.parse(storedUser);
         return parsedUser.id;
       } catch (e) {
-        console.error('Failed to parse stored user:', e);
+
       }
     }
     return null;

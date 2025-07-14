@@ -82,7 +82,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
         setGifs([]);
       }
     } catch (err) {
-      console.error('Error fetching GIFs:', err);
+
       setError('Failed to load GIFs. Please try again.');
       setGifs([]);
     } finally {

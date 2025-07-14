@@ -528,14 +528,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
         } catch (notificationError) {
-          console.error('Failed to send notifications:', notificationError);
+
           // Don't fail the message send if notifications fail
         }
       }
 
       res.status(201).json(message);
     } catch (error) {
-      console.error('Message send error:', error);
+
       res.status(500).json({ 
         message: "Failed to send message", 
         error: process.env.NODE_ENV === 'development' ? error.message : undefined 

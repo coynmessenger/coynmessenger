@@ -222,7 +222,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         const parsedUser = JSON.parse(storedUser);
         return parsedUser.id;
       } catch (e) {
-        console.error('Failed to parse stored user:', e);
+
       }
     }
     return null;
@@ -325,15 +325,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               
               localStorage.setItem('connectedUser', JSON.stringify(connectedUserData));
             } else {
-              console.error("User ID mismatch! Not updating localStorage.", {
-                storedUserId: connectedUserData.id,
-                updatedUserId: updatedUser.id,
-                storedWallet: connectedUserData.walletAddress,
-                updatedWallet: updatedUser.walletAddress
-              });
+              // User ID mismatch - security check failed
             }
           } catch (e) {
-            console.error("Failed to update localStorage:", e);
+
           }
         }
         
@@ -418,7 +413,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setUploadingImage(false);
     },
     onError: (error) => {
-      console.error("Upload error:", error);
+
       toast({
         title: "Upload failed",
         description: "Failed to upload profile picture. Please try again.",
@@ -464,7 +459,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       }, 1500);
     },
     onError: (error) => {
-      console.error("Clear data error:", error);
+
       toast({
         title: "Failed to clear data",
         description: "An error occurred while clearing your data. Please try again.",

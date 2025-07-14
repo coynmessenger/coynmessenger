@@ -45,7 +45,7 @@ export default function MarketplaceWalletHover({
       const storedUser = localStorage.getItem('connectedUser');
       return storedUser ? JSON.parse(storedUser) : {};
     } catch (e) {
-      console.error('Failed to parse stored user:', e);
+
       return {};
     }
   };

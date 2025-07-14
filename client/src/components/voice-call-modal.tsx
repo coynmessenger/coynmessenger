@@ -166,7 +166,7 @@ export default function VoiceCallModal({
       
       // Set the encrypted call ID for incoming calls
       if (incomingCallId) {
-        console.log('📞 VOICE MODAL: Setting incoming call ID:', incomingCallId);
+
         setEncryptedCallId(incomingCallId);
         setCallStatus("ringing");
       }
@@ -191,7 +191,7 @@ export default function VoiceCallModal({
             setCallStatus("ringing");
           })
           .catch((error) => {
-            console.error('Failed to initiate voice call:', error);
+
             setCallStatus("ended");
             
             // Show user-friendly error messages
@@ -216,7 +216,7 @@ export default function VoiceCallModal({
             if (onCallEnd) onCallEnd();
           });
       } else {
-        console.error('Current user not found');
+
         setCallStatus("ended");
         if (onCallEnd) onCallEnd();
       }
@@ -249,7 +249,7 @@ export default function VoiceCallModal({
         setCallStatus("connected");
         if (onCallStart) onCallStart();
       } catch (error: any) {
-        console.error('Failed to accept call:', error);
+
         setCallStatus("ended");
         
         // Show user-friendly error messages

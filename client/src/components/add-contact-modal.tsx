@@ -29,7 +29,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
           const parsedUser = JSON.parse(storedUser);
           currentUserId = parsedUser.id;
         } catch (e) {
-          console.error('Failed to parse stored user:', e);
+
         }
       }
       

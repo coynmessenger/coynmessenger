@@ -70,7 +70,7 @@ export class EncryptedWebRTCSignaling {
       // Join conversation room for real-time messages
       socket.on('join-conversation', (data: { conversationId: string }) => {
         const { conversationId } = data;
-        console.log('User joined conversation:', conversationId);
+
         
         socket.join(`conversation-${conversationId}`);
         
@@ -84,7 +84,7 @@ export class EncryptedWebRTCSignaling {
       // Leave conversation room
       socket.on('leave-conversation', (data: { conversationId: string }) => {
         const { conversationId } = data;
-        console.log('User left conversation:', conversationId);
+
         
         socket.leave(`conversation-${conversationId}`);
         
@@ -104,7 +104,7 @@ export class EncryptedWebRTCSignaling {
         const userId = this.socketUsers.get(socket.id);
         
         if (userId) {
-          console.log(`Clearing notifications for user ${userId} in conversation ${conversationId}`);
+
           
           // Send clear notification event to the user
           socket.emit('notifications-cleared', { conversationId });
@@ -142,25 +142,15 @@ export class EncryptedWebRTCSignaling {
       }) => {
         const callerId = this.socketUsers.get(socket.id);
         
-        console.log(`🔥 CALL INITIATION DEBUG:`);
-        console.log(`- Caller socket ID: ${socket.id}`);
-        console.log(`- Caller user ID: ${callerId}`);
-        console.log(`- Target user ID: ${data.targetUserId}`);
-        console.log(`- Call type: ${data.type}`);
-        console.log(`- User sockets map:`, Array.from(this.userSockets.entries()));
-        console.log(`- Socket users map:`, Array.from(this.socketUsers.entries()));
-        
+        // Debug: Call initiation
         if (!callerId) {
-          console.log(`❌ No caller ID found for socket ${socket.id}`);
           return;
         }
 
         const targetSocketId = this.userSockets.get(data.targetUserId);
         const callerEncryption = this.encryptionServices.get(callerId);
         
-        console.log(`- Target socket ID: ${targetSocketId}`);
-        console.log(`- Caller encryption service exists: ${!!callerEncryption}`);
-        console.log(`- Available encryption services:`, Array.from(this.encryptionServices.keys()));
+
 
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -207,11 +197,7 @@ export class EncryptedWebRTCSignaling {
             }
 
             // Send encrypted call invitation
-            console.log(`📞 Sending incoming-call event to target socket ${targetSocketId}`);
-            console.log(`- Call ID: ${callId}`);
-            console.log(`- From user: ${callerId}`);
-            console.log(`- Call type: ${data.type}`);
-            console.log(`- Encrypted offer available: ${!!encryptedOffer}`);
+
             
             this.io.to(targetSocketId).emit('incoming-call', {
               callId,
@@ -221,7 +207,7 @@ export class EncryptedWebRTCSignaling {
               encrypted: true
             });
 
-            console.log(`✅ Encrypted call invitation sent successfully`);
+
             
           } catch (error) {
             
@@ -476,7 +462,7 @@ export class EncryptedWebRTCSignaling {
   // Broadcast new message to all users in a conversation
   broadcastNewMessage(conversationId: string, message: any): void {
     const roomName = `conversation-${conversationId}`;
-    console.log(`Broadcasting message to room: ${roomName}`);
+
     this.io.to(roomName).emit('new_message', {
       conversationId,
       senderId: message.senderId,
@@ -499,7 +485,7 @@ export class EncryptedWebRTCSignaling {
   }): void {
     const socketId = this.userSockets.get(userId);
     if (socketId) {
-      console.log(`Sending instant notification to user ${userId}`);
+
       this.io.to(socketId).emit('instant-notification', {
         ...notification,
         timestamp: new Date().toISOString()

@@ -224,12 +224,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       timeout: 10000,
     });
     
-    console.log('Connected to Socket.IO server');
     setSocket(newSocket);
 
     // Handle connection events
     newSocket.on('connect', () => {
-      console.log('Connected to Socket.IO server');
       setIsConnected(true);
       
       // Join the conversation room
@@ -239,12 +237,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('Disconnected from Socket.IO server:', reason);
       setIsConnected(false);
     });
 
     newSocket.on('reconnect', (attemptNumber) => {
-      console.log('Reconnected to Socket.IO server after', attemptNumber, 'attempts');
       setIsConnected(true);
       
       // Rejoin the conversation room after reconnection
@@ -254,12 +250,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     });
 
     newSocket.on('reconnect_error', (error) => {
-      console.log('Reconnection error:', error);
       setIsConnected(false);
     });
 
     newSocket.on('connect_error', (error) => {
-      console.log('Connection error:', error);
       setIsConnected(false);
     });
 
@@ -269,8 +263,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       message: Message & { sender: User };
       timestamp: string;
     }) => {
-      console.log('Received new message:', data);
-      
       // Update conversations list to show new message and embolden
       queryClient.invalidateQueries({ 
         queryKey: ["/api/conversations"] 
@@ -310,7 +302,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       fromUserName?: string;
       timestamp: string;
     }) => {
-      console.log('Received instant notification:', notification);
       
       // Show browser notification if supported
       if ('Notification' in window && Notification.permission === 'granted') {
@@ -331,7 +322,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
     // Cleanup on unmount
     return () => {
-      console.log('Left conversation');
+
       newSocket.emit('leave-conversation', { 
         conversationId: conversation.id.toString() 
       });
@@ -603,14 +594,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useQuery<(Message & { sender: User })[]>({
     queryKey: ["/api/conversations", conversation.id, "messages"],
     queryFn: async () => {
-      console.log('💬 Fetching messages for conversation:', conversation.id);
+
       const res = await fetch(`/api/conversations/${conversation.id}/messages`);
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
-      console.log('📥 Received messages:', data.length, 'messages');
+
       return data;
     },
-    refetchInterval: 1000, // Refetch every second to ensure real-time updates
+    refetchInterval: 2000, // Optimized refetch interval for better performance
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -659,7 +650,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
-      console.log('📤 Sending message:', messageData);
+
       
       if (!connectedUserId) {
         throw new Error("User not authenticated");
@@ -675,8 +666,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           senderId: connectedUserId
         };
         
-        console.log('📝 Request body:', requestBody);
-        console.log('🎯 Sending to conversation:', conversation.id);
+
         
         const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
           method: "POST",
@@ -691,16 +681,16 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('❌ Server error:', response.status, errorText);
+
           throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
         
         const result = await response.json();
-        console.log('✅ Message sent successfully:', result);
+
         return result;
       } catch (error) {
         clearTimeout(timeoutId);
-        console.error('❌ Send message error:', error);
+
         if (error.name === 'AbortError') {
           throw new Error("Request timed out");
         }
@@ -765,9 +755,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       return { previousMessages };
     },
     onSuccess: (data) => {
-      console.log('✅ Message send onSuccess triggered with data:', data);
       // Invalidate and refetch messages to get server response
-      console.log('🔄 Invalidating queries for conversation:', conversation.id);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       setMessage("");
@@ -781,7 +769,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         );
       }
       
-      console.error("Message send error:", error);
+
       
       // Show specific error messages based on error type
       let errorMessage = "Please try again.";
@@ -1052,11 +1040,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           };
           
           
-          console.log("Message details:", {
-            messageType: message.messageType,
-            originalContent: message.content,
-            messageId: message.id
-          });
+          // Message details for debugging
           
           setReplyToMessage(newReplyData);
           
@@ -2519,7 +2503,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   queryKey: ["/api/conversations", conversation.id, "messages"] 
                 });
               }).catch((error) => {
-                console.error('Failed to send GIF:', error);
+
                 toast({
                   title: "Error",
                   description: "Failed to send GIF. Please try again.",

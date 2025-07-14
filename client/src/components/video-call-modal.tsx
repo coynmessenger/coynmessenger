@@ -168,7 +168,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             setCallStatus("ringing");
           })
           .catch((error) => {
-            console.error('Failed to initiate video call:', error);
+
             setCallStatus("ended");
             
             // Show user-friendly error messages
@@ -193,7 +193,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             if (onCallEnd) onCallEnd();
           });
       } else {
-        console.error('Current user not found');
+
         setCallStatus("ended");
         if (onCallEnd) onCallEnd();
       }
@@ -209,7 +209,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       
       // Set the encrypted call ID for incoming calls
       if (incomingCallId) {
-        console.log('📹 VIDEO MODAL: Setting incoming call ID:', incomingCallId);
+
         setEncryptedCallId(incomingCallId);
       }
     }
@@ -238,7 +238,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setCallStatus("connected");
         if (onCallStart) onCallStart();
       } catch (error: any) {
-        console.error('Failed to accept video call:', error);
+
         setCallStatus("ended");
         
         // Show user-friendly error messages

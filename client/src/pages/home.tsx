@@ -67,7 +67,7 @@ export default function HomePage() {
           if (parsedUser.id === connectedUser.id) {
             setConnectedUser(parsedUser);
           } else {
-            console.error("User ID mismatch in displayNameUpdated event - not updating homepage state");
+
           }
         }
       }
@@ -510,7 +510,7 @@ export default function HomePage() {
                 });
               }
             } catch (error) {
-              console.error('Web3 wallet connection failed:', error);
+
               // Enhanced mobile fallback for Trust Wallet
               if (isMobile()) {
                 const currentUrl = window.location.href;
@@ -540,7 +540,7 @@ export default function HomePage() {
         }
       }
     } catch (error) {
-      console.error(`Failed to connect ${walletType} wallet:`, error);
+
       alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
     }
   };

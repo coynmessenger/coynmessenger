@@ -273,7 +273,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
           const parsedCart = JSON.parse(savedCart);
           setCartItems(parsedCart);
         } catch (e) {
-          console.error('Error loading cart:', e);
+
         }
       }
     };
@@ -454,7 +454,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         // Invalidate favorites cache to update UI
         queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
       } catch (error) {
-        console.error('Error removing items from favorites:', error);
+
         // Don't fail the purchase if favorites removal fails
       }
       
@@ -487,7 +487,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
       queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
 
     } catch (error) {
-      console.error('Purchase error:', error);
+
       toast({
         title: "Purchase Failed",
         description: "There was an error processing your order. Please try again.",
@@ -1163,7 +1163,7 @@ export const addToCart = (product: {
     
     return totalItems;
   } catch (error) {
-    console.error('Error adding to cart:', error);
+
     return 0;
   }
 };

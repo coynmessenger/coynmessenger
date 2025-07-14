@@ -51,7 +51,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef, onOpenSend,
         return parsedUser.id;
       }
     } catch (e) {
-      console.error('Failed to parse stored user:', e);
+
     }
     return null;
   };

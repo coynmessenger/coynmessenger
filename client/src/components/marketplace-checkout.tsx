@@ -244,7 +244,6 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           const parsedCart = JSON.parse(savedCart);
           setCartItems(parsedCart);
         } catch (error) {
-          console.error('Error loading cart:', error);
           setCartItems([]);
         }
       } else {
@@ -287,7 +286,6 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           const parsedCart = JSON.parse(savedCart);
           setCartItems(parsedCart);
         } catch (error) {
-          console.error('Error loading cart:', error);
           setCartItems([]);
         }
       } else {
@@ -463,7 +461,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         // Invalidate favorites cache to update UI
         queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
       } catch (error) {
-        console.error('Error removing items from favorites:', error);
+
         // Don't fail the purchase if favorites removal fails
       }
       
@@ -489,7 +487,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
       onClose();
       
     } catch (error) {
-      console.error('Purchase error:', error);
+
       toast({
         title: "Purchase Failed",
         description: "There was an error processing your order. Please try again.",
