@@ -314,16 +314,17 @@ export default function HomePage() {
         console.log('No Web3 provider available for wallet type:', walletType);
         
         if (isMobile()) {
+          const currentUrl = window.location.href;
           if (walletType === 'metamask') {
-            alert("MetaMask not detected. Please:\n1. Open MetaMask mobile app\n2. Go to Browser tab\n3. Navigate to this page\n4. Try connecting again\n\nOr use manual wallet connection below.");
+            alert(`To connect MetaMask:\n\n1. Open MetaMask mobile app\n2. Tap the browser tab (bottom center)\n3. Enter this URL: ${currentUrl}\n4. Try connecting again\n\nAlternatively, use manual wallet connection below with your wallet address.`);
           } else if (walletType === 'trust') {
-            alert("Trust Wallet not detected. Please:\n1. Open Trust Wallet mobile app\n2. Go to Browser tab\n3. Navigate to this page\n4. Try connecting again\n\nOr use manual wallet connection below.");
+            alert(`To connect Trust Wallet:\n\n1. Open Trust Wallet mobile app\n2. Tap the browser tab (bottom center)\n3. Enter this URL: ${currentUrl}\n4. Try connecting again\n\nAlternatively, use manual wallet connection below with your wallet address.`);
           }
         } else {
           if (walletType === 'metamask') {
-            alert("MetaMask not detected. Please install MetaMask browser extension or use manual wallet connection.");
+            alert("MetaMask browser extension not detected. Please install MetaMask extension or use manual wallet connection with your wallet address.");
           } else if (walletType === 'trust') {
-            alert("Trust Wallet not detected. Please install Trust Wallet browser extension or use manual wallet connection.");
+            alert("Trust Wallet browser extension not detected. Please install Trust Wallet extension or use manual wallet connection with your wallet address.");
           }
         }
       }
@@ -499,6 +500,12 @@ export default function HomePage() {
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-card px-2 text-muted-foreground">Or connect manually</span>
                   </div>
+                </div>
+
+                {/* Mobile-friendly helper text */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-700 dark:text-blue-300">
+                  <p className="font-medium mb-1">💡 Mobile Users:</p>
+                  <p>For the best experience, open your wallet app and visit this page in the wallet's browser, then use the wallet buttons above. Or use manual connection below with your wallet address.</p>
                 </div>
 
                 {/* Manual Input Form */}
