@@ -167,13 +167,9 @@ export default function HomePage() {
     },
   });
 
-  // Enhanced state synchronization with Trust Wallet mobile support
+  // Simple state synchronization from localStorage
   useEffect(() => {
-    let isChecking = false; // Guard against multiple simultaneous checks
-
-    const syncConnectionState = async () => {
-      if (isChecking) return; // Prevent duplicate execution
-      
+    const syncConnectionState = () => {
       // Check if user explicitly signed out - if so, don't auto-reconnect
       const userSignedOut = localStorage.getItem('userSignedOut');
       if (userSignedOut === 'true') {
@@ -183,56 +179,18 @@ export default function HomePage() {
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       
-      // First, sync any stored connection state - Always update UI immediately
+      // Sync any stored connection state
       if (storedConnected === 'true' && storedUser) {
         const parsedUser = JSON.parse(storedUser);
         setConnectedUser(parsedUser);
         setIsConnected(true);
-        return;
-      }
-      
-      // Enhanced Trust Wallet detection for mobile returns
-      if (!isConnected && typeof window.ethereum !== 'undefined') {
-        isChecking = true;
-        try {
-          let accounts = [];
-          
-          // Try Trust Wallet specific detection first
-          if (window.ethereum.isTrust || window.trustWallet) {
-            const provider = window.trustWallet || window.ethereum;
-            accounts = await provider.request({ method: 'eth_accounts' });
-          } else {
-            accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          }
-          
-          if (accounts && accounts.length > 0) {
-            // Clear any pending flags
-            localStorage.removeItem('pendingWalletConnection');
-            localStorage.removeItem('pendingWalletType');
-            localStorage.removeItem('walletConnectionAttempt');
-            
-            // Connect the wallet
-            connectWalletMutation.mutate({
-              walletAddress: accounts[0],
-              displayName: undefined
-            });
-          }
-        } catch (error) {
-          // Silently handle errors
-        } finally {
-          isChecking = false;
-        }
       }
     };
     
-    // Run sync immediately on mount
+    // Run sync on mount
     syncConnectionState();
     
-    // Add multiple event listeners for Trust Wallet mobile detection
-    const handlePageShow = () => {
-      setTimeout(syncConnectionState, 100);
-    };
-    
+    // Listen for storage changes (cross-tab sync)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' && e.newValue === 'true') {
         const storedUser = localStorage.getItem('connectedUser');
@@ -244,138 +202,14 @@ export default function HomePage() {
       }
     };
     
-    // Listen for page show events (when returning from Trust Wallet)
-    window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
-      window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
-  // Handle mobile wallet returns (optimized - no duplicate checks)
-  useEffect(() => {
-    let isChecking = false;
 
-    const handleVisibilityChange = async () => {
-      if (!document.hidden && isMobile() && !isChecking) {
-        
-        // Check if user explicitly signed out - if so, don't auto-reconnect
-        const userSignedOut = localStorage.getItem('userSignedOut');
-        if (userSignedOut === 'true') {
-          return;
-        }
-        
-        // First, check if we're already connected but the state isn't updated
-        const storedConnected = localStorage.getItem('walletConnected');
-        const storedUser = localStorage.getItem('connectedUser');
-        
-        if (storedConnected === 'true' && storedUser && !isConnected) {
-          const parsedUser = JSON.parse(storedUser);
-          setConnectedUser(parsedUser);
-          setIsConnected(true);
-          return;
-        }
-        
-        // Enhanced pending wallet connection detection for Trust Wallet
-        const pendingConnection = localStorage.getItem('pendingWalletConnection');
-        const pendingWalletType = localStorage.getItem('pendingWalletType');
-        const connectionAttempt = localStorage.getItem('walletConnectionAttempt');
-        
-        if (pendingConnection === 'true') {
-          isChecking = true;
-          
-          // Check if connection attempt is too old (older than 5 minutes)
-          if (connectionAttempt) {
-            const attemptTime = parseInt(connectionAttempt);
-            const currentTime = Date.now();
-            if (currentTime - attemptTime > 300000) { // 5 minutes
-              localStorage.removeItem('pendingWalletConnection');
-              localStorage.removeItem('pendingWalletType');
-              localStorage.removeItem('walletConnectionAttempt');
-              isChecking = false;
-              return;
-            }
-          }
-          
-          // Try to detect if a wallet connection was successful
-          try {
-            if (typeof window.ethereum !== 'undefined') {
-              const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-              
-              if (accounts && accounts.length > 0 && !isConnected) {
-                // Remove pending flags
-                localStorage.removeItem('pendingWalletConnection');
-                localStorage.removeItem('pendingWalletType');
-                localStorage.removeItem('walletConnectionAttempt');
-                
-                // Connect the wallet
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              } else if (accounts && accounts.length > 0 && isConnected) {
-                localStorage.removeItem('pendingWalletConnection');
-                localStorage.removeItem('pendingWalletType');
-                localStorage.removeItem('walletConnectionAttempt');
-              } else {
-                // For Trust Wallet, try more aggressive account detection
-                if (pendingWalletType === 'trustwallet') {
-                  try {
-                    // Try multiple providers for Trust Wallet
-                    let provider = window.ethereum;
-                    if (window.trustWallet) {
-                      provider = window.trustWallet;
-                    }
-                    
-                    const requestedAccounts = await provider.request({ method: 'eth_requestAccounts' });
-                    
-                    if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
-                      // Remove pending flags
-                      localStorage.removeItem('pendingWalletConnection');
-                      localStorage.removeItem('pendingWalletType');
-                      localStorage.removeItem('walletConnectionAttempt');
-                      
-                      // Connect the wallet
-                      connectWalletMutation.mutate({
-                        walletAddress: requestedAccounts[0],
-                        displayName: undefined
-                      });
-                    }
-                  } catch (requestError) {
-                    // Trust Wallet specific error handling
-                  }
-                }
-              }
-            }
-          } catch (error) {
-            // Remove pending flags after error
-            setTimeout(() => {
-              localStorage.removeItem('pendingWalletConnection');
-              localStorage.removeItem('pendingWalletType');
-              localStorage.removeItem('walletConnectionAttempt');
-            }, 10000);
-          } finally {
-            isChecking = false;
-          }
-        }
-      }
-    };
-
-    // Also listen for focus events as another way to detect return from wallet app
-    const handleFocus = () => {
-      handleVisibilityChange();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [isConnected, connectWalletMutation]);
 
   const handleConnectWallet = (e: React.FormEvent) => {
     e.preventDefault();
@@ -394,6 +228,8 @@ export default function HomePage() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
+
+
   const handleWeb3Connect = async (walletType: string) => {
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
@@ -405,185 +241,9 @@ export default function HomePage() {
     
     try {
       if (walletType === 'metamask') {
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-          const accounts = await window.ethereum.request({ 
-            method: 'eth_requestAccounts' 
-          });
-          
-          
-          if (accounts && accounts[0]) {
-            connectWalletMutation.mutate({
-              walletAddress: accounts[0],
-              displayName: undefined // Let the backend generate a proper display name
-            });
-            
-            // Force immediate UI update for MetaMask
-            setTimeout(() => {
-              const storedUser = localStorage.getItem('connectedUser');
-              if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                setConnectedUser(parsedUser);
-                setIsConnected(true);
-              }
-            }, 500);
-          } else {
-            alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
-          }
-        } else {
-          // For mobile, try to connect through any available ethereum provider
-          if (isMobile() && typeof window.ethereum !== 'undefined') {
-            try {
-              localStorage.setItem('pendingWalletConnection', 'true');
-              
-              // Try to request accounts directly
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                localStorage.removeItem('pendingWalletConnection');
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              }
-            } catch (error) {
-              // Fallback to deep link
-              const currentUrl = window.location.href;
-              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-              window.open(deepLink, '_blank');
-            }
-          } else if (isMobile()) {
-            // No ethereum provider, use deep link
-            localStorage.setItem('pendingWalletConnection', 'true');
-            const currentUrl = window.location.href;
-            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-            window.open(deepLink, '_blank');
-          } else {
-            window.open('https://metamask.io/download/', '_blank');
-          }
-        }
-      } else if (walletType === 'trust') {
-        // Trust Wallet Web3 integration with enhanced mobile support
+        // Try to connect MetaMask within the app (no external redirects)
         if (typeof window.ethereum !== 'undefined') {
-          // Check if Trust Wallet is available
-          if (window.ethereum.isTrust || window.trustWallet) {
-            try {
-              const provider = window.trustWallet || window.ethereum;
-              const accounts = await provider.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              }
-            } catch (error) {
-              // Enhanced mobile Trust Wallet connection handling
-              if (isMobile()) {
-                // Set pending connection with Trust Wallet specific flag
-                localStorage.setItem('pendingWalletConnection', 'true');
-                localStorage.setItem('pendingWalletType', 'trustwallet');
-                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-                
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                
-                // Use window.location instead of window.open for better mobile handling
-                window.location.href = deepLink;
-              } else {
-                alert('Failed to connect Trust Wallet. Please try again or use manual input.');
-              }
-            }
-          } else {
-            // If Trust Wallet is not detected, try generic ethereum provider
-            try {
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              }
-            } catch (error) {
-              console.error('Web3 wallet connection failed:', error);
-              // Enhanced mobile fallback for Trust Wallet
-              if (isMobile()) {
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                window.open(deepLink, '_blank');
-              } else {
-                window.open('https://trustwallet.com/download', '_blank');
-              }
-            }
-          }
-        } else {
-          // No Web3 provider detected - Enhanced mobile handling
-          if (isMobile()) {
-            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
-            const currentUrl = window.location.href;
-            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-            
-            // Try Trust Wallet first
-            window.open(deepLink, '_blank');
-            
-            // Fallback message for user
-            setTimeout(() => {
-            }, 2000);
-          } else {
-            window.open('https://trustwallet.com/download', '_blank');
-          }
-        }
-      } else if (walletType === 'walletconnect') {
-        // WalletConnect integration - simplified approach
-        try {
-          // Check if WalletConnect is available through injected provider
-          if (typeof window.ethereum !== 'undefined') {
-            const accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
-            });
-            
-            if (accounts && accounts[0]) {
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-          } else {
-            // Redirect to WalletConnect-supported wallets
-            const wcUri = `wc:${Math.random().toString(36).substring(2)}@2?relay-protocol=irn&symKey=${Math.random().toString(36).substring(2)}`;
-            if (isMobile()) {
-              // Enhanced mobile WalletConnect support
-              const currentUrl = window.location.href;
-              
-              // Try opening in various mobile wallets
-              const walletApps = [
-                `https://link.trustwallet.com/wc?uri=${encodeURIComponent(wcUri)}`,
-                `https://metamask.app.link/wc?uri=${encodeURIComponent(wcUri)}`,
-                `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`
-              ];
-              
-              // Try the first available wallet
-              window.open(walletApps[0], '_blank');
-              
-              setTimeout(() => {
-              }, 2000);
-            } else {
-              alert('For WalletConnect, please scan the QR code with your mobile wallet app, or use manual input for now.');
-            }
-          }
-        } catch (error) {
-          console.error('WalletConnect connection failed:', error);
-          alert('Failed to connect WalletConnect. Please try again or use manual input.');
-        }
-      } else if (walletType === 'coinbase') {
-        // Enhanced Coinbase Wallet integration with mobile support
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
+          // Check if MetaMask is available or use any Web3 provider
           try {
             const accounts = await window.ethereum.request({ 
               method: 'eth_requestAccounts' 
@@ -592,34 +252,79 @@ export default function HomePage() {
             if (accounts && accounts[0]) {
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
-                displayName: undefined
+                displayName: undefined // Let the backend generate a proper display name
               });
-            }
-          } catch (error) {
-            console.error('Coinbase Wallet connection failed:', error);
-            // Mobile fallback for Coinbase Wallet
-            if (isMobile()) {
-              const currentUrl = window.location.href;
-              const deepLink = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
-              window.open(deepLink, '_blank');
+              
+              // Force immediate UI update
+              setTimeout(() => {
+                const storedUser = localStorage.getItem('connectedUser');
+                if (storedUser) {
+                  const parsedUser = JSON.parse(storedUser);
+                  setConnectedUser(parsedUser);
+                  setIsConnected(true);
+                }
+              }, 500);
             } else {
-              alert('Failed to connect Coinbase Wallet. Please try again or use manual input.');
+              alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
+            }
+          } catch (error: any) {
+            console.error('MetaMask connection failed:', error);
+            
+            // Show user-friendly error message
+            if (error.code === 4001) {
+              alert("MetaMask connection was rejected. Please approve the connection request to continue.");
+            } else if (error.code === -32002) {
+              alert("MetaMask connection request is already pending. Please check your MetaMask extension.");
+            } else {
+              alert(`Failed to connect MetaMask: ${error.message || 'Unknown error'}`);
             }
           }
         } else {
-          // Enhanced mobile detection for Coinbase Wallet
-          if (isMobile()) {
-            // Mobile - try deep link to Coinbase Wallet app
-            const currentUrl = window.location.href;
-            const deepLink = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
-            window.open(deepLink, '_blank');
+          // No Web3 provider available
+          alert("MetaMask not detected. Please install MetaMask extension or use manual wallet connection.");
+        }
+      } else if (walletType === 'trust') {
+        // Trust Wallet Web3 integration - connect within the app
+        if (typeof window.ethereum !== 'undefined') {
+          try {
+            // Try to connect using any available Web3 provider
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
             
-            setTimeout(() => {
-            }, 2000);
-          } else {
-            // Desktop - redirect to download page
-            window.open('https://www.coinbase.com/wallet', '_blank');
+            if (accounts && accounts[0]) {
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+              
+              // Force immediate UI update
+              setTimeout(() => {
+                const storedUser = localStorage.getItem('connectedUser');
+                if (storedUser) {
+                  const parsedUser = JSON.parse(storedUser);
+                  setConnectedUser(parsedUser);
+                  setIsConnected(true);
+                }
+              }, 500);
+            } else {
+              alert("No Trust Wallet accounts found. Please unlock Trust Wallet and try again.");
+            }
+          } catch (error: any) {
+            console.error('Trust Wallet connection failed:', error);
+            
+            // Show user-friendly error message
+            if (error.code === 4001) {
+              alert("Trust Wallet connection was rejected. Please approve the connection request to continue.");
+            } else if (error.code === -32002) {
+              alert("Trust Wallet connection request is already pending. Please check your Trust Wallet app.");
+            } else {
+              alert(`Failed to connect Trust Wallet: ${error.message || 'Unknown error'}`);
+            }
           }
+        } else {
+          // No Web3 provider available
+          alert("Trust Wallet not detected. Please install Trust Wallet extension or use manual wallet connection.");
         }
       }
     } catch (error) {
