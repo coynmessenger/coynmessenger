@@ -239,16 +239,33 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
-    // Wait for provider injection on mobile
+    // Wait for provider injection on mobile - try multiple times
     const waitForProvider = () => {
       return new Promise((resolve) => {
         if (typeof window.ethereum !== 'undefined') {
+          console.log('Web3 provider found immediately');
           resolve(window.ethereum);
         } else {
-          // Wait a bit for provider injection
-          setTimeout(() => {
-            resolve(window.ethereum);
-          }, 100);
+          // On mobile, providers might take time to inject
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          const checkProvider = () => {
+            attempts++;
+            console.log(`Checking for Web3 provider, attempt ${attempts}`);
+            
+            if (typeof window.ethereum !== 'undefined') {
+              console.log('Web3 provider found after waiting');
+              resolve(window.ethereum);
+            } else if (attempts < maxAttempts) {
+              setTimeout(checkProvider, 100);
+            } else {
+              console.log('No Web3 provider found after all attempts');
+              resolve(null);
+            }
+          };
+          
+          checkProvider();
         }
       });
     };
@@ -293,18 +310,20 @@ export default function HomePage() {
           }
         }
       } else {
-        // No provider detected
+        // No provider detected after waiting
+        console.log('No Web3 provider available for wallet type:', walletType);
+        
         if (isMobile()) {
           if (walletType === 'metamask') {
-            alert("Please open MetaMask app first, then return to this page and try again. Or use manual wallet connection.");
+            alert("MetaMask not detected. Please:\n1. Open MetaMask mobile app\n2. Go to Browser tab\n3. Navigate to this page\n4. Try connecting again\n\nOr use manual wallet connection below.");
           } else if (walletType === 'trust') {
-            alert("Please open Trust Wallet app first, then return to this page and try again. Or use manual wallet connection.");
+            alert("Trust Wallet not detected. Please:\n1. Open Trust Wallet mobile app\n2. Go to Browser tab\n3. Navigate to this page\n4. Try connecting again\n\nOr use manual wallet connection below.");
           }
         } else {
           if (walletType === 'metamask') {
-            alert("MetaMask not detected. Please install MetaMask extension or use manual wallet connection.");
+            alert("MetaMask not detected. Please install MetaMask browser extension or use manual wallet connection.");
           } else if (walletType === 'trust') {
-            alert("Trust Wallet not detected. Please install Trust Wallet extension or use manual wallet connection.");
+            alert("Trust Wallet not detected. Please install Trust Wallet browser extension or use manual wallet connection.");
           }
         }
       }
