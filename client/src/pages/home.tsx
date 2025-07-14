@@ -185,6 +185,12 @@ export default function HomePage() {
         setConnectedUser(parsedUser);
         setIsConnected(true);
       }
+      
+      // On mobile, also check for Web3 provider availability
+      if (isMobile() && !isConnected && typeof window.ethereum !== 'undefined') {
+        console.log('Mobile Web3 provider detected - attempting auto-connection');
+        checkForWalletConnection();
+      }
     };
     
     // Run sync on mount
@@ -202,12 +208,41 @@ export default function HomePage() {
       }
     };
     
+    // Listen for when user returns from wallet app on mobile
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isMobile() && !isConnected) {
+        console.log('User returned to app - checking for wallet connection');
+        setTimeout(() => {
+          syncConnectionState();
+          if (typeof window.ethereum !== 'undefined') {
+            checkForWalletConnection();
+          }
+        }, 1000);
+      }
+    };
+    
+    const handleWindowFocus = () => {
+      if (isMobile() && !isConnected) {
+        console.log('Window focused - checking for wallet connection');
+        setTimeout(() => {
+          syncConnectionState();
+          if (typeof window.ethereum !== 'undefined') {
+            checkForWalletConnection();
+          }
+        }, 1000);
+      }
+    };
+    
     window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
     };
-  }, []);
+  }, [isConnected]);
 
 
 
@@ -228,6 +263,24 @@ export default function HomePage() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
+  const checkForWalletConnection = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        // Check if wallet is already connected
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts && accounts.length > 0) {
+          console.log('Auto-connecting to wallet with account:', accounts[0]);
+          connectWalletMutation.mutate({
+            walletAddress: accounts[0],
+            displayName: undefined
+          });
+        }
+      } catch (error) {
+        console.log('Auto wallet connection failed:', error);
+      }
+    }
+  };
+
 
 
   const handleWeb3Connect = async (walletType: string) => {
@@ -238,6 +291,30 @@ export default function HomePage() {
     
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
+    
+    // For mobile devices, try to open wallet app directly
+    if (isMobile()) {
+      const currentUrl = window.location.href;
+      
+      // Try to open wallet app with deep link
+      if (walletType === 'metamask') {
+        const metamaskUrl = `https://metamask.app.link/dapp/${currentUrl.replace('https://', '')}`;
+        try {
+          window.location.href = metamaskUrl;
+          return;
+        } catch (err) {
+          console.log('MetaMask deep link failed:', err);
+        }
+      } else if (walletType === 'trust') {
+        const trustUrl = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+        try {
+          window.location.href = trustUrl;
+          return;
+        } catch (err) {
+          console.log('Trust Wallet deep link failed:', err);
+        }
+      }
+    }
     
     // Wait for provider injection on mobile - try multiple times
     const waitForProvider = () => {
@@ -315,10 +392,18 @@ export default function HomePage() {
         
         if (isMobile()) {
           const currentUrl = window.location.href;
+          
+          // Copy URL to clipboard for easier access
+          try {
+            navigator.clipboard.writeText(currentUrl);
+          } catch (err) {
+            console.log('Clipboard copy failed:', err);
+          }
+          
           if (walletType === 'metamask') {
-            alert(`To connect MetaMask:\n\n1. Open MetaMask mobile app\n2. Tap the browser tab (bottom center)\n3. Enter this URL: ${currentUrl}\n4. Try connecting again\n\nAlternatively, use manual wallet connection below with your wallet address.`);
+            alert(`To connect MetaMask:\n\n1. Open MetaMask mobile app\n2. Tap the browser tab (bottom center)\n3. Enter this URL: ${currentUrl}\n   (URL copied to clipboard)\n4. Try connecting again\n\nAlternatively, use manual wallet connection below with your wallet address.`);
           } else if (walletType === 'trust') {
-            alert(`To connect Trust Wallet:\n\n1. Open Trust Wallet mobile app\n2. Tap the browser tab (bottom center)\n3. Enter this URL: ${currentUrl}\n4. Try connecting again\n\nAlternatively, use manual wallet connection below with your wallet address.`);
+            alert(`To connect Trust Wallet:\n\n1. Open Trust Wallet mobile app\n2. Tap the browser tab (bottom center)\n3. Enter this URL: ${currentUrl}\n   (URL copied to clipboard)\n4. Try connecting again\n\nAlternatively, use manual wallet connection below with your wallet address.`);
           }
         } else {
           if (walletType === 'metamask') {
@@ -504,8 +589,9 @@ export default function HomePage() {
 
                 {/* Mobile-friendly helper text */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-700 dark:text-blue-300">
-                  <p className="font-medium mb-1">💡 Mobile Users:</p>
-                  <p>For the best experience, open your wallet app and visit this page in the wallet's browser, then use the wallet buttons above. Or use manual connection below with your wallet address.</p>
+                  <p className="font-medium mb-1">📱 Mobile Users:</p>
+                  <p>Tap wallet buttons above to automatically open your wallet app. The app will redirect you to the wallet's browser where you can connect securely.</p>
+                  <p className="mt-2 text-xs opacity-80">Or use manual connection below with your wallet address.</p>
                 </div>
 
                 {/* Manual Input Form */}
