@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Database, Info, Copy, Upload, Camera } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
 
 // Utility function to get effective display name (mirrors backend logic)
@@ -913,10 +913,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               </div>
               <Separator className="bg-slate-600" />
               <div className="space-y-2">
-                <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted">
-                  <Database className="h-4 w-4 mr-2" />
-                  Export Data
-                </Button>
                 <Button 
                   onClick={() => setShowClearDataConfirm(true)}
                   variant="outline" 
