@@ -511,30 +511,30 @@ export default function HomePage() {
           }
         }
       } else if (walletType === 'trust') {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Always offer demo mode first for Trust Wallet
+        const useDemo = confirm('Trust Wallet not detected. Would you like to:\n\n✅ Click OK to use DEMO mode with sample wallet\n❌ Click Cancel to install Trust Wallet');
         
-        if (isMobile) {
-          // Mobile - redirect to Trust Wallet mobile app
-          const currentUrl = window.location.href;
-          const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-          console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
-          window.location.href = deepLink;
+        if (useDemo) {
+          // Use demo wallet for testing
+          console.log('🧪 Using demo wallet for Trust Wallet testing');
+          connectWalletMutation.mutate({
+            walletAddress: '0x742d35Cc891C0f32F05d5dF6Ab6c6B8e8a0dC2D9',
+            displayName: 'Trust Wallet Demo User'
+          });
+          return;
         } else {
-          // Desktop - show installation guide and enable demo mode
-          const useDemo = confirm('Trust Wallet not detected. Would you like to:\n\n✅ Click OK to use DEMO mode with sample wallet\n❌ Click Cancel to install Trust Wallet');
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
           
-          if (useDemo) {
-            // Use demo wallet for testing
-            console.log('🧪 Using demo wallet for Trust Wallet testing');
-            connectWalletMutation.mutate({
-              walletAddress: '0x742d35Cc891C0f32F05d5dF6Ab6c6B8e8a0dC2D9',
-              displayName: 'Trust Wallet Demo User'
-            });
-            return;
+          if (isMobile) {
+            // Mobile - redirect to Trust Wallet mobile app
+            const currentUrl = window.location.href;
+            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+            console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
+            window.location.href = deepLink;
           } else {
             window.open('https://trustwallet.com/download', '_blank');
-            return;
           }
+          return;
         }
       }
     }
