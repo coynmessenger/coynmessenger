@@ -17,6 +17,7 @@ import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
 import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
+import Web3TestPanel from "@/components/web3-test-panel";
 import type { User } from "@shared/schema";
 
 
@@ -968,6 +969,11 @@ export default function HomePage() {
             <span className="text-sm font-medium text-gray-700 dark:text-slate-300">COYN</span>
           </div>
         </div>
+      </div>
+
+      {/* Web3 Testing Panel */}
+      <div className="px-4 pb-8">
+        <Web3TestPanel />
       </div>
 
       {/* Terms and Privacy Modals */}
