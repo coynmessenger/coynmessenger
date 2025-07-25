@@ -288,10 +288,10 @@ export default function Web3TestPanel() {
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg border-gray-200 dark:border-gray-700">
-      <CardHeader className="bg-gradient-to-r from-orange-50 to-blue-50 dark:from-orange-900/10 dark:to-blue-900/10 border-b border-gray-200 dark:border-gray-700">
+      <CardHeader className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-            <Shield className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+          <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <Shield className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </div>
           <div>
             <CardTitle className="text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
@@ -302,16 +302,16 @@ export default function Web3TestPanel() {
             </p>
           </div>
         </div>
-        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+        <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-800/40 rounded-lg shrink-0">
-              <Wallet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0">
+              <Wallet className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                📱 Mobile Testing Guide
+              <p className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                Mobile Testing Guide
               </p>
-              <div className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <p>• <strong>Step 1:</strong> Connect your wallet using the buttons above</p>
                 <p>• <strong>Step 2:</strong> Run the test to verify all wallet permissions</p>
                 <p>• <strong>Note:</strong> Wallet apps may open in separate windows on mobile</p>
@@ -389,47 +389,47 @@ export default function Web3TestPanel() {
                 ))}
               </div>
               
-              <div className="mt-6 p-5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+              <div className="mt-6 p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <h4 className="font-semibold text-base text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                   Test Summary
                 </h4>
                 <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4">
-                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border-l-4 border-green-500">
+                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
                       <div>
-                        <div className="text-green-800 dark:text-green-200 font-semibold text-sm">Passed</div>
-                        <div className="text-green-700 dark:text-green-300 text-xs">Successful tests</div>
+                        <div className="text-gray-800 dark:text-gray-200 font-semibold text-sm">Passed</div>
+                        <div className="text-gray-600 dark:text-gray-400 text-xs">Successful tests</div>
                       </div>
                     </div>
-                    <div className="text-green-800 dark:text-green-200 font-bold text-xl">
+                    <div className="text-gray-800 dark:text-gray-200 font-bold text-xl">
                       {testResults.filter(r => r.status === 'success').length}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border-l-4 border-yellow-500">
+                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3">
                       <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                       <div>
-                        <div className="text-yellow-800 dark:text-yellow-200 font-semibold text-sm">Warnings</div>
-                        <div className="text-yellow-700 dark:text-yellow-300 text-xs">Needs attention</div>
+                        <div className="text-gray-800 dark:text-gray-200 font-semibold text-sm">Warnings</div>
+                        <div className="text-gray-600 dark:text-gray-400 text-xs">Needs attention</div>
                       </div>
                     </div>
-                    <div className="text-yellow-800 dark:text-yellow-200 font-bold text-xl">
+                    <div className="text-gray-800 dark:text-gray-200 font-bold text-xl">
                       {testResults.filter(r => r.status === 'warning').length}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border-l-4 border-red-500">
+                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3">
                       <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
                       <div>
-                        <div className="text-red-800 dark:text-red-200 font-semibold text-sm">Failed</div>
-                        <div className="text-red-700 dark:text-red-300 text-xs">Requires fixing</div>
+                        <div className="text-gray-800 dark:text-gray-200 font-semibold text-sm">Failed</div>
+                        <div className="text-gray-600 dark:text-gray-400 text-xs">Requires fixing</div>
                       </div>
                     </div>
-                    <div className="text-red-800 dark:text-red-200 font-bold text-xl">
+                    <div className="text-gray-800 dark:text-gray-200 font-bold text-xl">
                       {testResults.filter(r => r.status === 'error').length}
                     </div>
                   </div>
