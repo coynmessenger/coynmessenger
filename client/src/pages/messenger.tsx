@@ -15,6 +15,7 @@ import VideoCallModal from "@/components/video-call-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
+import DebugPanel from "@/components/debug-panel";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -856,6 +857,8 @@ export default function MessengerPage() {
         user={user}
       />
 
+      {/* Debug Panel - Fixed position, only visible during development */}
+      <DebugPanel />
 
     </div>
   );

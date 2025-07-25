@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import WalletAccessValidator from "@/lib/wallet-access-validator";
+import TransactionDebugger from "@/lib/transaction-debugger";
 import { Coins, Plus } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
@@ -80,40 +81,71 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       // Perform real Web3 transaction if wallet is connected
       if (typeof window.ethereum !== 'undefined' && currentUser.walletAddress) {
         try {
+          TransactionDebugger.log('info', 'crypto-sender', 'Starting transaction process', {
+            currency: data.currency,
+            amount: data.amount,
+            recipientId,
+            userId: currentUser.id
+          });
+          // Test wallet connection first
+          const walletTestPassed = await TransactionDebugger.testWalletConnection();
+          TransactionDebugger.log('info', 'crypto-sender', 'Wallet connection test result', { passed: walletTestPassed });
+          
+          // Test transaction capability
+          const txTestPassed = await TransactionDebugger.testTransactionCapability(data.amount, data.currency);
+          TransactionDebugger.log('info', 'crypto-sender', 'Transaction capability test result', { passed: txTestPassed });
+          
           // Validate stored wallet access using the validator
           let walletData = WalletAccessValidator.validateStoredAccess();
+          TransactionDebugger.log('info', 'crypto-sender', 'Wallet access validation', { hasAccess: !!walletData });
           
           // Get the correct wallet provider
           const provider = WalletAccessValidator.getWalletProvider(walletData);
+          TransactionDebugger.log('info', 'crypto-sender', 'Provider selected', { 
+            provider: provider?.isTrust ? 'Trust Wallet' : 'MetaMask',
+            hasProvider: !!provider
+          });
           
           // If no valid access, establish fresh access
           if (!walletData) {
-            console.log('No valid wallet access found, establishing fresh access...');
+            TransactionDebugger.log('warn', 'crypto-sender', 'No valid wallet access found, establishing fresh access');
             walletData = await WalletAccessValidator.establishWalletAccess(provider);
             
             if (!walletData) {
+              TransactionDebugger.log('error', 'crypto-sender', 'Failed to establish wallet access');
               throw new Error('Failed to establish wallet access. Please reconnect your wallet.');
             }
+            TransactionDebugger.log('info', 'crypto-sender', 'Fresh wallet access established');
           }
           
           // Test actual blockchain connection
+          TransactionDebugger.log('info', 'crypto-sender', 'Testing blockchain access');
           const blockchainAccessValid = await WalletAccessValidator.testBlockchainAccess(
             provider, 
             walletData.address
           );
+          TransactionDebugger.log('info', 'crypto-sender', 'Blockchain access test result', { 
+            valid: blockchainAccessValid,
+            address: walletData.address
+          });
           
           if (!blockchainAccessValid) {
-            console.log('Blockchain access test failed, re-establishing access...');
+            TransactionDebugger.log('warn', 'crypto-sender', 'Blockchain access test failed, re-establishing access');
             walletData = await WalletAccessValidator.establishWalletAccess(provider);
             
             if (!walletData) {
+              TransactionDebugger.log('error', 'crypto-sender', 'Unable to establish blockchain access');
               throw new Error('Unable to establish blockchain access. Please reconnect your wallet.');
             }
+            TransactionDebugger.log('info', 'crypto-sender', 'Blockchain access re-established');
           }
           
           // Use validated wallet address
           const accounts = [walletData.address];
-          console.log('Using validated wallet address for transaction:', walletData.address);
+          TransactionDebugger.log('info', 'crypto-sender', 'Using validated wallet address', {
+            address: walletData.address,
+            provider: walletData.provider
+          });
 
           // Verify connected account matches user's wallet
           const connectedAccount = accounts[0].toLowerCase();
@@ -248,13 +280,23 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
           }
 
           // Send transaction with blockchain access validation
-          console.log('Initiating blockchain transaction...');
+          TransactionDebugger.log('info', 'crypto-sender', 'Initiating blockchain transaction', {
+            currency: data.currency,
+            amount: data.amount,
+            to: transactionParameters.to,
+            from: transactionParameters.from
+          });
+          
           const txHash = await provider.request({
             method: 'eth_sendTransaction',
             params: [transactionParameters],
           });
           
-          console.log('Transaction submitted to blockchain:', txHash);
+          TransactionDebugger.log('info', 'crypto-sender', 'Transaction submitted successfully', {
+            txHash,
+            currency: data.currency,
+            amount: data.amount
+          });
           
           // Update wallet access timestamp after successful transaction
           if (walletData) {
@@ -282,7 +324,22 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             transactionSignatures: transactionSignatures
           });
         } catch (error: any) {
-          // Enhanced error handling for Trust Wallet and other providers
+          // Enhanced error handling with comprehensive debugging
+          TransactionDebugger.log('error', 'crypto-sender', 'Transaction failed', {
+            errorCode: error.code,
+            errorMessage: error.message,
+            errorData: error.data,
+            errorStack: error.stack,
+            currency: data.currency,
+            amount: data.amount
+          });
+          
+          // Export debug report on transaction failure
+          const debugReport = TransactionDebugger.exportDebugReport();
+          console.error('=== TRANSACTION DEBUG REPORT ===');
+          console.error(debugReport);
+          console.error('=== END DEBUG REPORT ===');
+          
           if (error.code === 4001) {
             throw new Error('Transaction was rejected by user');
           } else if (error.code === -32603) {
@@ -296,8 +353,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
           } else if (error.message?.includes('network')) {
             throw new Error('Network connection error. Please check your internet and try again.');
           } else {
-            // Log detailed error for debugging
-            console.error('Transaction error details:', error);
             throw new Error(error.message || 'Transaction failed. Please check your wallet and try again.');
           }
         }
