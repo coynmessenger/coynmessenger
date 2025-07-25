@@ -87,64 +87,94 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             recipientId,
             userId: currentUser.id
           });
-          // Test wallet connection first
-          const walletTestPassed = await TransactionDebugger.testWalletConnection();
-          TransactionDebugger.log('info', 'crypto-sender', 'Wallet connection test result', { passed: walletTestPassed });
+          // CRITICAL: Use the wallet access established during sign-in
+          TransactionDebugger.log('info', 'crypto-sender', 'Starting transaction with wallet access verification');
           
-          // Test transaction capability
-          const txTestPassed = await TransactionDebugger.testTransactionCapability(data.amount, data.currency);
-          TransactionDebugger.log('info', 'crypto-sender', 'Transaction capability test result', { passed: txTestPassed });
-          
-          // Validate stored wallet access using the validator
-          let walletData = WalletAccessValidator.validateStoredAccess();
-          TransactionDebugger.log('info', 'crypto-sender', 'Wallet access validation', { hasAccess: !!walletData });
-          
-          // Get the correct wallet provider
-          const provider = WalletAccessValidator.getWalletProvider(walletData);
-          TransactionDebugger.log('info', 'crypto-sender', 'Provider selected', { 
-            provider: provider?.isTrust ? 'Trust Wallet' : 'MetaMask',
-            hasProvider: !!provider
-          });
-          
-          // If no valid access, establish fresh access
-          if (!walletData) {
-            TransactionDebugger.log('warn', 'crypto-sender', 'No valid wallet access found, establishing fresh access');
-            walletData = await WalletAccessValidator.establishWalletAccess(provider);
-            
-            if (!walletData) {
-              TransactionDebugger.log('error', 'crypto-sender', 'Failed to establish wallet access');
-              throw new Error('Failed to establish wallet access. Please reconnect your wallet.');
-            }
-            TransactionDebugger.log('info', 'crypto-sender', 'Fresh wallet access established');
+          // First, check if we have stored wallet access from sign-in
+          const storedWalletAccess = localStorage.getItem('walletAccess');
+          if (!storedWalletAccess) {
+            TransactionDebugger.log('error', 'crypto-sender', 'No wallet access found - user must reconnect wallet');
+            throw new Error('Wallet access not found. Please reconnect your wallet to enable transactions.');
           }
           
-          // Test actual blockchain connection
-          TransactionDebugger.log('info', 'crypto-sender', 'Testing blockchain access');
-          const blockchainAccessValid = await WalletAccessValidator.testBlockchainAccess(
-            provider, 
-            walletData.address
-          );
-          TransactionDebugger.log('info', 'crypto-sender', 'Blockchain access test result', { 
-            valid: blockchainAccessValid,
-            address: walletData.address
-          });
-          
-          if (!blockchainAccessValid) {
-            TransactionDebugger.log('warn', 'crypto-sender', 'Blockchain access test failed, re-establishing access');
-            walletData = await WalletAccessValidator.establishWalletAccess(provider);
-            
-            if (!walletData) {
-              TransactionDebugger.log('error', 'crypto-sender', 'Unable to establish blockchain access');
-              throw new Error('Unable to establish blockchain access. Please reconnect your wallet.');
-            }
-            TransactionDebugger.log('info', 'crypto-sender', 'Blockchain access re-established');
+          let walletAccessData;
+          try {
+            walletAccessData = JSON.parse(storedWalletAccess);
+            TransactionDebugger.log('info', 'crypto-sender', 'Stored wallet access found', {
+              address: walletAccessData.address,
+              authorized: walletAccessData.authorized,
+              chainId: walletAccessData.chainId,
+              provider: walletAccessData.provider
+            });
+          } catch (parseError) {
+            TransactionDebugger.log('error', 'crypto-sender', 'Invalid wallet access data', parseError);
+            throw new Error('Invalid wallet access data. Please reconnect your wallet.');
           }
           
-          // Use validated wallet address
-          const accounts = [walletData.address];
-          TransactionDebugger.log('info', 'crypto-sender', 'Using validated wallet address', {
-            address: walletData.address,
-            provider: walletData.provider
+          // Verify wallet access is still valid
+          if (!walletAccessData.authorized || walletAccessData.chainId !== '0x38') {
+            TransactionDebugger.log('error', 'crypto-sender', 'Wallet access invalid or not on BSC', {
+              authorized: walletAccessData.authorized,
+              chainId: walletAccessData.chainId
+            });
+            throw new Error('Wallet access is invalid or not on BSC network. Please reconnect your wallet.');
+          }
+          
+          // Use the appropriate provider based on stored access
+          let provider = window.ethereum;
+          if (walletAccessData.provider === 'trust' && (window.ethereum?.isTrust || window.trustWallet)) {
+            provider = window.trustWallet || window.ethereum;
+            TransactionDebugger.log('info', 'crypto-sender', 'Using Trust Wallet provider');
+          } else {
+            TransactionDebugger.log('info', 'crypto-sender', 'Using MetaMask provider');
+          }
+          
+          if (!provider) {
+            TransactionDebugger.log('error', 'crypto-sender', 'No wallet provider available');
+            throw new Error('Wallet provider not available. Please ensure your wallet is connected.');
+          }
+          
+          // Verify we can access the correct account
+          const accounts = await provider.request({ method: 'eth_accounts' });
+          TransactionDebugger.log('info', 'crypto-sender', 'Available accounts from provider', { 
+            accounts,
+            expectedAddress: walletAccessData.address
+          });
+          
+          if (!accounts.includes(walletAccessData.address)) {
+            TransactionDebugger.log('error', 'crypto-sender', 'Wallet address mismatch', {
+              storedAddress: walletAccessData.address,
+              availableAccounts: accounts
+            });
+            throw new Error('Wallet address mismatch. Please reconnect your wallet.');
+          }
+          
+          // Verify we're on the correct network
+          const currentChainId = await provider.request({ method: 'eth_chainId' });
+          TransactionDebugger.log('info', 'crypto-sender', 'Current network', {
+            currentChainId,
+            expectedChainId: '0x38'
+          });
+          
+          if (currentChainId !== '0x38') {
+            TransactionDebugger.log('warn', 'crypto-sender', 'Wrong network, attempting to switch to BSC');
+            try {
+              await provider.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x38' }],
+              });
+              TransactionDebugger.log('info', 'crypto-sender', 'Successfully switched to BSC network');
+            } catch (switchError: any) {
+              TransactionDebugger.log('error', 'crypto-sender', 'Failed to switch to BSC network', switchError);
+              throw new Error('Failed to switch to BSC network. Please switch manually and try again.');
+            }
+          }
+          
+          // Use the validated wallet address from stored access
+          const senderAddress = walletAccessData.address;
+          TransactionDebugger.log('info', 'crypto-sender', 'Using wallet address from stored access', {
+            address: senderAddress,
+            provider: walletAccessData.provider
           });
 
           // Verify connected account matches user's wallet
@@ -263,19 +293,19 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             from: transactionParameters.from,
             gas: transactionParameters.gas,
             gasPrice: transactionParameters.gasPrice,
-            walletAccess: walletData ? 'Authorized' : 'None',
-            provider: walletData?.provider || 'default'
+            walletAccess: walletAccessData ? 'Authorized' : 'None',
+            provider: walletAccessData?.provider || 'default'
           });
           
-          // Test wallet connection before attempting transaction
+          // Verify wallet balance before transaction
           try {
-            const currentBalance = await provider.request({
+            const balanceCheck = await provider.request({
               method: 'eth_getBalance',
-              params: [transactionParameters.from, 'latest'],
+              params: [walletAccessData.address, 'latest'],
             });
-            console.log('Wallet balance verified for transaction:', currentBalance);
+            TransactionDebugger.log('info', 'crypto-sender', 'Wallet balance verified', { balance: balanceCheck });
           } catch (balanceError) {
-            console.error('Failed to verify wallet balance:', balanceError);
+            TransactionDebugger.log('error', 'crypto-sender', 'Failed to verify wallet balance', balanceError);
             throw new Error('Unable to access wallet for transaction. Please reconnect your wallet.');
           }
 
@@ -299,9 +329,9 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
           });
           
           // Update wallet access timestamp after successful transaction
-          if (walletData) {
-            walletData.timestamp = Date.now();
-            localStorage.setItem('walletAccess', JSON.stringify(walletData));
+          if (walletAccessData) {
+            walletAccessData.timestamp = Date.now();
+            localStorage.setItem('walletAccess', JSON.stringify(walletAccessData));
           }
 
           // Export all collected signature data (with error handling)

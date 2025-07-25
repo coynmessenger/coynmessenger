@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
+import WalletAccessValidator from "@/lib/wallet-access-validator";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
@@ -122,48 +123,118 @@ export default function HomePage() {
         throw new Error(error.message || "Failed to connect wallet");
       }
     },
-    onSuccess: (user: User) => {
-      // Store connection state in localStorage
-      localStorage.setItem('walletConnected', 'true');
-      localStorage.setItem('connectedUser', JSON.stringify(user));
-      localStorage.setItem('connectedUserId', user.id.toString());
-      
-      // Store display name for other components
-      if (user.displayName) {
-        localStorage.setItem('userDisplayName', user.displayName);
-      }
-      
-      // Clear all cache to prevent stale data conflicts
-      queryClient.clear();
-      
-      // Immediately update cache data for both query key patterns
-      queryClient.setQueryData(["/api/user"], user);
-      queryClient.setQueryData(["/api/user", user.id], user);
-      queryClient.setQueryData(["/api/user", { userId: user.id }], user);
-      
-      // Invalidate user queries to ensure fresh data across all components
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user", user.id] });
-      
-      // Invalidate conversation queries to refresh user data in conversation lists
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", user.id] });
-      
-      // Force immediate state update - this is the key fix
-      setConnectedUser(user);
-      setIsConnected(true);
-      
-      // Clear any pending connection flags
-      localStorage.removeItem('pendingWalletConnection');
-      
-      // Dispatch custom event to trigger UI updates
-      window.dispatchEvent(new CustomEvent('walletConnected', { detail: user }));
-      
-      // Force a component re-render to ensure UI updates
-      setTimeout(() => {
+    onSuccess: async (user: User) => {
+      try {
+        // CRITICAL: Establish wallet access for transactions
+        console.log('Establishing wallet access for user:', user.walletAddress);
+        
+        // Get the correct provider
+        const provider = window.ethereum;
+        if (!provider) {
+          throw new Error('No wallet provider available');
+        }
+        
+        // Request account access and switch to BSC
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        
+        // Verify the account matches user's wallet address
+        if (!accounts.includes(user.walletAddress)) {
+          throw new Error('Connected wallet does not match user account');
+        }
+        
+        // Switch to BSC network
+        try {
+          await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x38' }],
+          });
+        } catch (switchError: any) {
+          if (switchError.code === 4902) {
+            // BSC network not added, add it
+            await provider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x38',
+                chainName: 'Binance Smart Chain',
+                nativeCurrency: {
+                  name: 'BNB',
+                  symbol: 'BNB',
+                  decimals: 18
+                },
+                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com/']
+              }]
+            });
+          } else {
+            throw switchError;
+          }
+        }
+        
+        // Verify balance access
+        const balance = await provider.request({
+          method: 'eth_getBalance',
+          params: [user.walletAddress, 'latest'],
+        });
+        
+        // Store comprehensive wallet access data
+        const walletAccess = {
+          address: user.walletAddress,
+          balance: balance,
+          chainId: '0x38',
+          authorized: true,
+          provider: provider.isTrust ? 'trust' : 'metamask',
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
+        console.log('✓ Wallet access established successfully:', walletAccess);
+        
+        // Store connection state in localStorage
+        localStorage.setItem('walletConnected', 'true');
+        localStorage.setItem('connectedUser', JSON.stringify(user));
+        localStorage.setItem('connectedUserId', user.id.toString());
+        
+        // Store display name for other components
+        if (user.displayName) {
+          localStorage.setItem('userDisplayName', user.displayName);
+        }
+        
+        // Clear all cache to prevent stale data conflicts
+        queryClient.clear();
+        
+        // Immediately update cache data for both query key patterns
+        queryClient.setQueryData(["/api/user"], user);
+        queryClient.setQueryData(["/api/user", user.id], user);
+        queryClient.setQueryData(["/api/user", { userId: user.id }], user);
+        
+        // Invalidate user queries to ensure fresh data across all components
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user", user.id] });
+        
+        // Invalidate conversation queries to refresh user data in conversation lists
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations", user.id] });
+        
+        // Force immediate state update - this is the key fix
         setConnectedUser(user);
         setIsConnected(true);
-      }, 50);
+        
+        // Clear any pending connection flags
+        localStorage.removeItem('pendingWalletConnection');
+        
+        // Dispatch custom event to trigger UI updates
+        window.dispatchEvent(new CustomEvent('walletConnected', { detail: user }));
+        
+        // Force a component re-render to ensure UI updates
+        setTimeout(() => {
+          setConnectedUser(user);
+          setIsConnected(true);
+        }, 50);
+        
+      } catch (error: any) {
+        console.error('Failed to establish wallet access:', error);
+        // Don't fail the connection, but log the issue
+      }
     },
   });
 
