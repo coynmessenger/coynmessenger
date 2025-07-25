@@ -287,19 +287,35 @@ export default function Web3TestPanel() {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-orange-500" />
-          <CardTitle className="text-lg sm:text-xl">Web3 Wallet Access Validator</CardTitle>
+    <Card className="w-full max-w-4xl mx-auto shadow-lg border-gray-200 dark:border-gray-700">
+      <CardHeader className="bg-gradient-to-r from-orange-50 to-blue-50 dark:from-orange-900/10 dark:to-blue-900/10 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+            <Shield className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <CardTitle className="text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
+              Web3 Wallet Access Validator
+            </CardTitle>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Comprehensive testing of wallet connection, signatures, and blockchain access
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Comprehensive testing of wallet connection, signatures, and blockchain access
-        </p>
-        <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-xs text-blue-700 dark:text-blue-300">
-            <strong>Mobile:</strong> Connect wallet first, then test. On mobile, wallet apps may open in separate windows.
-          </p>
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start gap-2">
+            <div className="p-1 bg-blue-100 dark:bg-blue-800/30 rounded">
+              <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+                Mobile Testing Instructions
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Connect wallet first, then test. On mobile, wallet apps may open in separate windows.
+              </p>
+            </div>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -325,54 +341,65 @@ export default function Web3TestPanel() {
         {testResults.length > 0 && (
           <>
             <Separator />
-            <div className="space-y-3">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Network className="w-4 h-4" />
+            <div className="space-y-4">
+              <h3 className="font-semibold flex items-center gap-2 text-base">
+                <Network className="w-5 h-5" />
                 Test Results ({testResults.length})
               </h3>
               
-              {testResults.map((result, index) => (
-                <div key={index} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{result.name}</span>
-                    <Badge className={getStatusColor(result.status)}>
-                      <div className="flex items-center gap-1">
+              <div className="space-y-3">
+                {testResults.map((result, index) => (
+                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                      <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{result.name}</h4>
+                      <div className="flex items-center gap-2 shrink-0">
                         {getStatusIcon(result.status)}
-                        {result.status.toUpperCase()}
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(result.status)}`}>
+                          {result.status.toUpperCase()}
+                        </span>
                       </div>
-                    </Badge>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
+                      {result.message}
+                    </p>
+                    
+                    {result.data && (
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-2 font-medium">
+                          View Technical Details
+                        </summary>
+                        <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                          <pre className="text-xs overflow-auto max-h-32 text-gray-700 dark:text-gray-300">
+                            {JSON.stringify(result.data, null, 2)}
+                          </pre>
+                        </div>
+                      </details>
+                    )}
                   </div>
-                  
-                  <p className="text-sm text-muted-foreground">
-                    {result.message}
-                  </p>
-                  
-                  {result.data && (
-                    <details className="text-xs">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        View Details
-                      </summary>
-                      <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">
-                        {JSON.stringify(result.data, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
               
-              <div className="mt-4 p-3 bg-muted rounded-lg">
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Passed: {testResults.filter(r => r.status === 'success').length}</span>
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-3">Test Summary</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                    <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <span className="text-green-800 dark:text-green-200 font-medium">
+                      Passed: {testResults.filter(r => r.status === 'success').length}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4 text-yellow-500" />
-                    <span>Warnings: {testResults.filter(r => r.status === 'warning').length}</span>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
+                    <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                    <span className="text-yellow-800 dark:text-yellow-200 font-medium">
+                      Warnings: {testResults.filter(r => r.status === 'warning').length}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <XCircle className="w-4 h-4 text-red-500" />
-                    <span>Failed: {testResults.filter(r => r.status === 'error').length}</span>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+                    <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    <span className="text-red-800 dark:text-red-200 font-medium">
+                      Failed: {testResults.filter(r => r.status === 'error').length}
+                    </span>
                   </div>
                 </div>
               </div>
