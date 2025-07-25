@@ -302,37 +302,39 @@ export default function Web3TestPanel() {
             </p>
           </div>
         </div>
-        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="flex items-start gap-2">
-            <div className="p-1 bg-blue-100 dark:bg-blue-800/30 rounded">
-              <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-100 dark:bg-blue-800/40 rounded-lg shrink-0">
+              <Wallet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
-                Mobile Testing Instructions
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                📱 Mobile Testing Guide
               </p>
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                Connect wallet first, then test. On mobile, wallet apps may open in separate windows.
-              </p>
+              <div className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+                <p>• <strong>Step 1:</strong> Connect your wallet using the buttons above</p>
+                <p>• <strong>Step 2:</strong> Run the test to verify all wallet permissions</p>
+                <p>• <strong>Note:</strong> Wallet apps may open in separate windows on mobile</p>
+              </div>
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-2">
+      <CardContent className="space-y-6 p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
           <Button 
             onClick={runComprehensiveTest} 
             disabled={isRunning}
-            className="flex items-center justify-center gap-2 h-12 sm:h-10 w-full sm:w-auto text-base sm:text-sm"
+            className="flex items-center justify-center gap-2 h-14 sm:h-12 w-full sm:flex-1 text-base font-medium bg-orange-600 hover:bg-orange-700 text-white"
           >
-            <Wallet className="w-4 h-4" />
+            <Wallet className="w-5 h-5" />
             {isRunning ? 'Running Tests...' : 'Test Wallet Access'}
           </Button>
           <Button 
             variant="outline" 
             onClick={clearResults}
             disabled={isRunning}
-            className="h-12 sm:h-10 w-full sm:w-auto text-base sm:text-sm"
+            className="h-14 sm:h-12 w-full sm:w-auto text-base font-medium border-2 border-gray-300 hover:border-gray-400"
           >
             Clear Results
           </Button>
@@ -347,30 +349,37 @@ export default function Web3TestPanel() {
                 Test Results ({testResults.length})
               </h3>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {testResults.map((result, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-                      <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{result.name}</h4>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {getStatusIcon(result.status)}
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(result.status)}`}>
-                          {result.status.toUpperCase()}
-                        </span>
+                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-5 bg-white dark:bg-gray-800 shadow-sm">
+                    <div className="flex flex-col gap-3 mb-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="font-semibold text-base sm:text-sm text-gray-900 dark:text-gray-100 leading-tight">
+                          {result.name}
+                        </h4>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {getStatusIcon(result.status)}
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(result.status)}`}>
+                            {result.status.toUpperCase()}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
-                      {result.message}
-                    </p>
+                    <div className="mb-4">
+                      <p className="text-sm sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {result.message}
+                      </p>
+                    </div>
                     
                     {result.data && (
-                      <details className="text-xs">
-                        <summary className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-2 font-medium">
-                          View Technical Details
+                      <details className="mt-4">
+                        <summary className="cursor-pointer text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-3 flex items-center gap-2">
+                          <span>View Technical Details</span>
+                          <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">JSON</span>
                         </summary>
-                        <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
-                          <pre className="text-xs overflow-auto max-h-32 text-gray-700 dark:text-gray-300">
+                        <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <pre className="text-xs overflow-auto max-h-40 text-gray-700 dark:text-gray-300 leading-relaxed">
                             {JSON.stringify(result.data, null, 2)}
                           </pre>
                         </div>
@@ -380,26 +389,49 @@ export default function Web3TestPanel() {
                 ))}
               </div>
               
-              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-3">Test Summary</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                  <div className="flex items-center justify-center sm:justify-start gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
-                    <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    <span className="text-green-800 dark:text-green-200 font-medium">
-                      Passed: {testResults.filter(r => r.status === 'success').length}
-                    </span>
+              <div className="mt-6 p-5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+                <h4 className="font-semibold text-base text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  Test Summary
+                </h4>
+                <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4">
+                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border-l-4 border-green-500">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <div>
+                        <div className="text-green-800 dark:text-green-200 font-semibold text-sm">Passed</div>
+                        <div className="text-green-700 dark:text-green-300 text-xs">Successful tests</div>
+                      </div>
+                    </div>
+                    <div className="text-green-800 dark:text-green-200 font-bold text-xl">
+                      {testResults.filter(r => r.status === 'success').length}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center sm:justify-start gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
-                    <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                    <span className="text-yellow-800 dark:text-yellow-200 font-medium">
-                      Warnings: {testResults.filter(r => r.status === 'warning').length}
-                    </span>
+                  
+                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border-l-4 border-yellow-500">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                      <div>
+                        <div className="text-yellow-800 dark:text-yellow-200 font-semibold text-sm">Warnings</div>
+                        <div className="text-yellow-700 dark:text-yellow-300 text-xs">Needs attention</div>
+                      </div>
+                    </div>
+                    <div className="text-yellow-800 dark:text-yellow-200 font-bold text-xl">
+                      {testResults.filter(r => r.status === 'warning').length}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center sm:justify-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
-                    <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                    <span className="text-red-800 dark:text-red-200 font-medium">
-                      Failed: {testResults.filter(r => r.status === 'error').length}
-                    </span>
+                  
+                  <div className="flex items-center justify-between sm:justify-start gap-3 p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border-l-4 border-red-500">
+                    <div className="flex items-center gap-3">
+                      <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <div>
+                        <div className="text-red-800 dark:text-red-200 font-semibold text-sm">Failed</div>
+                        <div className="text-red-700 dark:text-red-300 text-xs">Requires fixing</div>
+                      </div>
+                    </div>
+                    <div className="text-red-800 dark:text-red-200 font-bold text-xl">
+                      {testResults.filter(r => r.status === 'error').length}
+                    </div>
                   </div>
                 </div>
               </div>

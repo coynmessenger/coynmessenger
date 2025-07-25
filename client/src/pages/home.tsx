@@ -972,8 +972,10 @@ export default function HomePage() {
       </div>
 
       {/* Web3 Testing Panel */}
-      <div className="px-4 pb-8">
-        <Web3TestPanel />
+      <div className="px-2 sm:px-4 pb-6 sm:pb-8">
+        <div className="max-w-5xl mx-auto">
+          <Web3TestPanel />
+        </div>
       </div>
 
       {/* Terms and Privacy Modals */}
