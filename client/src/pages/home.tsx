@@ -460,10 +460,30 @@ export default function HomePage() {
     
     MobileWalletDebugger.log('🔧 Force connecting wallet:', walletAddress);
     
-    connectWalletMutation.mutate({
-      walletAddress: walletAddress,
-      displayName: undefined
-    });
+    try {
+      // Directly call the API to create/find user
+      const response = await apiRequest("POST", "/api/users/find-or-create", {
+        walletAddress,
+        displayName: undefined
+      });
+      
+      // Manually update the UI state immediately
+      localStorage.setItem('walletConnected', 'true');
+      localStorage.setItem('connectedUser', JSON.stringify(response));
+      
+      setConnectedUser(response);
+      setIsConnected(true);
+      
+      MobileWalletDebugger.log('✅ Force connection successful - UI should now show signed in state');
+      
+      // Clear any pending flags
+      localStorage.removeItem('pendingWalletConnection');
+      localStorage.removeItem('pendingWalletType');
+      localStorage.removeItem('walletConnectionAttempt');
+      
+    } catch (error) {
+      MobileWalletDebugger.log('❌ Force connection failed:', error);
+    }
     
     const logs = MobileWalletDebugger.getLogs();
     setDebugLogs(logs);
