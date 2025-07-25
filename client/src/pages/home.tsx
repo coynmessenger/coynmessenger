@@ -263,17 +263,43 @@ export default function HomePage() {
       }
       
       // Enhanced Trust Wallet detection for mobile returns
+      const pendingConnection = localStorage.getItem('pendingWalletConnection');
+      const pendingWalletType = localStorage.getItem('pendingWalletType');
+      
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         isChecking = true;
         try {
           let accounts = [];
           
-          // Try Trust Wallet specific detection first
-          if (window.ethereum.isTrust || window.trustWallet) {
-            const provider = window.trustWallet || window.ethereum;
-            accounts = await provider.request({ method: 'eth_accounts' });
+          // Special handling for pending Trust Wallet connections
+          if (pendingConnection === 'true' && pendingWalletType === 'trust') {
+            console.log('🔍 Detecting Trust Wallet return, requesting accounts...');
+            
+            // For Trust Wallet, actively request accounts
+            accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts.length > 0) {
+              console.log('✅ Trust Wallet connection successful:', accounts[0]);
+              
+              // Store wallet access for transactions
+              localStorage.setItem('walletAccess', JSON.stringify({
+                address: accounts[0],
+                chainId: '0x38',
+                authorized: true,
+                provider: 'trust',
+                timestamp: Date.now()
+              }));
+            }
           } else {
-            accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            // Regular wallet detection for other cases
+            if (window.ethereum.isTrust || window.trustWallet) {
+              const provider = window.trustWallet || window.ethereum;
+              accounts = await provider.request({ method: 'eth_accounts' });
+            } else {
+              accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            }
           }
           
           if (accounts && accounts.length > 0) {
@@ -289,7 +315,7 @@ export default function HomePage() {
             });
           }
         } catch (error) {
-          // Silently handle errors
+          console.log('Wallet detection error:', error);
         } finally {
           isChecking = false;
         }
@@ -679,8 +705,9 @@ export default function HomePage() {
           // Mobile device - open Trust Wallet app directly
           console.log('📱 Mobile device detected, opening Trust Wallet app...');
           
-          // Set pending connection flag
-          localStorage.setItem('pendingWalletConnection', 'trust');
+          // Set pending connection flags with more specific tracking
+          localStorage.setItem('pendingWalletConnection', 'true');
+          localStorage.setItem('pendingWalletType', 'trust');
           localStorage.setItem('walletConnectionAttempt', Date.now().toString());
           
           // Create proper Trust Wallet deep link
