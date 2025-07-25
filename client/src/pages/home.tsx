@@ -125,91 +125,69 @@ export default function HomePage() {
     },
     onSuccess: async (user: User) => {
       try {
-        // Check if this is a demo user (specific demo wallet address)
-        const isDemoUser = user.walletAddress === '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+        // Establish wallet access for all connected users
+        console.log('Establishing wallet access for user:', user.walletAddress);
         
-        if (isDemoUser) {
-          // For demo users, create mock wallet access data
-          console.log('Setting up demo wallet access for user:', user.walletAddress);
-          
-          const walletAccess = {
-            address: user.walletAddress,
-            balance: '0x2386f26fc10000', // Demo balance in hex
-            chainId: '0x38',
-            authorized: true,
-            provider: user.displayName?.includes('Trust') ? 'trust' : 'metamask',
-            timestamp: Date.now(),
-            isDemoMode: true
-          };
-          
-          localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
-          console.log('✓ Demo wallet access established successfully:', walletAccess);
-        } else {
-          // For real wallet users, establish actual wallet access
-          console.log('Establishing real wallet access for user:', user.walletAddress);
-          
-          // Get the correct provider
-          const provider = window.ethereum;
-          if (!provider) {
-            throw new Error('No wallet provider available');
-          }
-          
-          // Request account access and switch to BSC
-          const accounts = await provider.request({ method: 'eth_requestAccounts' });
-          
-          // Verify the account matches user's wallet address
-          if (!accounts.includes(user.walletAddress)) {
-            throw new Error('Connected wallet does not match user account');
-          }
-          
-          // Switch to BSC network
-          try {
-            await provider.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: '0x38' }],
-            });
-          } catch (switchError: any) {
-            if (switchError.code === 4902) {
-              // BSC network not added, add it
-              await provider.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: '0x38',
-                  chainName: 'Binance Smart Chain',
-                  nativeCurrency: {
-                    name: 'BNB',
-                    symbol: 'BNB',
-                    decimals: 18
-                  },
-                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                  blockExplorerUrls: ['https://bscscan.com/']
-                }]
-              });
-            } else {
-              throw switchError;
-            }
-          }
-          
-          // Verify balance access
-          const balance = await provider.request({
-            method: 'eth_getBalance',
-            params: [user.walletAddress, 'latest'],
-          });
-          
-          // Store comprehensive wallet access data
-          const walletAccess = {
-            address: user.walletAddress,
-            balance: balance,
-            chainId: '0x38',
-            authorized: true,
-            provider: provider.isTrust ? 'trust' : 'metamask',
-            timestamp: Date.now(),
-            isDemoMode: false
-          };
-          
-          localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
-          console.log('✓ Real wallet access established successfully:', walletAccess);
+        // Get the correct provider
+        const provider = window.ethereum;
+        if (!provider) {
+          throw new Error('No wallet provider available');
         }
+        
+        // Request account access and switch to BSC
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        
+        // Verify the account matches user's wallet address
+        if (!accounts.includes(user.walletAddress)) {
+          throw new Error('Connected wallet does not match user account');
+        }
+        
+        // Switch to BSC network
+        try {
+          await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x38' }],
+          });
+        } catch (switchError: any) {
+          if (switchError.code === 4902) {
+            // BSC network not added, add it
+            await provider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x38',
+                chainName: 'Binance Smart Chain',
+                nativeCurrency: {
+                  name: 'BNB',
+                  symbol: 'BNB',
+                  decimals: 18
+                },
+                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com/']
+              }]
+            });
+          } else {
+            throw switchError;
+          }
+        }
+        
+        // Verify balance access
+        const balance = await provider.request({
+          method: 'eth_getBalance',
+          params: [user.walletAddress, 'latest'],
+        });
+        
+        // Store comprehensive wallet access data
+        const walletAccess = {
+          address: user.walletAddress,
+          balance: balance,
+          chainId: '0x38',
+          authorized: true,
+          provider: provider.isTrust ? 'trust' : 'metamask',
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
+        console.log('✓ Wallet access established successfully:', walletAccess);
         
         // Store connection state in localStorage
         localStorage.setItem('walletConnected', 'true');
@@ -255,12 +233,7 @@ export default function HomePage() {
         
       } catch (error: any) {
         console.error('Failed to establish wallet access:', error);
-        // For demo users, still complete the connection even if wallet access fails
-        const isDemoUser = user.walletAddress === '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
-        if (!isDemoUser) {
-          // For real users, the error might be critical
-          console.warn('Real wallet access failed, but continuing connection...');
-        }
+        console.warn('Wallet access failed, but continuing connection...');
       }
     },
   });
@@ -521,48 +494,26 @@ export default function HomePage() {
           console.log('📱 Redirecting to MetaMask mobile app:', deepLink);
           window.location.href = deepLink;
         } else {
-          // Desktop - show installation guide and enable demo mode
-          const useDemo = confirm('MetaMask not detected. Would you like to:\n\n✅ Click OK to use DEMO mode with sample wallet\n❌ Click Cancel to install MetaMask');
-          
-          if (useDemo) {
-            // Use demo wallet for testing
-            console.log('🧪 Using demo wallet for MetaMask testing');
-            connectWalletMutation.mutate({
-              walletAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-              displayName: 'MetaMask Demo User'
-            });
-            return;
-          } else {
-            window.open('https://metamask.io/download/', '_blank');
-            return;
-          }
+          // Desktop - direct to installation
+          alert('MetaMask not detected. Please install MetaMask browser extension to continue.');
+          window.open('https://metamask.io/download/', '_blank');
         }
+        return;
       } else if (walletType === 'trust') {
-        // Always offer demo mode first for Trust Wallet
-        const useDemo = confirm('Trust Wallet not detected. Would you like to:\n\n✅ Click OK to use DEMO mode with sample wallet\n❌ Click Cancel to install Trust Wallet');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        if (useDemo) {
-          // Use demo wallet for testing
-          console.log('🧪 Using demo wallet for Trust Wallet testing');
-          connectWalletMutation.mutate({
-            walletAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-            displayName: 'Trust Wallet Demo User'
-          });
-          return;
+        if (isMobile) {
+          // Mobile - redirect to Trust Wallet mobile app
+          const currentUrl = window.location.href;
+          const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+          console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
+          window.location.href = deepLink;
         } else {
-          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          
-          if (isMobile) {
-            // Mobile - redirect to Trust Wallet mobile app
-            const currentUrl = window.location.href;
-            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-            console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
-            window.location.href = deepLink;
-          } else {
-            window.open('https://trustwallet.com/download', '_blank');
-          }
-          return;
+          // Desktop - direct to installation
+          alert('Trust Wallet not detected. Please install Trust Wallet browser extension to continue.');
+          window.open('https://trustwallet.com/download', '_blank');
         }
+        return;
       }
     }
     
@@ -660,7 +611,8 @@ export default function HomePage() {
           }
         } else {
           console.log('❌ MetaMask not available in current environment');
-          alert('MetaMask not detected. Please install MetaMask extension or open this page in a Web3-enabled browser.');
+          alert('MetaMask not detected. Please install the MetaMask browser extension and refresh the page.');
+          window.open('https://metamask.io/download/', '_blank');
         }
       } else if (walletType === 'trust') {
         console.log('🛡️ Checking Trust Wallet availability...');
@@ -718,124 +670,77 @@ export default function HomePage() {
           }
         }
       } else if (walletType === 'trust') {
-        // Trust Wallet Web3 integration with enhanced mobile support
+        console.log('🛡️ Checking Trust Wallet availability...');
+        
         if (typeof window.ethereum !== 'undefined') {
           // Check if Trust Wallet is available
-          if (window.ethereum.isTrust || window.trustWallet) {
+          if (window.ethereum.isTrust || window.ethereum.isTrustWallet || window.trustWallet) {
             try {
+              console.log('✅ Trust Wallet detected, requesting accounts...');
               const provider = window.trustWallet || window.ethereum;
               const accounts = await provider.request({ 
                 method: 'eth_requestAccounts' 
               });
               
               if (accounts && accounts[0]) {
-                // Gain comprehensive Trust Wallet access for blockchain transactions
-                try {
-                  // Switch to BSC network for proper Trust Wallet access
-                  await provider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x38' }], // BSC Mainnet
-                  });
-                  
-                  // Request explicit permissions for Trust Wallet
-                  try {
-                    await provider.request({
-                      method: 'wallet_requestPermissions',
-                      params: [{ eth_accounts: {} }],
-                    });
-                  } catch (permError) {
-                    // Trust Wallet may not support wallet_requestPermissions
-                    console.warn('Permission request not supported, continuing with connection');
-                  }
-                  
-                  // Verify Trust Wallet balance access
-                  const balance = await provider.request({
-                    method: 'eth_getBalance',
-                    params: [accounts[0], 'latest'],
-                  });
-                  
-                  // Skip signature collection during Trust Wallet connection to prevent button issues
-                  console.log('Trust Wallet access established, skipping signature collection during connection');
-                  
-                  // Store Trust Wallet access for transaction use
-                  localStorage.setItem('walletAccess', JSON.stringify({
-                    address: accounts[0],
-                    balance: balance,
-                    chainId: '0x38',
-                    authorized: true,
-                    provider: 'trust',
-                    timestamp: Date.now()
-                  }));
-                  
-                  connectWalletMutation.mutate({
-                    walletAddress: accounts[0],
-                    displayName: undefined
-                  });
-                } catch (authError) {
-                  console.error('Trust Wallet authorization failed:', authError);
-                  // Try basic Trust Wallet connection
-                  connectWalletMutation.mutate({
-                    walletAddress: accounts[0],
-                    displayName: undefined
-                  });
-                }
-              }
-            } catch (error) {
-              // Enhanced mobile Trust Wallet connection handling
-              if (isMobile()) {
-                // Set pending connection with Trust Wallet specific flag
-                localStorage.setItem('pendingWalletConnection', 'true');
-                localStorage.setItem('pendingWalletType', 'trustwallet');
-                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-                
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                
-                // Use window.location instead of window.open for better mobile handling
-                window.location.href = deepLink;
+                console.log('✅ Trust Wallet account found:', accounts[0]);
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
               } else {
-                alert('Failed to connect Trust Wallet. Please try again or use manual input.');
+                alert('No accounts found in Trust Wallet. Please ensure your wallet is unlocked.');
               }
+            } catch (trustError) {
+              console.error('Trust Wallet connection failed:', trustError);
+              alert('Trust Wallet connection failed. Please ensure your wallet is unlocked and try again.');
             }
-          } else {
-            // If Trust Wallet is not detected, try generic ethereum provider
+          } else if (window.ethereum) {
+            // Generic Web3 provider available, try connecting
             try {
+              console.log('⚠️ Trust Wallet not specifically detected, trying generic Web3 connection...');
               const accounts = await window.ethereum.request({ 
                 method: 'eth_requestAccounts' 
               });
               
               if (accounts && accounts[0]) {
+                console.log('✅ Generic Web3 wallet connected for Trust Wallet button:', accounts[0]);
                 connectWalletMutation.mutate({
                   walletAddress: accounts[0],
                   displayName: undefined
                 });
               }
-            } catch (error) {
-
-              // Enhanced mobile fallback for Trust Wallet
-              if (isMobile()) {
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                window.open(deepLink, '_blank');
-              } else {
-                window.open('https://trustwallet.com/download', '_blank');
-              }
+            } catch (genericError) {
+              console.error('Generic Web3 connection failed:', genericError);
+              alert('Web3 wallet connection failed. Please ensure your wallet is unlocked and try again.');
+            }
+          } else {
+            console.log('❌ No Web3 provider available');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+              // Mobile - redirect to Trust Wallet mobile app
+              const currentUrl = window.location.href;
+              const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+              console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
+              window.location.href = deepLink;
+            } else {
+              alert('Trust Wallet not detected. Please install Trust Wallet browser extension and refresh the page.');
+              window.open('https://trustwallet.com/download', '_blank');
             }
           }
         } else {
-          // No Web3 provider detected - Enhanced mobile handling
-          if (isMobile()) {
-            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
+          console.log('❌ No Web3 environment detected');
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          
+          if (isMobile) {
+            // Mobile - redirect to Trust Wallet mobile app
             const currentUrl = window.location.href;
             const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-            
-            // Try Trust Wallet first
-            window.open(deepLink, '_blank');
-            
-            // Fallback message for user
-            setTimeout(() => {
-            }, 2000);
+            console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
+            window.location.href = deepLink;
           } else {
+            alert('Trust Wallet not detected. Please install Trust Wallet browser extension and refresh the page.');
             window.open('https://trustwallet.com/download', '_blank');
           }
         }
