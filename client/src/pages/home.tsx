@@ -477,13 +477,73 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
+    // Check if we're in a Web3-enabled environment
+    const hasWeb3 = typeof window.ethereum !== 'undefined';
+    console.log('🌐 Web3 environment detected:', hasWeb3);
+    
+    if (!hasWeb3) {
+      console.log('❌ No Web3 provider detected');
+      
+      if (walletType === 'metamask') {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Mobile - redirect to MetaMask mobile app
+          const currentUrl = window.location.href;
+          const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+          console.log('📱 Redirecting to MetaMask mobile app:', deepLink);
+          window.location.href = deepLink;
+        } else {
+          // Desktop - show installation guide and enable demo mode
+          const useDemo = confirm('MetaMask not detected. Would you like to:\n\n✅ Click OK to use DEMO mode with sample wallet\n❌ Click Cancel to install MetaMask');
+          
+          if (useDemo) {
+            // Use demo wallet for testing
+            console.log('🧪 Using demo wallet for MetaMask testing');
+            connectWalletMutation.mutate({
+              walletAddress: '0x742d35Cc891C0f32F05d5dF6Ab6c6B8e8a0dC2D8',
+              displayName: 'MetaMask Demo User'
+            });
+            return;
+          } else {
+            window.open('https://metamask.io/download/', '_blank');
+            return;
+          }
+        }
+      } else if (walletType === 'trust') {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Mobile - redirect to Trust Wallet mobile app
+          const currentUrl = window.location.href;
+          const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+          console.log('📱 Redirecting to Trust Wallet mobile app:', deepLink);
+          window.location.href = deepLink;
+        } else {
+          // Desktop - show installation guide and enable demo mode
+          const useDemo = confirm('Trust Wallet not detected. Would you like to:\n\n✅ Click OK to use DEMO mode with sample wallet\n❌ Click Cancel to install Trust Wallet');
+          
+          if (useDemo) {
+            // Use demo wallet for testing
+            console.log('🧪 Using demo wallet for Trust Wallet testing');
+            connectWalletMutation.mutate({
+              walletAddress: '0x742d35Cc891C0f32F05d5dF6Ab6c6B8e8a0dC2D9',
+              displayName: 'Trust Wallet Demo User'
+            });
+            return;
+          } else {
+            window.open('https://trustwallet.com/download', '_blank');
+            return;
+          }
+        }
+      }
+    }
+    
     try {
       if (walletType === 'metamask') {
         console.log('🦊 Checking MetaMask availability...');
-        console.log('window.ethereum exists:', typeof window.ethereum !== 'undefined');
-        console.log('window.ethereum.isMetaMask:', window.ethereum?.isMetaMask);
         
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+        if (window.ethereum?.isMetaMask) {
           console.log('✅ MetaMask detected, requesting accounts...');
           const accounts = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
@@ -552,10 +612,28 @@ export default function HomePage() {
           } else {
             alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
           }
+        } else if (window.ethereum) {
+          // Web3 exists but not MetaMask specifically
+          console.log('⚠️ Web3 detected but not MetaMask, trying generic connection...');
+          try {
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              console.log('✅ Generic Web3 wallet connected:', accounts[0]);
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
+              });
+            }
+          } catch (genericError) {
+            console.error('Generic Web3 connection failed:', genericError);
+            alert('Web3 wallet connection failed. Please ensure your wallet is unlocked and try again.');
+          }
         } else {
-          console.log('❌ MetaMask not detected or not available');
-          alert('MetaMask not detected. Please install MetaMask extension or open this page in MetaMask browser.');
-          return;
+          console.log('❌ MetaMask not available in current environment');
+          alert('MetaMask not detected. Please install MetaMask extension or open this page in a Web3-enabled browser.');
         }
       } else if (walletType === 'trust') {
         console.log('🛡️ Checking Trust Wallet availability...');
@@ -780,8 +858,10 @@ export default function HomePage() {
   };
 
   const isValidCoynAddress = (address: string) => {
-    // COYN addresses use standard 0x format (BSC/Ethereum-compatible)
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
+    // Accept various valid wallet address formats
+    return /^0x[a-fA-F0-9]{40}$/.test(address) || // Ethereum/BSC format
+           /^[1-9A-HJ-NP-Za-km-z]{26,35}$/.test(address) || // Bitcoin format
+           /^[a-zA-Z0-9]{20,50}$/.test(address); // Generic crypto address
   };
 
   const features = [
