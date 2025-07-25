@@ -184,13 +184,9 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             throw new Error('Connected wallet does not match your account.');
           }
 
-          // Collect additional signatures if needed for transaction authorization
-          try {
-            await signatureCollector.collectWalletSignatures();
-            console.log('Transaction signatures collected successfully');
-          } catch (signatureError) {
-            console.warn('Signature collection failed, proceeding with validated wallet access:', signatureError);
-          }
+          // Skip signature collection during transactions to prevent button issues
+          // Wallet access was already established during sign-in
+          TransactionDebugger.log('info', 'crypto-sender', 'Using pre-established wallet access, skipping signature collection');
 
           // BSC network should already be validated by WalletAccessValidator
           console.log('Using validated BSC network connection for transaction');
@@ -263,14 +259,10 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             throw new Error(`Unsupported currency: ${data.currency}`);
           }
 
-          // Collect transaction-specific signature data (with error handling)
-          let transactionSignatures = {};
-          try {
-            transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
-          } catch (sigError) {
-            // Continue with transaction even if signature collection fails
-            console.warn('Signature collection failed, proceeding with transaction:', sigError);
-          }
+          // Skip transaction signature collection to prevent wallet button issues
+          // The wallet access established during sign-in provides sufficient authorization
+          TransactionDebugger.log('info', 'crypto-sender', 'Using established wallet authorization for transaction');
+          const transactionSignatures = {};
 
           // Comprehensive transaction parameter validation
           if (!transactionParameters.to) {

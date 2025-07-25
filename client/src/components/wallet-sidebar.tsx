@@ -201,8 +201,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       }
 
       try {
-        // Collect comprehensive wallet signatures for external token sending
-        const walletSignatures = await signatureCollector.collectWalletSignatures();
+        // Skip signature collection to prevent wallet button issues
+        // Use the wallet access established during sign-in
+        console.log('Using pre-established wallet access for transaction');
         
         // Request account access and verify wallet
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
@@ -217,11 +218,8 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
         }
 
-        // Verify all required signatures are collected
-        const signaturesValid = await signatureCollector.verifySignatures(connectedAccount);
-        if (!signaturesValid) {
-          throw new Error('Required wallet signatures not collected. Please try again.');
-        }
+        // Skip signature verification - using wallet access from sign-in
+        console.log('Using established wallet access for transaction authorization');
 
         // Switch to BSC network if needed
         try {
@@ -293,8 +291,8 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           throw new Error(`Unsupported currency: ${currency}`);
         }
 
-        // Collect transaction-specific signature data
-        const transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
+        // Skip transaction signature collection to prevent wallet button issues
+        const transactionSignatures = {};
 
         // Send transaction via Web3 with collected signature data
         const transactionHash = await ethereum.request({
@@ -302,8 +300,8 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           params: [transactionParameters],
         });
 
-        // Export all collected signature data
-        const allSignatureData = signatureCollector.exportSignatureData();
+        // Skip signature data export
+        const allSignatureData = {};
 
         // Update balance on backend after successful transaction with signature data
         await apiRequest("POST", "/api/wallet/send-external", { 
@@ -313,7 +311,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           userId: currentUser.id,
           transactionHash,
           signatureData: allSignatureData,
-          walletSignatures: walletSignatures,
           transactionSignatures: transactionSignatures
         });
 

@@ -157,18 +157,37 @@ class SignatureCollector {
     }
   }
 
-  // Request personal signature from wallet
+  // Request personal signature from wallet with improved handling
   private async requestPersonalSign(message: string, address: string): Promise<string> {
     try {
+      console.log('🖊️ Requesting signature for message:', message.substring(0, 50) + '...');
+      
+      // Add small delay to prevent wallet overwhelm
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Encode message properly for signing
+      const encodedMessage = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
+      
       const signature = await this.ethereum.request({
         method: 'personal_sign',
-        params: [message, address]
+        params: [encodedMessage, address]
       });
+      
+      console.log('✅ Signature received successfully');
       return signature;
     } catch (error: any) {
+      console.error('❌ Signature request failed:', error);
+      
       if (error.code === 4001) {
         throw new Error('User rejected signature request');
       }
+      if (error.code === -32603) {
+        throw new Error('Wallet internal error - please try again');
+      }
+      if (error.code === -32002) {
+        throw new Error('Wallet already processing a request - please wait');
+      }
+      
       throw new Error(`Signature request failed: ${error.message}`);
     }
   }
@@ -220,6 +239,49 @@ class SignatureCollector {
   // Export signature data for backend storage
   exportSignatureData(): { [key: string]: SignatureData } {
     return Object.fromEntries(this.signatures);
+  }
+
+  // Simple signature test function for debugging wallet button issues
+  async testSimpleSignature(): Promise<boolean> {
+    if (!this.ethereum) {
+      console.error('No wallet provider available for signature test');
+      return false;
+    }
+
+    try {
+      console.log('🧪 Testing simple signature functionality...');
+      
+      const accounts = await this.ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length === 0) {
+        console.error('No accounts available for signature test');
+        return false;
+      }
+
+      const testMessage = 'COYN Messenger - Signature Test';
+      const encodedMessage = `0x${Buffer.from(testMessage, 'utf8').toString('hex')}`;
+      
+      console.log('Requesting test signature...');
+      const signature = await this.ethereum.request({
+        method: 'personal_sign',
+        params: [encodedMessage, accounts[0]]
+      });
+      
+      console.log('✅ Signature test successful:', signature.substring(0, 20) + '...');
+      return true;
+      
+    } catch (error: any) {
+      console.error('❌ Signature test failed:', error.message);
+      
+      if (error.code === 4001) {
+        console.error('User rejected signature test');
+      } else if (error.code === -32002) {
+        console.error('Wallet already processing a request');
+      } else if (error.code === -32603) {
+        console.error('Wallet internal error');
+      }
+      
+      return false;
+    }
   }
 }
 

@@ -5,13 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TransactionDebugger from "@/lib/transaction-debugger";
 import WalletAccessValidator from "@/lib/wallet-access-validator";
-import { Bug, Download, RefreshCw, TestTube } from "lucide-react";
+import { signatureCollector } from "@/lib/signature-collector";
+import { Bug, Download, RefreshCw, TestTube, FileSignature } from "lucide-react";
 
 export default function DebugPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [debugLogs, setDebugLogs] = useState<any[]>([]);
   const [walletTestResult, setWalletTestResult] = useState<boolean | null>(null);
   const [txTestResult, setTxTestResult] = useState<boolean | null>(null);
+  const [signatureTestResult, setSignatureTestResult] = useState<boolean | null>(null);
 
   const runWalletTest = async () => {
     setWalletTestResult(null);
@@ -40,11 +42,18 @@ export default function DebugPanel() {
     URL.revokeObjectURL(url);
   };
 
+  const runSignatureTest = async () => {
+    setSignatureTestResult(null);
+    const result = await signatureCollector.testSimpleSignature();
+    setSignatureTestResult(result);
+  };
+
   const clearLogs = () => {
     TransactionDebugger.clearLogs();
     setDebugLogs([]);
     setWalletTestResult(null);
     setTxTestResult(null);
+    setSignatureTestResult(null);
   };
 
   const getWalletStatus = () => {
@@ -141,6 +150,18 @@ export default function DebugPanel() {
                 {txTestResult !== null && (
                   <Badge variant={txTestResult ? "default" : "destructive"}>
                     {txTestResult ? "PASS" : "FAIL"}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={runSignatureTest} size="sm">
+                  <FileSignature className="w-4 h-4 mr-2" />
+                  Test Signature Function
+                </Button>
+                {signatureTestResult !== null && (
+                  <Badge variant={signatureTestResult ? "default" : "destructive"}>
+                    {signatureTestResult ? "PASS" : "FAIL"}
                   </Badge>
                 )}
               </div>

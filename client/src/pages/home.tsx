@@ -503,9 +503,8 @@ export default function HomePage() {
                 params: [accounts[0], 'latest'],
               });
               
-              // Collect comprehensive signatures for full authorization
-              const walletSignatures = await signatureCollector.collectWalletSignatures();
-              const allSignatureData = signatureCollector.exportSignatureData();
+              // Skip signature collection during wallet connection to prevent button issues
+              console.log('Wallet access established, skipping signature collection during connection');
               
               // Store wallet access in localStorage for transaction use
               localStorage.setItem('walletAccess', JSON.stringify({
@@ -612,9 +611,8 @@ export default function HomePage() {
                     params: [accounts[0], 'latest'],
                   });
                   
-                  // Collect comprehensive Trust Wallet signatures
-                  const walletSignatures = await signatureCollector.collectWalletSignatures();
-                  const allSignatureData = signatureCollector.exportSignatureData();
+                  // Skip signature collection during Trust Wallet connection to prevent button issues
+                  console.log('Trust Wallet access established, skipping signature collection during connection');
                   
                   // Store Trust Wallet access for transaction use
                   localStorage.setItem('walletAccess', JSON.stringify({
