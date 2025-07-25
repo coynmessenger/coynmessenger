@@ -271,35 +271,54 @@ export default function HomePage() {
         try {
           let accounts = [];
           
-          // Special handling for pending Trust Wallet connections
+          // Special handling for pending Trust Wallet connections (mobile return)
           if (pendingConnection === 'true' && pendingWalletType === 'trust') {
-            console.log('🔍 Detecting Trust Wallet return, requesting accounts...');
+            console.log('🔍 Detecting Trust Wallet return from mobile app...');
             
-            // For Trust Wallet, actively request accounts
-            accounts = await window.ethereum.request({ 
-              method: 'eth_requestAccounts' 
-            });
-            
-            if (accounts && accounts.length > 0) {
-              console.log('✅ Trust Wallet connection successful:', accounts[0]);
+            // Check connection attempt timing (don't try if too old)
+            const connectionAttempt = localStorage.getItem('walletConnectionAttempt');
+            if (connectionAttempt) {
+              const attemptTime = parseInt(connectionAttempt);
+              const timeDiff = Date.now() - attemptTime;
               
-              // Store wallet access for transactions
-              localStorage.setItem('walletAccess', JSON.stringify({
-                address: accounts[0],
-                chainId: '0x38',
-                authorized: true,
-                provider: 'trust',
-                timestamp: Date.now()
-              }));
+              // Only try if within 5 minutes
+              if (timeDiff < 300000) {
+                try {
+                  // For Trust Wallet mobile return, request accounts
+                  accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                  });
+                  
+                  if (accounts && accounts.length > 0) {
+                    console.log('✅ Trust Wallet mobile connection successful:', accounts[0]);
+                    
+                    // Store wallet access for transactions
+                    localStorage.setItem('walletAccess', JSON.stringify({
+                      address: accounts[0],
+                      chainId: '0x38',
+                      authorized: true,
+                      provider: 'trust',
+                      timestamp: Date.now()
+                    }));
+                  }
+                } catch (error) {
+                  console.log('Failed to connect Trust Wallet on return:', error);
+                  // Fall back to regular detection
+                  accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                }
+              } else {
+                // Connection attempt too old, clear pending state
+                localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
+                
+                // Try regular wallet detection
+                accounts = await window.ethereum.request({ method: 'eth_accounts' });
+              }
             }
           } else {
             // Regular wallet detection for other cases
-            if (window.ethereum.isTrust || window.trustWallet) {
-              const provider = window.trustWallet || window.ethereum;
-              accounts = await provider.request({ method: 'eth_accounts' });
-            } else {
-              accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            }
+            accounts = await window.ethereum.request({ method: 'eth_accounts' });
           }
           
           if (accounts && accounts.length > 0) {
@@ -696,119 +715,71 @@ export default function HomePage() {
           }
         }
       } else if (walletType === 'trust') {
-        console.log('🛡️ Checking Trust Wallet availability...');
+        console.log('🛡️ Connecting to Trust Wallet...');
         
-        // Enhanced Trust Wallet detection
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-          // Mobile device - open Trust Wallet app directly
-          console.log('📱 Mobile device detected, opening Trust Wallet app...');
-          
-          // Set pending connection flags with more specific tracking
-          localStorage.setItem('pendingWalletConnection', 'true');
-          localStorage.setItem('pendingWalletType', 'trust');
-          localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-          
-          // Create proper Trust Wallet deep link
-          const currentUrl = window.location.href;
-          const encodedUrl = encodeURIComponent(currentUrl);
-          const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodedUrl}`;
-          
-          console.log('📱 Opening Trust Wallet app with deep link:', deepLink);
-          
-          // Use window.location.href for better mobile handling
-          window.location.href = deepLink;
-          
-          return;
-        }
-        
-        // Desktop - check for Web3 provider
+        // Check if Web3 provider is available
         if (typeof window.ethereum !== 'undefined') {
-          console.log('🔍 Web3 provider detected, checking for Trust Wallet...');
-          
-          // Multiple Trust Wallet detection methods (with proper typing)
-          const ethereumProvider = window.ethereum as any;
-          const hasTrustWallet = ethereumProvider.isTrust || 
-                                ethereumProvider.isTrustWallet || 
-                                window.trustWallet ||
-                                (ethereumProvider.providers && ethereumProvider.providers.some((p: any) => p.isTrust));
-          
-          if (hasTrustWallet) {
-            try {
-              console.log('✅ Trust Wallet detected, requesting accounts...');
+          try {
+            console.log('✅ Web3 provider detected, requesting Trust Wallet accounts...');
+            
+            // Request accounts from Trust Wallet
+            const accounts = await window.ethereum.request({ 
+              method: 'eth_requestAccounts' 
+            });
+            
+            if (accounts && accounts[0]) {
+              console.log('✅ Trust Wallet connected:', accounts[0]);
               
-              // Get the Trust Wallet provider
-              const provider = window.trustWallet || 
-                              (ethereumProvider.providers && ethereumProvider.providers.find((p: any) => p.isTrust)) ||
-                              ethereumProvider;
+              // Store wallet access for transactions
+              localStorage.setItem('walletAccess', JSON.stringify({
+                address: accounts[0],
+                chainId: '0x38',
+                authorized: true,
+                provider: 'trust',
+                timestamp: Date.now()
+              }));
               
-              const accounts = await provider.request({ 
-                method: 'eth_requestAccounts' 
+              connectWalletMutation.mutate({
+                walletAddress: accounts[0],
+                displayName: undefined
               });
-              
-              if (accounts && accounts[0]) {
-                console.log('✅ Trust Wallet account connected:', accounts[0]);
-                
-                // Store wallet access for transactions
-                localStorage.setItem('walletAccess', JSON.stringify({
-                  address: accounts[0],
-                  chainId: '0x38',
-                  authorized: true,
-                  provider: 'trust',
-                  timestamp: Date.now()
-                }));
-                
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              } else {
-                alert('No accounts found in Trust Wallet. Please unlock your wallet and try again.');
-              }
-            } catch (trustError) {
-              console.error('Trust Wallet connection failed:', trustError);
-              alert('Trust Wallet connection failed. Please ensure your wallet is unlocked and try again.');
+            } else {
+              alert('No accounts found. Please unlock your Trust Wallet and try again.');
             }
-          } else if (window.ethereum) {
-            // Generic Web3 provider - try connecting (might be Trust Wallet without proper detection)
-            try {
-              console.log('🔍 Generic Web3 provider detected, attempting connection...');
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                console.log('✅ Web3 wallet connected:', accounts[0]);
-                
-                // Store wallet access
-                localStorage.setItem('walletAccess', JSON.stringify({
-                  address: accounts[0],
-                  chainId: '0x38',
-                  authorized: true,
-                  provider: 'trust',
-                  timestamp: Date.now()
-                }));
-                
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              }
-            } catch (genericError) {
-              console.error('Generic Web3 connection failed:', genericError);
-              alert('Wallet connection failed. Please ensure Trust Wallet is installed and unlocked.');
-              window.open('https://trustwallet.com/download', '_blank');
+          } catch (error: any) {
+            console.error('Trust Wallet connection failed:', error);
+            
+            if (error.code === 4001) {
+              alert('Connection cancelled. Please try again and approve the connection in Trust Wallet.');
+            } else if (error.code === -32002) {
+              alert('Trust Wallet is already processing a connection request. Please check your wallet.');
+            } else {
+              alert('Failed to connect to Trust Wallet. Please ensure your wallet is unlocked and try again.');
             }
-          } else {
-            console.log('❌ Trust Wallet provider not found');
-            alert('Trust Wallet not detected. Please install Trust Wallet browser extension.');
-            window.open('https://trustwallet.com/download', '_blank');
           }
         } else {
-          console.log('❌ No Web3 environment detected');
-          alert('No Web3 provider detected. Please install Trust Wallet browser extension.');
-          window.open('https://trustwallet.com/download', '_blank');
+          // No Web3 provider detected
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          
+          if (isMobile) {
+            // Mobile - try to open Trust Wallet app
+            console.log('📱 No Web3 provider on mobile, opening Trust Wallet app...');
+            
+            // Set pending connection for when user returns
+            localStorage.setItem('pendingWalletConnection', 'true');
+            localStorage.setItem('pendingWalletType', 'trust');
+            localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+            
+            const currentUrl = window.location.href;
+            const encodedUrl = encodeURIComponent(currentUrl);
+            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodedUrl}`;
+            
+            window.location.href = deepLink;
+          } else {
+            // Desktop - direct to installation
+            alert('Trust Wallet not detected. Please install Trust Wallet browser extension to continue.');
+            window.open('https://trustwallet.com/download', '_blank');
+          }
         }
       }
     } catch (error: any) {
