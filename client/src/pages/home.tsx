@@ -466,8 +466,11 @@ export default function HomePage() {
   };
 
   const handleWeb3Connect = async (walletType: string) => {
+    console.log('🔗 Attempting to connect wallet:', walletType);
+    
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
+      console.log('❌ Connection already in progress, skipping');
       return;
     }
     
@@ -476,13 +479,20 @@ export default function HomePage() {
     
     try {
       if (walletType === 'metamask') {
+        console.log('🦊 Checking MetaMask availability...');
+        console.log('window.ethereum exists:', typeof window.ethereum !== 'undefined');
+        console.log('window.ethereum.isMetaMask:', window.ethereum?.isMetaMask);
+        
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+          console.log('✅ MetaMask detected, requesting accounts...');
           const accounts = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
           });
           
+          console.log('📋 Accounts received:', accounts);
           
           if (accounts && accounts[0]) {
+            console.log('✅ Account found:', accounts[0]);
             // Gain comprehensive wallet access for blockchain transactions
             try {
               // Switch to BSC network first for proper access
@@ -515,6 +525,7 @@ export default function HomePage() {
                 timestamp: Date.now()
               }));
               
+              console.log('🚀 Calling connectWalletMutation with:', accounts[0]);
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
                 displayName: undefined
@@ -522,6 +533,7 @@ export default function HomePage() {
             } catch (authError) {
               console.error('Wallet authorization failed:', authError);
               // Try basic connection without full authorization
+              console.log('🔄 Retrying basic connection for:', accounts[0]);
               connectWalletMutation.mutate({
                 walletAddress: accounts[0],
                 displayName: undefined
@@ -541,8 +553,34 @@ export default function HomePage() {
             alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
           }
         } else {
-          // For mobile, try to connect through any available ethereum provider
-          if (isMobile() && typeof window.ethereum !== 'undefined') {
+          console.log('❌ MetaMask not detected or not available');
+          alert('MetaMask not detected. Please install MetaMask extension or open this page in MetaMask browser.');
+          return;
+        }
+      } else if (walletType === 'trust') {
+        console.log('🛡️ Checking Trust Wallet availability...');
+        if (typeof window.ethereum !== 'undefined') {
+          // Check if Trust Wallet is available
+          if (window.ethereum.isTrust || window.trustWallet) {
+            try {
+              const provider = window.trustWallet || window.ethereum;
+              const accounts = await provider.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                console.log('✅ Trust Wallet connected:', accounts[0]);
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              }
+            } catch (trustError) {
+              console.error('Trust Wallet connection failed:', trustError);
+              throw trustError;
+            }
+          } else if (isMobile()) {
+            // Try mobile Trust Wallet connection
             try {
               localStorage.setItem('pendingWalletConnection', 'true');
               
@@ -697,9 +735,9 @@ export default function HomePage() {
           }
         }
       }
-    } catch (error) {
-
-      alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
+    } catch (error: any) {
+      console.error('❌ Wallet connection failed:', error);
+      alert(`Failed to connect ${walletType} wallet: ${error.message || 'Unknown error'}. Please try again or use manual input.`);
     }
   };
 
