@@ -10,6 +10,8 @@ import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import WalletAccessValidator from "@/lib/wallet-access-validator";
+import { MobileWalletDebugger } from "@/lib/mobile-wallet-debugger";
+import { TrustWalletMobileDetector } from "@/lib/trust-wallet-mobile-detector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
@@ -43,6 +45,10 @@ export default function HomePage() {
   const queryClient = useQueryClient();
   const [walletAddress, setWalletAddress] = useState("");
   const [displayName, setDisplayName] = useState("");
+  
+  // Debug mode state
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
   });
@@ -268,7 +274,10 @@ export default function HomePage() {
       const pendingWalletType = localStorage.getItem('pendingWalletType');
       
       if (pendingConnection === 'true' && pendingWalletType === 'trust') {
-        console.log('🔍 Checking for Trust Wallet Web3 injection...');
+        MobileWalletDebugger.log('🔍 Checking for Trust Wallet Web3 injection...');
+        
+        // Debug the current environment
+        await MobileWalletDebugger.debugWalletEnvironment();
         
         // Wait for Web3 injection with timeout
         let attempts = 0;
@@ -278,21 +287,19 @@ export default function HomePage() {
           attempts++;
           
           if (typeof window.ethereum !== 'undefined') {
-            console.log('✅ Web3 provider detected, attempting connection...');
+            MobileWalletDebugger.log('✅ Web3 provider detected, attempting connection...');
             isChecking = true;
             
             try {
-              // Request accounts from Trust Wallet
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
+              // Test the wallet connection with debugging
+              const connectedAccount = await MobileWalletDebugger.testWalletConnection();
               
-              if (accounts && accounts.length > 0) {
-                console.log('✅ Trust Wallet connected successfully:', accounts[0]);
+              if (connectedAccount) {
+                MobileWalletDebugger.log('✅ Trust Wallet connected successfully:', connectedAccount);
                 
                 // Store wallet access
                 localStorage.setItem('walletAccess', JSON.stringify({
-                  address: accounts[0],
+                  address: connectedAccount,
                   chainId: '0x38',
                   authorized: true,
                   provider: 'trust',
@@ -390,6 +397,51 @@ export default function HomePage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isConnected, connectWalletMutation]);
+
+  // Debug functions for mobile testing
+  const runMobileDebug = async () => {
+    setDebugMode(true);
+    MobileWalletDebugger.clearLogs();
+    
+    const environment = await MobileWalletDebugger.debugWalletEnvironment();
+    const logs = MobileWalletDebugger.getLogs();
+    setDebugLogs(logs);
+  };
+
+  const simulateMobileReturn = async () => {
+    await MobileWalletDebugger.simulateTrustWalletReturn();
+    const logs = MobileWalletDebugger.getLogs();
+    setDebugLogs(logs);
+  };
+
+  const testWalletConnection = async () => {
+    const result = await MobileWalletDebugger.testWalletConnection();
+    const logs = MobileWalletDebugger.getLogs();
+    setDebugLogs(logs);
+    
+    if (result) {
+      console.log('Manual test successful:', result);
+    }
+  };
+
+  const testTrustWalletMobile = async () => {
+    MobileWalletDebugger.log('🧪 Testing Trust Wallet mobile detector...');
+    const result = await TrustWalletMobileDetector.detectAndConnect();
+    
+    if (result) {
+      MobileWalletDebugger.log('✅ Trust Wallet mobile test successful:', result);
+      // Actually connect the wallet if test succeeds
+      connectWalletMutation.mutate({
+        walletAddress: result,
+        displayName: undefined
+      });
+    } else {
+      MobileWalletDebugger.log('❌ Trust Wallet mobile test failed');
+    }
+    
+    const logs = MobileWalletDebugger.getLogs();
+    setDebugLogs(logs);
+  };
 
   // Handle mobile wallet returns (optimized - no duplicate checks)
   useEffect(() => {
@@ -1155,6 +1207,59 @@ export default function HomePage() {
             <span className="text-sm font-medium text-gray-700 dark:text-slate-300">COYN</span>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Debug Panel */}
+      {debugMode && (
+        <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg p-4 max-h-80 overflow-y-auto z-50">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-bold text-sm">Mobile Wallet Debug</h3>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setDebugMode(false)}
+            >
+              Close
+            </Button>
+          </div>
+          <div className="space-y-2 mb-4">
+            <Button size="sm" onClick={runMobileDebug} className="w-full">
+              Debug Environment
+            </Button>
+            <Button size="sm" onClick={testWalletConnection} className="w-full">
+              Test Connection
+            </Button>
+            <Button size="sm" onClick={simulateMobileReturn} className="w-full">
+              Simulate Return
+            </Button>
+            <Button size="sm" onClick={testTrustWalletMobile} className="w-full">
+              Test Trust Wallet
+            </Button>
+          </div>
+          <div className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded max-h-40 overflow-y-auto">
+            {debugLogs.length === 0 ? (
+              <p>No debug logs yet. Click a debug button above.</p>
+            ) : (
+              debugLogs.map((log, index) => (
+                <div key={index} className="mb-1 font-mono">
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Debug Toggle Button (mobile only) */}
+      <div className="fixed bottom-4 right-4 z-40 md:hidden">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setDebugMode(!debugMode)}
+          className="bg-white dark:bg-gray-900 border-orange-500"
+        >
+          🔧 Debug
+        </Button>
       </div>
 
       {/* Terms and Privacy Modals */}
