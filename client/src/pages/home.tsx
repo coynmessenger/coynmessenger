@@ -125,69 +125,91 @@ export default function HomePage() {
     },
     onSuccess: async (user: User) => {
       try {
-        // CRITICAL: Establish wallet access for transactions
-        console.log('Establishing wallet access for user:', user.walletAddress);
+        // Check if this is a demo user (specific demo wallet address)
+        const isDemoUser = user.walletAddress === '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
         
-        // Get the correct provider
-        const provider = window.ethereum;
-        if (!provider) {
-          throw new Error('No wallet provider available');
-        }
-        
-        // Request account access and switch to BSC
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        
-        // Verify the account matches user's wallet address
-        if (!accounts.includes(user.walletAddress)) {
-          throw new Error('Connected wallet does not match user account');
-        }
-        
-        // Switch to BSC network
-        try {
-          await provider.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x38' }],
-          });
-        } catch (switchError: any) {
-          if (switchError.code === 4902) {
-            // BSC network not added, add it
-            await provider.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: '0x38',
-                chainName: 'Binance Smart Chain',
-                nativeCurrency: {
-                  name: 'BNB',
-                  symbol: 'BNB',
-                  decimals: 18
-                },
-                rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                blockExplorerUrls: ['https://bscscan.com/']
-              }]
-            });
-          } else {
-            throw switchError;
+        if (isDemoUser) {
+          // For demo users, create mock wallet access data
+          console.log('Setting up demo wallet access for user:', user.walletAddress);
+          
+          const walletAccess = {
+            address: user.walletAddress,
+            balance: '0x2386f26fc10000', // Demo balance in hex
+            chainId: '0x38',
+            authorized: true,
+            provider: user.displayName?.includes('Trust') ? 'trust' : 'metamask',
+            timestamp: Date.now(),
+            isDemoMode: true
+          };
+          
+          localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
+          console.log('✓ Demo wallet access established successfully:', walletAccess);
+        } else {
+          // For real wallet users, establish actual wallet access
+          console.log('Establishing real wallet access for user:', user.walletAddress);
+          
+          // Get the correct provider
+          const provider = window.ethereum;
+          if (!provider) {
+            throw new Error('No wallet provider available');
           }
+          
+          // Request account access and switch to BSC
+          const accounts = await provider.request({ method: 'eth_requestAccounts' });
+          
+          // Verify the account matches user's wallet address
+          if (!accounts.includes(user.walletAddress)) {
+            throw new Error('Connected wallet does not match user account');
+          }
+          
+          // Switch to BSC network
+          try {
+            await provider.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x38' }],
+            });
+          } catch (switchError: any) {
+            if (switchError.code === 4902) {
+              // BSC network not added, add it
+              await provider.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x38',
+                  chainName: 'Binance Smart Chain',
+                  nativeCurrency: {
+                    name: 'BNB',
+                    symbol: 'BNB',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                  blockExplorerUrls: ['https://bscscan.com/']
+                }]
+              });
+            } else {
+              throw switchError;
+            }
+          }
+          
+          // Verify balance access
+          const balance = await provider.request({
+            method: 'eth_getBalance',
+            params: [user.walletAddress, 'latest'],
+          });
+          
+          // Store comprehensive wallet access data
+          const walletAccess = {
+            address: user.walletAddress,
+            balance: balance,
+            chainId: '0x38',
+            authorized: true,
+            provider: provider.isTrust ? 'trust' : 'metamask',
+            timestamp: Date.now(),
+            isDemoMode: false
+          };
+          
+          localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
+          console.log('✓ Real wallet access established successfully:', walletAccess);
         }
-        
-        // Verify balance access
-        const balance = await provider.request({
-          method: 'eth_getBalance',
-          params: [user.walletAddress, 'latest'],
-        });
-        
-        // Store comprehensive wallet access data
-        const walletAccess = {
-          address: user.walletAddress,
-          balance: balance,
-          chainId: '0x38',
-          authorized: true,
-          provider: provider.isTrust ? 'trust' : 'metamask',
-          timestamp: Date.now()
-        };
-        
-        localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
-        console.log('✓ Wallet access established successfully:', walletAccess);
         
         // Store connection state in localStorage
         localStorage.setItem('walletConnected', 'true');
@@ -233,7 +255,12 @@ export default function HomePage() {
         
       } catch (error: any) {
         console.error('Failed to establish wallet access:', error);
-        // Don't fail the connection, but log the issue
+        // For demo users, still complete the connection even if wallet access fails
+        const isDemoUser = user.walletAddress === '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+        if (!isDemoUser) {
+          // For real users, the error might be critical
+          console.warn('Real wallet access failed, but continuing connection...');
+        }
       }
     },
   });
