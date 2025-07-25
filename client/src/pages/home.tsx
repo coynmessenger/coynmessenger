@@ -501,7 +501,7 @@ export default function HomePage() {
             // Use demo wallet for testing
             console.log('🧪 Using demo wallet for MetaMask testing');
             connectWalletMutation.mutate({
-              walletAddress: '0x742d35Cc891C0f32F05d5dF6Ab6c6B8e8a0dC2D8',
+              walletAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
               displayName: 'MetaMask Demo User'
             });
             return;
@@ -518,7 +518,7 @@ export default function HomePage() {
           // Use demo wallet for testing
           console.log('🧪 Using demo wallet for Trust Wallet testing');
           connectWalletMutation.mutate({
-            walletAddress: '0x742d35Cc891C0f32F05d5dF6Ab6c6B8e8a0dC2D9',
+            walletAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
             displayName: 'Trust Wallet Demo User'
           });
           return;
