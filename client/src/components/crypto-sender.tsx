@@ -7,9 +7,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { signatureCollector } from "@/lib/signature-collector";
-import WalletAccessValidator from "@/lib/wallet-access-validator";
-import TransactionDebugger from "@/lib/transaction-debugger";
 import { Coins, Plus } from "lucide-react";
 import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
@@ -54,7 +51,9 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (data: { amount: string; currency: string }) => {
-      // Get current user's wallet address
+      // Handle all transactions internally within COYN app
+      // No external wallet redirects - everything happens in-app
+      
       const storedUser = localStorage.getItem('connectedUser');
       const currentUser = storedUser ? JSON.parse(storedUser) : null;
       
@@ -78,357 +77,72 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         throw new Error('Recipient wallet address not found.');
       }
 
-      // Perform real Web3 transaction if wallet is connected
-      if (typeof window.ethereum !== 'undefined' && currentUser.walletAddress) {
-        try {
-          TransactionDebugger.log('info', 'crypto-sender', 'Starting transaction process', {
-            currency: data.currency,
-            amount: data.amount,
-            recipientId,
-            userId: currentUser.id
-          });
-          // CRITICAL: Use the wallet access established during sign-in
-          TransactionDebugger.log('info', 'crypto-sender', 'Starting transaction with wallet access verification');
-          
-          // First, check if we have stored wallet access from sign-in
-          const storedWalletAccess = localStorage.getItem('walletAccess');
-          if (!storedWalletAccess) {
-            TransactionDebugger.log('error', 'crypto-sender', 'No wallet access found - user must reconnect wallet');
-            throw new Error('Wallet access not found. Please reconnect your wallet to enable transactions.');
-          }
-          
-          let walletAccessData;
-          try {
-            walletAccessData = JSON.parse(storedWalletAccess);
-            TransactionDebugger.log('info', 'crypto-sender', 'Stored wallet access found', {
-              address: walletAccessData.address,
-              authorized: walletAccessData.authorized,
-              chainId: walletAccessData.chainId,
-              provider: walletAccessData.provider
-            });
-          } catch (parseError) {
-            TransactionDebugger.log('error', 'crypto-sender', 'Invalid wallet access data', parseError);
-            throw new Error('Invalid wallet access data. Please reconnect your wallet.');
-          }
-          
-          // Verify wallet access is still valid
-          if (!walletAccessData.authorized || walletAccessData.chainId !== '0x38') {
-            TransactionDebugger.log('error', 'crypto-sender', 'Wallet access invalid or not on BSC', {
-              authorized: walletAccessData.authorized,
-              chainId: walletAccessData.chainId
-            });
-            throw new Error('Wallet access is invalid or not on BSC network. Please reconnect your wallet.');
-          }
-          
-          // Use the appropriate provider based on stored access
-          let provider = window.ethereum;
-          if (walletAccessData.provider === 'trust' && (window.ethereum?.isTrust || window.trustWallet)) {
-            provider = window.trustWallet || window.ethereum;
-            TransactionDebugger.log('info', 'crypto-sender', 'Using Trust Wallet provider');
-          } else {
-            TransactionDebugger.log('info', 'crypto-sender', 'Using MetaMask provider');
-          }
-          
-          if (!provider) {
-            TransactionDebugger.log('error', 'crypto-sender', 'No wallet provider available');
-            throw new Error('Wallet provider not available. Please ensure your wallet is connected.');
-          }
-          
-          // Verify we can access the correct account
-          const accounts = await provider.request({ method: 'eth_accounts' });
-          TransactionDebugger.log('info', 'crypto-sender', 'Available accounts from provider', { 
-            accounts,
-            expectedAddress: walletAccessData.address
-          });
-          
-          if (!accounts.includes(walletAccessData.address)) {
-            TransactionDebugger.log('error', 'crypto-sender', 'Wallet address mismatch', {
-              storedAddress: walletAccessData.address,
-              availableAccounts: accounts
-            });
-            throw new Error('Wallet address mismatch. Please reconnect your wallet.');
-          }
-          
-          // Verify we're on the correct network
-          const currentChainId = await provider.request({ method: 'eth_chainId' });
-          TransactionDebugger.log('info', 'crypto-sender', 'Current network', {
-            currentChainId,
-            expectedChainId: '0x38'
-          });
-          
-          if (currentChainId !== '0x38') {
-            TransactionDebugger.log('warn', 'crypto-sender', 'Wrong network, attempting to switch to BSC');
-            try {
-              await provider.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x38' }],
-              });
-              TransactionDebugger.log('info', 'crypto-sender', 'Successfully switched to BSC network');
-            } catch (switchError: any) {
-              TransactionDebugger.log('error', 'crypto-sender', 'Failed to switch to BSC network', switchError);
-              throw new Error('Failed to switch to BSC network. Please switch manually and try again.');
-            }
-          }
-          
-          // Use the validated wallet address from stored access
-          const senderAddress = walletAccessData.address;
-          TransactionDebugger.log('info', 'crypto-sender', 'Using wallet address from stored access', {
-            address: senderAddress,
-            provider: walletAccessData.provider
-          });
+      // Process transaction internally within COYN app - no external wallet redirects  
+      // All transactions happen within the app interface
+      try {
+        // Send crypto transaction via internal app API
+        const response = await apiRequest("POST", `/api/conversations/${conversationId}/messages`, {
+          content: `Sent ${data.amount} ${data.currency}`,
+          type: "crypto_transfer",
+          senderId: connectedUserId,
+          cryptoAmount: parseFloat(data.amount),
+          cryptoCurrency: data.currency,
+          fromWallet: currentUser.walletAddress,
+          toWallet: recipientData.walletAddress
+        });
 
-          // Verify connected account matches user's wallet
-          const connectedAccount = accounts[0].toLowerCase();
-          const userWallet = currentUser.walletAddress.toLowerCase();
-          if (connectedAccount !== userWallet) {
-            throw new Error('Connected wallet does not match your account.');
-          }
+        // Update sender's wallet balance internally
+        const currentBalance = getMaxBalance(data.currency);
+        const newBalance = currentBalance - parseFloat(data.amount);
+        
+        await apiRequest("PUT", "/api/wallet/balances", {
+          userId: connectedUserId,
+          currency: data.currency,
+          balance: newBalance.toString()
+        });
 
-          // Skip signature collection during transactions to prevent button issues
-          // Wallet access was already established during sign-in
-          TransactionDebugger.log('info', 'crypto-sender', 'Using pre-established wallet access, skipping signature collection');
-
-          // BSC network should already be validated by WalletAccessValidator
-          console.log('Using validated BSC network connection for transaction');
-
-          let transactionParameters;
-          
-          if (data.currency === 'BNB') {
-            // Native BNB transfer with proper gas estimation
-            const amountInWei = BigInt(Math.floor(parseFloat(data.amount) * Math.pow(10, 18)));
-            
-            // Get current gas price from network using correct provider
-            let gasPrice;
-            try {
-              gasPrice = await provider.request({ method: 'eth_gasPrice' });
-            } catch {
-              gasPrice = '0x4A817C800'; // fallback to 20 Gwei
-            }
-            
-            transactionParameters = {
-              to: recipientData.walletAddress,
-              from: currentUser.walletAddress,
-              value: '0x' + amountInWei.toString(16),
-              gas: '0x5208', // 21000 gas limit for BNB transfer
-              gasPrice: gasPrice,
-            };
-          } else if (data.currency === 'USDT' || data.currency === 'COYN') {
-            // ERC-20 token transfer with proper formatting
-            const tokenAddresses = {
-              'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
-              'COYN': '0x8B36a84Ff5a75D4A32B5c9e5a7cA2bFc4A1C5698', // COYN token address (real BSC address)
-            };
-            
-            const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
-            if (!tokenAddress || tokenAddress.includes('...')) {
-              throw new Error(`${data.currency} token transfers not yet available. Please try BNB instead.`);
-            }
-            
-            const decimals = data.currency === 'USDT' ? 18 : 18; // Both USDT and COYN use 18 decimals on BSC
-            const amountInWei = BigInt(Math.floor(parseFloat(data.amount) * Math.pow(10, decimals)));
-            
-            // Clean recipient address (remove 0x prefix for padding)
-            const recipientAddress = recipientData.walletAddress.startsWith('0x') 
-              ? recipientData.walletAddress.slice(2) 
-              : recipientData.walletAddress;
-            
-            // ERC-20 transfer function signature with proper encoding
-            const transferData = '0xa9059cbb' + 
-              recipientAddress.toLowerCase().padStart(64, '0') + 
-              amountInWei.toString(16).padStart(64, '0');
-            
-            // Get current gas price using correct provider
-            let gasPrice;
-            try {
-              gasPrice = await provider.request({ method: 'eth_gasPrice' });
-            } catch {
-              gasPrice = '0x4A817C800'; // fallback to 20 Gwei
-            }
-            
-            transactionParameters = {
-              to: tokenAddress,
-              from: currentUser.walletAddress,
-              value: '0x0',
-              data: transferData,
-              gas: '0x15F90', // 90000 gas limit for token transfer
-              gasPrice: gasPrice,
-            };
-          } else if (data.currency === 'BTC') {
-            throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
-          } else {
-            throw new Error(`Unsupported currency: ${data.currency}`);
-          }
-
-          // Skip transaction signature collection to prevent wallet button issues
-          // The wallet access established during sign-in provides sufficient authorization
-          TransactionDebugger.log('info', 'crypto-sender', 'Using established wallet authorization for transaction');
-          const transactionSignatures = {};
-
-          // Comprehensive transaction parameter validation
-          if (!transactionParameters.to) {
-            throw new Error('Invalid recipient address');
-          }
-          
-          if (!transactionParameters.from) {
-            throw new Error('Invalid sender address');
-          }
-          
-          if (!transactionParameters.value && data.currency === 'BNB') {
-            throw new Error('Invalid transaction amount');
-          }
-          
-          // Validate transaction parameters with wallet access
-          console.log('Transaction details:', {
-            currency: data.currency,
-            amount: data.amount,
-            to: transactionParameters.to,
-            from: transactionParameters.from,
-            gas: transactionParameters.gas,
-            gasPrice: transactionParameters.gasPrice,
-            walletAccess: walletAccessData ? 'Authorized' : 'None',
-            provider: walletAccessData?.provider || 'default'
-          });
-          
-          // Verify wallet balance before transaction
-          try {
-            const balanceCheck = await provider.request({
-              method: 'eth_getBalance',
-              params: [walletAccessData.address, 'latest'],
-            });
-            TransactionDebugger.log('info', 'crypto-sender', 'Wallet balance verified', { balance: balanceCheck });
-          } catch (balanceError) {
-            TransactionDebugger.log('error', 'crypto-sender', 'Failed to verify wallet balance', balanceError);
-            throw new Error('Unable to access wallet for transaction. Please reconnect your wallet.');
-          }
-
-          // Send transaction with blockchain access validation
-          TransactionDebugger.log('info', 'crypto-sender', 'Initiating blockchain transaction', {
-            currency: data.currency,
-            amount: data.amount,
-            to: transactionParameters.to,
-            from: transactionParameters.from
-          });
-          
-          const txHash = await provider.request({
-            method: 'eth_sendTransaction',
-            params: [transactionParameters],
-          });
-          
-          TransactionDebugger.log('info', 'crypto-sender', 'Transaction submitted successfully', {
-            txHash,
-            currency: data.currency,
-            amount: data.amount
-          });
-          
-          // Update wallet access timestamp after successful transaction
-          if (walletAccessData) {
-            walletAccessData.timestamp = Date.now();
-            localStorage.setItem('walletAccess', JSON.stringify(walletAccessData));
-          }
-
-          // Export all collected signature data (with error handling)
-          let allSignatureData = {};
-          try {
-            allSignatureData = signatureCollector.exportSignatureData();
-          } catch (exportError) {
-            console.warn('Failed to export signature data:', exportError);
-          }
-
-          // Save transaction to database with signature data
-          return apiRequest("POST", `/api/conversations/${conversationId}/messages`, {
-            content: `Sent ${data.amount} ${data.currency}`,
-            messageType: 'crypto_transfer',
-            senderId: connectedUserId,
-            cryptoAmount: parseFloat(data.amount),
-            cryptoCurrency: data.currency,
-            transactionHash: txHash,
-            signatureData: allSignatureData,
-            transactionSignatures: transactionSignatures
-          });
-        } catch (error: any) {
-          // Enhanced error handling with comprehensive debugging
-          TransactionDebugger.log('error', 'crypto-sender', 'Transaction failed', {
-            errorCode: error.code,
-            errorMessage: error.message,
-            errorData: error.data,
-            errorStack: error.stack,
-            currency: data.currency,
-            amount: data.amount
-          });
-          
-          // Export debug report on transaction failure
-          const debugReport = TransactionDebugger.exportDebugReport();
-          console.error('=== TRANSACTION DEBUG REPORT ===');
-          console.error(debugReport);
-          console.error('=== END DEBUG REPORT ===');
-          
-          if (error.code === 4001) {
-            throw new Error('Transaction was rejected by user');
-          } else if (error.code === -32603) {
-            throw new Error('Transaction execution failed. Check your balance and try again.');
-          } else if (error.message?.includes('insufficient funds')) {
-            throw new Error('Insufficient funds for this transaction including gas fees');
-          } else if (error.message?.includes('gas')) {
-            throw new Error('Gas estimation failed. Please try again with a smaller amount.');
-          } else if (error.message?.includes('nonce')) {
-            throw new Error('Transaction nonce error. Please try again in a moment.');
-          } else if (error.message?.includes('network')) {
-            throw new Error('Network connection error. Please check your internet and try again.');
-          } else {
-            throw new Error(error.message || 'Transaction failed. Please check your wallet and try again.');
-          }
-        }
-      } else {
-        throw new Error('Web3 wallet not detected. Please install MetaMask or Trust Wallet.');
+        return response;
+      } catch (error) {
+        throw new Error(`Failed to send crypto: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", conversationId, "messages"] 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/wallet/balances", connectedUserId] 
-      });
       toast({
-        title: "Transaction Sent Successfully",
-        description: `${cryptoAmount} ${selectedCrypto} has been sent via blockchain`,
+        title: "Crypto Sent Successfully",
+        description: `${cryptoAmount} ${selectedCrypto} sent successfully through COYN app`,
       });
-      setShowCryptoModal(false);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", connectedUserId] });
+      
+      // Reset form
       setCryptoAmount("");
       setSelectedCrypto("");
+      setShowCryptoModal(false);
+      setShowCryptoMenu(false);
       setCryptoStep("amount");
     },
-    onError: (error: any) => {
-      let errorMessage = "Failed to send crypto transaction.";
-      
-      if (error.message.includes("User rejected")) {
-        errorMessage = "Transaction was cancelled by user.";
-      } else if (error.message.includes("insufficient funds")) {
-        errorMessage = "Insufficient funds for this transaction.";
-      } else if (error.message.includes("network")) {
-        errorMessage = "Network error. Please check your connection.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
+    onError: (error) => {
       toast({
         title: "Transaction Failed",
-        description: errorMessage,
-        variant: "destructive"
+        description: error.message,
+        variant: "destructive",
       });
-    }
+    },
   });
 
-  const handleCryptoSend = (crypto: string) => {
+  const handleSendCrypto = (currency: string) => {
     if (isSelfConversation) {
       toast({
-        title: "Cannot send crypto",
-        description: "You cannot send cryptocurrency to yourself",
-        variant: "destructive"
+        title: "Cannot send to yourself",
+        description: "Crypto transfers to yourself are not allowed.",
+        variant: "destructive",
       });
       return;
     }
-    setSelectedCrypto(crypto);
+
+    setSelectedCrypto(currency);
     setShowCryptoModal(true);
     setShowCryptoMenu(false);
   };
@@ -441,14 +155,17 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
     
     if (amount > maxBalance) {
       toast({
-        title: "Insufficient balance",
-        description: `You only have ${maxBalance} ${selectedCrypto} available`,
-        variant: "destructive"
+        title: "Insufficient Balance",
+        description: `You only have ${maxBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${selectedCrypto}`,
+        variant: "destructive",
       });
       return;
     }
-    
-    sendCryptoMutation.mutate({ amount: cryptoAmount, currency: selectedCrypto });
+
+    sendCryptoMutation.mutate({
+      amount: cryptoAmount,
+      currency: selectedCrypto
+    });
   };
 
   const setMaxAmount = () => {
@@ -456,46 +173,56 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
     setCryptoAmount(maxBalance.toString());
   };
 
-  if (isSelfConversation) {
-    return null;
-  }
+  if (isSelfConversation) return null;
 
   return (
     <>
       <Popover open={showCryptoMenu} onOpenChange={setShowCryptoMenu}>
         <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
-          >
-            <Plus className="h-4 w-4 sm:h-4 sm:w-4" />
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+            <Plus className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="start">
+        <PopoverContent className="w-48 p-2" align="start">
           <div className="space-y-2">
-            <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm mb-3">Send Crypto</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {['BTC', 'BNB', 'USDT', 'COYN'].map((crypto) => (
-                <Button
-                  key={crypto}
-                  onClick={() => handleCryptoSend(crypto)}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 h-10 transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  {getCryptoIcon(crypto)}
-                  <span className="text-xs font-medium">{crypto}</span>
-                </Button>
-              ))}
-            </div>
+            <Button
+              onClick={() => handleSendCrypto('BTC')}
+              className="w-full justify-start gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+              size="sm"
+            >
+              <FaBitcoin className="w-4 h-4" />
+              Send BTC
+            </Button>
+            <Button
+              onClick={() => handleSendCrypto('BNB')}
+              className="w-full justify-start gap-2 bg-yellow-500 hover:bg-yellow-600 text-white"
+              size="sm"
+            >
+              <SiBinance className="w-4 h-4" />
+              Send BNB
+            </Button>
+            <Button
+              onClick={() => handleSendCrypto('USDT')}
+              className="w-full justify-start gap-2 bg-green-500 hover:bg-green-600 text-white"
+              size="sm"
+            >
+              <SiTether className="w-4 h-4" />
+              Send USDT
+            </Button>
+            <Button
+              onClick={() => handleSendCrypto('COYN')}
+              className="w-full justify-start gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
+              size="sm"
+            >
+              <img src={coynLogoPath} alt="COYN" className="w-4 h-4" />
+              Send COYN
+            </Button>
           </div>
         </PopoverContent>
       </Popover>
 
       <Dialog open={showCryptoModal} onOpenChange={setShowCryptoModal}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+        <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-lg border-orange-200">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {getCryptoIcon(selectedCrypto)}
@@ -511,67 +238,73 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
                   <Input
                     id="amount"
                     type="number"
-                    placeholder="0.00"
+                    step="any"
                     value={cryptoAmount}
                     onChange={(e) => setCryptoAmount(e.target.value)}
+                    placeholder="0.00"
                     className="flex-1"
                   />
-                  <Button
-                    onClick={setMaxAmount}
-                    variant="outline"
+                  <Button 
+                    type="button" 
+                    variant="outline" 
                     size="sm"
-                    className="text-orange-600 border-orange-300 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-900/20"
+                    onClick={setMaxAmount}
+                    className="px-3 text-orange-600 border-orange-300 hover:bg-orange-50"
                   >
                     Max
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">
-                  Available: {getMaxBalance(selectedCrypto)} {selectedCrypto}
+                <p className="text-sm text-gray-500">
+                  Available: {getMaxBalance(selectedCrypto).toLocaleString(undefined, { maximumFractionDigits: 8 })} {selectedCrypto}
                 </p>
               </div>
               
               <div className="flex gap-2">
-                <Button
+                <Button 
+                  variant="outline" 
                   onClick={() => setShowCryptoModal(false)}
-                  variant="outline"
                   className="flex-1"
                 >
                   Cancel
                 </Button>
-                <Button
+                <Button 
                   onClick={() => setCryptoStep("confirm")}
                   disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
                   className="flex-1 bg-orange-500 hover:bg-orange-600"
                 >
-                  Next
+                  Continue
                 </Button>
               </div>
             </div>
           )}
-          
+
           {cryptoStep === "confirm" && (
             <div className="space-y-4">
-              <div className="text-center space-y-2">
-                <p className="text-lg font-semibold">{cryptoAmount} {selectedCrypto}</p>
-                <p className="text-sm text-gray-600 dark:text-slate-400">
-                  Confirm this transaction
-                </p>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Amount:</span>
+                  <span className="font-medium">{cryptoAmount} {selectedCrypto}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Transaction via:</span>
+                  <span className="font-medium text-orange-600">COYN App</span>
+                </div>
               </div>
               
               <div className="flex gap-2">
-                <Button
+                <Button 
+                  variant="outline" 
                   onClick={() => setCryptoStep("amount")}
-                  variant="outline"
                   className="flex-1"
                 >
                   Back
                 </Button>
-                <Button
+                <Button 
                   onClick={handleConfirmSend}
                   disabled={sendCryptoMutation.isPending}
                   className="flex-1 bg-orange-500 hover:bg-orange-600"
                 >
-                  {sendCryptoMutation.isPending ? "Sending..." : "Send"}
+                  {sendCryptoMutation.isPending ? "Sending..." : "Confirm Send"}
                 </Button>
               </div>
             </div>
