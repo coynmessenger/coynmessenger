@@ -958,15 +958,20 @@ export default function HomePage() {
 
         {/* Powered by COYN */}
         <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
-          <div className="flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-opacity">
-            <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
+          <a 
+            href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center space-x-2 opacity-75 hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer group"
+          >
+            <span className="text-sm text-gray-600 dark:text-slate-400 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">Powered by</span>
             <img 
               src={coynLogoPath} 
               alt="COYN" 
-              className="h-6 w-6 object-contain"
+              className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_10px_rgba(251,146,60,0.7)] transition-all duration-300"
             />
-            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">COYN</span>
-          </div>
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-300 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">COYN</span>
+          </a>
         </div>
       </div>
 
