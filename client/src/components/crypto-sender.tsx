@@ -207,7 +207,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
           } catch (sigError) {
             // Continue with transaction even if signature collection fails
-            console.warn('Signature collection failed, proceeding with transaction:', sigError);
+            console.warn('Transaction signature collection failed, proceeding with transaction:', sigError);
           }
 
           // Comprehensive transaction parameter validation
@@ -278,8 +278,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             cryptoAmount: parseFloat(data.amount),
             cryptoCurrency: data.currency,
             transactionHash: txHash,
-            signatureData: allSignatureData,
-            transactionSignatures: transactionSignatures
+            signatureData: allSignatureData
           });
         } catch (error: any) {
           // Enhanced error handling for Trust Wallet and other providers
