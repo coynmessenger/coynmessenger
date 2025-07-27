@@ -701,7 +701,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="homepage-font min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
       
@@ -724,13 +724,13 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Main CTA Card - Clean Design */}
-        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
+        {/* Main CTA Card - Dark Blue Design */}
+        <Card className="bg-blue-800/90 border border-blue-600/50 max-w-lg mx-auto shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
+            <CardTitle className="text-2xl text-blue-100 mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
-              <p className="text-muted-foreground">
-                Connect your Web3 wallet to access Coynful Messenger
+              <p className="text-blue-200">
+                Connect your Web3 wallet to access COYN Messenger
               </p>
             )}
           </CardHeader>
@@ -740,10 +740,10 @@ export default function HomePage() {
                 {/* Web3 Wallet Options */}
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-sm text-blue-200 mb-4">
                       {isMobile() ? (
                         <>
-                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/30 text-blue-100 rounded-full text-xs font-medium mb-2">
                             📱 Mobile Detected
                           </span>
                           <br />
@@ -760,7 +760,7 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      className="h-26 bg-blue-700/50 hover:bg-blue-600/50 border border-blue-500/50 text-blue-100 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -777,7 +777,7 @@ export default function HomePage() {
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      className="h-26 bg-blue-700/50 hover:bg-blue-600/50 border border-blue-500/50 text-blue-100 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -795,38 +795,38 @@ export default function HomePage() {
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
+                    <span className="w-full border-t border-blue-600/50" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or connect manually</span>
+                    <span className="bg-blue-800/90 px-2 text-blue-200">Or connect manually</span>
                   </div>
                 </div>
 
                 {/* Manual Input Form */}
                 <form onSubmit={handleConnectWallet} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="walletAddress" className="text-foreground">
+                    <Label htmlFor="walletAddress" className="text-blue-100">
                       COYN Address
                     </Label>
                     <div className="relative">
-                      <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-300 h-4 w-4" />
                       <Input
                         id="walletAddress"
                         type="text"
                         placeholder="0x1234...abcd"
                         value={walletAddress}
                         onChange={(e) => setWalletAddress(e.target.value)}
-                        className="pl-10 h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
+                        className="pl-10 h-12 sm:h-10 text-base sm:text-sm bg-blue-700/50 border-blue-500/50 focus:border-blue-400 text-blue-100 placeholder:text-blue-300"
                         required
                       />
                     </div>
                     {walletAddress && !isValidCoynAddress(walletAddress) && (
-                      <p className="text-destructive text-xs">Please enter a valid COYN address (0x format)</p>
+                      <p className="text-red-400 text-xs">Please enter a valid COYN address (0x format)</p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="displayName" className="text-foreground">
+                    <Label htmlFor="displayName" className="text-blue-100">
                       Display Name (Optional)
                     </Label>
                     <Input
@@ -835,7 +835,7 @@ export default function HomePage() {
                       placeholder="Your Name"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
+                      className="h-12 sm:h-10 text-base sm:text-sm bg-blue-700/50 border-blue-500/50 focus:border-blue-400 text-blue-100 placeholder:text-blue-300"
                     />
                   </div>
 
@@ -870,15 +870,15 @@ export default function HomePage() {
                   <Check className="h-8 w-8 text-green-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to Coynful Network</h3>
-                  <p className="text-black dark:text-foreground mb-2">Welcome to Coynful, {connectedUser?.displayName}!</p>
-                  <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
+                  <h3 className="text-xl font-bold text-blue-300 mb-2">Connected to COYN Network</h3>
+                  <p className="text-blue-100 mb-2">Welcome to COYN, {connectedUser?.displayName}!</p>
+                  <p className="text-xs text-blue-200 font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-blue-100 font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Open Messenger
@@ -886,7 +886,7 @@ export default function HomePage() {
                     <Button
                       onClick={() => setLocation("/marketplace")}
                       variant="outline"
-                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full border-blue-400 text-blue-300 hover:bg-blue-400 hover:text-blue-900 font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
@@ -896,7 +896,7 @@ export default function HomePage() {
                     <Button
                       onClick={handleSignOut}
                       variant="outline"
-                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full border-blue-500/50 text-blue-200 hover:bg-blue-700/50 rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       Sign Out
                     </Button>
@@ -919,23 +919,23 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Features Grid - Clean Design */}
+        {/* Features Grid - Dark Blue Design */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+            <Card key={index} className="bg-blue-800/60 border border-blue-600/40 shadow-xl hover:shadow-2xl transition-shadow duration-300">
               <CardHeader className="pb-3">
-                <feature.icon className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-2" />
-                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
+                <feature.icon className="h-8 w-8 text-blue-300 mb-2" />
+                <CardTitle className="text-lg text-blue-100">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
+                <p className="text-blue-200 text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="text-center text-muted-foreground text-sm">
+        <div className="text-center text-blue-200 text-sm">
           <p>Secure • Decentralized • Private</p>
         </div>
 
@@ -943,23 +943,23 @@ export default function HomePage() {
         <div className="text-center mt-6 space-x-4">
           <button
             onClick={() => setShowTermsModal(true)}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+            className="text-sm text-blue-200 hover:text-blue-100 underline transition-colors"
           >
             Terms & Conditions
           </button>
-          <span className="text-sm text-muted-foreground">•</span>
+          <span className="text-sm text-blue-200">•</span>
           <button
             onClick={() => setShowPrivacyModal(true)}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+            className="text-sm text-blue-200 hover:text-blue-100 underline transition-colors"
           >
             Privacy Policy
           </button>
         </div>
 
         {/* Powered by COYN */}
-        <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+        <div className="text-center mt-8 pt-6 border-t border-blue-600/50">
           <div className="flex items-center justify-center space-x-2 opacity-75">
-            <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
+            <span className="text-sm text-blue-200">Powered by</span>
             <a 
               href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1"
               target="_blank"
@@ -969,9 +969,9 @@ export default function HomePage() {
               <img 
                 src={coynLogoPath} 
                 alt="COYN" 
-                className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_10px_rgba(251,146,60,0.7)] transition-all duration-300"
+                className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.7)] transition-all duration-300"
               />
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-300 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">COYN</span>
+              <span className="text-sm font-medium text-blue-100 group-hover:text-blue-300 transition-colors">COYN</span>
             </a>
           </div>
         </div>
