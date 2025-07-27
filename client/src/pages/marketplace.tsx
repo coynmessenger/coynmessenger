@@ -546,7 +546,7 @@ export default function MarketplacePage() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation outline-dark-blue hover:outline-dark-blue-thick"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
                 onClick={() => setShowCartModal(true)}
               >
                 <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -561,7 +561,7 @@ export default function MarketplacePage() {
                 onClick={() => setShowSettingsModal(true)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation outline-dark-blue hover:outline-dark-blue-thick"
+                className="hover:bg-accent h-12 w-12 sm:h-9 sm:w-9 touch-manipulation"
               >
                 <Settings className="h-6 w-6 sm:h-4 sm:w-4" />
               </Button>
@@ -580,7 +580,7 @@ export default function MarketplacePage() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation outline-dark-blue focus:outline-dark-blue-thick"
+              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation"
             />
             {searchQuery && (
               <Button
@@ -700,7 +700,7 @@ export default function MarketplacePage() {
         {isLoadingProducts ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="bg-white dark:bg-card border-border animate-pulse outline-dark-blue">
+              <Card key={i} className="bg-white dark:bg-card border-border animate-pulse">
                 <CardHeader className="pb-3">
                   <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                   <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mt-2"></div>
@@ -725,7 +725,7 @@ export default function MarketplacePage() {
               return (
                 <Card 
                   key={itemKey} 
-                  className="relative bg-white dark:bg-card border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group outline-dark-blue hover:outline-dark-blue-thick"
+                  className="relative bg-white dark:bg-card border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
                   onClick={() => {
                     const productId = isMarketplaceProduct ? (item as any).ASIN : (item as any).id;
                     setLocation(`/product/${productId}`);
@@ -905,7 +905,7 @@ export default function MarketplacePage() {
                               handleProductClick(item);
                             }
                           }}
-                          className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white outline-dark-blue hover:outline-dark-blue-thick"
+                          className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
                           {isMarketplaceProduct ? 'Cart' : 'Contact'}

@@ -489,12 +489,17 @@ export default function HomePage() {
                 });
               }
             } catch (error) {
-              // Stay in app and show helpful message instead of redirecting
-              alert('Please open COYN Messenger within your MetaMask mobile browser to connect your wallet.');
+              // Fallback to deep link
+              const currentUrl = window.location.href;
+              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+              window.open(deepLink, '_blank');
             }
           } else if (isMobile()) {
-            // Stay in app and show helpful message
-            alert('Please open COYN Messenger within your MetaMask mobile browser to connect your wallet.');
+            // No ethereum provider, use deep link
+            localStorage.setItem('pendingWalletConnection', 'true');
+            const currentUrl = window.location.href;
+            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+            window.open(deepLink, '_blank');
           } else {
             window.open('https://metamask.io/download/', '_blank');
           }
@@ -564,9 +569,18 @@ export default function HomePage() {
                 }
               }
             } catch (error) {
-              // Stay in app and show helpful message instead of redirecting
+              // Enhanced mobile Trust Wallet connection handling
               if (isMobile()) {
-                alert('Please open COYN Messenger within your Trust Wallet mobile browser to connect your wallet.');
+                // Set pending connection with Trust Wallet specific flag
+                localStorage.setItem('pendingWalletConnection', 'true');
+                localStorage.setItem('pendingWalletType', 'trustwallet');
+                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+                
+                const currentUrl = window.location.href;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+                
+                // Use window.location instead of window.open for better mobile handling
+                window.location.href = deepLink;
               } else {
                 alert('Failed to connect Trust Wallet. Please try again or use manual input.');
               }
@@ -586,19 +600,29 @@ export default function HomePage() {
               }
             } catch (error) {
 
-              // Stay in app - no redirects
+              // Enhanced mobile fallback for Trust Wallet
               if (isMobile()) {
-                alert('Please open COYN Messenger within your Trust Wallet mobile browser to connect your wallet.');
+                const currentUrl = window.location.href;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+                window.open(deepLink, '_blank');
               } else {
                 window.open('https://trustwallet.com/download', '_blank');
               }
             }
           }
         } else {
-          // No Web3 provider detected 
+          // No Web3 provider detected - Enhanced mobile handling
           if (isMobile()) {
-            // Stay in app - show helpful message
-            alert('Please open COYN Messenger within your Trust Wallet mobile browser to connect your wallet.');
+            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
+            const currentUrl = window.location.href;
+            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+            
+            // Try Trust Wallet first
+            window.open(deepLink, '_blank');
+            
+            // Fallback message for user
+            setTimeout(() => {
+            }, 2000);
           } else {
             window.open('https://trustwallet.com/download', '_blank');
           }
@@ -701,7 +725,7 @@ export default function HomePage() {
         </div>
 
         {/* Main CTA Card - Clean Design */}
-        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300 outline-dark-blue-thick">
+        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
@@ -736,7 +760,7 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 outline-dark-blue hover:outline-dark-blue-thick"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -753,7 +777,7 @@ export default function HomePage() {
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 outline-dark-blue hover:outline-dark-blue-thick"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -792,7 +816,7 @@ export default function HomePage() {
                         placeholder="0x1234...abcd"
                         value={walletAddress}
                         onChange={(e) => setWalletAddress(e.target.value)}
-                        className="pl-10 h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground border-dark-blue focus:ring-dark-blue"
+                        className="pl-10 h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
                         required
                       />
                     </div>
@@ -811,13 +835,13 @@ export default function HomePage() {
                       placeholder="Your Name"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground border-dark-blue focus:ring-dark-blue"
+                      className="h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
                     />
                   </div>
 
                   <Button 
                     type="submit" 
-                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium outline-dark-blue hover:outline-dark-blue-thick" 
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
                     disabled={!walletAddress || !isValidCoynAddress(walletAddress) || connectWalletMutation.isPending}
                   >
                     {connectWalletMutation.isPending ? (
@@ -898,7 +922,7 @@ export default function HomePage() {
         {/* Features Grid - Clean Design */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300 outline-dark-blue hover:outline-dark-blue-thick">
+            <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
               <CardHeader className="pb-3">
                 <feature.icon className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-2" />
                 <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>

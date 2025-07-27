@@ -19,31 +19,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark blue outline utilities */
-@layer utilities {
-  .outline-dark-blue {
-    outline: 2px solid #1e3a8a;
-    outline-offset: 1px;
-  }
-  
-  .outline-dark-blue-thick {
-    outline: 3px solid #1e3a8a;
-    outline-offset: 2px;
-  }
-  
-  .border-dark-blue {
-    border-color: #1e3a8a;
-  }
-  
-  .border-dark-blue-thick {
-    border: 2px solid #1e3a8a;
-  }
-  
-  .ring-dark-blue {
-    --tw-ring-color: #1e3a8a;
-  }
-}
-
 /* Ensure proper scrolling behavior */
 html {
   scroll-behavior: smooth;

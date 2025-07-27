@@ -2310,7 +2310,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 outline-dark-blue hover:outline-dark-blue-thick"
+                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
@@ -2374,7 +2374,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8 outline-dark-blue hover:outline-dark-blue-thick"
+                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
               >
                 <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
@@ -2461,7 +2461,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 100);
               }}
               placeholder="Type a message..."
-              className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20 outline-dark-blue focus:outline-dark-blue-thick"
+              className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
             />
             
 
@@ -2521,7 +2521,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             className={`${isSendingMessage || sendMessageMutation.isPending 
               ? 'bg-gradient-to-r from-green-500 to-green-600 animate-pulse' 
               : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700'
-            } text-white h-8 w-8 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm outline-dark-blue hover:outline-dark-blue-thick`}
+            } text-white h-8 w-8 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <Send className={`h-4 w-4 sm:h-4 sm:w-4 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
