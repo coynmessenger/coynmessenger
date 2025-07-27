@@ -489,17 +489,12 @@ export default function HomePage() {
                 });
               }
             } catch (error) {
-              // Fallback to deep link
-              const currentUrl = window.location.href;
-              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-              window.open(deepLink, '_blank');
+              // Stay in app and show helpful message instead of redirecting
+              alert('Please open COYN Messenger within your MetaMask mobile browser to connect your wallet.');
             }
           } else if (isMobile()) {
-            // No ethereum provider, use deep link
-            localStorage.setItem('pendingWalletConnection', 'true');
-            const currentUrl = window.location.href;
-            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-            window.open(deepLink, '_blank');
+            // Stay in app and show helpful message
+            alert('Please open COYN Messenger within your MetaMask mobile browser to connect your wallet.');
           } else {
             window.open('https://metamask.io/download/', '_blank');
           }
@@ -569,18 +564,9 @@ export default function HomePage() {
                 }
               }
             } catch (error) {
-              // Enhanced mobile Trust Wallet connection handling
+              // Stay in app and show helpful message instead of redirecting
               if (isMobile()) {
-                // Set pending connection with Trust Wallet specific flag
-                localStorage.setItem('pendingWalletConnection', 'true');
-                localStorage.setItem('pendingWalletType', 'trustwallet');
-                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-                
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                
-                // Use window.location instead of window.open for better mobile handling
-                window.location.href = deepLink;
+                alert('Please open COYN Messenger within your Trust Wallet mobile browser to connect your wallet.');
               } else {
                 alert('Failed to connect Trust Wallet. Please try again or use manual input.');
               }
@@ -600,29 +586,19 @@ export default function HomePage() {
               }
             } catch (error) {
 
-              // Enhanced mobile fallback for Trust Wallet
+              // Stay in app - no redirects
               if (isMobile()) {
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                window.open(deepLink, '_blank');
+                alert('Please open COYN Messenger within your Trust Wallet mobile browser to connect your wallet.');
               } else {
                 window.open('https://trustwallet.com/download', '_blank');
               }
             }
           }
         } else {
-          // No Web3 provider detected - Enhanced mobile handling
+          // No Web3 provider detected 
           if (isMobile()) {
-            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
-            const currentUrl = window.location.href;
-            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-            
-            // Try Trust Wallet first
-            window.open(deepLink, '_blank');
-            
-            // Fallback message for user
-            setTimeout(() => {
-            }, 2000);
+            // Stay in app - show helpful message
+            alert('Please open COYN Messenger within your Trust Wallet mobile browser to connect your wallet.');
           } else {
             window.open('https://trustwallet.com/download', '_blank');
           }
