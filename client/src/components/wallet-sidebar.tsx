@@ -468,7 +468,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsBalanceVisible(!isBalanceVisible)}
-                  className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 outline-dark-blue hover:outline-dark-blue-thick"
                 >
                   {isBalanceVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </Button>
@@ -477,7 +477,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   size="icon"
                   onClick={() => refreshBalancesMutation.mutate()}
                   disabled={refreshBalancesMutation.isPending}
-                  className="h-8 w-8 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors"
+                  className="h-8 w-8 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors outline-dark-blue hover:outline-dark-blue-thick"
                   title="Refresh blockchain balances"
                 >
                   <RefreshCw className={`h-4 w-4 ${refreshBalancesMutation.isPending ? 'animate-spin' : ''}`} />
@@ -486,7 +486,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 outline-dark-blue hover:outline-dark-blue-thick"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -496,7 +496,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
           {/* Total Balance */}
           <div className="p-6">
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-orange-200/50 dark:border-gray-600/50 shadow-lg">
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-orange-200/50 dark:border-gray-600/50 shadow-lg outline-dark-blue-thick">
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Total Portfolio Value</p>
@@ -527,7 +527,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
           {/* Wallet Address */}
           <div className="px-6 pb-4">
-            <Card className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
+            <Card className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm outline-dark-blue">
               <CardContent className="p-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
