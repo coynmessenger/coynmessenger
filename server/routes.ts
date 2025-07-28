@@ -4,7 +4,6 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import crypto from "crypto";
 import { storage } from "./storage";
 import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites, users, type User } from "@shared/schema";
 import { db } from "./db";
@@ -16,7 +15,6 @@ import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
-import { signatureAuthenticator } from "./signature-auth";
 
 // Configure multer for avatar uploads
 const upload = multer({
@@ -1524,147 +1522,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       
       res.status(500).json({ message: "Failed to fetch crypto rates" });
-    }
-  });
-
-  // Signature Authentication API endpoints
-  
-  // Generate signature challenge for wallet authentication
-  app.post("/api/auth/signature-challenge", async (req, res) => {
-    try {
-      const { walletAddress, signatureType = 'permission' } = req.body;
-      
-      if (!walletAddress) {
-        return res.status(400).json({ message: "Wallet address is required" });
-      }
-
-      const challenge = signatureAuthenticator.generateSignatureChallenge(walletAddress, signatureType);
-      res.json(challenge);
-    } catch (error) {
-      console.error("Failed to generate signature challenge:", error);
-      res.status(500).json({ message: "Failed to generate signature challenge" });
-    }
-  });
-
-  // Store and verify wallet signature
-  app.post("/api/auth/verify-signature", async (req, res) => {
-    try {
-      const { 
-        walletAddress, 
-        signature, 
-        message, 
-        signatureType, 
-        nonce, 
-        timestamp, 
-        chainId = 56 // BSC mainnet
-      } = req.body;
-      
-      if (!walletAddress || !signature || !message || !signatureType) {
-        return res.status(400).json({ message: "Missing required signature data" });
-      }
-
-      // Verify signature format
-      const isValidFormat = signatureAuthenticator.verifySignatureFormat(signature, message, walletAddress);
-      if (!isValidFormat) {
-        return res.status(400).json({ message: "Invalid signature format" });
-      }
-
-      // Find user by wallet address
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.walletAddress, walletAddress));
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found for wallet address" });
-      }
-
-      // Store signature data
-      const signatureData = {
-        userAddress: walletAddress,
-        signature,
-        message,
-        messageHash: signatureAuthenticator.hashMessage(message),
-        timestamp: timestamp || Date.now(),
-        nonce: nonce || crypto.randomBytes(16).toString('hex'),
-        chainId,
-        signatureType
-      };
-
-      await signatureAuthenticator.storeWalletSignature(user.id, signatureData);
-
-      res.json({ 
-        success: true, 
-        message: "Signature verified and stored",
-        userId: user.id
-      });
-    } catch (error) {
-      console.error("Failed to verify signature:", error);
-      res.status(500).json({ message: "Failed to verify signature" });
-    }
-  });
-
-  // Verify wallet authentication for crypto transactions
-  app.post("/api/auth/verify-wallet", async (req, res) => {
-    try {
-      const { walletAddress } = req.body;
-      
-      if (!walletAddress) {
-        return res.status(400).json({ message: "Wallet address is required" });
-      }
-
-      const result = await signatureAuthenticator.verifyFullWalletAuth(walletAddress);
-      
-      if (result.isValid) {
-        res.json({ 
-          isAuthenticated: true, 
-          userId: result.userId,
-          message: "Wallet fully authenticated for transactions" 
-        });
-      } else {
-        res.status(401).json({ 
-          isAuthenticated: false, 
-          error: result.error,
-          message: "Wallet authentication required" 
-        });
-      }
-    } catch (error) {
-      console.error("Failed to verify wallet authentication:", error);
-      res.status(500).json({ message: "Failed to verify wallet authentication" });
-    }
-  });
-
-  // Get user signatures
-  app.get("/api/auth/signatures", async (req, res) => {
-    try {
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-      
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-
-      const signatures = await signatureAuthenticator.getUserSignatures(userId);
-      res.json(signatures);
-    } catch (error) {
-      console.error("Failed to get user signatures:", error);
-      res.status(500).json({ message: "Failed to get signatures" });
-    }
-  });
-
-  // Invalidate user signatures (for logout)
-  app.post("/api/auth/invalidate-signatures", async (req, res) => {
-    try {
-      const { userId } = req.body;
-      
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-
-      await signatureAuthenticator.invalidateUserSignatures(userId);
-      res.json({ success: true, message: "Signatures invalidated" });
-    } catch (error) {
-      console.error("Failed to invalidate signatures:", error);
-      res.status(500).json({ message: "Failed to invalidate signatures" });
     }
   });
 

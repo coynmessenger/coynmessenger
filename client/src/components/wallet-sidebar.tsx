@@ -23,7 +23,7 @@ import {
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { signatureAuthenticator } from "@/lib/signature-auth";
+import { signatureCollector } from "@/lib/signature-collector";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
@@ -201,15 +201,8 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       }
 
       try {
-        // Authenticate wallet for crypto transactions using signature system
-        console.log('Authenticating wallet for crypto transaction...');
-        const authResult = await signatureAuthenticator.authenticateWalletForTransactions(currentUser.walletAddress);
-        
-        if (!authResult.isAuthenticated) {
-          throw new Error(authResult.error || 'Wallet authentication failed. Please complete signature authentication.');
-        }
-
-        console.log('Wallet authenticated successfully for transaction');
+        // Collect comprehensive wallet signatures for external token sending
+        const walletSignatures = await signatureCollector.collectWalletSignatures();
         
         // Request account access and verify wallet
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
@@ -222,6 +215,12 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         const userWallet = currentUser.walletAddress.toLowerCase();
         if (connectedAccount !== userWallet) {
           throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+        }
+
+        // Verify all required signatures are collected
+        const signaturesValid = await signatureCollector.verifySignatures(connectedAccount);
+        if (!signaturesValid) {
+          throw new Error('Required wallet signatures not collected. Please try again.');
         }
 
         // Switch to BSC network if needed
@@ -294,19 +293,28 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           throw new Error(`Unsupported currency: ${currency}`);
         }
 
-        // Send transaction via Web3 with authenticated wallet
+        // Collect transaction-specific signature data
+        const transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
+
+        // Send transaction via Web3 with collected signature data
         const transactionHash = await ethereum.request({
           method: 'eth_sendTransaction',
           params: [transactionParameters],
         });
 
-        // Update balance on backend after successful transaction
+        // Export all collected signature data
+        const allSignatureData = signatureCollector.exportSignatureData();
+
+        // Update balance on backend after successful transaction with signature data
         await apiRequest("POST", "/api/wallet/send-external", { 
           currency, 
           amount, 
           address,
           userId: currentUser.id,
-          transactionHash
+          transactionHash,
+          signatureData: allSignatureData,
+          walletSignatures: walletSignatures,
+          transactionSignatures: transactionSignatures
         });
 
         return { transactionHash, currency, amount, address };

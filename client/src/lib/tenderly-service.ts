@@ -223,30 +223,6 @@ export class TenderlyWalletService {
     localStorage.removeItem('tenderlyWalletConnection');
     console.log('Tenderly wallet connection cleared');
   }
-
-  // Sign message using connected wallet
-  async signMessage(message: string, address: string): Promise<string> {
-    try {
-      const connection = this.getStoredConnection();
-      if (!connection) {
-        throw new Error('No wallet connection found');
-      }
-
-      const provider = this.getProviderFromConnection(connection);
-      
-      // Request signature from wallet
-      const signature = await provider.request({
-        method: 'personal_sign',
-        params: [message, address]
-      });
-
-      console.log('Message signed successfully through Tenderly');
-      return signature;
-    } catch (error: any) {
-      console.error('Failed to sign message through Tenderly:', error);
-      throw new Error(`Signature failed: ${error.message}`);
-    }
-  }
 }
 
 // Export singleton instance
