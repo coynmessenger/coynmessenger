@@ -114,17 +114,27 @@ export default function HomePage() {
       let provider: any;
       let accounts: string[] = [];
       
-      // Log wallet detection status
-      console.log('🔍 Wallet detection status:', {
+      // Log comprehensive wallet detection status
+      console.log('🔍 Comprehensive wallet detection status:', {
         ethereumExists: typeof window.ethereum !== 'undefined',
         isMetaMask: window.ethereum?.isMetaMask,
         isTrust: window.ethereum?.isTrust,
-        trustWalletExists: typeof window.trustWallet !== 'undefined'
+        isTrustWallet: window.ethereum?.isTrustWallet,
+        trustWalletExists: typeof window.trustWallet !== 'undefined',
+        providers: window.ethereum?.providers,
+        userAgent: navigator.userAgent,
+        metaMaskDetected: isMetaMaskInstalled(),
+        trustWalletDetected: isTrustWalletInstalled()
       });
       
       if (walletType === 'metamask') {
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-          provider = window.ethereum;
+        if (isMetaMaskInstalled()) {
+          // Get MetaMask provider
+          if (window.ethereum.providers?.length > 0) {
+            provider = window.ethereum.providers.find((p: any) => p.isMetaMask) || window.ethereum;
+          } else {
+            provider = window.ethereum;
+          }
           console.log('✅ MetaMask detected and selected');
         } else {
           console.error('❌ MetaMask not detected');
@@ -133,22 +143,27 @@ export default function HomePage() {
             "Please install the MetaMask browser extension to connect your wallet.",
             true
           );
-          // Open MetaMask installation page
           window.open('https://metamask.io/download/', '_blank');
           return;
         }
       } else if (walletType === 'trust') {
-        if (window.trustWallet || (window.ethereum && window.ethereum.isTrust)) {
-          provider = window.trustWallet || window.ethereum;
+        if (isTrustWalletInstalled()) {
+          // Get Trust Wallet provider
+          if (window.trustWallet) {
+            provider = window.trustWallet;
+          } else if (window.ethereum.providers?.length > 0) {
+            provider = window.ethereum.providers.find((p: any) => p.isTrust) || window.ethereum;
+          } else {
+            provider = window.ethereum;
+          }
           console.log('✅ Trust Wallet detected and selected');
         } else {
           console.error('❌ Trust Wallet not detected');
           notificationService.showSystemNotification(
-            "Trust Wallet Required",
+            "Trust Wallet Required", 
             "Please install the Trust Wallet browser extension to connect your wallet.",
             true
           );
-          // Open Trust Wallet installation page
           window.open('https://trustwallet.com/browser-extension', '_blank');
           return;
         }
@@ -290,13 +305,24 @@ export default function HomePage() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  // Check if wallets are installed
+  // Check if wallets are installed with multiple detection methods
   const isMetaMaskInstalled = () => {
-    return typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+    return (
+      typeof window.ethereum !== 'undefined' && 
+      (window.ethereum.isMetaMask || 
+       window.ethereum.providers?.some((p: any) => p.isMetaMask))
+    );
   };
 
   const isTrustWalletInstalled = () => {
-    return window.trustWallet || (window.ethereum && window.ethereum.isTrust);
+    return (
+      window.trustWallet || 
+      (window.ethereum && window.ethereum.isTrust) ||
+      (window.ethereum && window.ethereum.providers?.some((p: any) => p.isTrust)) ||
+      // Additional Trust Wallet detection
+      window.ethereum?.isTrustWallet ||
+      navigator.userAgent.includes('Trust')
+    );
   };
 
   const features = [
