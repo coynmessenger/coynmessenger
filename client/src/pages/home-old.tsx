@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, MessageCircle, Shield, ShoppingBag, Check, Globe, LogOut } from "lucide-react";
+import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
+
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -19,6 +20,8 @@ import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import type { User } from "@shared/schema";
 
+
+
 // Web3 Wallet type declarations
 declare global {
   interface Window {
@@ -26,6 +29,7 @@ declare global {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
       isMetaMask?: boolean;
       isTrust?: boolean;
+  
     };
     trustWallet?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
@@ -49,74 +53,364 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
+  // Removed automatic user data fetching to prevent conflicts with localStorage updates
+
   // Listen for display name updates from settings modal
   useEffect(() => {
     const handleDisplayNameUpdate = (event: CustomEvent) => {
+      
+      // Only update if the event is for the current connected user
       if (connectedUser && event.detail?.userId === connectedUser.id) {
         const updatedStoredUser = localStorage.getItem('connectedUser');
         if (updatedStoredUser) {
           const parsedUser = JSON.parse(updatedStoredUser);
+          
+          // Verify the user ID matches before updating state
           if (parsedUser.id === connectedUser.id) {
             setConnectedUser(parsedUser);
+          } else {
+
           }
         }
       }
     };
 
-    // Listen for localStorage changes (cross-tab synchronization)
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'connectedUser' && event.newValue) {
-        const updatedUser = JSON.parse(event.newValue);
-        if (connectedUser && updatedUser.id === connectedUser.id) {
-          setConnectedUser(updatedUser);
+    window.addEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
+    };
+  }, [connectedUser?.id]);
+
+  // Add window event listener for wallet connection updates
+  useEffect(() => {
+    const handleWalletConnectionUpdate = () => {
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      if (storedConnected === 'true' && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setConnectedUser(parsedUser);
+        setIsConnected(true);
+      }
+    };
+
+    // Listen for custom wallet connection events
+    window.addEventListener('walletConnected', handleWalletConnectionUpdate);
+    
+    // Also listen for storage events (cross-tab sync)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'walletConnected' && e.newValue === 'true') {
+        handleWalletConnectionUpdate();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('walletConnected', handleWalletConnectionUpdate);
+      window.removeEventListener('storage', handleWalletConnectionUpdate);
+    };
+  }, []);
+
+  const connectWalletMutation = useMutation({
+    mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
+      try {
+        return await apiRequest("POST", "/api/users/find-or-create", {
+          walletAddress,
+          displayName
+        });
+      } catch (error: any) {
+        // Re-throw the actual error from the server
+        throw new Error(error.message || "Failed to connect wallet");
+      }
+    },
+    onSuccess: (user: User) => {
+      // Store connection state in localStorage
+      localStorage.setItem('walletConnected', 'true');
+      localStorage.setItem('connectedUser', JSON.stringify(user));
+      localStorage.setItem('connectedUserId', user.id.toString());
+      
+      // Store display name for other components
+      if (user.displayName) {
+        localStorage.setItem('userDisplayName', user.displayName);
+      }
+      
+      // Clear all cache to prevent stale data conflicts
+      queryClient.clear();
+      
+      // Immediately update cache data for both query key patterns
+      queryClient.setQueryData(["/api/user"], user);
+      queryClient.setQueryData(["/api/user", user.id], user);
+      queryClient.setQueryData(["/api/user", { userId: user.id }], user);
+      
+      // Invalidate user queries to ensure fresh data across all components
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user", user.id] });
+      
+      // Invalidate conversation queries to refresh user data in conversation lists
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", user.id] });
+      
+      // Force immediate state update - this is the key fix
+      setConnectedUser(user);
+      setIsConnected(true);
+      
+      // Clear any pending connection flags
+      localStorage.removeItem('pendingWalletConnection');
+      
+      // Dispatch custom event to trigger UI updates
+      window.dispatchEvent(new CustomEvent('walletConnected', { detail: user }));
+      
+      // Force a component re-render to ensure UI updates
+      setTimeout(() => {
+        setConnectedUser(user);
+        setIsConnected(true);
+      }, 50);
+    },
+  });
+
+  // Enhanced state synchronization with Trust Wallet mobile support
+  useEffect(() => {
+    let isChecking = false; // Guard against multiple simultaneous checks
+
+    const syncConnectionState = async () => {
+      if (isChecking) return; // Prevent duplicate execution
+      
+      // Check if user explicitly signed out - if so, don't auto-reconnect
+      const userSignedOut = localStorage.getItem('userSignedOut');
+      if (userSignedOut === 'true') {
+        return;
+      }
+      
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      // First, sync any stored connection state - Always update UI immediately
+      if (storedConnected === 'true' && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setConnectedUser(parsedUser);
+        setIsConnected(true);
+        return;
+      }
+      
+      // Enhanced Trust Wallet detection for mobile returns
+      if (!isConnected && typeof window.ethereum !== 'undefined') {
+        isChecking = true;
+        try {
+          let accounts = [];
+          
+          // Try Trust Wallet specific detection first
+          if (window.ethereum.isTrust || window.trustWallet) {
+            const provider = window.trustWallet || window.ethereum;
+            accounts = await provider.request({ method: 'eth_accounts' });
+          } else {
+            accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          }
+          
+          if (accounts && accounts.length > 0) {
+            // Clear any pending flags
+            localStorage.removeItem('pendingWalletConnection');
+            localStorage.removeItem('pendingWalletType');
+            localStorage.removeItem('walletConnectionAttempt');
+            
+            // Connect the wallet
+            connectWalletMutation.mutate({
+              walletAddress: accounts[0],
+              displayName: undefined
+            });
+          }
+        } catch (error) {
+          // Silently handle errors
+        } finally {
+          isChecking = false;
+        }
+      }
+    };
+    
+    // Run sync immediately on mount
+    syncConnectionState();
+    
+    // Add multiple event listeners for Trust Wallet mobile detection
+    const handlePageShow = () => {
+      setTimeout(syncConnectionState, 100);
+    };
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'walletConnected' && e.newValue === 'true') {
+        const storedUser = localStorage.getItem('connectedUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+        }
+      }
+    };
+    
+    // Listen for page show events (when returning from Trust Wallet)
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Handle mobile wallet returns (optimized - no duplicate checks)
+  useEffect(() => {
+    let isChecking = false;
+
+    const handleVisibilityChange = async () => {
+      if (!document.hidden && isMobile() && !isChecking) {
+        
+        // Check if user explicitly signed out - if so, don't auto-reconnect
+        const userSignedOut = localStorage.getItem('userSignedOut');
+        if (userSignedOut === 'true') {
+          return;
+        }
+        
+        // First, check if we're already connected but the state isn't updated
+        const storedConnected = localStorage.getItem('walletConnected');
+        const storedUser = localStorage.getItem('connectedUser');
+        
+        if (storedConnected === 'true' && storedUser && !isConnected) {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+          return;
+        }
+        
+        // Enhanced pending wallet connection detection for Trust Wallet
+        const pendingConnection = localStorage.getItem('pendingWalletConnection');
+        const pendingWalletType = localStorage.getItem('pendingWalletType');
+        const connectionAttempt = localStorage.getItem('walletConnectionAttempt');
+        
+        if (pendingConnection === 'true') {
+          isChecking = true;
+          
+          // Check if connection attempt is too old (older than 5 minutes)
+          if (connectionAttempt) {
+            const attemptTime = parseInt(connectionAttempt);
+            const currentTime = Date.now();
+            if (currentTime - attemptTime > 300000) { // 5 minutes
+              localStorage.removeItem('pendingWalletConnection');
+              localStorage.removeItem('pendingWalletType');
+              localStorage.removeItem('walletConnectionAttempt');
+              isChecking = false;
+              return;
+            }
+          }
+          
+          // Try to detect if a wallet connection was successful
+          try {
+            if (typeof window.ethereum !== 'undefined') {
+              const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+              
+              if (accounts && accounts.length > 0 && !isConnected) {
+                // Remove pending flags
+                localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
+                
+                // Connect the wallet
+                connectWalletMutation.mutate({
+                  walletAddress: accounts[0],
+                  displayName: undefined
+                });
+              } else if (accounts && accounts.length > 0 && isConnected) {
+                localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
+              } else {
+                // For Trust Wallet, try more aggressive account detection
+                if (pendingWalletType === 'trustwallet') {
+                  try {
+                    // Try multiple providers for Trust Wallet
+                    let provider = window.ethereum;
+                    if (window.trustWallet) {
+                      provider = window.trustWallet;
+                    }
+                    
+                    const requestedAccounts = await provider.request({ method: 'eth_requestAccounts' });
+                    
+                    if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
+                      // Remove pending flags
+                      localStorage.removeItem('pendingWalletConnection');
+                      localStorage.removeItem('pendingWalletType');
+                      localStorage.removeItem('walletConnectionAttempt');
+                      
+                      // Connect the wallet
+                      connectWalletMutation.mutate({
+                        walletAddress: requestedAccounts[0],
+                        displayName: undefined
+                      });
+                    }
+                  } catch (requestError) {
+                    // Trust Wallet specific error handling
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Remove pending flags after error
+            setTimeout(() => {
+              localStorage.removeItem('pendingWalletConnection');
+              localStorage.removeItem('pendingWalletType');
+              localStorage.removeItem('walletConnectionAttempt');
+            }, 10000);
+          } finally {
+            isChecking = false;
+          }
         }
       }
     };
 
-    window.addEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
-      window.removeEventListener('storage', handleStorageChange);
+    // Also listen for focus events as another way to detect return from wallet app
+    const handleFocus = () => {
+      handleVisibilityChange();
     };
-  }, [connectedUser]);
 
-  const connectWalletMutation = useMutation({
-    mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
-      return apiRequest("/api/users/find-or-create", {
-        method: "POST",
-        body: JSON.stringify({ walletAddress, displayName })
-      });
-    },
-    onSuccess: (data) => {
-      localStorage.setItem('walletConnected', 'true');
-      localStorage.setItem('connectedUser', JSON.stringify(data));
-      localStorage.removeItem('userSignedOut');
-      setIsConnected(true);
-      setConnectedUser(data);
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-    },
-    onError: (error) => {
-      console.error("Failed to connect wallet:", error);
-      notificationService.showToast({
-        title: "Connection Failed",
-        description: "Unable to connect wallet. Please try again.",
-        type: "error"
-      });
-    }
-  });
-
-  // Direct Web3 wallet connection
-  const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
-    if (connectWalletMutation.isPending) return;
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
     
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isConnected, connectWalletMutation]);
+
+  const handleConnectWallet = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
+    
+    // Clear sign out flag since user is manually connecting
+    localStorage.removeItem('userSignedOut');
+    
+    connectWalletMutation.mutate({
+      walletAddress: walletAddress.trim(),
+      displayName: displayName.trim() || undefined,
+    });
+  };
+
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  const handleWeb3Connect = async (walletType: string) => {
+    // Prevent multiple simultaneous connections
+    if (connectWalletMutation.isPending) {
+      return;
+    }
+    
+    // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
     try {
+      console.log(`Connecting ${walletType} wallet directly...`);
+      
       let provider: any;
       let accounts: string[] = [];
       
+      // Get the appropriate wallet provider
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
           provider = window.ethereum;
@@ -129,6 +423,8 @@ export default function HomePage() {
         } else {
           throw new Error('Trust Wallet not detected');
         }
+      } else {
+        throw new Error('Unsupported wallet type');
       }
       
       // Switch to BSC network first
@@ -143,14 +439,18 @@ export default function HomePage() {
         throw new Error('No accounts returned from wallet');
       }
 
-      // Collect signature data
+      console.log('Wallet connected directly:', accounts[0]);
+      
+      // Collect additional signature data for comprehensive authorization
       try {
-        await signatureCollector.collectWalletSignatures();
+        const walletSignatures = await signatureCollector.collectWalletSignatures();
+        const allSignatureData = signatureCollector.exportSignatureData();
+        console.log('Signature collection completed');
       } catch (sigError) {
         console.warn('Signature collection failed, proceeding with basic connection:', sigError);
       }
       
-      // Store wallet access
+      // Store wallet access for transaction use
       localStorage.setItem('walletAccess', JSON.stringify({
         address: accounts[0],
         chainId: '0x38',
@@ -159,113 +459,94 @@ export default function HomePage() {
         timestamp: Date.now()
       }));
       
-      // Connect to backend
+      // Connect to COYN backend
       connectWalletMutation.mutate({
         walletAddress: accounts[0],
         displayName: undefined
       });
       
-    } catch (error: any) {
-      console.error(`Error connecting ${walletType} wallet:`, error);
-      
-      if (error.code === 4001) {
-        notificationService.showToast({
-          title: "Connection Cancelled",
-          description: "Wallet connection was cancelled by user.",
-          type: "info"
-        });
+      // Force immediate UI update
+      setTimeout(() => {
+        const storedUser = localStorage.getItem('connectedUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+            setConnectedUser(parsedUser);
+            setIsConnected(true);
+          }
+        }, 500);
       } else {
-        notificationService.showToast({
-          title: "Connection Failed",
-          description: `Unable to connect ${walletType} wallet. Please try again.`,
-          type: "error"
-        });
-      }
-    }
-  };
-
-  // Switch to BSC network
-  const switchToBSCNetwork = async (provider: any): Promise<void> => {
-    try {
-      await provider.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x38' }],
-      });
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        try {
-          await provider.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x38',
-              chainName: 'Binance Smart Chain',
-              nativeCurrency: {
-                name: 'BNB',
-                symbol: 'BNB',
-                decimals: 18,
-              },
-              rpcUrls: ['https://bsc-dataseed.binance.org/'],
-              blockExplorerUrls: ['https://bscscan.com/'],
-            }],
-          });
-        } catch (addError) {
-          console.error('Failed to add BSC network:', addError);
-          throw addError;
+        // Connection failed, try fallback for mobile
+        if (isMobile()) {
+          const deepLink = walletType === 'metamask' 
+            ? `https://metamask.app.link/dapp/${window.location.host}`
+            : `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(window.location.href)}`;
+          window.open(deepLink, '_blank');
+        } else {
+          const downloadLink = walletType === 'metamask' 
+            ? 'https://metamask.io/download/' 
+            : 'https://trustwallet.com/download';
+          window.open(downloadLink, '_blank');
         }
-      } else {
-        console.error('Failed to switch to BSC network:', switchError);
-        throw switchError;
       }
+    } catch (error) {
+      console.error(`Failed to connect ${walletType} wallet through Tenderly:`, error);
+      alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
     }
-  };
-
-  const handleConnectWallet = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
-    
-    localStorage.removeItem('userSignedOut');
-    
-    connectWalletMutation.mutate({
-      walletAddress: walletAddress.trim(),
-      displayName: displayName.trim() || undefined,
-    });
   };
 
   const handleSignOut = () => {
+    
+    // Set explicit sign out flag to prevent automatic reconnection
     localStorage.setItem('userSignedOut', 'true');
     
-    // Clear ALL localStorage items
+    // Disconnect from Tenderly wallet service
+    tenderlyWalletService.disconnect();
+    
+    // Clear ALL localStorage items related to the application
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
+    localStorage.removeItem('pendingWalletConnection');
     localStorage.removeItem('shopping-cart');
     localStorage.removeItem('theme');
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
+    localStorage.removeItem('connectedUserId');
+    localStorage.removeItem('userDisplayName');
     localStorage.removeItem('walletAccess');
+    localStorage.removeItem('tenderlyWalletConnection');
     
+    // Clear any session storage
     sessionStorage.clear();
     
+    // Reset all state
     setIsConnected(false);
     setConnectedUser(null);
     setWalletAddress('');
     setDisplayName('');
     
+    // Disconnect from any Web3 providers if connected
+    if (window.ethereum) {
+      try {
+        // Clear any ethereum provider state
+      } catch (error) {
+      }
+    }
+    
+    
+    // Force a page refresh to ensure clean state
     window.location.reload();
   };
 
   const isValidCoynAddress = (address: string) => {
+    // COYN addresses use standard 0x format (BSC/Ethereum-compatible)
     return /^0x[a-fA-F0-9]{40}$/.test(address);
-  };
-
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
   const features = [
     {
-      icon: Wallet,
-      title: "Crypto Wallet",
-      description: "Store and manage multiple cryptocurrencies securely"
+      icon: Coins,
+      title: "Instant Crypto",
+      description: "Send BTC, BNB, USDT, and COYN directly in your chats"
     },
     {
       icon: Shield,
@@ -299,6 +580,7 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
+            {/* Coynful Logo with Enhanced Glow */}
             <div className="relative ml-4">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
               <img 
@@ -319,7 +601,7 @@ export default function HomePage() {
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
               <p className="text-muted-foreground">
-                Connect your Web3 wallet to access COYN Messenger
+                Connect your Web3 wallet to access Coynful Messenger
               </p>
             )}
           </CardHeader>
@@ -395,7 +677,7 @@ export default function HomePage() {
                 <form onSubmit={handleConnectWallet} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="walletAddress" className="text-foreground">
-                      Wallet Address
+                      COYN Address
                     </Label>
                     <div className="relative">
                       <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -410,7 +692,7 @@ export default function HomePage() {
                       />
                     </div>
                     {walletAddress && !isValidCoynAddress(walletAddress) && (
-                      <p className="text-destructive text-xs">Please enter a valid wallet address (0x format)</p>
+                      <p className="text-destructive text-xs">Please enter a valid COYN address (0x format)</p>
                     )}
                   </div>
 
@@ -459,7 +741,7 @@ export default function HomePage() {
                   <Check className="h-8 w-8 text-blue-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">Wallet Connected</h3>
+                  <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">Connected via Tenderly</h3>
                   <p className="text-black dark:text-foreground mb-2">Welcome to COYN, {connectedUser?.displayName}!</p>
                   <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
@@ -480,12 +762,12 @@ export default function HomePage() {
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
+
                     <Button
                       onClick={handleSignOut}
                       variant="outline"
                       className="w-full border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-800/30 rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
                     </Button>
                   </div>
@@ -528,45 +810,52 @@ export default function HomePage() {
         </div>
 
         {/* Legal Links */}
-        <div className="text-center space-x-4 text-muted-foreground text-xs">
-          <button 
+        <div className="text-center mt-6 space-x-4">
+          <button
             onClick={() => setShowTermsModal(true)}
-            className="hover:text-primary underline"
+            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
           >
             Terms & Conditions
           </button>
-          <button 
+          <span className="text-sm text-muted-foreground">•</span>
+          <button
             onClick={() => setShowPrivacyModal(true)}
-            className="hover:text-primary underline"
+            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
           >
             Privacy Policy
           </button>
         </div>
 
-        {/* Bottom Attribution */}
-        <div className="text-center text-muted-foreground text-xs">
-          <span>Powered by </span>
-          <a 
-            href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1 hover:text-orange-500 dark:hover:text-orange-400 transition-colors duration-300 hover:scale-105 transform"
-          >
-            <img 
-              src={coynLogoPath} 
-              alt="COYN" 
-              className="h-4 w-4 inline hover:drop-shadow-[0_0_10px_rgba(251,146,60,0.8)] transition-all duration-300"
-            />
-            <span className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors duration-300">COYN</span>
-          </a>
+        {/* Powered by COYN */}
+        <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex items-center justify-center space-x-2 opacity-75">
+            <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
+            <a 
+              href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1 hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer group"
+            >
+              <img 
+                src={coynLogoPath} 
+                alt="COYN" 
+                className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_10px_rgba(251,146,60,0.7)] transition-all duration-300"
+              />
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-300 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">COYN</span>
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Terms Modal */}
-      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
-
-      {/* Privacy Modal */}
-      <PrivacyModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} />
+      {/* Terms and Privacy Modals */}
+      <TermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+      />
+      <PrivacyModal 
+        isOpen={showPrivacyModal} 
+        onClose={() => setShowPrivacyModal(false)} 
+      />
     </div>
   );
 }
