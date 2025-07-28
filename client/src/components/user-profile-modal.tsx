@@ -89,121 +89,106 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[85vw] max-w-sm bg-gradient-to-br from-white via-orange-50/30 to-pink-50/20 dark:from-slate-900 dark:via-orange-900/10 dark:to-pink-900/10 border-2 border-orange-200/50 dark:border-orange-800/30 p-0 overflow-hidden backdrop-blur-md shadow-2xl">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
           <DialogHeader className="sr-only">
             <DialogTitle>User Profile</DialogTitle>
             <DialogDescription>View user profile information and manage contact options</DialogDescription>
           </DialogHeader>
-          
-          {/* Animated Background Pattern */}
-          <div className="absolute inset-0 opacity-20 dark:opacity-10">
-            <div className="absolute top-2 left-2 w-16 h-16 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full blur-xl animate-pulse"></div>
-            <div className="absolute bottom-2 right-2 w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-lg animate-ping delay-1000"></div>
-            <div className="absolute top-1/2 right-4 w-8 h-8 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full blur-md animate-bounce delay-500"></div>
-          </div>
-          
-          <div className="relative z-10 p-4 space-y-4">
+          <div className="space-y-4 sm:space-y-6">
             {/* Profile Picture and Basic Info */}
-            <div className="flex flex-col items-center space-y-2">
-              <div className="relative group">
-                {/* Animated Rings around Avatar */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 animate-spin-slow opacity-50 blur-sm scale-110"></div>
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 animate-spin-reverse opacity-30 blur-md scale-125"></div>
-                
-                <Avatar className="h-16 w-16 relative z-10 ring-4 ring-white/50 dark:ring-slate-800/50 shadow-xl group-hover:scale-110 transition-all duration-500 ease-out">
-                  <AvatarImage 
-                    src={user.profilePicture || ""} 
-                    className="group-hover:brightness-110 transition-all duration-300"
-                  />
-                  <AvatarFallback className="bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/50 dark:to-pink-900/50">
-                    <UserAvatarIcon className="w-8 h-8 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform duration-300" />
+            <div className="flex flex-col items-center space-y-3">
+              <div className="relative">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+                  <AvatarImage src={user.profilePicture || ""} />
+                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                    <UserAvatarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 dark:text-gray-400" />
                   </AvatarFallback>
                 </Avatar>
-                
                 {user.isOnline && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
+                  <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
                   </div>
                 )}
               </div>
               
               <div className="text-center space-y-1">
-                <h3 className="text-base font-bold bg-gradient-to-r from-gray-900 via-orange-700 to-pink-700 dark:from-white dark:via-orange-300 dark:to-pink-300 bg-clip-text text-transparent animate-gradient-x">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                   {getEffectiveDisplayName(user)}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono tracking-wide">
+                <p className="text-sm text-gray-500 dark:text-muted-foreground">
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
                 </p>
-                <div className="flex justify-center space-x-1">
-                  {isOwnProfile && (
-                    <Badge className="bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30 text-orange-700 dark:text-orange-400 text-xs border-0 shadow-md animate-bounce">
-                      You ✨
-                    </Badge>
-                  )}
-                  {user.isOnline && !isOwnProfile && (
-                    <Badge className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-400 text-xs border-0 shadow-md animate-pulse">
-                      Online 🟢
-                    </Badge>
-                  )}
-                </div>
+                {isOwnProfile && (
+                  <Badge className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs">
+                    You
+                  </Badge>
+                )}
+                {user.isOnline && !isOwnProfile && (
+                  <Badge className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs">
+                    Online
+                  </Badge>
+                )}
               </div>
             </div>
 
-            {/* Compact Wallet Address */}
-            <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-orange-200/50 dark:border-orange-800/30 shadow-inner hover:shadow-lg transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Wallet</p>
-                  <code className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate block">
-                    {user.walletAddress ? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}` : 'Unknown'}
-                  </code>
-                </div>
+            {/* Wallet Address */}
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                Wallet Address
+              </label>
+              <div className="flex items-center space-x-2 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <code className="flex-1 text-xs font-mono text-gray-600 dark:text-gray-300 break-all">
+                  {user.walletAddress}
+                </code>
                 <Button
                   onClick={copyWalletAddress}
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:scale-110 transition-all duration-200 rounded-full"
+                  className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  <Copy className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                  <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Compact Action Buttons */}
-            <div className="space-y-2">
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {/* For own profile, only show Send Message */}
               {isOwnProfile ? (
                 <>
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-9 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0"
+                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
                     >
-                      <MessageCircle className="h-4 w-4 mr-2 animate-bounce" />
-                      Chat with Me
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Message Yourself
                     </Button>
                   )}
                 </>
               ) : (
                 <>
+                  {/* Row 1: Send Message (Orange, Full Width) */}
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-9 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0"
+                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
                     >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Message
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Send Message
                     </Button>
                   )}
                   
+                  {/* Row 2: Call and Video (Side by Side) */}
                   {(onStartCall || onStartVideoCall) && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {onStartCall && (
                         <Button 
                           onClick={onStartCall}
                           variant="outline"
-                          className="h-9 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:scale-105 transition-all duration-300 text-sm"
+                          className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
                         >
-                          <Phone className="h-3 w-3 mr-1" />
+                          <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                           Call
                         </Button>
                       )}
@@ -211,34 +196,35 @@ export default function UserProfileModal({
                         <Button 
                           onClick={onStartVideoCall}
                           variant="outline"
-                          className="h-9 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:scale-105 transition-all duration-300 text-sm"
+                          className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
                         >
-                          <Video className="h-3 w-3 mr-1" />
+                          <Video className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                           Video
                         </Button>
                       )}
                     </div>
                   )}
                   
+                  {/* Row 3: Delete Contact (Full Width) */}
                   {onDeleteContact && (
                     <Button 
                       onClick={handleDeleteContactClick}
                       variant="outline"
-                      className="w-full h-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:scale-105 transition-all duration-300 text-xs"
+                      className="w-full h-10 sm:h-12 bg-white dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                     >
-                      <UserMinus className="h-3 w-3 mr-1" />
-                      Remove
+                      <UserMinus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Delete Contact
                     </Button>
                   )}
                 </>
               )}
             </div>
 
-            {/* Playful Last Seen */}
+            {/* Additional Info */}
             {user.lastSeen && (
-              <div className="text-center py-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400 animate-fade-in">
-                  👀 Last seen: {new Date(user.lastSeen).toLocaleDateString()}
+              <div className="text-center pt-4 border-t border-border">
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                  Last seen: {new Date(user.lastSeen).toLocaleString()}
                 </p>
               </div>
             )}
