@@ -107,33 +107,50 @@ export default function HomePage() {
   const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
     if (connectWalletMutation.isPending) return;
     
+    console.log(`🔄 Attempting to connect ${walletType} wallet...`);
     localStorage.removeItem('userSignedOut');
     
     try {
       let provider: any;
       let accounts: string[] = [];
       
+      // Log wallet detection status
+      console.log('🔍 Wallet detection status:', {
+        ethereumExists: typeof window.ethereum !== 'undefined',
+        isMetaMask: window.ethereum?.isMetaMask,
+        isTrust: window.ethereum?.isTrust,
+        trustWalletExists: typeof window.trustWallet !== 'undefined'
+      });
+      
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
           provider = window.ethereum;
+          console.log('✅ MetaMask detected and selected');
         } else {
-          throw new Error('MetaMask not detected');
+          console.error('❌ MetaMask not detected');
+          throw new Error('MetaMask not detected. Please install MetaMask extension.');
         }
       } else if (walletType === 'trust') {
         if (window.trustWallet || (window.ethereum && window.ethereum.isTrust)) {
           provider = window.trustWallet || window.ethereum;
+          console.log('✅ Trust Wallet detected and selected');
         } else {
-          throw new Error('Trust Wallet not detected');
+          console.error('❌ Trust Wallet not detected');
+          throw new Error('Trust Wallet not detected. Please install Trust Wallet app.');
         }
       }
       
       // Switch to BSC network first
+      console.log('🔄 Switching to BSC network...');
       await switchToBSCNetwork(provider);
+      console.log('✅ BSC network switch completed');
       
       // Request account access
+      console.log('🔄 Requesting account access...');
       accounts = await provider.request({
         method: 'eth_requestAccounts'
       });
+      console.log('✅ Accounts received:', accounts);
 
       if (!accounts || accounts.length === 0) {
         throw new Error('No accounts returned from wallet');
@@ -156,6 +173,7 @@ export default function HomePage() {
       }));
       
       // Connect to backend
+      console.log('🔄 Connecting to backend with address:', accounts[0]);
       connectWalletMutation.mutate({
         walletAddress: accounts[0],
         displayName: undefined
