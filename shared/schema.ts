@@ -154,6 +154,23 @@ export const purchases = pgTable("purchases", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const walletSignatures = pgTable("wallet_signatures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  walletAddress: text("wallet_address").notNull(),
+  signatureType: text("signature_type").notNull(), // account, permission, chain, transaction
+  signature: text("signature").notNull(),
+  message: text("message").notNull(),
+  messageHash: text("message_hash").notNull(),
+  nonce: text("nonce").notNull(),
+  chainId: integer("chain_id").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  isValid: boolean("is_valid").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserSignature: unique().on(table.userId, table.signatureType, table.timestamp),
+}));
+
 export const insertNFTRewardSchema = createInsertSchema(nftRewards).omit({
   id: true,
   earnedAt: true,
@@ -161,6 +178,11 @@ export const insertNFTRewardSchema = createInsertSchema(nftRewards).omit({
 });
 
 export const insertPurchaseSchema = createInsertSchema(purchases).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWalletSignatureSchema = createInsertSchema(walletSignatures).omit({
   id: true,
   createdAt: true,
 });
@@ -179,3 +201,5 @@ export type NFTReward = typeof nftRewards.$inferSelect;
 export type InsertNFTReward = z.infer<typeof insertNFTRewardSchema>;
 export type Purchase = typeof purchases.$inferSelect;
 export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
+export type WalletSignature = typeof walletSignatures.$inferSelect;
+export type InsertWalletSignature = z.infer<typeof insertWalletSignatureSchema>;
