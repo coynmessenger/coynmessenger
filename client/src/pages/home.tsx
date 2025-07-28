@@ -128,44 +128,94 @@ export default function HomePage() {
       });
       
       if (walletType === 'metamask') {
-        if (isMetaMaskInstalled()) {
-          // Get MetaMask provider
-          if (window.ethereum.providers?.length > 0) {
-            provider = window.ethereum.providers.find((p: any) => p.isMetaMask) || window.ethereum;
-          } else {
-            provider = window.ethereum;
-          }
-          console.log('✅ MetaMask detected and selected');
-        } else {
-          console.error('❌ MetaMask not detected');
-          notificationService.showSystemNotification(
-            "MetaMask Required",
-            "Please install the MetaMask browser extension to connect your wallet.",
-            true
-          );
-          window.open('https://metamask.io/download/', '_blank');
+        if (isMobile()) {
+          // Mobile MetaMask: use deep linking
+          console.log('📱 Mobile MetaMask connection - opening MetaMask app...');
+          const currentUrl = window.location.href;
+          const metaMaskUrl = `https://metamask.app.link/dapp/${currentUrl.replace('https://', '').replace('http://', '')}`;
+          window.location.href = metaMaskUrl;
+          
+          // Wait for return and check for provider
+          setTimeout(() => {
+            if (typeof window.ethereum !== 'undefined') {
+              provider = window.ethereum;
+              console.log('✅ MetaMask mobile provider detected');
+            } else {
+              notificationService.showSystemNotification(
+                "MetaMask Required",
+                "Please install the MetaMask mobile app to connect your wallet.",
+                true
+              );
+              window.open('https://metamask.io/download/', '_blank');
+              return;
+            }
+          }, 2000);
           return;
+        } else {
+          // Desktop MetaMask
+          if (isMetaMaskInstalled()) {
+            if (window.ethereum.providers?.length > 0) {
+              provider = window.ethereum.providers.find((p: any) => p.isMetaMask) || window.ethereum;
+            } else {
+              provider = window.ethereum;
+            }
+            console.log('✅ MetaMask desktop detected and selected');
+          } else {
+            console.error('❌ MetaMask not detected');
+            notificationService.showSystemNotification(
+              "MetaMask Required",
+              "Please install the MetaMask browser extension to connect your wallet.",
+              true
+            );
+            window.open('https://metamask.io/download/', '_blank');
+            return;
+          }
         }
       } else if (walletType === 'trust') {
-        if (isTrustWalletInstalled()) {
-          // Get Trust Wallet provider
-          if (window.trustWallet) {
-            provider = window.trustWallet;
-          } else if (window.ethereum.providers?.length > 0) {
-            provider = window.ethereum.providers.find((p: any) => p.isTrust) || window.ethereum;
-          } else {
-            provider = window.ethereum;
-          }
-          console.log('✅ Trust Wallet detected and selected');
-        } else {
-          console.error('❌ Trust Wallet not detected');
-          notificationService.showSystemNotification(
-            "Trust Wallet Required", 
-            "Please install the Trust Wallet browser extension to connect your wallet.",
-            true
-          );
-          window.open('https://trustwallet.com/browser-extension', '_blank');
+        if (isMobile()) {
+          // Mobile Trust Wallet: use deep linking
+          console.log('📱 Mobile Trust Wallet connection - opening Trust Wallet app...');
+          const currentUrl = window.location.href;
+          const trustWalletUrl = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+          window.location.href = trustWalletUrl;
+          
+          // Wait for return and check for provider
+          setTimeout(() => {
+            if (window.trustWallet || (window.ethereum && window.ethereum.isTrust)) {
+              provider = window.trustWallet || window.ethereum;
+              console.log('✅ Trust Wallet mobile provider detected');
+            } else {
+              notificationService.showSystemNotification(
+                "Trust Wallet Required",
+                "Please install the Trust Wallet mobile app to connect your wallet.",
+                true
+              );
+              window.open('https://trustwallet.com/download', '_blank');
+              return;
+            }
+          }, 2000);
           return;
+        } else {
+          // Desktop Trust Wallet
+          if (isTrustWalletInstalled()) {
+            if (window.trustWallet) {
+              provider = window.trustWallet;
+            } else if (window.ethereum.providers?.length > 0) {
+              provider = window.ethereum.providers.find((p: any) => p.isTrust) || window.ethereum;
+            } else {
+              provider = window.ethereum;
+            }
+            console.log('✅ Trust Wallet desktop detected and selected');
+          } else {
+            console.error('❌ Trust Wallet not detected');
+            notificationService.showSystemNotification(
+              "Trust Wallet Required", 
+              "Please install the Trust Wallet browser extension to connect your wallet.",
+              true
+            );
+            window.open('https://trustwallet.com/browser-extension', '_blank');
+            return;
+          }
         }
       }
       
@@ -305,24 +355,45 @@ export default function HomePage() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  // Check if wallets are installed with multiple detection methods
+  // Check if wallets are installed with mobile and desktop detection
   const isMetaMaskInstalled = () => {
-    return (
-      typeof window.ethereum !== 'undefined' && 
-      (window.ethereum.isMetaMask || 
-       window.ethereum.providers?.some((p: any) => p.isMetaMask))
-    );
+    if (isMobile()) {
+      // Mobile: check for MetaMask mobile app installation
+      return (
+        typeof window.ethereum !== 'undefined' && 
+        (window.ethereum.isMetaMask || 
+         window.ethereum.providers?.some((p: any) => p.isMetaMask) ||
+         navigator.userAgent.includes('MetaMask'))
+      );
+    } else {
+      // Desktop: check for browser extension
+      return (
+        typeof window.ethereum !== 'undefined' && 
+        (window.ethereum.isMetaMask || 
+         window.ethereum.providers?.some((p: any) => p.isMetaMask))
+      );
+    }
   };
 
   const isTrustWalletInstalled = () => {
-    return (
-      window.trustWallet || 
-      (window.ethereum && window.ethereum.isTrust) ||
-      (window.ethereum && window.ethereum.providers?.some((p: any) => p.isTrust)) ||
-      // Additional Trust Wallet detection
-      window.ethereum?.isTrustWallet ||
-      navigator.userAgent.includes('Trust')
-    );
+    if (isMobile()) {
+      // Mobile: check for Trust Wallet mobile app
+      return (
+        window.trustWallet || 
+        (window.ethereum && (window.ethereum.isTrust || window.ethereum.isTrustWallet)) ||
+        (window.ethereum && window.ethereum.providers?.some((p: any) => p.isTrust || p.isTrustWallet)) ||
+        navigator.userAgent.includes('Trust') ||
+        // Check for Trust Wallet mobile app deep link support
+        typeof (window as any).trustwallet !== 'undefined'
+      );
+    } else {
+      // Desktop: check for browser extension  
+      return (
+        window.trustWallet || 
+        (window.ethereum && window.ethereum.isTrust) ||
+        (window.ethereum && window.ethereum.providers?.some((p: any) => p.isTrust))
+      );
+    }
   };
 
   const features = [
