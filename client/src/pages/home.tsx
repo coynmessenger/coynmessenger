@@ -701,40 +701,21 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="homepage-font min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden picasso-aesthetic">
-      {/* Picassoesque Background Elements */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-600/30 transform rotate-45 rounded-xl"></div>
-        <div className="absolute top-1/3 right-20 w-24 h-24 bg-indigo-500/40 transform -rotate-12 rounded-full"></div>
-        <div className="absolute bottom-20 left-1/4 w-40 h-16 bg-cyan-600/30 transform rotate-12 rounded-2xl"></div>
-        <div className="absolute bottom-1/3 right-1/3 w-20 h-20 bg-blue-400/50 transform rotate-45"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-2 bg-gradient-to-r from-blue-400/30 to-indigo-400/30 transform -rotate-45"></div>
-      </div>
-      
-      {/* Artistic Grid Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="picasso-grid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="1"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#picasso-grid)" className="text-blue-300"/>
-        </svg>
-      </div>
+    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
       
       <div className="max-w-4xl w-full space-y-6 relative z-10">
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            {/* Coynful Logo with Blue Artistic Glow */}
+            {/* Coynful Logo with Enhanced Glow */}
             <div className="relative ml-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 blur-3xl opacity-60 scale-150 animate-pulse"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-300 to-cyan-300 blur-2xl opacity-40 scale-125 animate-ping"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
               <img 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
-                className="h-32 w-auto relative z-10 drop-shadow-[0_0_60px_rgba(56,189,248,0.9)] hover:drop-shadow-[0_0_80px_rgba(56,189,248,1)] transition-all duration-500 hover:scale-105 filter brightness-110"
+                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
                 loading="eager"
                 decoding="async"
                 style={{ imageRendering: 'auto' }}
@@ -743,16 +724,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Main CTA Card - Picassoesque Design */}
-        <Card className="bg-slate-800/80 backdrop-blur-xl border border-blue-500/30 max-w-lg mx-auto shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 transform hover:scale-[1.02] relative overflow-hidden">
-          {/* Artistic card decoration */}
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-cyan-400/20 to-transparent transform rotate-45 translate-x-10 -translate-y-10"></div>
-          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-blue-400/20 to-transparent transform -rotate-12 -translate-x-8 translate-y-8"></div>
-          
-          <CardHeader className="text-center relative z-10">
-            <CardTitle className="text-2xl text-white mb-2 font-semibold">Connect Wallet</CardTitle>
+        {/* Main CTA Card - Clean Design */}
+        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
-              <p className="text-blue-200">
+              <p className="text-muted-foreground">
                 Connect your Web3 wallet to access Coynful Messenger
               </p>
             )}
@@ -763,10 +740,10 @@ export default function HomePage() {
                 {/* Web3 Wallet Options */}
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-sm text-blue-200/80 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4">
                       {isMobile() ? (
                         <>
-                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-900/30 text-cyan-300 rounded-full text-xs font-medium mb-2 border border-cyan-500/30">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
                             📱 Mobile Detected
                           </span>
                           <br />
@@ -779,16 +756,14 @@ export default function HomePage() {
                   </div>
 
                   {/* 2x1 Grid of Wallet Options */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-28 bg-slate-700/60 hover:bg-slate-600/60 border border-blue-400/30 text-white font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-cyan-500/30 hover:scale-105 active:scale-95 relative overflow-hidden backdrop-blur-sm"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
-                      {/* Artistic decoration */}
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-yellow-400"></div>
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
                           src={metamaskLogo} 
@@ -802,12 +777,10 @@ export default function HomePage() {
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-28 bg-slate-700/60 hover:bg-slate-600/60 border border-blue-400/30 text-white font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-cyan-500/30 hover:scale-105 active:scale-95 relative overflow-hidden backdrop-blur-sm"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
-                      {/* Artistic decoration */}
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-cyan-400"></div>
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
                           src={trustWalletLogo} 
@@ -892,20 +865,20 @@ export default function HomePage() {
                 </form>
               </div>
             ) : (
-              <div className="text-center space-y-6 relative z-10">
-                <div className="w-16 h-16 bg-cyan-500/30 rounded-full flex items-center justify-center mx-auto backdrop-blur-sm border border-cyan-400/50">
-                  <Check className="h-8 w-8 text-cyan-300" />
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                  <Check className="h-8 w-8 text-green-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-cyan-300 mb-2">Connected to Coynful Network</h3>
-                  <p className="text-blue-100 mb-2">Welcome to Coynful, {connectedUser?.displayName}!</p>
-                  <p className="text-xs text-blue-200/70 font-mono break-all px-4">
+                  <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to Coynful Network</h3>
+                  <p className="text-black dark:text-foreground mb-2">Welcome to Coynful, {connectedUser?.displayName}!</p>
+                  <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation shadow-lg hover:shadow-cyan-500/30 transition-all duration-300"
+                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Open Messenger
@@ -913,16 +886,17 @@ export default function HomePage() {
                     <Button
                       onClick={() => setLocation("/marketplace")}
                       variant="outline"
-                      className="w-full border-orange-400/50 text-orange-300 hover:bg-orange-500/20 hover:text-orange-200 font-semibold rounded-lg h-14 sm:h-12 touch-manipulation backdrop-blur-sm"
+                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
 
+
                     <Button
                       onClick={handleSignOut}
                       variant="outline"
-                      className="w-full border-blue-400/30 text-blue-200 hover:bg-blue-500/20 hover:text-blue-100 rounded-lg h-14 sm:h-12 touch-manipulation backdrop-blur-sm"
+                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       Sign Out
                     </Button>
@@ -932,11 +906,11 @@ export default function HomePage() {
             )}
 
             {/* Supported Currencies */}
-            <div className="border-t border-blue-500/30 pt-4">
-              <p className="text-center text-blue-200/80 mb-3 text-sm">Supported Currencies</p>
+            <div className="border-t border-border pt-4">
+              <p className="text-center text-muted-foreground mb-3 text-sm">Supported Currencies</p>
               <div className="flex justify-center space-x-3 flex-wrap gap-2">
                 {['BTC', 'BNB', 'USDT', 'COYN'].map((currency) => (
-                  <Badge key={currency} className="bg-slate-700/60 text-cyan-300 border border-cyan-500/30 text-xs">
+                  <Badge key={currency} variant="secondary" className="text-xs">
                     {currency}
                   </Badge>
                 ))}
@@ -945,31 +919,23 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Features Grid - Picassoesque Design */}
+        {/* Features Grid - Clean Design */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-slate-800/60 backdrop-blur-xl border border-blue-400/30 shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 transform hover:scale-105 relative overflow-hidden">
-              {/* Artistic accents */}
-              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${
-                index % 4 === 0 ? 'from-cyan-400 to-blue-400' :
-                index % 4 === 1 ? 'from-blue-400 to-indigo-400' :
-                index % 4 === 2 ? 'from-indigo-400 to-purple-400' :
-                'from-purple-400 to-cyan-400'
-              }`}></div>
-              
-              <CardHeader className="pb-3 relative z-10">
-                <feature.icon className="h-8 w-8 text-cyan-300 mb-2" />
-                <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
+            <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <CardHeader className="pb-3">
+                <feature.icon className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-2" />
+                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-blue-100/80 text-sm">{feature.description}</p>
+                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="text-center text-blue-200/70 text-sm">
+        <div className="text-center text-muted-foreground text-sm">
           <p>Secure • Decentralized • Private</p>
         </div>
 
@@ -977,23 +943,23 @@ export default function HomePage() {
         <div className="text-center mt-6 space-x-4">
           <button
             onClick={() => setShowTermsModal(true)}
-            className="text-sm text-blue-200/60 hover:text-cyan-300 underline transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
           >
             Terms & Conditions
           </button>
-          <span className="text-sm text-blue-200/60">•</span>
+          <span className="text-sm text-muted-foreground">•</span>
           <button
             onClick={() => setShowPrivacyModal(true)}
-            className="text-sm text-blue-200/60 hover:text-cyan-300 underline transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
           >
             Privacy Policy
           </button>
         </div>
 
         {/* Powered by COYN */}
-        <div className="text-center mt-8 pt-6 border-t border-blue-500/30">
+        <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-center space-x-2 opacity-75">
-            <span className="text-sm text-blue-200/60">Powered by</span>
+            <span className="text-sm text-gray-600 dark:text-slate-400">Powered by</span>
             <a 
               href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1"
               target="_blank"
@@ -1003,9 +969,9 @@ export default function HomePage() {
               <img 
                 src={coynLogoPath} 
                 alt="COYN" 
-                className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_15px_rgba(56,189,248,0.8)] transition-all duration-300"
+                className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_10px_rgba(251,146,60,0.7)] transition-all duration-300"
               />
-              <span className="text-sm font-medium text-blue-200 group-hover:text-cyan-300 transition-colors">COYN</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-300 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">COYN</span>
             </a>
           </div>
         </div>

@@ -371,29 +371,21 @@ export default function MessengerPage() {
   }, [connectedUserId, conversations, selectedConversation]);
 
   return (
-    <div className="flex h-screen messenger-picasso text-white relative overflow-hidden">
-      {/* Picassoesque Background Elements */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none z-0">
-        <div className="absolute top-20 left-16 w-40 h-40 bg-blue-500/20 transform rotate-45 rounded-2xl"></div>
-        <div className="absolute top-1/2 right-24 w-32 h-32 bg-cyan-400/25 transform -rotate-12 rounded-full"></div>
-        <div className="absolute bottom-32 left-1/3 w-48 h-20 bg-indigo-400/20 transform rotate-12 rounded-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-blue-300/30 transform rotate-45"></div>
-      </div>
-      
+    <div className="flex h-screen bg-background text-foreground">
       {/* Desktop Header - only visible on large screens */}
-      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen relative z-10">
-        <div className="bg-slate-800/80 backdrop-blur-xl border-b border-blue-500/30 p-3 flex items-center justify-between">
+      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
+        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => setLocation("/")}
               variant="ghost"
               size="sm"
-              className="text-blue-200 hover:text-cyan-300 hover:bg-blue-600/20 backdrop-blur-sm"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
             >
               <Home className="h-4 w-4 mr-2" />
               Return to Home
             </Button>
-            <h1 className="text-xl font-normal text-cyan-300" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
           </div>
@@ -417,7 +409,7 @@ export default function MessengerPage() {
 
         {/* Desktop Main Content */}
         <div className="flex flex-1">
-          <div className="flex-1 flex flex-col bg-slate-900/60 backdrop-blur-lg">
+          <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
               <ChatWindow
                 conversation={currentConversation}
@@ -426,7 +418,7 @@ export default function MessengerPage() {
                 searchQuery={searchQuery}
               />
             ) : (
-              <div className="flex-1 flex flex-col bg-slate-900/60 backdrop-blur-lg">
+              <div className="flex-1 flex flex-col bg-background">
 
 
                 {/* Contact List First - Main Focus */}
@@ -436,7 +428,7 @@ export default function MessengerPage() {
                   {/* Existing Conversations - Secondary Display */}
                   {filteredConversations.length > 0 && (
                     <div>
-                      <div className="divide-y divide-blue-500/20">
+                      <div className="divide-y divide-border">
                         {filteredConversations.map((conversation) => {
                           // Check if this conversation has unread messages (show notification only if there's an active toast)
                           const hasUnreadMessages = activeToasts.has(conversation.id.toString());
@@ -454,8 +446,8 @@ export default function MessengerPage() {
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
                               }}
-                              className={`p-4 hover:bg-blue-600/20 cursor-pointer transition-colors border-l-4 border-transparent hover:border-cyan-400 backdrop-blur-sm ${
-                                hasUnreadMessages ? 'bg-cyan-900/30 border-l-cyan-400' : ''
+                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
+                                hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
                               }`}
                             >
                               <div className="flex items-center space-x-3">
