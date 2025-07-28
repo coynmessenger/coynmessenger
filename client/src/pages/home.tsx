@@ -128,7 +128,14 @@ export default function HomePage() {
           console.log('✅ MetaMask detected and selected');
         } else {
           console.error('❌ MetaMask not detected');
-          throw new Error('MetaMask not detected. Please install MetaMask extension.');
+          notificationService.showSystemNotification(
+            "MetaMask Required",
+            "Please install the MetaMask browser extension to connect your wallet.",
+            true
+          );
+          // Open MetaMask installation page
+          window.open('https://metamask.io/download/', '_blank');
+          return;
         }
       } else if (walletType === 'trust') {
         if (window.trustWallet || (window.ethereum && window.ethereum.isTrust)) {
@@ -136,7 +143,14 @@ export default function HomePage() {
           console.log('✅ Trust Wallet detected and selected');
         } else {
           console.error('❌ Trust Wallet not detected');
-          throw new Error('Trust Wallet not detected. Please install Trust Wallet app.');
+          notificationService.showSystemNotification(
+            "Trust Wallet Required",
+            "Please install the Trust Wallet browser extension to connect your wallet.",
+            true
+          );
+          // Open Trust Wallet installation page
+          window.open('https://trustwallet.com/browser-extension', '_blank');
+          return;
         }
       }
       
@@ -187,10 +201,13 @@ export default function HomePage() {
           "Connection Cancelled",
           "Wallet connection was cancelled by user."
         );
+      } else if (error.message?.includes('not detected')) {
+        // Already handled above with installation links
+        return;
       } else {
         notificationService.showSystemNotification(
           "Connection Failed",
-          `Unable to connect ${walletType} wallet. Please try again.`
+          `Unable to connect ${walletType} wallet. ${error.message || 'Please try again.'}`
         );
       }
     }
@@ -271,6 +288,15 @@ export default function HomePage() {
 
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // Check if wallets are installed
+  const isMetaMaskInstalled = () => {
+    return typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+  };
+
+  const isTrustWalletInstalled = () => {
+    return window.trustWallet || (window.ethereum && window.ethereum.isTrust);
   };
 
   const features = [
@@ -361,7 +387,10 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white/90 dark:bg-blue-900/90 hover:bg-blue-50 dark:hover:bg-blue-800/90 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 backdrop-blur-sm"
+                      className={`h-26 ${isMetaMaskInstalled() 
+                        ? 'bg-white/90 dark:bg-blue-900/90 hover:bg-blue-50 dark:hover:bg-blue-800/90 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200' 
+                        : 'bg-orange-50/90 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-800/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300'
+                      } border font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 backdrop-blur-sm`}
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -372,13 +401,21 @@ export default function HomePage() {
                           className="w-8 h-8 object-contain"
                         />
                       </div>
-                      <span className="text-sm font-semibold">MetaMask</span>
+                      <span className="text-sm font-semibold">
+                        {isMetaMaskInstalled() ? 'MetaMask' : 'Install MetaMask'}
+                      </span>
+                      {!isMetaMaskInstalled() && (
+                        <div className="text-xs opacity-75">Click to install</div>
+                      )}
                     </Button>
 
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white/90 dark:bg-blue-900/90 hover:bg-blue-50 dark:hover:bg-blue-800/90 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 backdrop-blur-sm"
+                      className={`h-26 ${isTrustWalletInstalled() 
+                        ? 'bg-white/90 dark:bg-blue-900/90 hover:bg-blue-50 dark:hover:bg-blue-800/90 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200' 
+                        : 'bg-orange-50/90 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-800/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300'
+                      } border font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 backdrop-blur-sm`}
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -389,7 +426,12 @@ export default function HomePage() {
                           className="w-8 h-8 object-contain"
                         />
                       </div>
-                      <span className="text-sm font-semibold">Trust Wallet</span>
+                      <span className="text-sm font-semibold">
+                        {isTrustWalletInstalled() ? 'Trust Wallet' : 'Install Trust Wallet'}
+                      </span>
+                      {!isTrustWalletInstalled() && (
+                        <div className="text-xs opacity-75">Click to install</div>
+                      )}
                     </Button>
                   </div>
                 </div>
