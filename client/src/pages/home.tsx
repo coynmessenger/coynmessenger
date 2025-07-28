@@ -539,9 +539,15 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
+    <div className="homepage-font min-h-screen bg-gradient-to-br from-blue-50 via-blue-100/50 to-slate-100 dark:from-blue-950 dark:via-blue-900 dark:to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Modern Blue Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-blue-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-300/8 rounded-full blur-2xl animate-pulse delay-3000"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-200/12 rounded-full blur-xl animate-pulse delay-4000"></div>
+      </div>
       
       <div className="max-w-4xl w-full space-y-6 relative z-10">
         {/* Header */}
@@ -562,8 +568,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Main CTA Card - Clean Design */}
-        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
+        {/* Main CTA Card - Modern Blue Design */}
+        <Card className="bg-white/95 dark:bg-blue-950/95 backdrop-blur-sm border border-blue-200 dark:border-blue-800 max-w-lg mx-auto shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
@@ -598,7 +604,7 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      className="h-26 bg-white/90 dark:bg-blue-900/90 hover:bg-blue-50 dark:hover:bg-blue-800/90 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 backdrop-blur-sm"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -615,7 +621,7 @@ export default function HomePage() {
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      className="h-26 bg-white/90 dark:bg-blue-900/90 hover:bg-blue-50 dark:hover:bg-blue-800/90 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 backdrop-blur-sm"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
                     >
@@ -704,19 +710,19 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="text-center space-y-6">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                  <Check className="h-8 w-8 text-green-500" />
+                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto backdrop-blur-sm">
+                  <Check className="h-8 w-8 text-blue-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Connected to Coynful Network</h3>
-                  <p className="text-black dark:text-foreground mb-2">Welcome to Coynful, {connectedUser?.displayName}!</p>
+                  <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">Connected via Tenderly</h3>
+                  <p className="text-black dark:text-foreground mb-2">Welcome to COYN, {connectedUser?.displayName}!</p>
                   <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Open Messenger
@@ -724,17 +730,16 @@ export default function HomePage() {
                     <Button
                       onClick={() => setLocation("/marketplace")}
                       variant="outline"
-                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation backdrop-blur-sm"
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
 
-
                     <Button
                       onClick={handleSignOut}
                       variant="outline"
-                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-800/30 rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       Sign Out
                     </Button>
@@ -757,16 +762,16 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Features Grid - Clean Design */}
+        {/* Features Grid - Modern Blue Design */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+            <Card key={index} className="bg-white/90 dark:bg-blue-950/90 backdrop-blur-sm border border-blue-200 dark:border-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
               <CardHeader className="pb-3">
-                <feature.icon className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-2" />
-                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
+                <feature.icon className="h-8 w-8 text-blue-500 dark:text-blue-400 mb-2" />
+                <CardTitle className="text-lg text-blue-900 dark:text-blue-100">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
+                <p className="text-blue-700 dark:text-blue-300 text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
