@@ -89,106 +89,119 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
+        <DialogContent className="sm:max-w-md bg-gradient-to-br from-white/95 via-blue-50/95 to-slate-100/95 dark:from-blue-950/95 dark:via-blue-900/95 dark:to-slate-900/95 backdrop-blur-xl border border-blue-200/50 dark:border-blue-800/50 p-0 overflow-hidden shadow-2xl">
           <DialogHeader className="sr-only">
             <DialogTitle>User Profile</DialogTitle>
             <DialogDescription>View user profile information and manage contact options</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 sm:space-y-6">
-            {/* Profile Picture and Basic Info */}
-            <div className="flex flex-col items-center space-y-3">
+          
+          {/* Blue gradient header background */}
+          <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 dark:from-blue-800 dark:via-blue-900 dark:to-blue-950 p-6 pb-16">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-blue-900/30 pointer-events-none"></div>
+            <div className="absolute top-2 right-2 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-300/15 rounded-full blur-xl"></div>
+            
+            {/* Profile section centered in header */}
+            <div className="relative flex flex-col items-center space-y-3 pt-4">
               <div className="relative">
-                <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full blur-md opacity-50 scale-110"></div>
+                <Avatar className="h-24 w-24 sm:h-28 sm:w-28 relative border-4 border-white/20 shadow-2xl">
                   <AvatarImage src={user.profilePicture || ""} />
-                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                    <UserAvatarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 dark:text-gray-400" />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900">
+                    <UserAvatarIcon className="w-12 h-12 sm:w-14 sm:h-14 text-blue-600 dark:text-blue-300" />
                   </AvatarFallback>
                 </Avatar>
                 {user.isOnline && (
-                  <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
+                  <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-3 border-white dark:border-blue-950 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                   </div>
                 )}
               </div>
               
-              <div className="text-center space-y-1">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+              <div className="text-center space-y-2">
+                <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">
                   {getEffectiveDisplayName(user)}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-muted-foreground">
+                <p className="text-sm text-blue-100/90 font-medium">
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
                 </p>
-                {isOwnProfile && (
-                  <Badge className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs">
-                    You
-                  </Badge>
-                )}
-                {user.isOnline && !isOwnProfile && (
-                  <Badge className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs">
-                    Online
-                  </Badge>
-                )}
+                <div className="flex items-center justify-center gap-2">
+                  {isOwnProfile && (
+                    <Badge className="bg-orange-500/90 text-white text-xs font-semibold px-3 py-1 shadow-lg backdrop-blur-sm">
+                      You
+                    </Badge>
+                  )}
+                  {user.isOnline && !isOwnProfile && (
+                    <Badge className="bg-green-500/90 text-white text-xs font-semibold px-3 py-1 shadow-lg backdrop-blur-sm">
+                      Online
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Wallet Address */}
-            <div className="space-y-2">
-              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+          {/* Content section with glassmorphism effect */}
+          <div className="relative p-6 space-y-5 bg-white/60 dark:bg-blue-950/60 backdrop-blur-sm">
+            {/* Wallet Address with modern styling */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <Wallet className="h-4 w-4" />
                 Wallet Address
               </label>
-              <div className="flex items-center space-x-2 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <code className="flex-1 text-xs font-mono text-gray-600 dark:text-gray-300 break-all">
-                  {user.walletAddress}
-                </code>
-                <Button
-                  onClick={copyWalletAddress}
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                </Button>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-xl blur-sm group-hover:blur-none transition-all duration-300"></div>
+                <div className="relative flex items-center space-x-3 p-4 bg-white/80 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 rounded-xl shadow-lg">
+                  <code className="flex-1 text-xs font-mono text-blue-800 dark:text-blue-200 break-all select-all">
+                    {user.walletAddress}
+                  </code>
+                  <Button
+                    onClick={copyWalletAddress}
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-800/50 rounded-lg transition-all duration-200 hover:scale-110"
+                  >
+                    <Copy className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                  </Button>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons with glassmorphism */}
             <div className="space-y-3">
-              {/* For own profile, only show Send Message */}
               {isOwnProfile ? (
                 <>
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                      className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-orange-400/30"
                     >
-                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      <MessageCircle className="h-5 w-5 mr-2" />
                       Message Yourself
                     </Button>
                   )}
                 </>
               ) : (
                 <>
-                  {/* Row 1: Send Message (Orange, Full Width) */}
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                      className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-orange-400/30"
                     >
-                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      <MessageCircle className="h-5 w-5 mr-2" />
                       Send Message
                     </Button>
                   )}
                   
-                  {/* Row 2: Call and Video (Side by Side) */}
                   {(onStartCall || onStartVideoCall) && (
                     <div className="grid grid-cols-2 gap-3">
                       {onStartCall && (
                         <Button 
                           onClick={onStartCall}
                           variant="outline"
-                          className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
+                          className="h-12 bg-white/80 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-300/50 dark:border-blue-600/50 text-blue-700 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-800/60 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] font-medium"
                         >
-                          <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          <Phone className="h-5 w-5 mr-2" />
                           Call
                         </Button>
                       )}
@@ -196,23 +209,22 @@ export default function UserProfileModal({
                         <Button 
                           onClick={onStartVideoCall}
                           variant="outline"
-                          className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
+                          className="h-12 bg-white/80 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-300/50 dark:border-blue-600/50 text-blue-700 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-800/60 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] font-medium"
                         >
-                          <Video className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          <Video className="h-5 w-5 mr-2" />
                           Video
                         </Button>
                       )}
                     </div>
                   )}
                   
-                  {/* Row 3: Delete Contact (Full Width) */}
                   {onDeleteContact && (
                     <Button 
                       onClick={handleDeleteContactClick}
                       variant="outline"
-                      className="w-full h-10 sm:h-12 bg-white dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                      className="w-full h-12 bg-white/80 dark:bg-red-950/40 backdrop-blur-sm border border-red-300/50 dark:border-red-700/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/60 hover:border-red-400 dark:hover:border-red-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] font-medium"
                     >
-                      <UserMinus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      <UserMinus className="h-5 w-5 mr-2" />
                       Delete Contact
                     </Button>
                   )}
@@ -220,10 +232,10 @@ export default function UserProfileModal({
               )}
             </div>
 
-            {/* Additional Info */}
+            {/* Last seen with elegant styling */}
             {user.lastSeen && (
-              <div className="text-center pt-4 border-t border-border">
-                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+              <div className="text-center pt-4 border-t border-blue-200/30 dark:border-blue-700/30">
+                <p className="text-xs text-blue-600/80 dark:text-blue-300/80 font-medium">
                   Last seen: {new Date(user.lastSeen).toLocaleString()}
                 </p>
               </div>
@@ -232,14 +244,14 @@ export default function UserProfileModal({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog with modern styling */}
       <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-        <DialogContent className="w-[90vw] sm:w-[400px] p-6 bg-white dark:bg-card">
-          <DialogHeader className="space-y-3">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+        <DialogContent className="w-[90vw] sm:w-[400px] p-0 bg-gradient-to-br from-white/95 via-red-50/95 to-slate-100/95 dark:from-red-950/95 dark:via-red-900/95 dark:to-slate-900/95 backdrop-blur-xl border border-red-200/50 dark:border-red-800/50 overflow-hidden shadow-2xl">
+          <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-red-500 to-red-600 dark:from-red-700 dark:to-red-800">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-white/20 backdrop-blur-sm rounded-full shadow-lg">
+              <AlertTriangle className="w-8 h-8 text-white drop-shadow-lg" />
             </div>
-            <DialogTitle className="text-center text-lg font-semibold text-gray-900 dark:text-white">
+            <DialogTitle className="text-center text-xl font-bold text-white pt-3 drop-shadow-lg">
               Delete Contact
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -247,23 +259,24 @@ export default function UserProfileModal({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600 dark:text-gray-300">
-              Are you sure you want to delete <span className="font-medium">{user.displayName}</span> from your contacts? 
-              This will also remove your conversation history and cannot be undone.
+          <div className="p-6 space-y-6 bg-white/60 dark:bg-red-950/60 backdrop-blur-sm">
+            <p className="text-center text-sm text-red-800 dark:text-red-200 leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-red-900 dark:text-red-100">{getEffectiveDisplayName(user)}</span> from your contacts? 
+              <br /><br />
+              <span className="text-xs text-red-600 dark:text-red-300">This will also remove your conversation history and cannot be undone.</span>
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleCancelDelete}
                 variant="outline"
-                className="flex-1 h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                className="flex-1 h-11 bg-white/80 dark:bg-red-900/40 backdrop-blur-sm border border-red-300/50 dark:border-red-600/50 text-red-700 dark:text-red-200 hover:bg-red-50 dark:hover:bg-red-800/60 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02]"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirmDelete}
-                className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white"
+                className="flex-1 h-11 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Delete Contact
               </Button>
