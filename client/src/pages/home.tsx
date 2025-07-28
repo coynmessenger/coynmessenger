@@ -84,10 +84,7 @@ export default function HomePage() {
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
-      return apiRequest("/api/users/find-or-create", {
-        method: "POST",
-        body: JSON.stringify({ walletAddress, displayName })
-      });
+      return apiRequest("/api/users/find-or-create", "POST", { walletAddress, displayName });
     },
     onSuccess: (data) => {
       localStorage.setItem('walletConnected', 'true');
@@ -99,11 +96,10 @@ export default function HomePage() {
     },
     onError: (error) => {
       console.error("Failed to connect wallet:", error);
-      notificationService.showToast({
-        title: "Connection Failed",
-        description: "Unable to connect wallet. Please try again.",
-        type: "error"
-      });
+      notificationService.showSystemNotification(
+        "Connection Failed",
+        "Unable to connect wallet. Please try again."
+      );
     }
   });
 
@@ -169,17 +165,15 @@ export default function HomePage() {
       console.error(`Error connecting ${walletType} wallet:`, error);
       
       if (error.code === 4001) {
-        notificationService.showToast({
-          title: "Connection Cancelled",
-          description: "Wallet connection was cancelled by user.",
-          type: "info"
-        });
+        notificationService.showSystemNotification(
+          "Connection Cancelled",
+          "Wallet connection was cancelled by user."
+        );
       } else {
-        notificationService.showToast({
-          title: "Connection Failed",
-          description: `Unable to connect ${walletType} wallet. Please try again.`,
-          type: "error"
-        });
+        notificationService.showSystemNotification(
+          "Connection Failed",
+          `Unable to connect ${walletType} wallet. Please try again.`
+        );
       }
     }
   };
