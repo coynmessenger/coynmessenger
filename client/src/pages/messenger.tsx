@@ -374,18 +374,18 @@ export default function MessengerPage() {
     <div className="flex h-screen bg-background text-foreground">
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-card border-b border-border p-3 flex items-center justify-between dark-blue-outline">
+        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => setLocation("/")}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted subtle-blue-shadow"
+              className="text-muted-foreground hover:text-primary hover:bg-muted"
             >
               <Home className="h-4 w-4 mr-2" />
               Return to Home
             </Button>
-            <h1 className="text-xl font-normal text-primary blue-text-outline" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
           </div>
@@ -446,7 +446,7 @@ export default function MessengerPage() {
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
                               }}
-                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 dark-blue-outline ${
+                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
                                 hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
                               }`}
                             >
@@ -636,19 +636,19 @@ export default function MessengerPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
-        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50 dark-blue-outline">
+        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Button
                 onClick={() => setLocation("/")}
                 variant="ghost"
                 size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2 subtle-blue-shadow"
+                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
                 title="Home"
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-normal text-black dark:text-black blue-text-outline" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
