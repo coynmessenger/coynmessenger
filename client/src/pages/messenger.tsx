@@ -725,7 +725,7 @@ export default function MessengerPage() {
                 <img 
                   src={coynLogoPath} 
                   alt="COYN Logo" 
-                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                  className="w-8 h-8 cursor-pointer"
                   loading="eager"
                   decoding="async"
                 />
