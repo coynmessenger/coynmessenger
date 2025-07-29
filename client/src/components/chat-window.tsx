@@ -1338,8 +1338,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const renderMessageWithTiltedCoin = (text: string, searchQuery: string = "") => {
     if (!text) return text;
     
-    // Split text by coin emoji and process each part
-    const parts = text.split(/(\ud83e\ude99)/g); // Split by coin emoji (🪙)
+    // Split text by both coin emoji and COYN logo identifier
+    const parts = text.split(/(🪙|COYN_LOGO)/g);
     
     return parts.map((part, index) => {
       if (part === '🪙') {
@@ -1357,6 +1357,33 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             }}
           >
             🪙
+          </span>
+        );
+      } else if (part === 'COYN_LOGO') {
+        return (
+          <span
+            key={index}
+            className="inline-block transform transition-transform duration-300 hover:scale-110 hover:rotate-45"
+            style={{ 
+              transform: 'rotate(33.33deg)',
+              display: 'inline-block',
+              marginLeft: '2px',
+              marginRight: '2px',
+              transformOrigin: 'center',
+              verticalAlign: 'middle'
+            }}
+          >
+            <img 
+              src={coynLogoPath} 
+              alt="COYN" 
+              className="inline-block w-5 h-5"
+              style={{ 
+                display: 'inline-block',
+                verticalAlign: 'middle'
+              }}
+              loading="eager"
+              decoding="async"
+            />
           </span>
         );
       } else {

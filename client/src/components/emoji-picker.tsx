@@ -83,8 +83,8 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
                 type="button"
                 onClick={() => {
                   if (emoji === "COYN_SYMBOL") {
-                    // For COYN symbol, we'll send the actual coin emoji
-                    onEmojiSelect("🪙");
+                    // For COYN symbol, we'll send a special COYN identifier that will be rendered as the logo
+                    onEmojiSelect("COYN_LOGO");
                   } else {
                     onEmojiSelect(emoji);
                   }
