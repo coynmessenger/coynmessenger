@@ -568,7 +568,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const getCryptoIcon = (crypto: string) => {
     switch (crypto) {
       case 'BTC':
-        return <FaBitcoin className="w-5 h-5 text-orange-500" />;
+        return <FaBitcoin className="w-5 h-5 text-yellow-500" />;
       case 'BNB':
         return <SiBinance className="w-5 h-5 text-yellow-500" />;
       case 'USDT':
@@ -733,7 +733,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           city: null,
           state: null,
           zipCode: null,
-          country: null
+          country: null,
+          lastSeen: null
         },
         cryptoAmount: null,
         cryptoCurrency: null,
@@ -1322,7 +1323,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         );
         
         return isMatch ? (
-          <mark key={`${searchTerm}-${index}-${part}`} className="search-result-container bg-orange-100 dark:bg-orange-500/30 text-orange-900 dark:text-orange-100 px-1 py-0.5 rounded font-medium border border-orange-200 dark:border-orange-400/30 inline-block max-w-fit">
+          <mark key={`${searchTerm}-${index}-${part}`} className="search-result-container bg-blue-100 dark:bg-blue-500/30 text-blue-900 dark:text-blue-100 px-1 py-0.5 rounded font-medium border border-blue-200 dark:border-blue-400/30 inline-block max-w-fit">
             {part}
           </mark>
         ) : part;
@@ -1557,7 +1558,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             <div className="flex items-center space-x-2 min-w-0 flex-1">
               {searchResultCount > 0 ? (
                 <>
-                  <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2 md:py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-700 shadow-sm whitespace-nowrap shrink-0">
+                  <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2 md:py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 shadow-sm whitespace-nowrap shrink-0">
                     {isSearching ? (
                       <div className="flex items-center space-x-1">
                         <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
@@ -1709,7 +1710,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               (msg.content?.includes('🛡️ Escrow created:') || msg.content?.includes('🔔 Release Request:') || msg.content?.includes('🎉 Blockchain confirmations complete!')) ? (
                 // Escrow system message
                 <div className="flex justify-center mb-3" data-message-id={msg.id}>
-                  <div className="bg-orange-500/90 backdrop-blur-sm text-white rounded-xl p-3 sm:p-4 max-w-[90%] sm:max-w-md shadow-lg border border-orange-400/30">
+                  <div className="bg-blue-500/90 backdrop-blur-sm text-white rounded-xl p-3 sm:p-4 max-w-[90%] sm:max-w-md shadow-lg border border-blue-400/30">
                     <div className="flex items-start space-x-2">
                       <div className="flex-shrink-0 mt-0.5">
                         {msg.content?.includes('🛡️ Escrow created:') && '🛡️'}
@@ -1732,7 +1733,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             searchQuery || ''
                           )}
                         </div>
-                        <div className="text-xs text-orange-100 mt-2 opacity-80">
+                        <div className="text-xs text-blue-100 mt-2 opacity-80">
                           {formatTimestamp(msg.timestamp)}
                         </div>
                       </div>
@@ -1768,7 +1769,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div 
-                          className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-orange-400/20"
+                          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-blue-400/20"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
                           {/* WhatsApp-style reply context */}
@@ -1892,14 +1893,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 // Crypto transaction message
                 <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">
-                    <Card className="bg-gradient-to-br from-orange-100/90 to-orange-100/90 dark:from-orange-900/40 dark:to-orange-900/40 border border-orange-200/50 dark:border-orange-600/30 max-w-sm w-full shadow-lg rounded-3xl">
+                    <Card className="bg-gradient-to-br from-blue-100/90 to-blue-100/90 dark:from-blue-900/40 dark:to-blue-900/40 border border-blue-200/50 dark:border-blue-600/30 max-w-sm w-full shadow-lg rounded-3xl">
                       <CardContent className="p-6 text-center">
                         <div className="flex items-center justify-center space-x-2 mb-4">
-                          <Coins className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                          <span className="text-sm font-medium text-orange-600 dark:text-orange-400">Crypto Transaction</span>
+                          <Coins className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Crypto Transaction</span>
                         </div>
                         <div className="text-center space-y-3">
-                          <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                          <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                             {msg.senderId === connectedUserId ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 break-all px-2">
@@ -1940,7 +1941,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <div className="flex justify-center group mb-4" data-message-id={msg.id}>
                   <div className="relative">
 
-                    <Card className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
+                    <Card className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
                       onClick={() => {
                         if (msg.productId) {
                           setLocation(`/product/${msg.productId}`);
@@ -1949,10 +1950,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-center space-x-2 mb-3">
-                          <div className="h-8 w-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+                          <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
                             <span className="text-white text-sm">🛍️</span>
                           </div>
-                          <span className="text-sm font-medium text-orange-500 dark:text-orange-400">Product Share</span>
+                          <span className="text-sm font-medium text-blue-500 dark:text-blue-400">Product Share</span>
                         </div>
                         
                         {msg.productImage && (
@@ -1960,7 +1961,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             <img 
                               src={msg.productImage} 
                               alt={msg.productTitle || "Product"} 
-                              className="w-16 h-16 object-cover rounded-lg border border-orange-200 dark:border-orange-700"
+                              className="w-16 h-16 object-cover rounded-lg border border-blue-200 dark:border-blue-700"
                             />
                           </div>
                         )}
@@ -1970,7 +1971,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             {msg.productTitle}
                           </div>
                           {msg.productPrice && (
-                            <div className="text-lg font-bold text-orange-600 dark:text-orange-400 mb-2">
+                            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-2">
                               ${msg.productPrice}
                             </div>
                           )}
@@ -1995,7 +1996,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       className={`
                         rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
                         ${msg.senderId === connectedUserId 
-                          ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
+                          ? 'bg-gradient-to-br from-blue-500/90 to-blue-600/90 text-white border-blue-400/50 rounded-br-md' 
                           : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
                         }
                       `}
@@ -2092,7 +2093,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       className={`
                         rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
                         ${msg.senderId === connectedUserId 
-                          ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 text-white border-orange-400/50 rounded-br-md' 
+                          ? 'bg-gradient-to-br from-blue-500/90 to-blue-600/90 text-white border-blue-400/50 rounded-br-md' 
                           : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
                         }
                       `}
@@ -2167,7 +2168,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <div className="sticky bottom-4 flex justify-end pr-4 pointer-events-none">
             <Button
               onClick={scrollToBottom}
-              className="w-10 h-10 rounded-full bg-white/60 hover:bg-white/80 text-orange-500 hover:text-orange-600 border-2 border-orange-400 hover:border-orange-500 backdrop-blur-sm transition-all duration-200 pointer-events-auto shadow-sm"
+              className="w-10 h-10 rounded-full bg-white/60 hover:bg-white/80 text-blue-500 hover:text-blue-600 border-2 border-blue-400 hover:border-blue-500 backdrop-blur-sm transition-all duration-200 pointer-events-auto shadow-sm"
               size="sm"
               title="Back to bottom"
             >
@@ -2232,10 +2233,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Crypto Send Panel */}
       {showCryptoSend && (
         <div className="border-t border-slate-700 bg-slate-800 p-4">
-          <Card className="bg-gradient-to-r from-orange-600/10 to-orange-500/10 border-orange-500/20">
+          <Card className="bg-gradient-to-r from-blue-600/10 to-blue-500/10 border-blue-500/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-orange-400 flex items-center">
+                <span className="text-sm font-medium text-blue-400 flex items-center">
                   <Send className="h-4 w-4 mr-2" />
                   Send COYN
                 </span>
@@ -2257,13 +2258,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     placeholder="0.00 COYN"
                     value={cryptoAmount}
                     onChange={(e) => setCryptoAmount(e.target.value)}
-                    className="bg-slate-700 border-slate-600 focus:border-orange-500"
+                    className="bg-slate-700 border-slate-600 focus:border-blue-500"
                   />
                 </div>
                 <div className="flex space-x-2">
                   <Button 
                     type="submit"
-                    className="flex-1 bg-orange-500 hover:bg-orange-400 text-slate-900"
+                    className="flex-1 bg-blue-500 hover:bg-blue-400 text-white"
                     disabled={sendCryptoMutation.isPending}
                   >
                     {sendCryptoMutation.isPending ? "Sending..." : "Send COYN"}
@@ -2283,14 +2284,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className={`border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-2 sm:p-3 shadow-lg ${isKeyboardOpen ? 'mobile-input-area keyboard-open' : ''}`}>
+      <div className={`border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-2 shadow-lg ${isKeyboardOpen ? 'mobile-input-area keyboard-open' : ''}`}>
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
-          <div className="mb-3 p-3 bg-gradient-to-r from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border-l-4 border-orange-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
+          <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
             <div className="flex items-center space-x-3">
-              <Reply className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <Reply className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <div className="flex-1">
-                <div className="text-xs font-medium text-orange-700 dark:text-orange-300 mb-1">
+                <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
                   {replyToMessage.sender}
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 max-w-xs">
@@ -2306,14 +2307,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               variant="ghost"
               size="icon"
               onClick={handleReplyCancel}
-              className="h-7 w-7 text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800/30 rounded-full transition-all duration-150"
+              className="h-7 w-7 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/30 rounded-full transition-all duration-150"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-2">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-1">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -2322,9 +2323,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
+                  className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-200 rounded-lg h-7 w-7"
                 >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <Plus className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
@@ -2333,7 +2334,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
-                  <FaBitcoin className="w-4 h-4 text-orange-500" />
+                  <FaBitcoin className="w-4 h-4 text-yellow-500" />
                   <span>Send BTC</span>
                 </div>
               </DropdownMenuItem>
@@ -2386,9 +2387,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 dark:text-orange-400 hover:bg-orange-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md rounded-xl h-8 w-8"
+                className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-200 rounded-lg h-7 w-7"
               >
-                <Paperclip className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Paperclip className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[180px]">
@@ -2401,7 +2402,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   e.stopPropagation();
                   triggerFileUpload();
                 }}
-                className="text-black dark:text-white hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer rounded-md mx-1 transition-colors"
+                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1 transition-colors"
               >
                 <div className="flex items-center space-x-3 py-1">
                   <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
@@ -2419,7 +2420,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   e.stopPropagation();
                   triggerImageVideoUpload();
                 }}
-                className="text-black dark:text-white hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer rounded-md mx-1 transition-colors"
+                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1 transition-colors"
               >
                 <div className="flex items-center space-x-3 py-1">
                   <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -2473,7 +2474,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 100);
               }}
               placeholder="Type a message..."
-              className="pr-12 sm:pr-14 h-9 sm:h-9 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-orange-500/60 dark:focus:border-orange-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl focus:ring-2 focus:ring-orange-200/50 dark:focus:ring-orange-200/20"
+              className="pr-10 h-8 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-blue-500/60 dark:focus:border-blue-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm transition-all duration-200 rounded-lg focus:ring-1 focus:ring-blue-200/50 dark:focus:ring-blue-200/20"
             />
             
 
@@ -2532,11 +2533,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             size="icon"
             className={`${isSendingMessage || sendMessageMutation.isPending 
               ? 'bg-gradient-to-r from-green-500 to-green-600 animate-pulse' 
-              : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700'
-            } text-white h-8 w-8 touch-manipulation shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 rounded-xl backdrop-blur-sm`}
+              : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700'
+            } text-white h-7 w-7 touch-manipulation shadow-lg transition-all duration-200 rounded-lg backdrop-blur-sm`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <Send className={`h-4 w-4 sm:h-4 sm:w-4 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
+            <Send className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
           </Button>
         </form>
       </div>
@@ -2555,7 +2556,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         <DialogContent className="w-[92vw] sm:w-[85vw] max-w-sm max-h-[85vh] m-3 sm:m-6 p-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 flex flex-col rounded-2xl shadow-2xl">
           <DialogHeader className="p-4 sm:p-6 pb-0 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-t-2xl border-b border-gray-200/30 dark:border-slate-700/30">
             <DialogTitle className="text-black dark:text-white text-lg sm:text-xl font-bold flex items-center space-x-2">
-              <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-400 dark:to-orange-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
                 {cryptoStep === "amount" ? "Send" : "Confirm"}
               </span>
               <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500 bg-clip-text text-transparent font-bold">
@@ -2563,7 +2564,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </span>
               {getCryptoIcon(selectedCrypto)}
               {cryptoStep === "confirm" && (
-                <span className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-400 dark:to-orange-300 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
                   Transfer
                 </span>
               )}
@@ -2585,7 +2586,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       placeholder={`0.00000 ${selectedCrypto}`}
                       value={cryptoAmount}
                       onChange={(e) => setCryptoAmount(e.target.value)}
-                      className="h-12 sm:h-14 text-base sm:text-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-24 sm:pr-28 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="h-10 sm:h-12 text-sm sm:text-base bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/50 text-black dark:text-white placeholder-gray-400 dark:placeholder-slate-500 pr-20 sm:pr-24 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                       <Button
@@ -2593,7 +2594,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         onClick={handleMaxClick}
                         size="sm"
                         variant="outline"
-                        className="h-8 px-3 text-xs font-medium bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-950/80 dark:to-orange-900/80 dark:hover:from-orange-900 dark:hover:to-orange-800 border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-300 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm"
+                        className="h-7 px-2 text-xs font-medium bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 dark:from-blue-950/80 dark:to-blue-900/80 dark:hover:from-blue-900 dark:hover:to-blue-800 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-300 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm"
                       >
                         Max
                       </Button>
@@ -2661,7 +2662,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             description: "Wallet address copied to clipboard",
                           });
                         }}
-                        className="h-8 px-3 text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
+                        className="h-7 px-2 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         <Copy className="h-4 w-4 mr-1" />
                         Copy

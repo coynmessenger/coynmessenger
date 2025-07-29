@@ -54,6 +54,9 @@ export default function MessengerPage() {
   
   // Track active toast notifications by conversation ID (store toast IDs)
   const [activeToasts, setActiveToasts] = useState<Map<string, string>>(new Map());
+  
+  // Track WebRTC initialization to prevent loops
+  const [globalWebRTCInitialized, setGlobalWebRTCInitialized] = useState(false);
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -233,9 +236,12 @@ export default function MessengerPage() {
         });
       }
       
-      // Initialize global WebRTC service for calls
+      // Initialize global WebRTC service for calls (only once)
       const initializeWebRTC = async () => {
+        if (globalWebRTCInitialized) return;
+        
         try {
+          setGlobalWebRTCInitialized(true);
           await initializeGlobalWebRTC(connectedUserId.toString());
           console.log('Global WebRTC service initialized for user:', connectedUserId);
           
@@ -366,9 +372,12 @@ export default function MessengerPage() {
     // Cleanup on unmount
     return () => {
       socketConnection.disconnect();
-      cleanupGlobalWebRTC();
+      if (globalWebRTCInitialized) {
+        cleanupGlobalWebRTC();
+        setGlobalWebRTCInitialized(false);
+      }
     };
-  }, [connectedUserId, selectedConversation]); // Removed 'conversations' to prevent infinite loop
+  }, [connectedUserId]); // Simplified dependencies to prevent loops
 
   return (
     <div className="flex h-screen watercolor-bg bg-background text-foreground relative">
@@ -448,15 +457,15 @@ export default function MessengerPage() {
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
                               }}
-                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
-                                hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
+                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-blue-500 ${
+                                hasUnreadMessages ? 'bg-blue-50 dark:bg-blue-900/20 border-l-blue-500' : ''
                               }`}
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="relative">
                                   <Avatar className="w-12 h-12">
                                     {conversation.isGroup ? (
-                                      <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                                         <Users className="w-6 h-6" />
                                       </AvatarFallback>
                                     ) : (
@@ -531,7 +540,7 @@ export default function MessengerPage() {
                               <div
                                 key={contact.id}
                                 onClick={() => handleContactClick(contact)}
-                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-blue-500"
                               >
                                 <div className="flex items-center space-x-3">
                                   <div className="relative">
@@ -557,7 +566,7 @@ export default function MessengerPage() {
                                     </p>
                                   </div>
                                   {createConversationMutation.isPending && (
-                                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                                   )}
                                 </div>
                               </div>
@@ -598,7 +607,7 @@ export default function MessengerPage() {
                 onClick={() => setLocation("/")}
                 variant="ghost"
                 size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
+                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
                 title="Home"
               >
                 <Home className="h-5 w-5" />
@@ -609,7 +618,7 @@ export default function MessengerPage() {
             </div>
             <div className="flex items-center space-x-2">
               <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
+                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 transition-colors p-2"
                 onClick={() => {
                   setIsSearchOpen(!isSearchOpen);
                   // Clear search when closing search bar
