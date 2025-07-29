@@ -691,7 +691,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       } catch (error) {
         clearTimeout(timeoutId);
 
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
           throw new Error("Request timed out");
         }
         throw error as Error;
@@ -717,11 +717,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         senderId: connectedUserId,
         content: variables.content,
         messageType: variables.messageType,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         sender: connectedUser || { 
           id: connectedUserId, 
           displayName: 'You', 
-          username: 'you' 
+          username: 'you',
+          signInName: null,
+          walletAddress: '',
+          profilePicture: null,
+          isOnline: null,
+          isSetup: null,
+          fullName: null,
+          addressLine1: null,
+          addressLine2: null,
+          city: null,
+          state: null,
+          zipCode: null,
+          country: null
         },
         cryptoAmount: null,
         cryptoCurrency: null,

@@ -371,9 +371,9 @@ export default function MessengerPage() {
   }, [connectedUserId, selectedConversation]); // Removed 'conversations' to prevent infinite loop
 
   return (
-    <div className="flex h-screen watercolor-bg bg-background text-foreground">
+    <div className="flex h-screen watercolor-bg bg-background text-foreground relative">
       {/* Watercolor Background Overlay */}
-      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark z-0"></div>
+      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark -z-10"></div>
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
