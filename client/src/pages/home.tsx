@@ -701,45 +701,31 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden perspective-1000">
-      {/* Enhanced 3D Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5 transform-gpu"></div>
+    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
       
-      {/* Floating 3D Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-lime-400/20 to-green-500/20 rounded-full blur-xl animate-float-slow transform rotate-3d"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-orange-400/20 to-yellow-500/20 rounded-full blur-lg animate-float-medium transform -rotate-3d"></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-cyan-500/20 rounded-full blur-2xl animate-float-fast transform rotate-3d"></div>
-      </div>
-      
-      <div className="max-w-4xl w-full space-y-6 relative z-10 transform-gpu">
+      <div className="max-w-4xl w-full space-y-6 relative z-10">
         {/* Header */}
-        <div className="text-center transform-gpu">
+        <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            {/* Enhanced 3D Coynful Logo */}
-            <div className="relative ml-4 transform-gpu">
+            {/* Coynful Logo with Enhanced Glow */}
+            <div className="relative ml-4">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-lime-400 to-green-500 blur-2xl opacity-20 scale-125 animate-pulse delay-1000"></div>
               <img 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
-                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-110 hover:rotate-y-12 hover:-translate-y-2 transform-gpu perspective-1000"
+                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
                 loading="eager"
                 decoding="async"
-                style={{ 
-                  imageRendering: 'auto',
-                  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.1)) drop-shadow(0 4px 8px rgba(0,0,0,0.06))'
-                }}
+                style={{ imageRendering: 'auto' }}
               />
             </div>
           </div>
         </div>
 
-        {/* Enhanced 3D Main CTA Card */}
-        <Card className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50 max-w-lg mx-auto shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-4 hover:rotate-x-2 transform-gpu perspective-1000" 
-              style={{ 
-                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-              }}>
+        {/* Main CTA Card - Clean Design */}
+        <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 max-w-lg mx-auto shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-foreground mb-2">Connect Wallet</CardTitle>
             {(!isConnected || !connectedUser) && (
@@ -774,12 +760,9 @@ export default function HomePage() {
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white/90 dark:bg-slate-800/90 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200/50 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:rotate-x-3 active:scale-95 transform-gpu perspective-1000 backdrop-blur-sm"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
-                      style={{ 
-                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
-                      }}
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
@@ -794,12 +777,9 @@ export default function HomePage() {
                     {/* Trust Wallet */}
                     <Button 
                       onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white/90 dark:bg-slate-800/90 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200/50 dark:border-slate-600/50 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-lg hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:rotate-x-3 active:scale-95 transform-gpu perspective-1000 backdrop-blur-sm"
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                       disabled={connectWalletMutation.isPending}
                       variant="outline"
-                      style={{ 
-                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
-                      }}
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <img 
@@ -898,34 +878,25 @@ export default function HomePage() {
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation transition-all duration-300 transform-gpu hover:scale-105 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)',
-                        boxShadow: '0 10px 25px -5px rgba(132, 204, 22, 0.4), 0 4px 6px -2px rgba(132, 204, 22, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
-                      }}
+                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Open Messenger
                     </Button>
                     <Button
                       onClick={() => setLocation("/marketplace")}
-                      className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation transition-all duration-300 transform-gpu hover:scale-105 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)',
-                        boxShadow: '0 10px 25px -5px rgba(132, 204, 22, 0.4), 0 4px 6px -2px rgba(132, 204, 22, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
-                      }}
+                      variant="outline"
+                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
 
+
                     <Button
                       onClick={handleSignOut}
-                      className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation transition-all duration-300 transform-gpu hover:scale-105 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)',
-                        boxShadow: '0 10px 25px -5px rgba(132, 204, 22, 0.4), 0 4px 6px -2px rgba(132, 204, 22, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
-                      }}
+                      variant="outline"
+                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       Sign Out
                     </Button>
