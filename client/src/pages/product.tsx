@@ -404,7 +404,10 @@ export default function ProductPage() {
   const images = product.images || [product.imageUrl];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800 overflow-x-hidden">
+    <div className="min-h-screen watercolor-bg overflow-x-hidden">
+      {/* Watercolor Background Overlay */}
+      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark z-0"></div>
+      <div className="relative z-10">
       {/* Header */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700 sticky top-0 z-40">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
@@ -983,6 +986,7 @@ export default function ProductPage() {
           setCartCount(getCartCount()); // Update cart count when closing
         }} 
       />
+      </div>
     </div>
   );
 }

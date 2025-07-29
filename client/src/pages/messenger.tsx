@@ -371,7 +371,9 @@ export default function MessengerPage() {
   }, [connectedUserId, conversations, selectedConversation]);
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="flex h-screen watercolor-bg bg-background text-foreground">
+      {/* Watercolor Background Overlay */}
+      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark z-0"></div>
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">

@@ -701,9 +701,9 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="homepage-font min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-orange-900/10 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-5"></div>
+    <div className="homepage-font min-h-screen watercolor-bg flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Watercolor Background Overlay */}
+      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark"></div>
       
       <div className="max-w-4xl w-full space-y-6 relative z-10">
         {/* Header */}
