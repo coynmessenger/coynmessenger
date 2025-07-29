@@ -446,10 +446,10 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       />
       
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500">
+      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500 dark-blue-outline">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
+          <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm dark-blue-outline">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
@@ -459,7 +459,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap leading-tight">COYN Wallet</h2>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap leading-tight blue-text-outline">COYN Wallet</h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap leading-tight">Portfolio Overview</p>
                 </div>
               </div>
@@ -496,11 +496,11 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
           {/* Total Balance */}
           <div className="p-6">
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-orange-200/50 dark:border-gray-600/50 shadow-lg">
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-orange-200/50 dark:border-gray-600/50 shadow-lg dark-blue-outline">
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Total Portfolio Value</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white blue-text-outline">
                     {isBalanceVisible ? `$${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "••••••"}
                   </p>
                   <div className="flex items-center justify-center mt-2 space-x-1">
@@ -594,7 +594,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 if (!config) return null;
 
                 return (
-                  <Card key={balance.currency} className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-200">
+                  <Card key={balance.currency} className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-200 dark-blue-outline">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between min-h-[52px]">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -602,7 +602,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                             {config.icon}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                            <div className="font-semibold text-sm text-gray-900 dark:text-white truncate blue-text-outline">
                               {formatBalance(balance.balance, balance.currency)} {balance.currency}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
