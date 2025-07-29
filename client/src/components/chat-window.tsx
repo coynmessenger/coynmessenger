@@ -2541,7 +2541,45 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             {/* Emoji Picker */}
             <EmojiPicker
               onEmojiSelect={(emoji) => {
-                setMessage(prev => prev + emoji);
+                if (emoji === "COYN_LOGO") {
+                  // For COYN logo, directly send it as a message instead of adding to input
+                  const sendCoynMessage = async () => {
+                    try {
+                      const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
+                        method: "POST",
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          content: 'COYN_LOGO',
+                          userId: connectedUserId
+                        })
+                      });
+                      if (!response.ok) throw new Error('Failed to send message');
+                      // Invalidate queries to refresh messages
+                      queryClient.invalidateQueries({ 
+                        queryKey: ["/api/conversations"] 
+                      });
+                      queryClient.invalidateQueries({ 
+                        queryKey: ["/api/conversations", conversation.id, "messages"] 
+                      });
+                      toast({
+                        title: "COYN Logo Sent",
+                        description: "Your COYN logo has been sent to the chat",
+                      });
+                    } catch (error) {
+                      console.error('Failed to send COYN logo:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to send COYN logo. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
+                  };
+                  sendCoynMessage();
+                } else {
+                  setMessage(prev => prev + emoji);
+                }
                 setShowEmojiPicker(false);
               }}
               isOpen={showEmojiPicker}
