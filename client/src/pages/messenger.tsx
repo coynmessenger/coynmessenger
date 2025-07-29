@@ -403,9 +403,52 @@ export default function MessengerPage() {
           <div className="flex items-center space-x-2">
             <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
             <button
-              onClick={() => setIsWalletSidebarOpen(true)}
-              className="hover:opacity-80 transition-opacity"
-              title="Open COYN Wallet"
+              onClick={(e) => {
+                e.preventDefault();
+                // If we're in a conversation, send COYN symbol as message
+                if (selectedConversation && currentConversation) {
+                  // Send COYN symbol message
+                  const sendCoynMessage = async () => {
+                    try {
+                      const response = await fetch(`/api/conversations/${selectedConversation}/messages`, {
+                        method: "POST",
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          content: '🪙',
+                          userId: connectedUserId
+                        })
+                      });
+                      if (!response.ok) throw new Error('Failed to send message');
+                      // Invalidate queries to refresh messages
+                      queryClient.invalidateQueries({ 
+                        queryKey: ["/api/conversations"] 
+                      });
+                      queryClient.invalidateQueries({ 
+                        queryKey: ["/api/conversations", selectedConversation, "messages"] 
+                      });
+                      toast({
+                        title: "COYN Symbol Sent",
+                        description: "Your COYN symbol has been sent to the chat",
+                      });
+                    } catch (error) {
+                      console.error('Failed to send COYN symbol:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to send COYN symbol. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
+                  };
+                  sendCoynMessage();
+                } else {
+                  // Otherwise open wallet
+                  setIsWalletSidebarOpen(true);
+                }
+              }}
+              className="hover:opacity-80 transition-opacity hover:scale-110 active:scale-95 transition-transform duration-200"
+              title={selectedConversation ? "Send COYN Symbol" : "Open COYN Wallet"}
             >
               <img 
                 src={coynLogoPath} 
@@ -632,9 +675,52 @@ export default function MessengerPage() {
                 </svg>
               </button>
               <button
-                onClick={() => setIsWalletSidebarOpen(true)}
-                className="hover:opacity-80 transition-opacity"
-                title="Open COYN Wallet"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // If we're in a conversation, send COYN symbol as message
+                  if (selectedConversation && currentConversation) {
+                    // Send COYN symbol message
+                    const sendCoynMessage = async () => {
+                      try {
+                        const response = await fetch(`/api/conversations/${selectedConversation}/messages`, {
+                          method: "POST",
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            content: '🪙',
+                            userId: connectedUserId
+                          })
+                        });
+                        if (!response.ok) throw new Error('Failed to send message');
+                        // Invalidate queries to refresh messages
+                        queryClient.invalidateQueries({ 
+                          queryKey: ["/api/conversations"] 
+                        });
+                        queryClient.invalidateQueries({ 
+                          queryKey: ["/api/conversations", selectedConversation, "messages"] 
+                        });
+                        toast({
+                          title: "COYN Symbol Sent",
+                          description: "Your COYN symbol has been sent to the chat",
+                        });
+                      } catch (error) {
+                        console.error('Failed to send COYN symbol:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to send COYN symbol. Please try again.",
+                          variant: "destructive",
+                        });
+                      }
+                    };
+                    sendCoynMessage();
+                  } else {
+                    // Otherwise open wallet
+                    setIsWalletSidebarOpen(true);
+                  }
+                }}
+                className="hover:opacity-80 transition-opacity hover:scale-110 active:scale-95 transition-transform duration-200"
+                title={selectedConversation ? "Send COYN Symbol" : "Open COYN Wallet"}
               >
                 <img 
                   src={coynLogoPath} 
