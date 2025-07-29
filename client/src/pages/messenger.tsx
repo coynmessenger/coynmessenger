@@ -368,7 +368,7 @@ export default function MessengerPage() {
       socketConnection.disconnect();
       cleanupGlobalWebRTC();
     };
-  }, [connectedUserId, conversations, selectedConversation]);
+  }, [connectedUserId, selectedConversation]); // Removed 'conversations' to prevent infinite loop
 
   return (
     <div className="flex h-screen watercolor-bg bg-background text-foreground">

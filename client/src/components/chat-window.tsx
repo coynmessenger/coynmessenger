@@ -220,7 +220,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      maxReconnectionAttempts: 5,
+      reconnectionAttempts: 5,
       timeout: 10000,
     });
     
@@ -694,7 +694,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         if (error.name === 'AbortError') {
           throw new Error("Request timed out");
         }
-        throw error;
+        throw error as Error;
       }
     },
     retry: 3, // Retry failed requests up to 3 times
@@ -744,7 +744,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       // Add optimistic message to cache
       queryClient.setQueryData<(Message & { sender: User })[]>(
         ["/api/conversations", conversation.id, "messages"],
-        old => [...(old || []), optimisticMessage]
+        old => [...(old || []), { ...optimisticMessage, isStarred: false }]
       );
       
       // Auto-scroll to bottom for new message
