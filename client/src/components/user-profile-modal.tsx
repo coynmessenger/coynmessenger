@@ -89,26 +89,26 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[85vw] max-w-xs bg-gradient-to-br from-blue-100/95 via-slate-200/90 to-blue-200/95 dark:from-blue-900/95 dark:via-slate-800/90 dark:to-blue-800/95 backdrop-blur-xl border-4 border-blue-400/60 dark:border-blue-500/60 shadow-2xl p-3 sm:p-4 max-h-[80vh] overflow-hidden transform -rotate-1 relative">
+        <DialogContent className="w-[85vw] max-w-xs bg-gradient-to-br from-white/95 via-blue-50/90 to-blue-100/95 dark:from-blue-900/95 dark:via-blue-800/90 dark:to-slate-900/95 backdrop-blur-xl border-4 border-blue-600/60 dark:border-blue-400/60 shadow-2xl p-3 sm:p-4 max-h-[80vh] overflow-hidden transform -rotate-1 relative">
           {/* Airplane Background Pattern */}
-          <div className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none">
+          <div className="absolute inset-0 opacity-8 dark:opacity-15 pointer-events-none">
             <div className="absolute top-2 left-2 transform rotate-45">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-blue-600 dark:text-blue-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-blue-800 dark:text-blue-300">
                 <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
               </svg>
             </div>
             <div className="absolute top-6 right-4 transform -rotate-12">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-blue-500 dark:text-blue-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-blue-700 dark:text-blue-400">
                 <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
               </svg>
             </div>
             <div className="absolute bottom-4 left-4 transform rotate-12">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-blue-400 dark:text-blue-200">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-blue-600 dark:text-blue-200">
                 <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
               </svg>
             </div>
             <div className="absolute bottom-2 right-2 transform -rotate-45">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-blue-500 dark:text-blue-300">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-blue-800 dark:text-blue-300">
                 <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
               </svg>
             </div>
@@ -120,16 +120,16 @@ export default function UserProfileModal({
           <div className="space-y-3 transform rotate-1">
             {/* Profile Picture and Basic Info - Picassoesque */}
             <div className="flex flex-col items-center space-y-2 relative">
-              {/* Geometric background shapes with blue theme */}
-              <div className="absolute -top-2 -left-2 w-8 h-8 bg-blue-400/60 dark:bg-blue-300/40 transform rotate-45 rounded-lg"></div>
-              <div className="absolute -top-1 -right-3 w-6 h-6 bg-slate-400/60 dark:bg-slate-300/40 transform -rotate-12 rounded-full"></div>
-              <div className="absolute -bottom-1 -left-3 w-4 h-8 bg-blue-500/60 dark:bg-blue-400/40 transform rotate-12 rounded-lg"></div>
+              {/* Geometric background shapes - dark blue, white, orange */}
+              <div className="absolute -top-2 -left-2 w-8 h-8 bg-blue-800/60 dark:bg-blue-600/40 transform rotate-45 rounded-lg"></div>
+              <div className="absolute -top-1 -right-3 w-6 h-6 bg-orange-400/60 dark:bg-orange-300/40 transform -rotate-12 rounded-full"></div>
+              <div className="absolute -bottom-1 -left-3 w-4 h-8 bg-white/80 dark:bg-white/20 transform rotate-12 rounded-lg border border-blue-600/30"></div>
               
               <div className="relative transform rotate-2">
-                <Avatar className="h-16 w-16 border-3 border-blue-400/70 dark:border-blue-400/70 shadow-lg ring-2 ring-slate-300/50 dark:ring-blue-300/50">
+                <Avatar className="h-16 w-16 border-3 border-blue-800/70 dark:border-blue-400/70 shadow-lg ring-2 ring-orange-300/50 dark:ring-orange-400/50">
                   <AvatarImage src={user.profilePicture || ""} className="contrast-125 saturate-110" />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-200 to-slate-200 dark:from-blue-700 dark:to-slate-700">
-                    <UserAvatarIcon className="w-8 h-8 text-blue-600 dark:text-blue-300" />
+                  <AvatarFallback className="bg-gradient-to-br from-white to-blue-100 dark:from-blue-800 dark:to-blue-700">
+                    <UserAvatarIcon className="w-8 h-8 text-blue-800 dark:text-white" />
                   </AvatarFallback>
                 </Avatar>
                 {user.isOnline && (
@@ -138,51 +138,51 @@ export default function UserProfileModal({
               </div>
               
               <div className="text-center space-y-1 transform -rotate-1">
-                <h3 className="text-base font-bold text-gray-900 dark:text-white transform skew-x-3 text-shadow-lg shadow-orange-500/30">
+                <h3 className="text-base font-bold text-blue-900 dark:text-white transform skew-x-3 text-shadow-lg shadow-blue-800/30">
                   {getEffectiveDisplayName(user)}
                 </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-300 transform -skew-x-2 font-mono">
+                <p className="text-xs text-blue-700 dark:text-blue-200 transform -skew-x-2 font-mono">
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
                 </p>
                 {isOwnProfile && (
-                  <Badge className="bg-gradient-to-r from-blue-100 to-slate-100 dark:from-blue-900/30 dark:to-slate-900/30 text-blue-700 dark:text-blue-400 text-xs px-2 py-0.5 border-2 border-blue-300/60 dark:border-blue-500/60 transform rotate-3 shadow-md">
+                  <Badge className="bg-gradient-to-r from-orange-100 to-white dark:from-orange-900/30 dark:to-blue-900/30 text-orange-700 dark:text-orange-400 text-xs px-2 py-0.5 border-2 border-orange-300/60 dark:border-orange-500/60 transform rotate-3 shadow-md">
                     You
                   </Badge>
                 )}
               </div>
             </div>
 
-            {/* Wallet Address - Picassoesque with blue theme */}
+            {/* Wallet Address - dark blue, white, orange palette */}
             <div className="space-y-1 relative">
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-slate-400/60 dark:bg-slate-300/40 transform rotate-45 rounded"></div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 transform skew-x-1">
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400/60 dark:bg-orange-300/40 transform rotate-45 rounded"></div>
+              <label className="text-xs font-medium text-blue-800 dark:text-white transform skew-x-1">
                 Wallet Address
               </label>
-              <div className="flex items-center space-x-1 p-2 bg-gradient-to-r from-blue-50/80 to-slate-50/80 dark:from-blue-800/40 dark:to-slate-800/40 rounded-lg border-2 border-blue-300/50 dark:border-blue-400/50 transform -rotate-1 shadow-md">
-                <code className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-200 break-all leading-tight transform skew-x-1">
+              <div className="flex items-center space-x-1 p-2 bg-gradient-to-r from-white/90 to-blue-50/80 dark:from-blue-800/40 dark:to-blue-900/40 rounded-lg border-2 border-blue-600/50 dark:border-blue-400/50 transform -rotate-1 shadow-md">
+                <code className="flex-1 text-xs font-mono text-blue-800 dark:text-white break-all leading-tight transform skew-x-1">
                   {user.walletAddress}
                 </code>
                 <Button
                   onClick={copyWalletAddress}
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-blue-200/60 dark:hover:bg-blue-700/60 transform rotate-12"
+                  className="h-6 w-6 p-0 hover:bg-orange-200/60 dark:hover:bg-orange-700/60 transform rotate-12 text-blue-700 dark:text-orange-300"
                 >
                   <Copy className="h-3 w-3" />
                 </Button>
               </div>
             </div>
 
-            {/* Action Buttons - Picassoesque with blue theme */}
+            {/* Action Buttons - dark blue, white, orange palette */}
             <div className="space-y-2 relative">
-              <div className="absolute -top-1 -left-1 w-4 h-4 bg-blue-400/60 dark:bg-blue-300/40 transform -rotate-12 rounded-full"></div>
+              <div className="absolute -top-1 -left-1 w-4 h-4 bg-white/80 dark:bg-white/20 transform -rotate-12 rounded-full border border-blue-600/30"></div>
               {/* For own profile, only show Send Message */}
               {isOwnProfile ? (
                 <>
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-8 bg-gradient-to-r from-blue-500 to-slate-500 hover:from-blue-600 hover:to-slate-600 text-white font-bold text-sm border-2 border-blue-300/60 shadow-lg transform rotate-1"
+                      className="w-full h-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-sm border-2 border-orange-400/60 shadow-lg transform rotate-1"
                     >
                       <MessageCircle className="h-3 w-3 mr-1 transform -rotate-6" />
                       <span className="transform skew-x-2">Message Yourself</span>
@@ -195,7 +195,7 @@ export default function UserProfileModal({
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-8 bg-gradient-to-r from-blue-500 to-slate-500 hover:from-blue-600 hover:to-slate-600 text-white font-bold text-sm border-2 border-blue-300/60 shadow-lg transform rotate-1"
+                      className="w-full h-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-sm border-2 border-orange-400/60 shadow-lg transform rotate-1"
                     >
                       <MessageCircle className="h-3 w-3 mr-1 transform -rotate-6" />
                       <span className="transform skew-x-2">Send Message</span>
@@ -209,7 +209,7 @@ export default function UserProfileModal({
                         <Button 
                           onClick={onStartCall}
                           variant="outline"
-                          className="h-8 text-xs bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-blue-800 hover:from-blue-50 hover:to-slate-50 dark:hover:from-blue-700 dark:hover:to-slate-700 border-2 border-blue-300/60 dark:border-blue-400/60 shadow-md transform -rotate-1"
+                          className="h-8 text-xs bg-gradient-to-br from-white to-blue-50 dark:from-blue-800 dark:to-blue-700 hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-700 dark:hover:to-blue-600 border-2 border-blue-600/60 dark:border-blue-400/60 shadow-md transform -rotate-1 text-blue-800 dark:text-white"
                         >
                           <Phone className="h-3 w-3 mr-1 transform rotate-12" />
                           <span className="transform -skew-x-1">Call</span>
@@ -219,7 +219,7 @@ export default function UserProfileModal({
                         <Button 
                           onClick={onStartVideoCall}
                           variant="outline"
-                          className="h-8 text-xs bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 hover:from-slate-50 hover:to-blue-50 dark:hover:from-slate-700 dark:hover:to-blue-700 border-2 border-slate-300/60 dark:border-slate-400/60 shadow-md transform rotate-2"
+                          className="h-8 text-xs bg-gradient-to-br from-white to-orange-50 dark:from-blue-800 dark:to-orange-800/30 hover:from-orange-50 hover:to-orange-100 dark:hover:from-orange-700/30 dark:hover:to-orange-600/30 border-2 border-orange-400/60 dark:border-orange-500/60 shadow-md transform rotate-2 text-blue-800 dark:text-white"
                         >
                           <Video className="h-3 w-3 mr-1 transform -rotate-6" />
                           <span className="transform skew-x-1">Video</span>
@@ -233,7 +233,7 @@ export default function UserProfileModal({
                     <Button 
                       onClick={handleDeleteContactClick}
                       variant="outline"
-                      className="w-full h-8 bg-gradient-to-br from-red-50 to-slate-50 dark:from-red-900/30 dark:to-slate-900/30 text-red-600 dark:text-red-400 border-2 border-red-300/60 dark:border-red-500/60 hover:from-red-100 hover:to-slate-100 dark:hover:from-red-800/40 dark:hover:to-slate-800/40 font-medium text-sm shadow-md transform -rotate-1"
+                      className="w-full h-8 bg-gradient-to-br from-white to-red-50 dark:from-blue-900/30 dark:to-red-900/30 text-red-600 dark:text-red-400 border-2 border-red-400/60 dark:border-red-500/60 hover:from-red-50 hover:to-red-100 dark:hover:from-red-800/40 dark:hover:to-red-700/40 font-medium text-sm shadow-md transform -rotate-1"
                     >
                       <UserX className="h-3 w-3 mr-1 transform rotate-6" />
                       <span className="transform -skew-x-1">Delete Contact</span>
