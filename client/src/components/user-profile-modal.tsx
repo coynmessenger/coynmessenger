@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageCircle, Phone, Video, Wallet, UserX, AlertTriangle } from "lucide-react";
+import { Copy, MessageCircle, Phone, Video, Wallet, UserMinus, AlertTriangle } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -89,166 +89,152 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[90vw] max-w-[320px] sm:max-w-xs bg-gradient-to-br from-white/95 via-blue-50/90 to-blue-100/95 dark:from-blue-900/95 dark:via-blue-800/90 dark:to-slate-900/95 backdrop-blur-xl border-4 border-blue-600/60 dark:border-blue-400/60 shadow-2xl p-4 sm:p-4 max-h-[85vh] sm:max-h-[80vh] overflow-y-auto transform -rotate-1 relative touch-manipulation">
-          {/* Airplane Background Pattern */}
-          <div className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none">
-            <div className="absolute top-2 left-2 transform rotate-45">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-blue-800 dark:text-blue-300">
-                <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
-              </svg>
-            </div>
-            <div className="absolute top-6 right-4 transform -rotate-12">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-blue-700 dark:text-blue-400">
-                <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
-              </svg>
-            </div>
-            <div className="absolute bottom-4 left-4 transform rotate-12">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-blue-600 dark:text-blue-200">
-                <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
-              </svg>
-            </div>
-            <div className="absolute bottom-2 right-2 transform -rotate-45">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-blue-800 dark:text-blue-300">
-                <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
-              </svg>
-            </div>
-          </div>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
           <DialogHeader className="sr-only">
             <DialogTitle>User Profile</DialogTitle>
             <DialogDescription>View user profile information and manage contact options</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 sm:space-y-3 transform rotate-1">
-            {/* Profile Picture and Basic Info - Picassoesque */}
-            <div className="flex flex-col items-center space-y-2 relative">
-              {/* Geometric background shapes - dark blue, white, orange */}
-              <div className="absolute -top-2 -left-2 w-8 h-8 bg-blue-800/60 dark:bg-blue-600/40 transform rotate-45 rounded-lg"></div>
-              <div className="absolute -top-1 -right-3 w-6 h-6 bg-orange-400/60 dark:bg-orange-300/40 transform -rotate-12 rounded-full"></div>
-              <div className="absolute -bottom-1 -left-3 w-4 h-8 bg-white/80 dark:bg-white/20 transform rotate-12 rounded-lg border border-blue-600/30"></div>
-              
-              <div className="relative transform rotate-2">
-                <Avatar className="h-20 w-20 sm:h-16 sm:w-16 border-3 border-blue-800/70 dark:border-blue-400/70 shadow-lg ring-2 ring-orange-300/50 dark:ring-orange-400/50">
-                  <AvatarImage src={user.profilePicture || ""} className="contrast-125 saturate-110" />
-                  <AvatarFallback className="bg-gradient-to-br from-white to-blue-100 dark:from-blue-800 dark:to-blue-700">
-                    <UserAvatarIcon className="w-10 h-10 sm:w-8 sm:h-8 text-blue-800 dark:text-white" />
+          <div className="space-y-4 sm:space-y-6">
+            {/* Profile Picture and Basic Info */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="relative">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+                  <AvatarImage src={user.profilePicture || ""} />
+                  <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                    <UserAvatarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 dark:text-gray-400" />
                   </AvatarFallback>
                 </Avatar>
                 {user.isOnline && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-white dark:border-slate-900 rounded-full transform rotate-12 shadow-lg"></div>
+                  <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
+                  </div>
                 )}
               </div>
               
-              <div className="text-center space-y-2 sm:space-y-1 transform -rotate-1">
-                <h3 className="text-lg sm:text-base font-bold text-blue-900 dark:text-white transform skew-x-3 text-shadow-lg shadow-blue-800/30">
+              <div className="text-center space-y-1">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                   {getEffectiveDisplayName(user)}
                 </h3>
-                <p className="text-sm sm:text-xs text-blue-700 dark:text-blue-200 transform -skew-x-2 font-mono">
+                <p className="text-sm text-gray-500 dark:text-muted-foreground">
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
                 </p>
                 {isOwnProfile && (
-                  <Badge className="bg-gradient-to-r from-orange-100 to-white dark:from-orange-900/30 dark:to-blue-900/30 text-orange-700 dark:text-orange-400 text-xs px-2 py-0.5 border-2 border-orange-300/60 dark:border-orange-500/60 transform rotate-3 shadow-md">
+                  <Badge className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs">
                     You
+                  </Badge>
+                )}
+                {user.isOnline && !isOwnProfile && (
+                  <Badge className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs">
+                    Online
                   </Badge>
                 )}
               </div>
             </div>
 
-            {/* Wallet Address - dark blue, white, orange palette */}
-            <div className="space-y-2 sm:space-y-1 relative">
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400/60 dark:bg-orange-300/40 transform rotate-45 rounded"></div>
-              <label className="text-sm sm:text-xs font-medium text-blue-800 dark:text-white transform skew-x-1">
+            {/* Wallet Address */}
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                 Wallet Address
               </label>
-              <div className="flex items-center space-x-2 sm:space-x-1 p-3 sm:p-2 bg-gradient-to-r from-white/90 to-blue-50/80 dark:from-blue-800/40 dark:to-blue-900/40 rounded-lg border-2 border-blue-600/50 dark:border-blue-400/50 transform -rotate-1 shadow-md">
-                <code className="flex-1 text-sm sm:text-xs font-mono text-blue-800 dark:text-white break-all leading-tight transform skew-x-1">
+              <div className="flex items-center space-x-2 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <code className="flex-1 text-xs font-mono text-gray-600 dark:text-gray-300 break-all">
                   {user.walletAddress}
                 </code>
                 <Button
                   onClick={copyWalletAddress}
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 sm:h-6 sm:w-6 p-0 hover:bg-orange-200/60 dark:hover:bg-orange-700/60 transform rotate-12 text-blue-700 dark:text-orange-300 touch-manipulation"
+                  className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  <Copy className="h-4 w-4 sm:h-3 sm:w-3" />
+                  <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Action Buttons - dark blue, white, orange palette */}
-            <div className="space-y-3 sm:space-y-2 relative">
-              <div className="absolute -top-1 -left-1 w-4 h-4 bg-white/80 dark:bg-white/20 transform -rotate-12 rounded-full border border-blue-600/30"></div>
+            {/* Action Buttons */}
+            <div className="space-y-3">
               {/* For own profile, only show Send Message */}
               {isOwnProfile ? (
                 <>
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-10 sm:h-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-base sm:text-sm border-2 border-orange-400/60 shadow-lg transform rotate-1 touch-manipulation"
+                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
                     >
-                      <MessageCircle className="h-4 w-4 sm:h-3 sm:w-3 mr-1 transform -rotate-6" />
-                      <span className="transform skew-x-2">Message Yourself</span>
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Message Yourself
                     </Button>
                   )}
                 </>
               ) : (
                 <>
-                  {/* Primary Action: Send Message */}
+                  {/* Row 1: Send Message (Orange, Full Width) */}
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-10 sm:h-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-base sm:text-sm border-2 border-orange-400/60 shadow-lg transform rotate-1 touch-manipulation"
+                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
                     >
-                      <MessageCircle className="h-4 w-4 sm:h-3 sm:w-3 mr-1 transform -rotate-6" />
-                      <span className="transform skew-x-2">Send Message</span>
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Send Message
                     </Button>
                   )}
                   
-                  {/* Secondary Actions: Call and Video (Side by Side) */}
+                  {/* Row 2: Call and Video (Side by Side) */}
                   {(onStartCall || onStartVideoCall) && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {onStartCall && (
                         <Button 
                           onClick={onStartCall}
                           variant="outline"
-                          className="h-10 sm:h-8 text-sm sm:text-xs bg-gradient-to-br from-white to-blue-50 dark:from-blue-800 dark:to-blue-700 hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-700 dark:hover:to-blue-600 border-2 border-blue-600/60 dark:border-blue-400/60 shadow-md transform -rotate-1 text-blue-800 dark:text-white touch-manipulation"
+                          className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
                         >
-                          <Phone className="h-4 w-4 sm:h-3 sm:w-3 mr-2 sm:mr-1 transform rotate-12" />
-                          <span className="transform -skew-x-1">Call</span>
+                          <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          Call
                         </Button>
                       )}
                       {onStartVideoCall && (
                         <Button 
                           onClick={onStartVideoCall}
                           variant="outline"
-                          className="h-10 sm:h-8 text-sm sm:text-xs bg-gradient-to-br from-white to-orange-50 dark:from-blue-800 dark:to-orange-800/30 hover:from-orange-50 hover:to-orange-100 dark:hover:from-orange-700/30 dark:hover:to-orange-600/30 border-2 border-orange-400/60 dark:border-orange-500/60 shadow-md transform rotate-2 text-blue-800 dark:text-white touch-manipulation"
+                          className="h-10 sm:h-12 flex items-center justify-center bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800"
                         >
-                          <Video className="h-4 w-4 sm:h-3 sm:w-3 mr-2 sm:mr-1 transform -rotate-6" />
-                          <span className="transform skew-x-1">Video</span>
+                          <Video className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          Video
                         </Button>
                       )}
                     </div>
                   )}
                   
-                  {/* Delete Contact - Only for others, not own profile */}
+                  {/* Row 3: Delete Contact (Full Width) */}
                   {onDeleteContact && (
                     <Button 
                       onClick={handleDeleteContactClick}
                       variant="outline"
-                      className="w-full h-10 sm:h-8 bg-gradient-to-br from-white to-red-50 dark:from-blue-900/30 dark:to-red-900/30 text-red-600 dark:text-red-400 border-2 border-red-400/60 dark:border-red-500/60 hover:from-red-50 hover:to-red-100 dark:hover:from-red-800/40 dark:hover:to-red-700/40 font-medium text-base sm:text-sm shadow-md transform -rotate-1 touch-manipulation"
+                      className="w-full h-10 sm:h-12 bg-white dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                     >
-                      <UserX className="h-4 w-4 sm:h-3 sm:w-3 mr-2 sm:mr-1 transform rotate-6" />
-                      <span className="transform -skew-x-1">Delete Contact</span>
+                      <UserMinus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Delete Contact
                     </Button>
                   )}
                 </>
               )}
             </div>
+
+            {/* Additional Info */}
+            {user.lastSeen && (
+              <div className="text-center pt-4 border-t border-border">
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                  Last seen: {new Date(user.lastSeen).toLocaleString()}
+                </p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-        <DialogContent className="w-[90vw] sm:w-[400px] p-6 bg-white dark:bg-card touch-manipulation">
+        <DialogContent className="w-[90vw] sm:w-[400px] p-6 bg-white dark:bg-card">
           <DialogHeader className="space-y-3">
             <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
@@ -271,13 +257,13 @@ export default function UserProfileModal({
               <Button
                 onClick={handleCancelDelete}
                 variant="outline"
-                className="flex-1 h-12 sm:h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 touch-manipulation text-base sm:text-sm"
+                className="flex-1 h-10 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirmDelete}
-                className="flex-1 h-12 sm:h-10 bg-red-600 hover:bg-red-700 text-white touch-manipulation text-base sm:text-sm"
+                className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white"
               >
                 Delete Contact
               </Button>

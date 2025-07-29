@@ -374,7 +374,7 @@ export default function MessengerPage() {
     <div className="flex h-screen bg-background text-foreground">
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
+        <div className="bg-card border-b border-border p-3 flex items-center justify-between dark-blue-outline">
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => setLocation("/")}
@@ -385,7 +385,7 @@ export default function MessengerPage() {
               <Home className="h-4 w-4 mr-2" />
               Return to Home
             </Button>
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+            <h1 className="text-xl font-normal text-primary blue-text-outline" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
           </div>
@@ -446,53 +446,77 @@ export default function MessengerPage() {
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
                               }}
-                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
+                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 dark-blue-outline ${
                                 hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
                               }`}
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="relative">
-                                  <Avatar className="w-12 h-12">
-                                    {conversation.isGroup ? (
-                                      <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                                        <Users className="w-6 h-6" />
-                                      </AvatarFallback>
-                                    ) : (
-                                      <>
-                                        <AvatarImage 
-                                          src={conversation.otherUser?.profilePicture || undefined} 
-                                          alt={conversation.otherUser?.displayName || "User"}
-                                        />
-                                        <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                          <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                        </AvatarFallback>
-                                      </>
-                                    )}
-                                  </Avatar>
-                                  
-                                  {/* Unread message indicator */}
-                                  {hasUnreadMessages && (
-                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
-                                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  {/* Picassoesque Conversation Profile Design */}
+                                  <div className="relative w-16 h-16 transform rotate-1">
+                                    {/* Background geometric shapes with dark blue outlines */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-800 dark:to-slate-700 transform -rotate-2 border-2 border-blue-900 dark:border-blue-400 rounded-lg"></div>
+                                    <div className="absolute inset-1 bg-gradient-to-tl from-purple-50 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 transform rotate-3 border-2 border-blue-800 dark:border-blue-300 rounded-lg"></div>
+                                    
+                                    {/* Main profile container */}
+                                    <div className="relative z-10 w-12 h-12 ml-2 mt-2">
+                                      <Avatar className="w-full h-full border-3 border-blue-900 dark:border-blue-400 shadow-lg">
+                                        {conversation.isGroup ? (
+                                          <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white border-2 border-blue-900 dark:border-blue-400">
+                                            <Users className="w-6 h-6" />
+                                          </AvatarFallback>
+                                        ) : (
+                                          <>
+                                            <AvatarImage 
+                                              src={conversation.otherUser?.profilePicture || undefined} 
+                                              alt={conversation.otherUser?.displayName || "User"}
+                                              className="filter contrast-110 saturate-110"
+                                            />
+                                            <AvatarFallback className="bg-gradient-to-br from-blue-200 to-indigo-300 dark:from-blue-800 dark:to-indigo-900 border-2 border-blue-900 dark:border-blue-400">
+                                              <UserAvatarIcon className="w-6 h-6 text-blue-900 dark:text-blue-200" />
+                                            </AvatarFallback>
+                                          </>
+                                        )}
+                                      </Avatar>
+                                      
+                                      {/* Picasso-style geometric accents */}
+                                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 transform rotate-45 border border-blue-900 dark:border-blue-400"></div>
+                                      <div className="absolute -bottom-1 -left-1 w-2 h-4 bg-pink-400 transform -rotate-12 border border-blue-900 dark:border-blue-400"></div>
+                                      
+                                      {/* Unread message indicator with Picasso styling */}
+                                      {hasUnreadMessages && (
+                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 transform rotate-12 border-2 border-blue-900 dark:border-blue-400 flex items-center justify-center">
+                                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                                 <div className="flex-1 min-w-0 ml-4">
                                   <div className="flex items-center justify-between">
-                                    <h3 className={`font-medium text-foreground truncate flex-1 mr-2 ${
-                                      hasUnreadMessages ? 'font-bold' : ''
-                                    }`}>
-                                      {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
-                                    </h3>
+                                    {/* Picasso-inspired text layout for conversation name */}
+                                    <div className="relative flex-1 mr-2">
+                                      <h3 className={`font-medium text-foreground truncate transform -skew-x-1 relative z-10 ${
+                                        hasUnreadMessages ? 'font-bold' : ''
+                                      }`}>
+                                        {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                      </h3>
+                                      {/* Dark blue outline text shadow effect */}
+                                      <h3 className={`absolute top-0 left-0 font-medium text-blue-900 dark:text-blue-400 truncate transform -skew-x-1 translate-x-0.5 translate-y-0.5 opacity-30 ${
+                                        hasUnreadMessages ? 'font-bold' : ''
+                                      }`}>
+                                        {conversation.isGroup ? conversation.groupName : conversation.otherUser?.displayName}
+                                      </h3>
+                                    </div>
                                     {conversation.lastMessage && conversation.lastMessage.timestamp && (
-                                      <span className={`text-xs ${
+                                      <span className={`text-xs transform skew-x-1 ${
                                         hasUnreadMessages ? 'text-orange-600 dark:text-orange-400 font-semibold' : 'text-muted-foreground'
                                       }`}>
                                         {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                       </span>
                                     )}
                                   </div>
-                                  <p className={`text-sm truncate mt-1 ${
+                                  <p className={`text-sm truncate transform skew-x-1 mt-1 ${
                                     hasUnreadMessages ? 'text-orange-800 dark:text-orange-200 font-medium' : 'text-muted-foreground'
                                   }`}>
                                     {conversation.lastMessage?.content || "No messages yet"}
@@ -529,29 +553,51 @@ export default function MessengerPage() {
                               <div
                                 key={contact.id}
                                 onClick={() => handleContactClick(contact)}
-                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500"
+                                className="p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 dark-blue-outline"
                               >
                                 <div className="flex items-center space-x-3">
                                   <div className="relative">
-                                    <Avatar className="w-12 h-12">
-                                      <AvatarImage 
-                                        src={contact.profilePicture || undefined} 
-                                        alt={contact.displayName}
-                                      />
-                                      <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
-                                        <UserAvatarIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    
-                                    {contact.isOnline && (
-                                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
-                                    )}
+                                    {/* Picassoesque Profile Design */}
+                                    <div className="relative w-16 h-16 transform rotate-2">
+                                      {/* Background geometric shapes with dark blue outlines */}
+                                      <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-slate-800 dark:to-slate-700 transform -rotate-3 border-2 border-blue-900 dark:border-blue-400 rounded-lg"></div>
+                                      <div className="absolute inset-1 bg-gradient-to-tl from-orange-100 to-yellow-100 dark:from-orange-900/50 dark:to-yellow-900/50 transform rotate-1 border-2 border-blue-800 dark:border-blue-300 rounded-lg"></div>
+                                      
+                                      {/* Main profile container */}
+                                      <div className="relative z-10 w-12 h-12 ml-2 mt-2">
+                                        <Avatar className="w-full h-full border-3 border-blue-900 dark:border-blue-400 shadow-lg">
+                                          <AvatarImage 
+                                            src={contact.profilePicture || undefined} 
+                                            alt={contact.displayName}
+                                            className="filter contrast-110 saturate-110"
+                                          />
+                                          <AvatarFallback className="bg-gradient-to-br from-blue-200 to-indigo-300 dark:from-blue-800 dark:to-indigo-900 border-2 border-blue-900 dark:border-blue-400">
+                                            <UserAvatarIcon className="w-6 h-6 text-blue-900 dark:text-blue-200" />
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        
+                                        {/* Picasso-style geometric accent */}
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 transform rotate-45 border border-blue-900 dark:border-blue-400"></div>
+                                        <div className="absolute -bottom-1 -left-1 w-2 h-4 bg-yellow-400 transform -rotate-12 border border-blue-900 dark:border-blue-400"></div>
+                                        
+                                        {contact.isOnline && (
+                                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-blue-900 dark:border-blue-400 rounded-full transform rotate-12"></div>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                   <div className="flex-1 min-w-0 ml-4">
-                                    <h3 className="font-bold text-foreground truncate">
-                                      {contact.displayName}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground truncate mt-1">
+                                    {/* Picasso-inspired text layout */}
+                                    <div className="relative">
+                                      <h3 className="font-bold text-foreground truncate transform -skew-x-1 relative z-10">
+                                        {contact.displayName}
+                                      </h3>
+                                      {/* Dark blue outline text shadow effect */}
+                                      <h3 className="absolute top-0 left-0 font-bold text-blue-900 dark:text-blue-400 truncate transform -skew-x-1 translate-x-0.5 translate-y-0.5 opacity-40">
+                                        {contact.displayName}
+                                      </h3>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground truncate transform skew-x-1 mt-1">
                                       @{contact.username}
                                     </p>
                                   </div>
@@ -590,7 +636,7 @@ export default function MessengerPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
-        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
+        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50 dark-blue-outline">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Button
@@ -602,7 +648,7 @@ export default function MessengerPage() {
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+              <h1 className="text-xl font-normal text-black dark:text-black blue-text-outline" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
