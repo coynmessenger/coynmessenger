@@ -8,7 +8,7 @@ const emojiCategories = {
   faces: ["😀", "😂", "🤣", "😊", "😍", "🥰", "😘", "😎", "🤔", "😮", "😤", "😔", "🥺", "😭", "😱", "🤗"],
   gestures: ["👍", "👎", "👏", "🙏", "💪", "✌️", "🤝", "👋", "🤙", "👌", "🤞", "🙌", "👐", "🤲", "🫶", "👊"],
   hearts: ["❤️", "💙", "💚", "💛", "🧡", "💜", "🖤", "🤍", "🤎", "💗", "💖", "💕", "💓", "💘", "💯", "💋"],
-  finance: ["💰", "💸", "🪙", "💎", "📈", "📉", "💳", "🏦", "🚀", "⚡", "🔥", "💯", "🎯", "⭐", "🌟", "COYN_SYMBOL"],
+  finance: ["💰", "💸", "🪙", "COYN_SYMBOL", "📈", "📉", "💳", "🏦", "🚀", "⚡", "🔥", "💎", "🎯", "⭐", "🌟", "🎉"],
   nature: ["🌞", "🌙", "⭐", "🌟", "☀️", "🌈", "🔥", "💧", "🌸", "🌺", "🌻", "🌹", "🍀", "🌿", "🌱", "🎄"],
   objects: ["🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🎖️", "🏅", "⚽", "🏀", "🎯", "🎪", "🎭", "🎨", "🎵", "🎶"],
   food: ["🍕", "🍔", "🌮", "🍝", "🍜", "🍱", "🍣", "🧀", "🥓", "🍎", "🍌", "🍓", "🥑", "🍰", "🍦", "☕"],
@@ -81,7 +81,14 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
               <button
                 key={index}
                 type="button"
-                onClick={() => onEmojiSelect(emoji === "COYN_SYMBOL" ? "🪙" : emoji)}
+                onClick={() => {
+                  if (emoji === "COYN_SYMBOL") {
+                    // For COYN symbol, we'll send the actual coin emoji
+                    onEmojiSelect("🪙");
+                  } else {
+                    onEmojiSelect(emoji);
+                  }
+                }}
                 className="text-lg hover:bg-blue-100 dark:hover:bg-slate-700 rounded p-1.5 transition-colors duration-200 hover:scale-110 active:scale-95 flex items-center justify-center h-8 w-8"
               >
                 {emoji === "COYN_SYMBOL" ? (
