@@ -1334,6 +1334,38 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
+  // Function to render text with tilted COYN symbols
+  const renderMessageWithTiltedCoin = (text: string, searchQuery: string = "") => {
+    if (!text) return text;
+    
+    // Split text by coin emoji and process each part
+    const parts = text.split(/(\ud83e\ude99)/g); // Split by coin emoji (🪙)
+    
+    return parts.map((part, index) => {
+      if (part === '🪙') {
+        return (
+          <span
+            key={index}
+            className="inline-block transform transition-transform duration-300 hover:scale-110 hover:rotate-45"
+            style={{ 
+              transform: 'rotate(33.33deg)',
+              display: 'inline-block',
+              fontSize: '1.2em',
+              marginLeft: '2px',
+              marginRight: '2px',
+              transformOrigin: 'center'
+            }}
+          >
+            🪙
+          </span>
+        );
+      } else {
+        // Apply search highlighting to non-coin parts
+        return highlightText(part, searchQuery);
+      }
+    });
+  };
+
   // Navigation functions for search results
   const navigateToSearchResult = (index: number) => {
     if (searchResults.length === 0) return;
@@ -1796,7 +1828,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                           )}
                           <p className="text-sm font-medium break-words">
-                            {highlightText(
+                            {renderMessageWithTiltedCoin(
                               msg.content?.includes('@') && msg.content.includes(':') 
                                 ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
                                 : msg.content || "", 
@@ -1865,7 +1897,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
-                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          <p className="text-sm break-words text-foreground">{renderMessageWithTiltedCoin(msg.content || "", searchQuery || "")}</p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
