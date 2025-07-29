@@ -878,25 +878,22 @@ export default function HomePage() {
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
-                      className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation transition-all duration-200"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Open Messenger
                     </Button>
                     <Button
                       onClick={() => setLocation("/marketplace")}
-                      variant="outline"
-                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation transition-all duration-200"
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
 
-
                     <Button
                       onClick={handleSignOut}
-                      variant="outline"
-                      className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
+                      className="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation transition-all duration-200"
                     >
                       Sign Out
                     </Button>
