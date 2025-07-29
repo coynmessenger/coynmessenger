@@ -16,7 +16,7 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home, User as UserIcon, Settings, Users } from "lucide-react";
+import { Home, User as UserIcon, Settings, Users, Plane } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -371,23 +371,26 @@ export default function MessengerPage() {
   }, [connectedUserId, conversations, selectedConversation]);
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="flex h-screen airplane-theme text-white">
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
-        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
+        <div className="airplane-card border-b border-blue-200/50 p-3 flex items-center justify-between relative z-10">
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => setLocation("/")}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted"
+              className="text-blue-700 hover:text-blue-900 hover:bg-blue-50/50 cloud-shadow"
             >
               <Home className="h-4 w-4 mr-2" />
               Return to Home
             </Button>
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
-              Messenger
-            </h1>
+            <div className="flex items-center space-x-2">
+              <Plane className="h-5 w-5 text-blue-600 airplane-icon" />
+              <h1 className="text-xl font-normal text-blue-800" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+                Sky Messenger
+              </h1>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
@@ -409,7 +412,7 @@ export default function MessengerPage() {
 
         {/* Desktop Main Content */}
         <div className="flex flex-1">
-          <div className="flex-1 flex flex-col bg-background">
+          <div className="flex-1 flex flex-col relative z-10">
             {selectedConversation && currentConversation ? (
               <ChatWindow
                 conversation={currentConversation}
@@ -418,7 +421,7 @@ export default function MessengerPage() {
                 searchQuery={searchQuery}
               />
             ) : (
-              <div className="flex-1 flex flex-col bg-background">
+              <div className="flex-1 flex flex-col relative z-10">
 
 
                 {/* Contact List First - Main Focus */}
@@ -446,8 +449,8 @@ export default function MessengerPage() {
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
                               }}
-                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
-                                hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
+                              className={`p-4 airplane-card hover:bg-blue-50/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-blue-500 cloud-shadow ${
+                                hasUnreadMessages ? 'bg-blue-100/50 border-l-blue-500' : ''
                               }`}
                             >
                               <div className="flex items-center space-x-3">
@@ -636,25 +639,28 @@ export default function MessengerPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
-        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
+        <nav className="airplane-card border-b border-blue-200/50 z-50 relative">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Button
                 onClick={() => setLocation("/")}
                 variant="ghost"
                 size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-50/50 p-2 cloud-shadow"
                 title="Home"
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
-                Messenger
-              </h1>
+              <div className="flex items-center space-x-2">
+                <Plane className="h-5 w-5 text-blue-600 airplane-icon" />
+                <h1 className="text-xl font-normal text-blue-800" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+                  Sky Messenger
+                </h1>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-orange-500 transition-colors p-2"
+                className="text-blue-700 hover:text-blue-900 transition-colors p-2 cloud-shadow rounded-lg"
                 onClick={() => {
                   setIsSearchOpen(!isSearchOpen);
                   // Clear search when closing search bar
@@ -687,14 +693,14 @@ export default function MessengerPage() {
 
         {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 p-4 z-40">
+          <div className="airplane-card border-b border-blue-200/50 p-4 z-40 relative">
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search messages..."
+                placeholder="Search the skies..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
+                className="w-full bg-blue-50/50 border border-blue-300/50 rounded-lg px-4 py-2 text-blue-900 placeholder-blue-600 focus:outline-none focus:border-blue-500 cloud-shadow"
                 autoFocus
               />
               {searchQuery && (

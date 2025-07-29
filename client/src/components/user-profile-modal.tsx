@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageCircle, Phone, Video, Wallet, UserMinus, AlertTriangle } from "lucide-react";
+import { Copy, MessageCircle, Phone, Video, Wallet, UserMinus, AlertTriangle, Plane } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -89,7 +89,7 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
+        <DialogContent className="sm:max-w-md airplane-card border-blue-200/50 p-4 sm:p-6 relative">
           <DialogHeader className="sr-only">
             <DialogTitle>User Profile</DialogTitle>
             <DialogDescription>View user profile information and manage contact options</DialogDescription>
@@ -112,20 +112,23 @@ export default function UserProfileModal({
               </div>
               
               <div className="text-center space-y-1">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                  {getEffectiveDisplayName(user)}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-muted-foreground">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <Plane className="h-5 w-5 text-blue-600 airplane-icon" />
+                  <h3 className="text-lg sm:text-xl font-semibold text-blue-800">
+                    {getEffectiveDisplayName(user)}
+                  </h3>
+                </div>
+                <p className="text-sm text-blue-600">
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
                 </p>
                 {isOwnProfile && (
-                  <Badge className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs">
-                    You
+                  <Badge className="bg-blue-100 text-blue-700 text-xs cloud-shadow">
+                    Captain
                   </Badge>
                 )}
                 {user.isOnline && !isOwnProfile && (
-                  <Badge className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs">
-                    Online
+                  <Badge className="bg-green-100 text-green-700 text-xs cloud-shadow">
+                    In Flight
                   </Badge>
                 )}
               </div>
@@ -133,18 +136,18 @@ export default function UserProfileModal({
 
             {/* Wallet Address */}
             <div className="space-y-2">
-              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                Wallet Address
+              <label className="text-xs sm:text-sm font-medium text-blue-700">
+                Flight ID (Wallet Address)
               </label>
-              <div className="flex items-center space-x-2 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <code className="flex-1 text-xs font-mono text-gray-600 dark:text-gray-300 break-all">
+              <div className="flex items-center space-x-2 p-2 sm:p-3 bg-blue-50/50 rounded-lg cloud-shadow">
+                <code className="flex-1 text-xs font-mono text-blue-800 break-all">
                   {user.walletAddress}
                 </code>
                 <Button
                   onClick={copyWalletAddress}
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-blue-100/50 cloud-shadow"
                 >
                   <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>

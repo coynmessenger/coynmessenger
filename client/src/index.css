@@ -488,6 +488,72 @@ body::before {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Airplane Theme Classes */
+.airplane-theme {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #60a5fa  50%, #93c5fd 75%, #dbeafe 100%);
+  position: relative;
+}
+
+.airplane-theme::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.05) 3px, transparent 3px);
+  background-size: 50px 50px, 30px 30px, 70px 70px;
+  animation: float-clouds 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float-clouds {
+  0%, 100% { transform: translateX(0px) translateY(0px); }
+  25% { transform: translateX(5px) translateY(-2px); }
+  50% { transform: translateX(-3px) translateY(3px); }
+  75% { transform: translateX(2px) translateY(-1px); }
+}
+
+.airplane-icon {
+  display: inline-block;
+  animation: airplane-fly 3s ease-in-out infinite;
+}
+
+@keyframes airplane-fly {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(1deg); }
+  50% { transform: translateY(2px) rotate(-1deg); }
+  75% { transform: translateY(-1px) rotate(0.5deg); }
+}
+
+.sky-gradient {
+  background: linear-gradient(to bottom, #1e40af 0%, #3b82f6 50%, #93c5fd 100%);
+}
+
+.cloud-shadow {
+  box-shadow: 
+    0 4px 6px rgba(59, 130, 246, 0.1),
+    0 2px 4px rgba(30, 64, 175, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.airplane-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 8px 16px rgba(30, 64, 175, 0.1),
+    0 4px 8px rgba(59, 130, 246, 0.08);
+}
+
+.dark .airplane-card {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
 /* Custom scrollbar for modals */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
