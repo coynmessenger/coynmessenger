@@ -31,6 +31,7 @@ import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
+import coynSymbolPath from "@assets/COYN symbol_1753832719603.png";
 import { formatDistanceToNow } from "date-fns";
 
 // Utility function to get effective display name (mirrors backend logic)
@@ -48,6 +49,35 @@ function getEffectiveDisplayName(user: User): string {
   }
   // Ultimate fallback
   return user.displayName || user.username;
+}
+
+// Function to render message content with COYN symbol support
+function renderMessageContent(content: string): React.ReactNode {
+  if (!content) return "";
+  
+  // Handle COYN symbol placeholder
+  if (content.includes('🪙COYN')) {
+    const parts = content.split('🪙COYN');
+    return (
+      <>
+        {parts.map((part, index) => (
+          <React.Fragment key={index}>
+            {part}
+            {index < parts.length - 1 && (
+              <img 
+                src={coynSymbolPath} 
+                alt="COYN" 
+                className="inline-block w-5 h-5 mx-1 object-contain align-middle"
+                style={{ verticalAlign: 'middle' }}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
+  
+  return content;
 }
 
 interface ChatWindowProps {
@@ -1301,13 +1331,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     });
   };
 
-  // Enhanced text highlighting with multiple search terms
-  const highlightText = (text: string, searchTerm: string) => {
-    if (!searchTerm || !text) return text;
+  // Enhanced text highlighting with multiple search terms (handles React nodes)
+  const highlightText = (content: React.ReactNode | string, searchTerm: string): React.ReactNode => {
+    if (!searchTerm) return content;
+    
+    // If content is a React node (from renderMessageContent), just return it
+    if (typeof content !== 'string') {
+      return content;
+    }
+    
+    if (!content) return content;
     
     try {
       const searchTerms = searchTerm.split(/\s+/).filter(term => term.length > 0);
-      if (searchTerms.length === 0) return text;
+      if (searchTerms.length === 0) return content;
       
       // Create regex that matches any of the search terms
       const regexPattern = searchTerms
@@ -1315,7 +1352,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         .join('|');
       
       const regex = new RegExp(`(${regexPattern})`, 'gi');
-      const parts = text.split(regex);
+      const parts = content.split(regex);
       
       return parts.map((part, index) => {
         const isMatch = searchTerms.some(term => 
@@ -1329,8 +1366,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         ) : part;
       });
     } catch (error) {
-      
-      return text;
+      return content;
     }
   };
 
@@ -1797,9 +1833,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           )}
                           <p className="text-sm font-medium break-words">
                             {highlightText(
-                              msg.content?.includes('@') && msg.content.includes(':') 
-                                ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
-                                : msg.content || "", 
+                              renderMessageContent(
+                                msg.content?.includes('@') && msg.content.includes(':') 
+                                  ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
+                                  : msg.content || ""
+                              ),
                               searchQuery || ""
                             )}
                           </p>
@@ -1865,7 +1903,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
-                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          <p className="text-sm break-words text-foreground">{highlightText(renderMessageContent(msg.content || ""), searchQuery || "")}</p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
