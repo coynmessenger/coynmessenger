@@ -1334,65 +1334,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
   };
 
-  // Function to render text with tilted COYN symbols
-  const renderMessageWithTiltedCoin = (text: string, searchQuery: string = "") => {
-    if (!text) return text;
-    
-    // Split text by both coin emoji and COYN logo identifier
-    const parts = text.split(/(🪙|COYN_LOGO)/g);
-    
-    return parts.map((part, index) => {
-      if (part === '🪙') {
-        return (
-          <span
-            key={index}
-            className="inline-block transform transition-transform duration-300 hover:scale-110 hover:rotate-45"
-            style={{ 
-              transform: 'rotate(33.33deg)',
-              display: 'inline-block',
-              fontSize: '1.2em',
-              marginLeft: '2px',
-              marginRight: '2px',
-              transformOrigin: 'center'
-            }}
-          >
-            🪙
-          </span>
-        );
-      } else if (part === 'COYN_LOGO') {
-        return (
-          <span
-            key={index}
-            className="inline-block transform transition-transform duration-300 hover:scale-110 hover:rotate-45"
-            style={{ 
-              transform: 'rotate(33.33deg)',
-              display: 'inline-block',
-              marginLeft: '2px',
-              marginRight: '2px',
-              transformOrigin: 'center',
-              verticalAlign: 'middle'
-            }}
-          >
-            <img 
-              src={coynLogoPath} 
-              alt="COYN" 
-              className="inline-block w-5 h-5"
-              style={{ 
-                display: 'inline-block',
-                verticalAlign: 'middle'
-              }}
-              loading="eager"
-              decoding="async"
-            />
-          </span>
-        );
-      } else {
-        // Apply search highlighting to non-coin parts
-        return highlightText(part, searchQuery);
-      }
-    });
-  };
-
   // Navigation functions for search results
   const navigateToSearchResult = (index: number) => {
     if (searchResults.length === 0) return;
@@ -1855,7 +1796,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                           )}
                           <p className="text-sm font-medium break-words">
-                            {renderMessageWithTiltedCoin(
+                            {highlightText(
                               msg.content?.includes('@') && msg.content.includes(':') 
                                 ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
                                 : msg.content || "", 
@@ -1924,7 +1865,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
-                          <p className="text-sm break-words text-foreground">{renderMessageWithTiltedCoin(msg.content || "", searchQuery || "")}</p>
+                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
@@ -2541,45 +2482,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             {/* Emoji Picker */}
             <EmojiPicker
               onEmojiSelect={(emoji) => {
-                if (emoji === "COYN_LOGO") {
-                  // For COYN logo, directly send it as a message instead of adding to input
-                  const sendCoynMessage = async () => {
-                    try {
-                      const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
-                        method: "POST",
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          content: 'COYN_LOGO',
-                          userId: connectedUserId
-                        })
-                      });
-                      if (!response.ok) throw new Error('Failed to send message');
-                      // Invalidate queries to refresh messages
-                      queryClient.invalidateQueries({ 
-                        queryKey: ["/api/conversations"] 
-                      });
-                      queryClient.invalidateQueries({ 
-                        queryKey: ["/api/conversations", conversation.id, "messages"] 
-                      });
-                      toast({
-                        title: "COYN Logo Sent",
-                        description: "Your COYN logo has been sent to the chat",
-                      });
-                    } catch (error) {
-                      console.error('Failed to send COYN logo:', error);
-                      toast({
-                        title: "Error",
-                        description: "Failed to send COYN logo. Please try again.",
-                        variant: "destructive",
-                      });
-                    }
-                  };
-                  sendCoynMessage();
-                } else {
-                  setMessage(prev => prev + emoji);
-                }
+                setMessage(prev => prev + emoji);
                 setShowEmojiPicker(false);
               }}
               isOpen={showEmojiPicker}
