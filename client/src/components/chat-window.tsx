@@ -1832,14 +1832,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             </div>
                           )}
                           <p className="text-sm font-medium break-words">
-                            {highlightText(
-                              renderMessageContent(
-                                msg.content?.includes('@') && msg.content.includes(':') 
-                                  ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
-                                  : msg.content || ""
-                              ),
-                              searchQuery || ""
-                            )}
+                            {(() => {
+                              const contentToShow = msg.content?.includes('@') && msg.content.includes(':') 
+                                ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
+                                : msg.content || "";
+                              
+                              // If no search query, just render the content
+                              if (!searchQuery) {
+                                return renderMessageContent(contentToShow);
+                              }
+                              
+                              // If content has COYN symbol, render without highlighting for now
+                              if (contentToShow.includes('🪙COYN')) {
+                                return renderMessageContent(contentToShow);
+                              }
+                              
+                              // Otherwise, use highlighting on plain text
+                              return highlightText(contentToShow, searchQuery);
+                            })()}
                           </p>
                           <span className="text-xs text-primary-foreground/80 mt-1 block">
                             {formatTimestamp(msg.timestamp)}
@@ -1903,7 +1913,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
-                          <p className="text-sm break-words text-foreground">{highlightText(renderMessageContent(msg.content || ""), searchQuery || "")}</p>
+                          <p className="text-sm break-words text-foreground">
+                            {(() => {
+                              const contentToShow = msg.content || "";
+                              
+                              // If no search query, just render the content
+                              if (!searchQuery) {
+                                return renderMessageContent(contentToShow);
+                              }
+                              
+                              // If content has COYN symbol, render without highlighting for now
+                              if (contentToShow.includes('🪙COYN')) {
+                                return renderMessageContent(contentToShow);
+                              }
+                              
+                              // Otherwise, use highlighting on plain text
+                              return highlightText(contentToShow, searchQuery);
+                            })()}
+                          </p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>

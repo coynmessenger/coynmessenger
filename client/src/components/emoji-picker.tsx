@@ -236,7 +236,7 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
                 type="button"
                 onClick={() => handleEmojiClick(emojiItem, onEmojiSelect)}
                 className="text-lg hover:bg-blue-100 dark:hover:bg-slate-700 rounded p-1.5 transition-colors duration-200 hover:scale-110 active:scale-95 flex items-center justify-center h-8 w-8"
-                title={emojiItem.alt || emojiItem.value}
+                title={emojiItem.type === 'image' ? (emojiItem.alt || 'COYN') : emojiItem.value}
               >
                 {emojiItem.type === 'image' ? (
                   <img 
