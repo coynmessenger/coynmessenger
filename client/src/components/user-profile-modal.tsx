@@ -91,7 +91,7 @@ export default function UserProfileModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="w-[85vw] max-w-xs bg-gradient-to-br from-white/95 via-blue-50/90 to-blue-100/95 dark:from-blue-900/95 dark:via-blue-800/90 dark:to-slate-900/95 backdrop-blur-xl border-4 border-blue-600/60 dark:border-blue-400/60 shadow-2xl p-3 sm:p-4 max-h-[80vh] overflow-hidden transform -rotate-1 relative">
           {/* Airplane Background Pattern */}
-          <div className="absolute inset-0 opacity-8 dark:opacity-15 pointer-events-none">
+          <div className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none">
             <div className="absolute top-2 left-2 transform rotate-45">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-blue-800 dark:text-blue-300">
                 <path d="M20.56 3.44l-2 2-5.5 5.5-1.06-1.06 5.5-5.5 2-2 1.06 1.06zM8.5 11.5l-2 2-3.5-3.5L1 12l4 4 2-2 3.5-3.5-2-2zM12 15l-4 4h8l-4-4z"/>
