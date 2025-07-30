@@ -1518,9 +1518,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   }, [searchQuery, searchResults]);
 
   return (
-    <div className={`flex flex-col h-full bg-background chat-container ${isKeyboardOpen ? 'mobile-keyboard-aware' : ''}`}>
+    <div className="flex flex-col h-screen bg-background chat-container">
       {/* Chat Header */}
-      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between relative z-50">
+      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between relative z-50 shrink-0">
         <div className="flex items-center space-x-3">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
@@ -1723,7 +1723,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       {/* Chat Messages */}
       <div 
         ref={messagesContainerRef}
-        className={`flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm max-h-[calc(100vh-200px)] ${isKeyboardOpen ? 'chat-messages-container mobile-messages-area' : ''}`}
+        className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/30 dark:from-slate-900/30 dark:via-slate-800/50 dark:to-slate-900/30 px-4 relative backdrop-blur-sm min-h-0"
       >
 
         
@@ -2308,7 +2308,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className={`border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl px-2 py-1.5 sm:p-2 shadow-lg ${isKeyboardOpen ? 'mobile-input-area keyboard-open' : ''}`}>
+      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl px-2 py-2 sm:p-3 shadow-lg shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
