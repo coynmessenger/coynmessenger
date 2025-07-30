@@ -122,7 +122,7 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
                 placeholder="Search contacts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9 text-sm border-gray-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-900"
+                className="pl-10 h-9 text-sm border-gray-200 dark:border-slate-700 focus:border-blue-500 bg-white dark:bg-slate-900"
               />
               <Search className="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
             </div>

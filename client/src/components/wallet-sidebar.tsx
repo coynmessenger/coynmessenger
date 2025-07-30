@@ -682,7 +682,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 placeholder="Enter full wallet address (0x...)"
                 value={recipientAddress}
                 onChange={(e) => setRecipientAddress(e.target.value)}
-                className="w-full min-h-[80px] p-3 text-sm font-mono bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-md resize-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 break-all"
+                className="w-full min-h-[80px] p-3 text-sm font-mono bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-md resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 break-all"
                 rows={3}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">

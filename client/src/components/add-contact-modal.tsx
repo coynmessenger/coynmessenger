@@ -128,7 +128,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
                 placeholder="0x1234567890abcdef1234567890abcdef12345678"
                 value={walletAddress}
                 onChange={handleInputChange}
-                className={`pl-10 pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500 ${
+                className={`pl-10 pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-blue-500 dark:focus:border-blue-500 ${
                   validationError ? 'border-red-500 dark:border-red-400' : walletAddress.trim() && validateWalletAddress(walletAddress.trim()).isValid ? 'border-green-500 dark:border-green-400' : ''
                 }`}
                 required

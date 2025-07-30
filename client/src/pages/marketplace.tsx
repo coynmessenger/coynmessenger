@@ -583,7 +583,7 @@ export default function MarketplacePage() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation"
+              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 touch-manipulation"
             />
             {searchQuery && (
               <Button

@@ -168,7 +168,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
                 placeholder="Search GIFs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 pl-9 pr-4 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400 rounded-lg"
+                className="h-9 pl-9 pr-4 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-blue-400 dark:focus:border-blue-400 rounded-lg"
               />
             </div>
           </div>
