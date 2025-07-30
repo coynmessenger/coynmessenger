@@ -650,9 +650,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string }) => {
-
+      console.log("📡 Starting send message mutation");
+      console.log("- Message data:", messageData);
+      console.log("- Connected user ID:", connectedUserId);
       
       if (!connectedUserId) {
+        console.log("❌ User not authenticated - missing connectedUserId");
         throw new Error("User not authenticated");
       }
       
@@ -668,6 +671,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
 
         
+        console.log("📡 Making fetch request to:", `/api/conversations/${conversation.id}/messages`);
+        console.log("📡 Request body:", requestBody);
+        
         const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
           method: "POST",
           headers: {
@@ -679,14 +685,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         clearTimeout(timeoutId);
         
+        console.log("📡 Response status:", response.status);
+        console.log("📡 Response ok:", response.ok);
+        
         if (!response.ok) {
           const errorText = await response.text();
-
+          console.log("❌ Server error response:", errorText);
           throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
         
         const result = await response.json();
-
+        console.log("✅ Message sent successfully:", result);
         return result;
       } catch (error) {
         clearTimeout(timeoutId);
@@ -937,7 +946,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!message.trim()) return;
+    
+    console.log("🔥 Send button clicked - Debug info:");
+    console.log("- Message content:", message);
+    console.log("- Message trimmed length:", message.trim().length);
+    console.log("- Is pending:", sendMessageMutation.isPending);
+    console.log("- Connected user ID:", connectedUserId);
+    console.log("- Conversation ID:", conversation.id);
+    
+    if (!message.trim()) {
+      console.log("❌ Message is empty or only whitespace");
+      return;
+    }
 
     // Haptic feedback for mobile devices
     if ('ontouchstart' in window && 'vibrate' in navigator) {
@@ -958,6 +978,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       messageContent = `@${replyToMessage.sender}: ${message}`;
     }
 
+    console.log("✅ About to send message with content:", messageContent);
+    console.log("✅ Mutation function exists:", !!sendMessageMutation.mutate);
+
     setIsSendingMessage(true);
     
     sendMessageMutation.mutate({
@@ -965,6 +988,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       messageType: "text"
     }, {
       onSettled: () => {
+        console.log("📤 Send message mutation settled");
         setIsSendingMessage(false);
       }
     });
