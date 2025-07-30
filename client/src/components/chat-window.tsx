@@ -2308,7 +2308,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className={`border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl p-2 shadow-lg ${isKeyboardOpen ? 'mobile-input-area keyboard-open' : ''}`}>
+      <div className={`border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl px-2 py-1.5 sm:p-2 shadow-lg ${isKeyboardOpen ? 'mobile-input-area keyboard-open' : ''}`}>
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2498,7 +2498,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 100);
               }}
               placeholder="Type a message..."
-              className="pr-10 h-8 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-blue-500/60 dark:focus:border-blue-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm transition-all duration-200 rounded-lg focus:ring-1 focus:ring-blue-200/50 dark:focus:ring-blue-200/20"
+              className="pr-8 sm:pr-10 h-7 sm:h-8 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-blue-500/60 dark:focus:border-blue-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm transition-all duration-200 rounded-lg focus:ring-1 focus:ring-blue-200/50 dark:focus:ring-blue-200/20"
             />
             
 
