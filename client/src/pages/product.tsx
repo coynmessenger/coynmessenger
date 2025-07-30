@@ -1078,7 +1078,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
             placeholder="Search your contacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 focus:border-blue-400 dark:focus:border-blue-500"
+            className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 focus:border-orange-400 dark:focus:border-orange-500"
           />
           <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
         </div>
