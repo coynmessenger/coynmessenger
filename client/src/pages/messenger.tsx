@@ -22,12 +22,29 @@ import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import { initializeGlobalWebRTC, getGlobalWebRTC, setGlobalWebRTCHandlers, cleanupGlobalWebRTC } from "@/lib/global-webrtc";
 
-// Preload the COYN logo image
+// Enhanced COYN logo preloading with multiple optimization strategies
 const preloadImage = (src: string) => {
+  // Strategy 1: Preload via link element
+  const linkPreload = document.createElement('link');
+  linkPreload.rel = 'preload';
+  linkPreload.as = 'image';
+  linkPreload.href = src;
+  linkPreload.fetchPriority = 'high';
+  document.head.appendChild(linkPreload);
+
+  // Strategy 2: Image object preloading
   const img = new Image();
   img.src = src;
   img.loading = 'eager';
   img.decoding = 'async';
+  img.fetchPriority = 'high';
+  
+  // Strategy 3: Add to cache
+  if ('caches' in window) {
+    caches.open('coyn-logo-cache').then(cache => {
+      cache.add(src);
+    });
+  }
 };
 
 // Preload immediately when module loads
@@ -413,6 +430,12 @@ export default function MessengerPage() {
                 className="w-8 h-8 cursor-pointer"
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
+                style={{ 
+                  imageRendering: 'auto',
+                  transform: 'translateZ(0)',
+                  willChange: 'auto'
+                }}
               />
             </button>
           </div>
@@ -526,6 +549,14 @@ export default function MessengerPage() {
                             src={coynLogoPath} 
                             alt="COYN Logo" 
                             className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                            loading="eager"
+                            decoding="async"
+                            fetchPriority="high"
+                            style={{ 
+                              imageRendering: 'auto',
+                              transform: 'translateZ(0)',
+                              willChange: 'auto'
+                            }}
                           />
                           <h1 className="text-xl font-normal text-foreground" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
                             Start a Conversation
@@ -580,6 +611,14 @@ export default function MessengerPage() {
                                   src={coynLogoPath} 
                                   alt="COYN Logo" 
                                   className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                                  loading="eager"
+                                  decoding="async"
+                                  fetchPriority="high"
+                                  style={{ 
+                                    imageRendering: 'auto',
+                                    transform: 'translateZ(0)',
+                                    willChange: 'auto'
+                                  }}
                                 />
                               </div>
                               <h2 className="text-xl font-semibold mb-2">All Set!</h2>
@@ -642,6 +681,12 @@ export default function MessengerPage() {
                   className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
                   loading="eager"
                   decoding="async"
+                  fetchPriority="high"
+                  style={{ 
+                    imageRendering: 'auto',
+                    transform: 'translateZ(0)',
+                    willChange: 'auto'
+                  }}
                 />
               </button>
               <HamburgerMenu onOpenSettings={() => setIsSettingsOpen(true)} />
@@ -789,6 +834,14 @@ export default function MessengerPage() {
                           src={coynLogoPath} 
                           alt="COYN Logo" 
                           className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                          loading="eager"
+                          decoding="async"
+                          fetchPriority="high"
+                          style={{ 
+                            imageRendering: 'auto',
+                            transform: 'translateZ(0)',
+                            willChange: 'auto'
+                          }}
                         />
                       </div>
                       <h2 className="text-xl font-semibold mb-2">No contacts available</h2>

@@ -191,7 +191,7 @@ body::before {
   }
 }
 
-/* COYN logo preload optimization */
+/* Enhanced COYN logo preload optimization */
 .coyn-logo-preload {
   content: url('/src/assets/COYN-symbol-square_1750808237977.png');
   position: absolute;
@@ -201,6 +201,28 @@ body::before {
   height: 1px;
   opacity: 0;
   pointer-events: none;
+}
+
+/* CSS-based preloading for COYN logo */
+body::after {
+  content: '';
+  position: absolute;
+  left: -9999px;
+  background-image: url('/src/assets/COYN-symbol-square_1750808237977.png');
+  width: 1px;
+  height: 1px;
+}
+
+/* Optimize COYN logo rendering performance */
+img[alt="COYN Logo"] {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: translateZ(0);
+  will-change: auto;
+  backface-visibility: hidden;
+  /* Additional performance optimizations */
+  contain: layout style paint;
+  content-visibility: auto;
 }
 
 /* Perfect modern font styling for Web3 homepage */
