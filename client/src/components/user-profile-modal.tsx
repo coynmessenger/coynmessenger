@@ -89,7 +89,7 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6 profile-texture-frame">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-card border border-border p-4 sm:p-6">
           <DialogHeader className="sr-only">
             <DialogTitle>User Profile</DialogTitle>
             <DialogDescription>View user profile information and manage contact options</DialogDescription>
@@ -97,15 +97,15 @@ export default function UserProfileModal({
           <div className="space-y-4 sm:space-y-6">
             {/* Profile Picture and Basic Info */}
             <div className="flex flex-col items-center space-y-3">
-              <div className="relative profile-picture-frame">
-                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 profile-avatar-enhanced">
+              <div className="relative">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
                   <AvatarImage src={user.profilePicture || ""} />
                   <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
                     <UserAvatarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 dark:text-gray-400" />
                   </AvatarFallback>
                 </Avatar>
                 {user.isOnline && (
-                  <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center online-indicator-enhanced">
+                  <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-white dark:border-card rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
                   </div>
                 )}
