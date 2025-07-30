@@ -66,13 +66,37 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const connectedUser = getConnectedUser();
   const userId = connectedUser.id;
 
-  // Fetch wallet balances for the correct user (only if userId exists)
+  // Fetch wallet balances using comprehensive wallet data when available
   const { data: walletBalances = [], refetch: refetchBalances } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances", userId],
     queryFn: async () => {
       if (!userId) {
         throw new Error('User ID is required');
       }
+
+      // First, check if we have comprehensive wallet data
+      const comprehensiveBalances = localStorage.getItem('comprehensiveBalances');
+      if (comprehensiveBalances) {
+        const totalBalances = JSON.parse(comprehensiveBalances);
+        console.log('💰 Using comprehensive balances from all wallet addresses:', totalBalances);
+        
+        // Return formatted balance data
+        return [{
+          id: 1,
+          userId: userId,
+          btcBalance: totalBalances.btc || '0',
+          bnbBalance: totalBalances.bnb || '0',
+          usdtBalance: totalBalances.usdt || '0',
+          coynBalance: totalBalances.coyn || '0',
+          btcUsdValue: (parseFloat(totalBalances.btc || '0') * 98000).toFixed(2),
+          bnbUsdValue: (parseFloat(totalBalances.bnb || '0') * 600).toFixed(2),
+          usdtUsdValue: totalBalances.usdt || '0',
+          coynUsdValue: (parseFloat(totalBalances.coyn || '0') * 0.85).toFixed(2),
+          lastUpdated: new Date()
+        }];
+      }
+
+      // Fallback to API for non-comprehensive wallets
       const response = await fetch(`/api/wallet/balances?userId=${userId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balances');

