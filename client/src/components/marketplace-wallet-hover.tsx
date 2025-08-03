@@ -34,7 +34,7 @@ export default function MarketplaceWalletHover({
   anchorRef,
   onProceedToCheckout 
 }: MarketplaceWalletHoverProps) {
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 340 });
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -112,19 +112,20 @@ export default function MarketplaceWalletHover({
       const viewportHeight = window.innerHeight;
       const isMobile = viewportWidth < 640; // sm breakpoint
       
-      // For mobile, full width aligned to left
-      const popupWidth = isMobile ? viewportWidth : 384; // Full width on mobile, 384px on desktop
+      // Responsive width calculation to prevent overflow
+      const maxWidth = Math.min(384, viewportWidth - 16); // Maximum 384px or viewport width minus padding
+      const popupWidth = isMobile ? Math.min(viewportWidth - 16, 340) : maxWidth; // Conservative width on mobile
       const popupMaxHeight = viewportHeight * 0.8;
       
       let leftPosition;
       if (isMobile) {
-        // Align to left edge of screen
-        leftPosition = 0;
+        // Center on mobile with padding
+        leftPosition = Math.max(8, (viewportWidth - popupWidth) / 2);
       } else {
         // Desktop positioning relative to button
         leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
         
-        // Adjust if popup would go off-screen horizontally
+        // Ensure popup stays within viewport bounds
         if (leftPosition < 8) {
           leftPosition = 8;
         } else if (leftPosition + popupWidth > viewportWidth - 8) {
@@ -143,7 +144,8 @@ export default function MarketplaceWalletHover({
       
       setPosition({
         top: topPosition,
-        left: leftPosition
+        left: leftPosition,
+        width: popupWidth
       });
     }
   }, [isVisible, anchorRef]);
@@ -158,9 +160,42 @@ export default function MarketplaceWalletHover({
       }
     };
 
+    const handleResize = () => {
+      if (isVisible && anchorRef.current) {
+        const rect = anchorRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const isMobile = viewportWidth < 640;
+        
+        const maxWidth = Math.min(384, viewportWidth - 16);
+        const popupWidth = isMobile ? Math.min(viewportWidth - 16, 340) : maxWidth;
+        
+        let leftPosition;
+        if (isMobile) {
+          leftPosition = Math.max(8, (viewportWidth - popupWidth) / 2);
+        } else {
+          leftPosition = rect.left - (popupWidth / 2) + (rect.width / 2);
+          if (leftPosition < 8) {
+            leftPosition = 8;
+          } else if (leftPosition + popupWidth > viewportWidth - 8) {
+            leftPosition = viewportWidth - popupWidth - 8;
+          }
+        }
+        
+        setPosition(prev => ({
+          ...prev,
+          left: leftPosition,
+          width: popupWidth
+        }));
+      }
+    };
+
     if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      window.addEventListener('resize', handleResize);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('resize', handleResize);
+      };
     }
   }, [isVisible, onClose, anchorRef]);
 
@@ -239,10 +274,11 @@ export default function MarketplaceWalletHover({
   return (
     <div
       id="marketplace-wallet-popup"
-      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl w-full sm:w-96 max-h-[80vh] overflow-hidden flex flex-col"
+      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
+        width: `${position.width}px`,
         animation: 'walletSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}
     >
