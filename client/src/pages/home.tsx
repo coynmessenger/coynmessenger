@@ -720,16 +720,21 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            {/* Coynful Logo with Enhanced Glow */}
+            {/* Coynful Logo - Clean and Focused */}
             <div className="relative ml-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-xl opacity-20 scale-110"></div>
               <img 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
-                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
+                className="h-28 w-auto relative z-10 drop-shadow-[0_4px_20px_rgba(251,146,60,0.3)] hover:drop-shadow-[0_6px_30px_rgba(251,146,60,0.5)] transition-all duration-300 hover:scale-105 filter-none"
                 loading="eager"
-                decoding="async"
-                style={{ imageRendering: 'auto' }}
+                decoding="sync"
+                style={{ 
+                  imageRendering: 'crisp-edges',
+                  WebkitFontSmoothing: 'antialiased',
+                  backfaceVisibility: 'hidden',
+                  transform: 'translateZ(0)'
+                }}
               />
             </div>
           </div>
