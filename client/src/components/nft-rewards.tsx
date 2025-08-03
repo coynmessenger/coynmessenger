@@ -38,35 +38,47 @@ interface Purchase {
 const tierConfig = {
   bronze: {
     icon: Award,
-    color: "from-amber-600 to-amber-700",
-    bgColor: "bg-amber-100 dark:bg-amber-900/20",
+    color: "from-amber-500 via-amber-600 to-amber-700",
+    bgColor: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30",
     textColor: "text-amber-700 dark:text-amber-300",
     threshold: "$50+",
-    description: "Bronze Collector NFT"
+    description: "Bronze Collector NFT",
+    shadow: "shadow-amber-500/25",
+    glow: "hover:shadow-amber-500/40 hover:shadow-lg",
+    ring: "ring-amber-500/20"
   },
   silver: {
     icon: Star,
-    color: "from-gray-400 to-gray-500",
-    bgColor: "bg-gray-100 dark:bg-gray-900/20",
-    textColor: "text-gray-700 dark:text-gray-300",
+    color: "from-slate-400 via-slate-500 to-slate-600",
+    bgColor: "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950/50 dark:to-slate-900/30",
+    textColor: "text-slate-700 dark:text-slate-300",
     threshold: "$100+",
-    description: "Silver Collector NFT"
+    description: "Silver Collector NFT",
+    shadow: "shadow-slate-500/25",
+    glow: "hover:shadow-slate-500/40 hover:shadow-lg",
+    ring: "ring-slate-500/20"
   },
   gold: {
     icon: Trophy,
-    color: "from-yellow-400 to-yellow-500",
-    bgColor: "bg-yellow-100 dark:bg-yellow-900/20",
+    color: "from-yellow-400 via-yellow-500 to-yellow-600",
+    bgColor: "bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/50 dark:to-yellow-900/30",
     textColor: "text-yellow-700 dark:text-yellow-300",
     threshold: "$200+",
-    description: "Gold Collector NFT"
+    description: "Gold Collector NFT",
+    shadow: "shadow-yellow-500/25",
+    glow: "hover:shadow-yellow-500/40 hover:shadow-lg",
+    ring: "ring-yellow-500/20"
   },
   diamond: {
     icon: Diamond,
-    color: "from-blue-400 to-purple-500",
-    bgColor: "bg-blue-100 dark:bg-blue-900/20",
+    color: "from-cyan-400 via-blue-500 to-purple-600",
+    bgColor: "bg-gradient-to-br from-cyan-50 to-purple-100 dark:from-cyan-950/50 dark:to-purple-900/30",
     textColor: "text-blue-700 dark:text-blue-300",
     threshold: "$500+",
-    description: "Diamond Collector NFT"
+    description: "Diamond Collector NFT",
+    shadow: "shadow-purple-500/25",
+    glow: "hover:shadow-purple-500/40 hover:shadow-lg",
+    ring: "ring-purple-500/20"
   }
 };
 
@@ -140,12 +152,17 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] overflow-hidden flex flex-col glass-card">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-2">
-            <Gift className="h-6 w-6 text-orange-500" />
-            NFT Purchase Rewards
+      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] overflow-hidden flex flex-col bg-gradient-to-br from-white via-gray-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-2 border-white/20 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl">
+        <DialogHeader className="flex-shrink-0 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-cyan-500/10 rounded-t-lg"></div>
+          <DialogTitle className="text-xl sm:text-3xl font-black bg-gradient-to-r from-orange-500 via-orange-600 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3 relative z-10 py-2">
+            <div className="relative">
+              <Gift className="h-7 w-7 text-orange-500 drop-shadow-sm" />
+              <div className="absolute inset-0 bg-orange-400 rounded-full blur-sm opacity-30 animate-pulse"></div>
+            </div>
+            <span className="drop-shadow-sm">NFT Purchase Rewards</span>
           </DialogTitle>
+          <div className="h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent mt-2"></div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
@@ -183,14 +200,21 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {Object.entries(tierConfig).map(([tier, config]) => {
                         const Icon = config.icon;
                         return (
-                          <div key={tier} className={`p-3 rounded-lg ${config.bgColor} text-center`}>
-                            <Icon className={`h-6 w-6 mx-auto mb-2 ${config.textColor}`} />
-                            <div className={`font-semibold text-sm ${config.textColor} capitalize`}>{tier}</div>
-                            <div className="text-xs text-muted-foreground">{config.threshold}</div>
+                          <div 
+                            key={tier} 
+                            className={`relative p-4 rounded-xl ${config.bgColor} text-center transform transition-all duration-300 hover:scale-105 ${config.glow} border border-white/20 dark:border-black/20 cursor-pointer group`}
+                          >
+                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                            <div className={`relative p-2 rounded-lg bg-gradient-to-r ${config.color} mx-auto mb-3 w-fit ${config.shadow} transform group-hover:scale-110 transition-transform duration-300`}>
+                              <Icon className="h-6 w-6 text-white drop-shadow-sm" />
+                            </div>
+                            <div className={`font-bold text-sm ${config.textColor} capitalize mb-1 relative`}>{tier}</div>
+                            <div className="text-xs text-muted-foreground font-medium relative">{config.threshold}</div>
+                            <div className={`absolute inset-0 rounded-xl ring-2 ${config.ring} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                           </div>
                         );
                       })}
@@ -221,27 +245,45 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                       const Icon = config.icon;
                       
                       return (
-                        <Card key={reward.id} className="glass-card border-orange-200 dark:border-orange-800">
-                          <CardContent className="p-4">
+                        <Card key={reward.id} className={`relative overflow-hidden border-2 ${config.ring} hover:${config.ring.replace('ring-', 'border-')} transition-all duration-300 hover:shadow-xl ${config.shadow} group hover:scale-[1.02] backdrop-blur-sm bg-white/80 dark:bg-slate-900/80`}>
+                          <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                          <CardContent className="p-6 relative">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg bg-gradient-to-r ${config.color}`}>
-                                  <Icon className="h-5 w-5 text-white" />
+                              <div className="flex items-center gap-4">
+                                <div className={`relative p-3 rounded-xl bg-gradient-to-r ${config.color} ${config.shadow} transform group-hover:scale-110 transition-all duration-300`}>
+                                  <Icon className="h-6 w-6 text-white drop-shadow-lg" />
+                                  <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.color} animate-pulse opacity-0 group-hover:opacity-30 transition-opacity duration-300`}></div>
                                 </div>
-                                <div>
-                                  <div className="font-semibold capitalize">{reward.tier} NFT Reward</div>
-                                  <div className="text-sm text-muted-foreground">{reward.productTitle}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Purchase: ${reward.purchaseValue} • {formatDate(reward.earnedAt)}
+                                <div className="space-y-1">
+                                  <div className="font-bold text-lg capitalize bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                                    {reward.tier} NFT Reward
+                                  </div>
+                                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300 line-clamp-1">
+                                    {reward.productTitle}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                    <span className="font-semibold text-green-600 dark:text-green-400">${reward.purchaseValue}</span>
+                                    <span>•</span>
+                                    <span>{formatDate(reward.earnedAt)}</span>
                                   </div>
                                 </div>
                               </div>
                               <Button
                                 onClick={() => redeemMutation.mutate(reward.id)}
                                 disabled={redeemMutation.isPending}
-                                className="bg-gradient-to-r from-orange-500 to-cyan-500 hover:from-orange-600 hover:to-cyan-600 text-white"
+                                className="bg-gradient-to-r from-orange-500 via-orange-600 to-cyan-500 hover:from-orange-600 hover:via-orange-700 hover:to-cyan-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                               >
-                                {redeemMutation.isPending ? "Redeeming..." : "Redeem NFT"}
+                                {redeemMutation.isPending ? (
+                                  <div className="flex items-center gap-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
+                                    Redeeming...
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <Gift className="h-4 w-4" />
+                                    Redeem NFT
+                                  </div>
+                                )}
                               </Button>
                             </div>
                           </CardContent>
@@ -278,41 +320,58 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                       const Icon = config.icon;
                       
                       return (
-                        <Card key={reward.id} className="glass-card">
-                          <CardContent className="p-4">
+                        <Card key={reward.id} className={`relative overflow-hidden border-2 ${config.ring} transition-all duration-300 hover:shadow-xl ${config.shadow} group hover:scale-[1.01] backdrop-blur-sm bg-white/90 dark:bg-slate-900/90`}>
+                          <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-5`}></div>
+                          <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${config.color} opacity-10 rounded-bl-full`}></div>
+                          <CardContent className="p-6 relative">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg bg-gradient-to-r ${config.color}`}>
-                                  <Icon className="h-5 w-5 text-white" />
+                              <div className="flex items-center gap-4">
+                                <div className={`relative p-3 rounded-xl bg-gradient-to-r ${config.color} ${config.shadow} transform group-hover:scale-105 transition-all duration-300`}>
+                                  <Icon className="h-6 w-6 text-white drop-shadow-lg" />
+                                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
                                 </div>
-                                <div className="flex-1">
-                                  <div className="font-semibold capitalize">{reward.tier} Collector NFT</div>
-                                  <div className="text-sm text-muted-foreground">{reward.productTitle}</div>
+                                <div className="flex-1 space-y-2">
+                                  <div className="font-bold text-lg capitalize bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                                    {reward.tier} Collector NFT
+                                  </div>
+                                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300 line-clamp-1">
+                                    {reward.productTitle}
+                                  </div>
                                   <div className="text-xs text-muted-foreground">
-                                    Redeemed: {reward.redeemedAt ? formatDate(reward.redeemedAt) : 'N/A'}
+                                    <span className="text-green-600 dark:text-green-400 font-semibold">Redeemed:</span> {reward.redeemedAt ? formatDate(reward.redeemedAt) : 'N/A'}
                                   </div>
                                   {reward.nftTokenId && (
-                                    <div className="flex items-center gap-1 mt-1">
-                                      <span className="text-xs text-muted-foreground">Token ID:</span>
-                                      <code className="text-xs bg-muted px-1 rounded">{reward.nftTokenId.slice(0, 12)}...</code>
+                                    <div className="flex items-center gap-2 mt-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border">
+                                      <span className="text-xs font-medium text-muted-foreground">Token ID:</span>
+                                      <code className="text-xs font-mono bg-white dark:bg-gray-900 px-2 py-1 rounded border text-blue-600 dark:text-blue-400 flex-1 min-w-0">
+                                        {reward.nftTokenId.slice(0, 16)}...
+                                      </code>
                                       <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="h-6 w-6 p-0"
+                                        className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
                                         onClick={() => copyTokenId(reward.nftTokenId!)}
                                       >
-                                        <Copy className="h-3 w-3" />
+                                        <Copy className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                                       </Button>
                                     </div>
                                   )}
                                 </div>
                               </div>
-                              <div className="flex gap-2">
-                                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300">
-                                  Owned
+                              <div className="flex flex-col gap-2 items-end">
+                                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold px-3 py-1 shadow-sm">
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                    Owned
+                                  </div>
                                 </Badge>
-                                <Button size="sm" variant="outline" className="h-8">
-                                  <ExternalLink className="h-3 w-3" />
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-8 px-3 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                                >
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  View
                                 </Button>
                               </div>
                             </div>
