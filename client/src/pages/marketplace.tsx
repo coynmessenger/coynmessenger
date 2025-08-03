@@ -500,9 +500,7 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden watercolor-bg">
-      {/* Watercolor Background Overlay */}
-      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark z-0"></div>
+    <div className="min-h-screen overflow-x-hidden bg-gray-50 dark:bg-slate-900">
       <div className="relative z-10">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg border-b border-white/20 dark:border-slate-700/50">
