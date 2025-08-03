@@ -274,31 +274,33 @@ export default function MarketplaceWalletHover({
   return (
     <div
       id="marketplace-wallet-popup"
-      className="fixed z-[60] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
+      className="fixed z-[60] bg-white dark:bg-slate-900 border-2 border-gray-300 dark:border-slate-600 rounded-xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col backdrop-blur-sm"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
         width: `${position.width}px`,
+        minWidth: '300px',
+        maxWidth: 'calc(100vw - 16px)',
         animation: 'walletSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}
     >
-      <CardHeader className="pb-3 flex-shrink-0 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-b border-orange-200 dark:border-orange-700">
+      <CardHeader className="pb-3 flex-shrink-0 bg-gradient-to-r from-orange-100 to-orange-150 dark:from-slate-800 dark:to-slate-750 border-b-2 border-orange-300 dark:border-slate-600">
         <CardTitle className="flex items-center justify-between text-foreground">
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-orange-500" />
-            <span className="text-lg font-semibold">Payment Methods</span>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <CreditCard className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+            <span className="text-lg font-bold text-gray-900 dark:text-white truncate">Payment Methods</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => refreshBalancesMutation.mutate()}
               disabled={refreshBalancesMutation.isPending}
-              className="h-10 w-10 sm:h-8 sm:w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-all duration-200 disabled:opacity-50 touch-manipulation"
+              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-slate-700 transition-all duration-200 disabled:opacity-50"
               title="Refresh wallet balances"
             >
               <RefreshCw 
-                className={`h-4 w-4 text-orange-500 ${
+                className={`h-4 w-4 text-orange-600 dark:text-orange-400 ${
                   refreshBalancesMutation.isPending 
                     ? 'animate-spin' 
                     : ''
@@ -309,55 +311,55 @@ export default function MarketplaceWalletHover({
               variant="ghost"
               size="sm"
               onClick={() => setIsBalanceVisible(!isBalanceVisible)}
-              className="h-10 w-10 sm:h-8 sm:w-8 p-0 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-all duration-200 touch-manipulation"
+              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-slate-700 transition-all duration-200"
               title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
             >
               {isBalanceVisible ? (
-                <Eye className="h-4 w-4" />
+                <Eye className="h-4 w-4 text-gray-600 dark:text-gray-300" />
               ) : (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className="h-4 w-4 text-gray-600 dark:text-gray-300" />
               )}
             </Button>
           </div>
         </CardTitle>
         
         {/* Purchase Status Banner */}
-        <div className={`flex items-center gap-2 text-sm p-2 rounded-md ${
+        <div className={`flex items-center gap-2 text-sm p-3 rounded-lg border-2 ${
           isReadyToPurchase 
-            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-            : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+            ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700'
+            : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700'
         }`}>
           {isReadyToPurchase ? (
             <>
-              <CheckCircle className="h-4 w-4" />
-              <span>Ready to make purchases</span>
+              <CheckCircle className="h-4 w-4 flex-shrink-0" />
+              <span className="font-medium">Ready to make purchases</span>
             </>
           ) : (
             <>
-              <AlertCircle className="h-4 w-4" />
-              <span>Add funds to start shopping</span>
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span className="font-medium">Add funds to start shopping</span>
             </>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 overflow-y-auto flex-1 min-h-0 p-4 sm:p-6">
+      <CardContent className="space-y-4 overflow-y-auto flex-1 min-h-0 p-4">
         {/* Total Value */}
-        <div className="text-center space-y-2 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 p-4 sm:p-6 rounded-lg">
-          <p className="text-sm text-muted-foreground">Available for purchases</p>
-          <p className="text-2xl sm:text-3xl font-bold text-orange-500 dark:text-orange-400">
+        <div className="text-center space-y-2 bg-gradient-to-br from-gray-100 to-gray-150 dark:from-slate-800 dark:to-slate-750 p-4 rounded-xl border-2 border-gray-200 dark:border-slate-600">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Available for purchases</p>
+          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             {isBalanceVisible ? formatUSD(totalUSD) : "••••••"}
           </p>
-          <p className="text-xs text-muted-foreground">Total purchasing power</p>
+          <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Total purchasing power</p>
         </div>
 
-        <Separator />
+        <div className="border-t-2 border-gray-200 dark:border-slate-600 my-4"></div>
 
         {/* Payment Currencies */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground">Accepted Cryptocurrencies</p>
-            <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+            <p className="text-sm font-bold text-gray-900 dark:text-white">Accepted Cryptocurrencies</p>
+            <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-600 font-medium">
               {balances.length} available
             </Badge>
           </div>
@@ -368,34 +370,36 @@ export default function MarketplaceWalletHover({
             const canPurchase = realTimeUSDValue >= 5; // Minimum $5 per currency for small purchases
             
             return (
-              <div key={balance.currency} className={`flex items-center justify-between p-3 sm:p-4 rounded-lg border ${
+              <div key={balance.currency} className={`flex items-center justify-between p-3 rounded-xl border-2 ${
                 canPurchase 
-                  ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' 
-                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
+                  ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20' 
+                  : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50'
               }`}>
-                <div className="flex items-center gap-3">
-                  {getCurrencyIcon(balance.currency)}
-                  <div>
-                    <p className="font-medium text-foreground">{balance.currency}</p>
-                    <p className="text-xs text-muted-foreground">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex-shrink-0">
+                    {getCurrencyIcon(balance.currency)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-gray-900 dark:text-white">{balance.currency}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                       {isBalanceVisible ? `${formatBalance(balance.balance, balance.currency)} ${balance.currency}` : "••••••"}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-foreground">
+                <div className="text-right flex-shrink-0">
+                  <p className="font-bold text-gray-900 dark:text-white">
                     {isBalanceVisible ? formatUSD(realTimeUSDValue) : "••••••"}
                   </p>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end gap-1">
                     {canPurchase ? (
                       <>
-                        <CheckCircle className="h-3 w-3 text-green-500" />
-                        <span className="text-xs text-green-600 dark:text-green-400">Ready</span>
+                        <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">Ready</span>
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="h-3 w-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">Low amount</span>
+                        <AlertCircle className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                        <span className="text-xs text-gray-500 font-medium">Low</span>
                       </>
                     )}
                   </div>
@@ -405,44 +409,38 @@ export default function MarketplaceWalletHover({
           })}
         </div>
 
-        <Separator />
+        <div className="border-t-2 border-gray-200 dark:border-slate-600 my-4"></div>
 
         {/* Wallet Address for Deposits */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">Payment Address</span>
+            <span className="text-sm font-bold text-gray-900 dark:text-white">Payment Address</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={copyAddress}
-              className="h-8 px-3 text-orange-500 hover:text-orange-600 touch-manipulation"
+              className="h-8 px-2 text-orange-500 hover:text-orange-600 flex-shrink-0"
             >
-              <Copy className="h-3 w-3 mr-1" />
-              Copy
+              <Copy className="h-3 w-3" />
             </Button>
           </div>
-          <div className="bg-gray-100 dark:bg-slate-700 rounded p-3">
-            <code className="text-xs sm:text-sm text-foreground font-mono leading-relaxed word-break-normal">
-              <span className="block sm:inline">
-                {walletAddress ? `${walletAddress.slice(0, 20)}` : ''}
-              </span>
-              <span className="block sm:inline">
-                {walletAddress ? walletAddress.slice(20) : ''}
-              </span>
-            </code>
+          <div className="bg-gray-100 dark:bg-slate-700 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
+            <div className="text-xs font-mono text-foreground break-all leading-relaxed overflow-hidden">
+              {walletAddress || 'Connect wallet to view address'}
+            </div>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Send any supported cryptocurrency to this address to add funds
           </p>
         </div>
 
-        <Separator />
+        <div className="border-t-2 border-gray-200 dark:border-slate-600 my-4"></div>
 
         {/* Quick Actions */}
         <div className="space-y-3">
           <Button
             variant="default"
-            className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white touch-manipulation"
+            className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold border-2 border-orange-700 dark:border-orange-500"
             onClick={() => {
               onClose();
               onProceedToCheckout?.();
