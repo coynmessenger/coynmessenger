@@ -720,22 +720,37 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            {/* Coynful Logo - Clean and Focused */}
-            <div className="relative ml-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-xl opacity-20 scale-110"></div>
-              <img 
-                src={coynfulLogoPath} 
-                alt="Coynful Logo" 
-                className="h-28 w-auto relative z-10 drop-shadow-[0_4px_20px_rgba(251,146,60,0.3)] hover:drop-shadow-[0_6px_30px_rgba(251,146,60,0.5)] transition-all duration-300 hover:scale-105 filter-none"
-                loading="eager"
-                decoding="sync"
-                style={{ 
-                  imageRendering: 'crisp-edges',
-                  WebkitFontSmoothing: 'antialiased',
-                  backfaceVisibility: 'hidden',
-                  transform: 'translateZ(0)'
-                }}
-              />
+            {/* Coynful Logo - Premium Appeal */}
+            <div className="relative ml-4 group">
+              {/* Animated background glow layers */}
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 dark:from-orange-500 dark:via-amber-500 dark:to-orange-600 blur-2xl opacity-30 scale-125 animate-pulse group-hover:opacity-50 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-300 to-amber-300 dark:from-orange-400 dark:to-amber-400 blur-xl opacity-20 scale-110 group-hover:scale-115 transition-transform duration-700"></div>
+              
+              {/* Main logo with enhanced effects */}
+              <div className="relative z-10 p-2 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 dark:from-white/5 dark:to-white/2 backdrop-blur-sm border border-white/20 dark:border-white/10 group-hover:border-orange-300/50 dark:group-hover:border-orange-400/50 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-orange-500/20">
+                <img 
+                  src={coynfulLogoPath} 
+                  alt="Coynful Logo" 
+                  className="h-24 w-auto relative drop-shadow-[0_8px_32px_rgba(251,146,60,0.4)] group-hover:drop-shadow-[0_12px_48px_rgba(251,146,60,0.6)] transition-all duration-500 group-hover:scale-110 brightness-110 contrast-110"
+                  loading="eager"
+                  decoding="sync"
+                  style={{ 
+                    imageRendering: 'crisp-edges',
+                    WebkitFontSmoothing: 'antialiased',
+                    backfaceVisibility: 'hidden',
+                    transform: 'translateZ(0)',
+                    filter: 'saturate(1.1) brightness(1.05)'
+                  }}
+                />
+                
+                {/* Subtle shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-700 rounded-2xl"></div>
+              </div>
+              
+              {/* Floating particles effect */}
+              <div className="absolute -top-2 -left-2 w-3 h-3 bg-orange-400 rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
+              <div className="absolute -top-1 -right-3 w-2 h-2 bg-amber-400 rounded-full opacity-70 animate-bounce" style={{ animationDelay: '1s', animationDuration: '2.5s' }}></div>
+              <div className="absolute -bottom-2 -right-1 w-2.5 h-2.5 bg-orange-500 rounded-full opacity-50 animate-bounce" style={{ animationDelay: '2s', animationDuration: '3.5s' }}></div>
             </div>
           </div>
         </div>
