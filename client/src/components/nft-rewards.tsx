@@ -158,7 +158,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
           <DialogTitle className="text-xl sm:text-3xl font-black bg-gradient-to-r from-orange-500 via-orange-600 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3 relative z-10 py-2">
             <div className="relative">
               <Gift className="h-7 w-7 text-orange-500 drop-shadow-sm" />
-              <div className="absolute inset-0 bg-orange-400 rounded-full blur-sm opacity-30 animate-pulse"></div>
+              <div className="absolute inset-0 bg-orange-400 rounded-full blur-sm opacity-10 group-hover:opacity-30 transition-opacity duration-300"></div>
             </div>
             <span className="drop-shadow-sm">NFT Purchase Rewards</span>
           </DialogTitle>
@@ -206,15 +206,15 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                         return (
                           <div 
                             key={tier} 
-                            className={`relative p-4 rounded-xl ${config.bgColor} text-center transform transition-all duration-300 hover:scale-105 ${config.glow} border border-white/20 dark:border-black/20 cursor-pointer group`}
+                            className={`relative p-4 rounded-xl ${config.bgColor} text-center transform transition-all duration-300 hover:scale-105 ${config.glow} border border-white/40 dark:border-black/40 cursor-pointer group`}
                           >
-                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${config.color} opacity-5 group-hover:opacity-15 transition-opacity duration-300`}></div>
                             <div className={`relative p-2 rounded-lg bg-gradient-to-r ${config.color} mx-auto mb-3 w-fit ${config.shadow} transform group-hover:scale-110 transition-transform duration-300`}>
                               <Icon className="h-6 w-6 text-white drop-shadow-sm" />
                             </div>
                             <div className={`font-bold text-sm ${config.textColor} capitalize mb-1 relative`}>{tier}</div>
                             <div className="text-xs text-muted-foreground font-medium relative">{config.threshold}</div>
-                            <div className={`absolute inset-0 rounded-xl ring-2 ${config.ring} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                            <div className={`absolute inset-0 rounded-xl ring-1 ${config.ring} opacity-30 group-hover:opacity-100 transition-opacity duration-300`}></div>
                           </div>
                         );
                       })}
@@ -245,8 +245,8 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                       const Icon = config.icon;
                       
                       return (
-                        <Card key={reward.id} className={`relative overflow-hidden border-2 ${config.ring} hover:${config.ring.replace('ring-', 'border-')} transition-all duration-300 hover:shadow-xl ${config.shadow} group hover:scale-[1.02] backdrop-blur-sm bg-white/80 dark:bg-slate-900/80`}>
-                          <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                        <Card key={reward.id} className={`relative overflow-hidden border-2 ${config.ring.replace('ring-', 'border-').replace('/20', '/40')} hover:${config.ring.replace('ring-', 'border-')} transition-all duration-300 hover:shadow-xl ${config.shadow} group hover:scale-[1.02] bg-white dark:bg-slate-900`}>
+                          <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-3 group-hover:opacity-8 transition-opacity duration-300`}></div>
                           <CardContent className="p-6 relative">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-4">
@@ -320,8 +320,8 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                       const Icon = config.icon;
                       
                       return (
-                        <Card key={reward.id} className={`relative overflow-hidden border-2 ${config.ring} transition-all duration-300 hover:shadow-xl ${config.shadow} group hover:scale-[1.01] backdrop-blur-sm bg-white/90 dark:bg-slate-900/90`}>
-                          <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-5`}></div>
+                        <Card key={reward.id} className={`relative overflow-hidden border-2 ${config.ring.replace('ring-', 'border-').replace('/20', '/30')} transition-all duration-300 hover:shadow-xl ${config.shadow} group hover:scale-[1.01] bg-white dark:bg-slate-900`}>
+                          <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-8`}></div>
                           <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${config.color} opacity-10 rounded-bl-full`}></div>
                           <CardContent className="p-6 relative">
                             <div className="flex items-center justify-between">
