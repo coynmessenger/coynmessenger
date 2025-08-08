@@ -55,9 +55,25 @@ export default function HomePage() {
   // Authentication guard - redirect authenticated users directly to the app
   useEffect(() => {
     const checkAuthAndRedirect = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromWallet = urlParams.get('from_wallet') === 'true';
+      
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       const userSignedOut = localStorage.getItem('userSignedOut');
+      const pendingConnection = localStorage.getItem('pendingWalletConnection');
+      
+      // If coming from wallet and authenticated, redirect immediately
+      if (fromWallet && storedConnected === 'true' && storedUser) {
+        console.log('User returning from wallet with authentication, redirecting to messenger...');
+        setLocation("/messenger");
+        return;
+      }
+      
+      // Don't redirect if there's a pending wallet connection (user is in process of connecting)
+      if (pendingConnection === 'true') {
+        return;
+      }
       
       // If user is authenticated and hasn't explicitly signed out, redirect to messenger
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
@@ -65,7 +81,10 @@ export default function HomePage() {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser && parsedUser.id && parsedUser.walletAddress) {
             console.log('Authenticated user detected, redirecting to messenger...');
-            setLocation("/messenger");
+            // Immediate redirect for returning users
+            setTimeout(() => {
+              setLocation("/messenger");
+            }, 200);
             return;
           }
         } catch (error) {
@@ -77,8 +96,8 @@ export default function HomePage() {
       }
     };
 
-    // Check immediately on component mount
-    checkAuthAndRedirect();
+    // Check after a brief delay to allow wallet detection to complete
+    setTimeout(checkAuthAndRedirect, 100);
   }, []); // Empty dependency array - only run once on mount
 
   // Removed automatic user data fetching to prevent conflicts with localStorage updates
@@ -190,9 +209,17 @@ export default function HomePage() {
       
       // Automatically redirect to messenger after successful authentication
       // This makes the app standalone - users are taken directly into the main interface
+      // Check if user is returning from a wallet app signature
+      const isReturningFromWallet = localStorage.getItem('pendingWalletConnection') === 'true' || 
+                                    document.referrer.includes('metamask') || 
+                                    document.referrer.includes('trustwallet') ||
+                                    performance.navigation.type === 2; // Back navigation
+      
+      const redirectDelay = isReturningFromWallet ? 500 : 1500; // Faster redirect for wallet returns
+      
       setTimeout(() => {
         setLocation("/messenger");
-      }, 1500); // Brief delay to show success state before navigating
+      }, redirectDelay);
     },
   });
 
@@ -240,7 +267,7 @@ export default function HomePage() {
             localStorage.removeItem('pendingWalletType');
             localStorage.removeItem('walletConnectionAttempt');
             
-            // Connect the wallet
+            // Connect the wallet and navigate to messenger immediately
             connectWalletMutation.mutate({
               walletAddress: accounts[0],
               displayName: undefined
@@ -339,7 +366,7 @@ export default function HomePage() {
                 localStorage.removeItem('pendingWalletType');
                 localStorage.removeItem('walletConnectionAttempt');
                 
-                // Connect the wallet
+                // Connect the wallet and navigate to messenger immediately
                 connectWalletMutation.mutate({
                   walletAddress: accounts[0],
                   displayName: undefined
@@ -366,7 +393,7 @@ export default function HomePage() {
                       localStorage.removeItem('pendingWalletType');
                       localStorage.removeItem('walletConnectionAttempt');
                       
-                      // Connect the wallet
+                      // Connect the wallet and navigate to messenger immediately  
                       connectWalletMutation.mutate({
                         walletAddress: requestedAccounts[0],
                         displayName: undefined
@@ -616,8 +643,8 @@ export default function HomePage() {
                 localStorage.setItem('pendingWalletType', 'trustwallet');
                 localStorage.setItem('walletConnectionAttempt', Date.now().toString());
                 
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+                const returnUrl = `${window.location.origin}${window.location.pathname}?from_wallet=true`;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
                 
                 // Use window.location instead of window.open for better mobile handling
                 window.location.href = deepLink;
@@ -642,8 +669,8 @@ export default function HomePage() {
 
               // Enhanced mobile fallback for Trust Wallet
               if (isMobile()) {
-                const currentUrl = window.location.href;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+                const returnUrl = `${window.location.origin}${window.location.pathname}?from_wallet=true`;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
                 window.open(deepLink, '_blank');
               } else {
                 window.open('https://trustwallet.com/download', '_blank');
@@ -654,8 +681,8 @@ export default function HomePage() {
           // No Web3 provider detected - Enhanced mobile handling
           if (isMobile()) {
             // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
-            const currentUrl = window.location.href;
-            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(currentUrl)}`;
+            const returnUrl = `${window.location.origin}${window.location.pathname}?from_wallet=true`;
+            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
             
             // Try Trust Wallet first
             window.open(deepLink, '_blank');
