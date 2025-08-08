@@ -25,7 +25,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication Flow
 - **Standalone App Experience**: Authenticated users are automatically redirected to the main messenger interface
-- **Wallet Authentication**: Supports MetaMask and Trust Wallet with comprehensive signature collection
+- **Wallet Authentication**: Supports MetaMask, Trust Wallet, and WalletConnect with comprehensive signature collection
+- **WalletConnect Integration**: Universal QR code connection supporting 200+ wallets with secure bridge communication
+- **Multi-Address Selection**: Users can choose specific addresses from wallets with multiple accounts
 - **Trust Wallet Deep Linking**: Enhanced mobile deep linking with multiple fallback approaches and session tracking
 - **Return Detection**: URL parameter system (?wallet_return=true&session=ID) to detect wallet app returns
 - **Visual Feedback**: Loading modals and status messages during wallet redirects and connections
