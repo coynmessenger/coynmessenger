@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 - Real-time text messaging.
 - Cryptocurrency sending within messages.
 - Wallet management for BTC, BNB, USDT, and COYN with real blockchain balances and live market prices.
+- Multi-address wallet support with user-selectable wallet addresses from MetaMask and Trust Wallet.
 - Encrypted wallet-to-wallet voice and video calling (WebRTC with Signal Protocol-inspired encryption).
 - Comprehensive marketplace for crypto purchases with Amazon-style checkout.
 - Favorites/wishlist system.

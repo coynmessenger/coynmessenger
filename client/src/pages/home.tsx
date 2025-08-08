@@ -17,6 +17,7 @@ import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
 import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
+import WalletAddressSelector from "@/components/wallet-address-selector";
 import type { User } from "@shared/schema";
 
 
@@ -53,6 +54,8 @@ export default function HomePage() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isRedirectingToWallet, setIsRedirectingToWallet] = useState(false);
   const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
 
   // Authentication guard - redirect authenticated users directly to the app
   useEffect(() => {
@@ -470,7 +473,7 @@ export default function HomePage() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  const handleWeb3Connect = async (walletType: string) => {
+  const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
       return;
@@ -479,6 +482,24 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
+    // Check if wallet is available first
+    if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+      // Show address selector for MetaMask
+      setSelectedWalletType('metamask');
+      setShowAddressSelector(true);
+      return;
+    }
+    
+    if (walletType === 'trust') {
+      // Check for Trust Wallet availability and show selector
+      if (typeof window.ethereum !== 'undefined' && (window.ethereum.isTrust || window.trustWallet)) {
+        setSelectedWalletType('trust');
+        setShowAddressSelector(true);
+        return;
+      }
+    }
+    
+    // Fallback to original connection flow if wallet selector not available
     try {
       if (walletType === 'metamask') {
         if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
@@ -790,6 +811,38 @@ export default function HomePage() {
     }
   };
 
+  const handleAddressSelect = async (selectedAddress: string, comprehensiveData: ComprehensiveWalletData) => {
+    setShowAddressSelector(false);
+    
+    try {
+      // Store the comprehensive wallet data
+      localStorage.setItem('walletAccess', JSON.stringify({
+        primaryAddress: selectedAddress,
+        allAddresses: comprehensiveData.allAddresses,
+        walletType: comprehensiveData.walletType,
+        authorized: true,
+        provider: selectedWalletType,
+        timestamp: Date.now()
+      }));
+
+      // Connect with selected address
+      connectWalletMutation.mutate({
+        walletAddress: selectedAddress,
+        displayName: undefined
+      });
+      
+      console.log(`Connecting with selected ${selectedWalletType} address:`, selectedAddress);
+    } catch (error) {
+      console.error('Failed to connect with selected address:', error);
+      setSelectedWalletType(null);
+    }
+  };
+
+  const handleAddressSelectorBack = () => {
+    setShowAddressSelector(false);
+    setSelectedWalletType(null);
+  };
+
   const handleSignOut = () => {
     
     // Set explicit sign out flag to prevent automatic reconnection
@@ -855,6 +908,23 @@ export default function HomePage() {
       description: "Shop online products and pay with cryptocurrency"
     }
   ];
+
+  // Show address selector if active
+  if (showAddressSelector && selectedWalletType) {
+    return (
+      <div className="homepage-font min-h-screen watercolor-bg flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark"></div>
+        <div className="max-w-2xl w-full relative z-10">
+          <WalletAddressSelector
+            walletType={selectedWalletType}
+            onAddressSelect={handleAddressSelect}
+            onBack={handleAddressSelectorBack}
+            isLoading={connectWalletMutation.isPending}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="homepage-font min-h-screen watercolor-bg flex items-center justify-center p-4 relative overflow-hidden">
