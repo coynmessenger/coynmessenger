@@ -18,8 +18,6 @@ import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import WalletAddressSelector from "@/components/wallet-address-selector";
-import WalletConnectModal from "@/components/walletconnect-modal";
-import { simpleWalletConnect, type SimpleWalletConnectSession } from "@/lib/simple-walletconnect";
 import type { User } from "@shared/schema";
 
 
@@ -58,7 +56,6 @@ export default function HomePage() {
   const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
-  const [showWalletConnectModal, setShowWalletConnectModal] = useState(false);
 
   // Authentication guard - redirect authenticated users directly to the app
   useEffect(() => {
@@ -846,39 +843,6 @@ export default function HomePage() {
     setSelectedWalletType(null);
   };
 
-  const handleWalletConnectConnect = async (session: SimpleWalletConnectSession) => {
-    try {
-      console.log("WalletConnect session established:", session);
-      
-      if (session.accounts.length === 0) {
-        throw new Error("No accounts found in WalletConnect session");
-      }
-
-      const primaryAddress = session.accounts[0];
-      
-      // Store wallet access data
-      localStorage.setItem('walletAccess', JSON.stringify({
-        primaryAddress,
-        allAddresses: session.accounts.map(addr => ({ address: addr, isActive: addr === primaryAddress })),
-        walletType: session.walletName || "WalletConnect",
-        authorized: true,
-        provider: 'walletconnect',
-        timestamp: Date.now()
-      }));
-
-      // Connect with the primary address from WalletConnect
-      connectWalletMutation.mutate({
-        walletAddress: primaryAddress,
-        displayName: undefined
-      });
-
-      console.log("Connecting with WalletConnect address:", primaryAddress);
-    } catch (error) {
-      console.error("Failed to connect with WalletConnect:", error);
-      alert("Failed to connect with WalletConnect. Please try again.");
-    }
-  };
-
   const handleSignOut = () => {
     
     // Set explicit sign out flag to prevent automatic reconnection
@@ -1016,21 +980,6 @@ export default function HomePage() {
                       )}
                     </p>
                   </div>
-
-                  {/* WalletConnect Option */}
-                  <Button 
-                    onClick={() => setShowWalletConnectModal(true)}
-                    className="h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium flex items-center justify-center group transition-all duration-300 space-x-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 mb-4"
-                    disabled={connectWalletMutation.isPending}
-                  >
-                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Wallet className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-sm">WalletConnect</div>
-                      <div className="text-xs opacity-90">Scan QR with any wallet</div>
-                    </div>
-                  </Button>
 
                   {/* 2x1 Grid of Wallet Options */}
                   <div className="grid grid-cols-2 gap-3">
@@ -1296,14 +1245,6 @@ export default function HomePage() {
       <PrivacyModal 
         isOpen={showPrivacyModal} 
         onClose={() => setShowPrivacyModal(false)} 
-      />
-
-      {/* WalletConnect Modal */}
-      <WalletConnectModal
-        isOpen={showWalletConnectModal}
-        onClose={() => setShowWalletConnectModal(false)}
-        onConnect={handleWalletConnectConnect}
-        isLoading={connectWalletMutation.isPending}
       />
     </div>
   );
