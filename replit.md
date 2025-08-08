@@ -26,8 +26,12 @@ Preferred communication style: Simple, everyday language.
 ### Authentication Flow
 - **Standalone App Experience**: Authenticated users are automatically redirected to the main messenger interface
 - **Wallet Authentication**: Supports MetaMask and Trust Wallet with comprehensive signature collection
-- **Auto-Navigation**: Post-authentication automatically opens the messenger (1.5s delay to show success state)
+- **Trust Wallet Deep Linking**: Enhanced mobile deep linking with multiple fallback approaches and session tracking
+- **Return Detection**: URL parameter system (?wallet_return=true&session=ID) to detect wallet app returns
+- **Visual Feedback**: Loading modals and status messages during wallet redirects and connections
+- **Auto-Navigation**: Post-authentication automatically opens the messenger with smart delay detection
 - **Authentication Guard**: HomePage checks for existing authentication and redirects to messenger immediately
+- **Session Management**: Unique session IDs track wallet connection attempts and returns
 - **Clean Sign-out**: Proper cleanup prevents auto-reconnection after explicit sign-out
 
 ### Core Features

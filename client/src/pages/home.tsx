@@ -51,22 +51,42 @@ export default function HomePage() {
   });
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [isRedirectingToWallet, setIsRedirectingToWallet] = useState(false);
+  const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
 
   // Authentication guard - redirect authenticated users directly to the app
   useEffect(() => {
     const checkAuthAndRedirect = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const fromWallet = urlParams.get('from_wallet') === 'true';
+      const walletReturn = urlParams.get('wallet_return') === 'true';
+      const sessionId = urlParams.get('session');
       
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       const userSignedOut = localStorage.getItem('userSignedOut');
       const pendingConnection = localStorage.getItem('pendingWalletConnection');
+      const storedSessionId = localStorage.getItem('walletSessionId');
       
-      // If coming from wallet and authenticated, redirect immediately
-      if (fromWallet && storedConnected === 'true' && storedUser) {
+      // If coming from wallet with matching session and authenticated, redirect immediately
+      if ((fromWallet || walletReturn) && storedConnected === 'true' && storedUser) {
         console.log('User returning from wallet with authentication, redirecting to messenger...');
+        // Clean up URL parameters
+        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+        window.history.replaceState({}, document.title, cleanUrl);
         setLocation("/messenger");
+        return;
+      }
+      
+      // If returning from wallet but not yet authenticated, wait for connection
+      if ((fromWallet || walletReturn) && sessionId === storedSessionId && pendingConnection === 'true') {
+        console.log('User returned from wallet, waiting for authentication...');
+        // Clear redirect state since user has returned
+        setIsRedirectingToWallet(false);
+        setWalletRedirectMessage("");
+        // Clean up URL but don't redirect yet, let the wallet connection complete
+        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+        window.history.replaceState({}, document.title, cleanUrl);
         return;
       }
       
@@ -643,11 +663,63 @@ export default function HomePage() {
                 localStorage.setItem('pendingWalletType', 'trustwallet');
                 localStorage.setItem('walletConnectionAttempt', Date.now().toString());
                 
-                const returnUrl = `${window.location.origin}${window.location.pathname}?from_wallet=true`;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
+                // Create a unique session ID for tracking the wallet connection
+                const sessionId = Date.now().toString();
+                localStorage.setItem('walletSessionId', sessionId);
                 
-                // Use window.location instead of window.open for better mobile handling
-                window.location.href = deepLink;
+                // Use WalletConnect-style deep linking for Trust Wallet
+                const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
+                
+                // Try multiple Trust Wallet deep link approaches
+                const approaches = [
+                  // Method 1: Direct dapp browser opening
+                  `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`,
+                  
+                  // Method 2: Trust Wallet app scheme
+                  `trust://open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`,
+                  
+                  // Method 3: Universal Link
+                  `https://trustwallet.com/browser/?url=${encodeURIComponent(returnUrl)}`
+                ];
+                
+                // Try the first approach and set fallbacks
+                const primaryLink = approaches[0];
+                
+                // Show redirect message
+                setIsRedirectingToWallet(true);
+                setWalletRedirectMessage("Opening Trust Wallet...");
+                
+                try {
+                  window.location.href = primaryLink;
+                  
+                  // Set up detection for failed redirect
+                  const timeoutId = setTimeout(() => {
+                    if (localStorage.getItem('pendingWalletConnection') === 'true') {
+                      setWalletRedirectMessage("Waiting for you to return from Trust Wallet...");
+                      console.log('Trust Wallet opened, waiting for user to return...');
+                    }
+                  }, 3000);
+                  
+                  // Clear timeout if we get a page event (indicating redirect worked)
+                  const cleanup = () => {
+                    clearTimeout(timeoutId);
+                    setIsRedirectingToWallet(false);
+                    setWalletRedirectMessage("");
+                  };
+                  
+                  // Listen for page events
+                  const handleBeforeUnload = () => cleanup();
+                  window.addEventListener('beforeunload', handleBeforeUnload, { once: true });
+                  
+                } catch (error) {
+                  console.error('Failed to open Trust Wallet:', error);
+                  setWalletRedirectMessage("Failed to open Trust Wallet. Trying alternative method...");
+                  
+                  // Try fallback method after a brief delay
+                  setTimeout(() => {
+                    window.location.href = approaches[1];
+                  }, 2000);
+                }
               } else {
                 alert('Failed to connect Trust Wallet. Please try again or use manual input.');
               }
@@ -669,9 +741,19 @@ export default function HomePage() {
 
               // Enhanced mobile fallback for Trust Wallet
               if (isMobile()) {
-                const returnUrl = `${window.location.origin}${window.location.pathname}?from_wallet=true`;
+                // Set up proper return tracking
+                localStorage.setItem('pendingWalletConnection', 'true');
+                localStorage.setItem('pendingWalletType', 'trustwallet');
+                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+                
+                const sessionId = Date.now().toString();
+                localStorage.setItem('walletSessionId', sessionId);
+                
+                const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
                 const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
-                window.open(deepLink, '_blank');
+                
+                // For better mobile compatibility, use window.location instead of window.open
+                window.location.href = deepLink;
               } else {
                 window.open('https://trustwallet.com/download', '_blank');
               }
@@ -680,12 +762,19 @@ export default function HomePage() {
         } else {
           // No Web3 provider detected - Enhanced mobile handling
           if (isMobile()) {
-            // Mobile - Enhanced Trust Wallet deep link with WalletConnect fallback
-            const returnUrl = `${window.location.origin}${window.location.pathname}?from_wallet=true`;
+            // Mobile - Enhanced Trust Wallet deep link with proper return tracking
+            localStorage.setItem('pendingWalletConnection', 'true');
+            localStorage.setItem('pendingWalletType', 'trustwallet');
+            localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+            
+            const sessionId = Date.now().toString();
+            localStorage.setItem('walletSessionId', sessionId);
+            
+            const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
             const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
             
-            // Try Trust Wallet first
-            window.open(deepLink, '_blank');
+            // Use location.href for better mobile redirect handling
+            window.location.href = deepLink;
             
             // Fallback message for user
             setTimeout(() => {
@@ -1053,6 +1142,30 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Wallet Redirect Modal */}
+      {isRedirectingToWallet && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 max-w-sm mx-auto shadow-xl border border-gray-200 dark:border-slate-700">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Connecting to Trust Wallet
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  {walletRedirectMessage}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                  Complete the connection in Trust Wallet and you'll be automatically returned to Coynful Messenger
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Terms and Privacy Modals */}
       <TermsModal 
