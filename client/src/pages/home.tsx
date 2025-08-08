@@ -52,6 +52,35 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
+  // Authentication guard - redirect authenticated users directly to the app
+  useEffect(() => {
+    const checkAuthAndRedirect = () => {
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      const userSignedOut = localStorage.getItem('userSignedOut');
+      
+      // If user is authenticated and hasn't explicitly signed out, redirect to messenger
+      if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser && parsedUser.id && parsedUser.walletAddress) {
+            console.log('Authenticated user detected, redirecting to messenger...');
+            setLocation("/messenger");
+            return;
+          }
+        } catch (error) {
+          // Invalid stored user data, clear it
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+          localStorage.removeItem('connectedUserId');
+        }
+      }
+    };
+
+    // Check immediately on component mount
+    checkAuthAndRedirect();
+  }, []); // Empty dependency array - only run once on mount
+
   // Removed automatic user data fetching to prevent conflicts with localStorage updates
 
   // Listen for display name updates from settings modal
@@ -159,11 +188,11 @@ export default function HomePage() {
       // Dispatch custom event to trigger UI updates
       window.dispatchEvent(new CustomEvent('walletConnected', { detail: user }));
       
-      // Force a component re-render to ensure UI updates
+      // Automatically redirect to messenger after successful authentication
+      // This makes the app standalone - users are taken directly into the main interface
       setTimeout(() => {
-        setConnectedUser(user);
-        setIsConnected(true);
-      }, 50);
+        setLocation("/messenger");
+      }, 1500); // Brief delay to show success state before navigating
     },
   });
 
@@ -886,13 +915,24 @@ export default function HomePage() {
                   <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
+                  
+                  {/* Auto-redirect notification */}
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                        Opening Coynful Messenger...
+                      </span>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-3 mt-6">
                     <Button
                       onClick={() => setLocation("/messenger")}
                       className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Open Messenger
+                      Open Messenger Now
                     </Button>
                     <Button
                       onClick={() => setLocation("/marketplace")}
@@ -902,7 +942,6 @@ export default function HomePage() {
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Explore Marketplace
                     </Button>
-
 
                     <Button
                       onClick={handleSignOut}

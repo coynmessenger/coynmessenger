@@ -10,7 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend
 - **Framework**: React 18 with TypeScript
-- **Routing**: Wouter
+- **Routing**: Wouter with authentication-based routing
 - **UI**: Radix UI components with shadcn/ui styling
 - **Styling**: Tailwind CSS with custom COYN branding
 - **State Management**: TanStack Query
@@ -22,6 +22,13 @@ Preferred communication style: Simple, everyday language.
 - **Database ORM**: Drizzle ORM
 - **Database**: PostgreSQL (Neon serverless)
 - **Session Management**: Express sessions with PostgreSQL store
+
+### Authentication Flow
+- **Standalone App Experience**: Authenticated users are automatically redirected to the main messenger interface
+- **Wallet Authentication**: Supports MetaMask and Trust Wallet with comprehensive signature collection
+- **Auto-Navigation**: Post-authentication automatically opens the messenger (1.5s delay to show success state)
+- **Authentication Guard**: HomePage checks for existing authentication and redirects to messenger immediately
+- **Clean Sign-out**: Proper cleanup prevents auto-reconnection after explicit sign-out
 
 ### Core Features
 - Real-time text messaging.
