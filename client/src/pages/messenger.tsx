@@ -407,6 +407,7 @@ export default function MessengerPage() {
             <Button
               onClick={() => {
                 console.log('Desktop home button clicked - navigating to homepage');
+                localStorage.setItem('userClickedHome', 'true');
                 setLocation("/");
               }}
               variant="ghost"
@@ -648,6 +649,7 @@ export default function MessengerPage() {
               <Button
                 onClick={() => {
                   console.log('Home button clicked - navigating to homepage');
+                  localStorage.setItem('userClickedHome', 'true');
                   setLocation("/");
                 }}
                 variant="ghost"

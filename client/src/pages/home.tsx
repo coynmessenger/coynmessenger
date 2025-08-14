@@ -70,6 +70,7 @@ export default function HomePage() {
       const userSignedOut = localStorage.getItem('userSignedOut');
       const pendingConnection = localStorage.getItem('pendingWalletConnection');
       const storedSessionId = localStorage.getItem('walletSessionId');
+      const userClickedHome = localStorage.getItem('userClickedHome');
       
       // If coming from wallet with matching session and authenticated, redirect immediately
       if ((fromWallet || walletReturn) && storedConnected === 'true' && storedUser) {
@@ -95,6 +96,13 @@ export default function HomePage() {
       
       // Don't redirect if there's a pending wallet connection (user is in process of connecting)
       if (pendingConnection === 'true') {
+        return;
+      }
+      
+      // Don't redirect if user explicitly clicked home button
+      if (userClickedHome === 'true') {
+        console.log('User explicitly navigated to homepage, staying on homepage');
+        localStorage.removeItem('userClickedHome'); // Clear the flag
         return;
       }
       
