@@ -1124,7 +1124,7 @@ export default function HomePage() {
                       className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Open Messenger Now
+                      Messenger
                     </Button>
                     <Button
                       onClick={() => setLocation("/marketplace")}
@@ -1132,7 +1132,7 @@ export default function HomePage() {
                       className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
                     >
                       <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Explore Marketplace
+                      Marketplace
                     </Button>
 
                     <Button
