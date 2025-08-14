@@ -405,10 +405,13 @@ export default function MessengerPage() {
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
-              onClick={() => setLocation("/")}
+              onClick={() => {
+                console.log('Desktop home button clicked - navigating to homepage');
+                setLocation("/");
+              }}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted"
+              className="text-muted-foreground hover:text-primary hover:bg-muted active:bg-muted/80 transition-colors"
             >
               <Home className="h-4 w-4 mr-2" />
               Return to Home
@@ -643,11 +646,14 @@ export default function MessengerPage() {
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Button
-                onClick={() => setLocation("/")}
+                onClick={() => {
+                  console.log('Home button clicked - navigating to homepage');
+                  setLocation("/");
+                }}
                 variant="ghost"
                 size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2"
-                title="Home"
+                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2 active:bg-blue-100 transition-colors"
+                title="Go to Homepage"
               >
                 <Home className="h-5 w-5" />
               </Button>
