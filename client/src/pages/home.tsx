@@ -1116,16 +1116,7 @@ export default function HomePage() {
                   <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
                     {connectedUser?.walletAddress}
                   </p>
-                  
-                  {/* Auto-redirect notification */}
-                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                        Opening Coynful Messenger...
-                      </span>
-                    </div>
-                  </div>
+
                   
                   <div className="space-y-3 mt-6">
                     <Button
