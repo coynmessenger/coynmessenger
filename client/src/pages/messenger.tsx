@@ -52,6 +52,12 @@ preloadImage(coynLogoPath);
 
 export default function MessengerPage() {
   useScrollToTop(); // Clean contact list
+  
+  // Clear homepage session flag when user is in messenger
+  useEffect(() => {
+    sessionStorage.removeItem('userOnHomepage');
+    localStorage.removeItem('userClickedHome');
+  }, []);
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);

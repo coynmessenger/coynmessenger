@@ -102,7 +102,14 @@ export default function HomePage() {
       // Don't redirect if user explicitly clicked home button
       if (userClickedHome === 'true') {
         console.log('User explicitly navigated to homepage, staying on homepage');
-        localStorage.removeItem('userClickedHome'); // Clear the flag
+        // Don't clear the flag immediately - keep it for this session
+        sessionStorage.setItem('userOnHomepage', 'true');
+        return;
+      }
+      
+      // Don't redirect if user is explicitly staying on homepage for this session
+      if (sessionStorage.getItem('userOnHomepage') === 'true') {
+        console.log('User staying on homepage for this session');
         return;
       }
       
