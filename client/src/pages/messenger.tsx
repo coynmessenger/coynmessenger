@@ -39,11 +39,17 @@ const preloadImage = (src: string) => {
   img.decoding = 'async';
   img.fetchPriority = 'high';
   
-  // Strategy 3: Add to cache
+  // Strategy 3: Add to cache (with error handling)
   if ('caches' in window) {
-    caches.open('coyn-logo-cache').then(cache => {
-      cache.add(src);
-    });
+    try {
+      caches.open('coyn-logo-cache').then(cache => {
+        cache.add(src);
+      }).catch(() => {
+        // Silently ignore cache errors to prevent security policy violations
+      });
+    } catch {
+      // Silently ignore cache errors to prevent security policy violations
+    }
   }
 };
 
