@@ -821,7 +821,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      return apiRequest("POST", "/api/wallet/send", cryptoData);
+      return apiRequest("POST", "/api/wallet/send", {
+        ...cryptoData,
+        fromUserId: connectedUserId // Include the actual logged-in user ID
+      });
     },
     onSuccess: async (_, variables) => {
       // Use startTransition to prevent blocking video call modal renders
@@ -899,6 +902,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Handle final send confirmation
   const handleSendConfirm = () => {
+    if (!connectedUserId) {
+      toast({
+        title: "Authentication Error",
+        description: "Please log in to send cryptocurrency",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     sendCryptoMutation.mutate({
       toUserId: conversation.otherUser.id,
       currency: selectedCrypto,

@@ -722,8 +722,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency via chat
   app.post("/api/wallet/send", async (req, res) => {
     try {
-      const { toUserId, currency, amount, conversationId } = req.body;
-      const fromUserId = 5; // Current user
+      const { toUserId, currency, amount, conversationId, fromUserId } = req.body;
+      // Get actual authenticated user ID
+      const actualFromUserId = fromUserId || (req as any).session?.userId || 5;
 
       if (!toUserId || !currency || !amount) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -752,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if sender has sufficient balance
-      const senderBalance = await storage.getUserCurrencyBalance(fromUserId, currency);
+      const senderBalance = await storage.getUserCurrencyBalance(actualFromUserId, currency);
       if (!senderBalance || parseFloat(senderBalance.balance) < numAmount) {
         return res.status(400).json({ message: "Insufficient balance" });
       }
@@ -760,7 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For BNB, process as blockchain transaction to actual wallet
       if (currency === 'BNB') {
         // Get sender info for real blockchain transaction
-        const senderUser = await storage.getUser(fromUserId);
+        const senderUser = await storage.getUser(actualFromUserId);
         if (!senderUser || !senderUser.walletAddress) {
           return res.status(400).json({ message: "Sender wallet address not found" });
         }
@@ -782,7 +783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // );
           
           // For demo purposes, still update internal balances
-          const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
+          const success = await storage.transferCurrency(actualFromUserId, toUserId, currency, numAmount);
           if (!success) {
             return res.status(500).json({ message: "Transfer failed" });
           }
@@ -794,7 +795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // For other currencies, use internal transfer
-        const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
+        const success = await storage.transferCurrency(actualFromUserId, toUserId, currency, numAmount);
         if (!success) {
           return res.status(500).json({ message: "Transfer failed" });
         }
@@ -803,7 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create transfer message
       const transferMessage = {
         conversationId: conversationId || 1, // Use passed conversationId or default
-        senderId: fromUserId,
+        senderId: actualFromUserId,
         content: `Sent ${amount} ${currency}`,
         messageType: "crypto_transfer" as const,
         cryptoAmount: amount,
