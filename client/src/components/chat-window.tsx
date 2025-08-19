@@ -895,36 +895,72 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   throw new Error(`Failed to add BSC network. Please add BSC network manually in your wallet.`);
                 }
               } else if (switchError.code === 4001) {
-                // User rejected the network switch
-                throw new Error('Please approve the network switch to BSC (Binance Smart Chain) to send BNB.');
+                // User rejected the network switch - provide helpful guidance
+                throw new Error(`BNB transactions require BSC network. Please:
+1. Switch to Binance Smart Chain (BSC) in your wallet
+2. Or manually add BSC network (Chain ID: 56)
+3. Then try sending BNB again`);
               } else {
                 console.error(`❌ Unexpected switch error:`, switchError);
-                throw new Error(`Failed to switch to BSC network. Please switch to BSC manually in your wallet.`);
+                throw new Error(`Network switch failed. Please manually switch to BSC (Chain ID: 56) in your wallet settings.`);
               }
             }
           } else {
             console.log(`✅ Already on BSC network`);
           }
           
-          // Get current gas price from the network
+          // Verify we're now on BSC after network switch
+          const finalChainId = await window.ethereum.request({ method: 'eth_chainId' });
+          if (finalChainId !== bscChainId) {
+            throw new Error(`Still not on BSC network. Current: ${finalChainId}, Required: ${bscChainId}. Please switch to BSC manually.`);
+          }
+          
+          // Get current balance to verify sufficient funds
+          const currentBalance = await window.ethereum.request({
+            method: 'eth_getBalance',
+            params: [senderAddress, 'latest']
+          });
+          const balanceInBNB = parseFloat(currentBalance) / Math.pow(10, 18);
+          console.log(`🔴 Current BNB balance: ${balanceInBNB} BNB`);
+          console.log(`🔴 Attempting to send: ${cryptoData.amount} BNB`);
+          
+          if (balanceInBNB < parseFloat(cryptoData.amount)) {
+            throw new Error(`Insufficient BNB balance. You have ${balanceInBNB.toFixed(6)} BNB but trying to send ${cryptoData.amount} BNB`);
+          }
+          
+          // Get current gas price from BSC network
           let gasPrice;
           try {
             gasPrice = await window.ethereum.request({ method: 'eth_gasPrice' });
-            console.log(`🔴 Network gas price: ${gasPrice}`);
+            console.log(`🔴 BSC gas price: ${gasPrice}`);
           } catch (gasPriceError) {
-            console.log(`⚠️ Could not get gas price, using default`);
+            console.log(`⚠️ Could not get gas price from BSC, using default`);
             gasPrice = '0x12A05F200'; // 5 Gwei fallback
           }
           
-          // Convert amount to Wei (BNB has 18 decimals) - use more precise conversion
-          const amountInWei = parseFloat(cryptoData.amount) * Math.pow(10, 18);
-          const amountWei = '0x' + Math.floor(amountInWei).toString(16);
+          // Convert amount to Wei with exact precision (BNB has 18 decimals)
+          const amountStr = cryptoData.amount.toString();
+          const parts = amountStr.split('.');
+          const wholePart = parts[0] || '0';
+          const fractionalPart = (parts[1] || '').padEnd(18, '0').slice(0, 18);
+          const amountInWei = BigInt(wholePart + fractionalPart);
+          const amountWei = '0x' + amountInWei.toString(16);
           
-          console.log(`🔴 Amount: ${cryptoData.amount} BNB`);
-          console.log(`🔴 Amount in Wei: ${amountWei}`);
-          console.log(`🔴 Amount in Wei (decimal): ${Math.floor(amountInWei)}`);
+          console.log(`🔴 Exact amount: ${cryptoData.amount} BNB`);
+          console.log(`🔴 Amount in Wei (hex): ${amountWei}`);
+          console.log(`🔴 Amount in Wei (decimal): ${amountInWei.toString()}`);
           
-          // Create transaction object
+          // Estimate gas cost
+          const gasLimit = BigInt(21000);
+          const gasCostWei = gasLimit * BigInt(gasPrice);
+          const totalCostWei = amountInWei + gasCostWei;
+          
+          if (BigInt(currentBalance) < totalCostWei) {
+            const totalCostBNB = parseFloat(totalCostWei.toString()) / Math.pow(10, 18);
+            throw new Error(`Insufficient balance for transaction + gas fees. Need ${totalCostBNB.toFixed(6)} BNB, have ${balanceInBNB.toFixed(6)} BNB`);
+          }
+          
+          // Create precise transaction object
           const transactionParams = {
             from: senderAddress,
             to: recipientAddress,
@@ -955,7 +991,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           
         } catch (error: any) {
           console.error('❌ BNB transaction failed:', error);
-          throw new Error(error.message || 'BNB transaction failed');
+          
+          // Provide specific error messages based on error type
+          if (error.code === 4001) {
+            throw new Error('Transaction cancelled by user. Please try again and approve the transaction.');
+          } else if (error.code === -32603) {
+            throw new Error('Transaction failed. Please check your balance and network connection.');
+          } else if (error.message && error.message.includes('insufficient')) {
+            throw new Error('Insufficient BNB balance or gas fees. Please check your wallet balance.');
+          } else {
+            throw new Error(error.message || 'BNB blockchain transaction failed. Please try again.');
+          }
         }
       } else {
         // For other currencies, use internal transfer
@@ -1004,11 +1050,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         }, 1000);
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('❌ Crypto mutation error:', error);
+      
       toast({
         title: "Failed to send crypto",
-        description: "Please try again.",
+        description: error.message || "Please try again.",
         variant: "destructive",
+        duration: 8000 // Longer duration for error messages
       });
     },
   });
