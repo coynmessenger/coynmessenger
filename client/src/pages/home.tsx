@@ -501,8 +501,8 @@ export default function HomePage() {
     console.log(`🚀 Connecting ${walletType} wallet via universal connector...`);
     
     try {
-      // Universal wallet connection that prevents conflicts across ALL browsers
-      const connection = await walletConnector.connect('0x38'); // Force BSC network
+      // Universal wallet connection with specific wallet targeting
+      const connection = await walletConnector.connect('0x38', walletType); // Force BSC + target specific wallet
       
       if (connection && connection.isConnected) {
         console.log('✅ Wallet connected successfully:', connection);
@@ -527,12 +527,16 @@ export default function HomePage() {
     } catch (universalError: any) {
       console.error(`❌ Universal wallet connection failed:`, universalError);
       
-      // Show user-friendly error
-      alert(universalError.message || 'Failed to connect wallet. Please try again.');
+      // Don't show alert for install redirects
+      if (!universalError.message?.includes('Redirecting to install') && 
+          !universalError.message?.includes('not installed')) {
+        alert(universalError.message || 'Failed to connect wallet. Please try again.');
+      }
+      return; // Exit early on error
     }
     
-    // Fallback for mobile deep linking if universal connector fails
-    console.log('📱 Trying mobile deep link fallback...');
+    // This should not be reached due to early return above
+    console.log('🚑 Unexpected fallback reached');
     
     // Fallback to original connection flow if wallet selector not available
     try {

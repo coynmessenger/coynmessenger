@@ -32,9 +32,9 @@ class UniversalWalletConnector {
     if ((window as any).ethereum) {
       const ethereum = (window as any).ethereum;
       
-      // Handle multiple providers
+      // Handle multiple providers (like when multiple wallets are installed)
       if (ethereum.providers && ethereum.providers.length > 0) {
-        // Find MetaMask or Trust Wallet
+        // Find specific wallet provider
         const metaMask = ethereum.providers.find((p: any) => p.isMetaMask);
         const trustWallet = ethereum.providers.find((p: any) => p.isTrust);
         
@@ -47,8 +47,8 @@ class UniversalWalletConnector {
     }
   }
 
-  // Universal wallet connection that works in all browsers
-  async connect(forceNetwork: string = '0x38'): Promise<WalletConnection> {
+  // Universal wallet connection that works in all browsers with specific wallet targeting
+  async connect(forceNetwork: string = '0x38', preferredWallet?: 'metamask' | 'trust'): Promise<WalletConnection> {
     // Prevent multiple concurrent connections
     if (this.isConnecting && this.connectionPromise) {
       console.log('🔄 Connection already in progress, waiting...');
@@ -56,7 +56,7 @@ class UniversalWalletConnector {
     }
 
     this.isConnecting = true;
-    this.connectionPromise = this._performConnection(forceNetwork);
+    this.connectionPromise = this._performConnection(forceNetwork, preferredWallet);
 
     try {
       const result = await this.connectionPromise;
@@ -67,9 +67,30 @@ class UniversalWalletConnector {
     }
   }
 
-  private async _performConnection(forceNetwork: string): Promise<WalletConnection> {
+  private async _performConnection(forceNetwork: string, preferredWallet?: 'metamask' | 'trust'): Promise<WalletConnection> {
+    // Re-detect provider for specific wallet if needed
+    if (preferredWallet) {
+      this.detectSpecificProvider(preferredWallet);
+    }
+    
     if (!this.provider) {
-      throw new Error('No Web3 wallet detected. Please install MetaMask, Trust Wallet, or another Web3 wallet.');
+      // Handle wallet not installed case
+      if (preferredWallet === 'metamask') {
+        if (this.isMobile()) {
+          window.location.href = `https://metamask.app.link/dapp/${window.location.host}`;
+        } else {
+          window.open('https://metamask.io/download/', '_blank');
+        }
+        throw new Error('MetaMask not installed. Redirecting to install page.');
+      } else if (preferredWallet === 'trust') {
+        if (this.isMobile()) {
+          window.location.href = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(window.location.href)}`;
+        } else {
+          window.open('https://trustwallet.com/download', '_blank');
+        }
+        throw new Error('Trust Wallet not installed. Redirecting to install page.');
+      }
+      throw new Error('No Web3 wallet detected.');
     }
 
     try {
@@ -79,6 +100,7 @@ class UniversalWalletConnector {
       let accounts: string[] = [];
       try {
         accounts = await this.provider.request({ method: 'eth_accounts' });
+        console.log('📋 Found existing connected accounts:', accounts.length);
       } catch (error) {
         // Ignore error, will request accounts next
       }
@@ -177,6 +199,36 @@ class UniversalWalletConnector {
         throw error;
       }
     }
+  }
+
+  // Detect specific provider for targeted wallet connection
+  private detectSpecificProvider(walletType: 'metamask' | 'trust'): void {
+    if (typeof window === 'undefined') return;
+
+    if (walletType === 'metamask') {
+      // Look specifically for MetaMask
+      if ((window as any).ethereum?.isMetaMask) {
+        this.provider = (window as any).ethereum;
+      } else if ((window as any).ethereum?.providers) {
+        const metaMask = (window as any).ethereum.providers.find((p: any) => p.isMetaMask);
+        if (metaMask) this.provider = metaMask;
+      }
+    } else if (walletType === 'trust') {
+      // Look specifically for Trust Wallet
+      if ((window as any).trustWallet) {
+        this.provider = (window as any).trustWallet;
+      } else if ((window as any).ethereum?.isTrust) {
+        this.provider = (window as any).ethereum;
+      } else if ((window as any).ethereum?.providers) {
+        const trust = (window as any).ethereum.providers.find((p: any) => p.isTrust);
+        if (trust) this.provider = trust;
+      }
+    }
+  }
+  
+  // Check if on mobile device
+  private isMobile(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   // Detect wallet type
