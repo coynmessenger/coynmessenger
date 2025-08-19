@@ -829,6 +829,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             throw new Error('Please connect your wallet to send BNB');
           }
           
+          // Check if we're in an iframe (like Replit) where wallet access is blocked
+          if (window.self !== window.top) {
+            // We're in an iframe - open the app in a new window for wallet access
+            const appUrl = window.location.href;
+            const newWindow = window.open(appUrl, '_blank', 'width=1200,height=800');
+            
+            if (newWindow) {
+              throw new Error('App opened in new window for wallet access. Please complete the BNB transaction there.');
+            } else {
+              throw new Error('Please open this app in a new tab/window to use wallet features. Right-click and select "Open in New Tab"');
+            }
+          }
+          
           // Get recipient user wallet address from conversation data
           const recipientAddress = conversation.otherUser.walletAddress;
           if (!recipientAddress) {
@@ -845,8 +858,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           console.log(`To: ${recipientAddress}`);
           console.log(`Amount: ${cryptoData.amount} BNB`);
           
-          // Request account access
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          // Request account access (with iframe detection)
+          let accounts;
+          try {
+            accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          } catch (accessError: any) {
+            if (accessError.code === 4001 || accessError.message?.includes('frames') || accessError.message?.includes('disallowed')) {
+              // Wallet blocked due to iframe - provide clear instructions
+              throw new Error('Wallet access blocked in embedded view. Please open this app in a new tab: Right-click → "Open in New Tab" or copy the URL to a new browser tab.');
+            }
+            throw accessError;
+          }
           const senderAddress = accounts[0];
           
           console.log(`🔴 Sender address: ${senderAddress}`);
@@ -1004,12 +1026,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         }, 1000);
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      const errorMessage = error.message || "Please try again.";
+      
       toast({
         title: "Failed to send crypto",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "destructive",
+        duration: 8000 // Longer duration for important error messages
       });
+      
+      // If it's a wallet access issue, provide additional help
+      if (errorMessage.includes('iframe') || errorMessage.includes('frames') || errorMessage.includes('new tab')) {
+        setTimeout(() => {
+          toast({
+            title: "💡 Tip",
+            description: "Copy this URL and paste it in a new browser tab for full wallet access.",
+            duration: 10000
+          });
+        }, 2000);
+      }
     },
   });
 
