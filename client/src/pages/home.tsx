@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
+import { walletConnector } from "@/lib/universal-wallet-connector";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -497,22 +498,41 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
-    // Check if wallet is available first
-    if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-      // Show address selector for MetaMask
-      setSelectedWalletType('metamask');
-      setShowAddressSelector(true);
-      return;
-    }
+    console.log(`🚀 Connecting ${walletType} wallet via universal connector...`);
     
-    if (walletType === 'trust') {
-      // Check for Trust Wallet availability and show selector
-      if (typeof window.ethereum !== 'undefined' && (window.ethereum.isTrust || window.trustWallet)) {
-        setSelectedWalletType('trust');
-        setShowAddressSelector(true);
+    try {
+      // Universal wallet connection that prevents conflicts across ALL browsers
+      const connection = await walletConnector.connect('0x38'); // Force BSC network
+      
+      if (connection && connection.isConnected) {
+        console.log('✅ Wallet connected successfully:', connection);
+        
+        // Store wallet access data
+        localStorage.setItem('walletAccess', JSON.stringify({
+          address: connection.address,
+          chainId: connection.chainId,
+          walletType: connection.walletType,
+          authorized: true,
+          timestamp: Date.now()
+        }));
+        
+        // Connect user to backend
+        connectWalletMutation.mutate({
+          walletAddress: connection.address,
+          displayName: undefined
+        });
+        
         return;
       }
+    } catch (universalError: any) {
+      console.error(`❌ Universal wallet connection failed:`, universalError);
+      
+      // Show user-friendly error
+      alert(universalError.message || 'Failed to connect wallet. Please try again.');
     }
+    
+    // Fallback for mobile deep linking if universal connector fails
+    console.log('📱 Trying mobile deep link fallback...');
     
     // Fallback to original connection flow if wallet selector not available
     try {
