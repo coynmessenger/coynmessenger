@@ -722,12 +722,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency via chat
   app.post("/api/wallet/send", async (req, res) => {
     try {
-      const { toUserId, currency, amount, conversationId, fromUserId } = req.body;
+      const { toUserId, currency, amount, conversationId, fromUserId, transactionHash, isBlockchainTransaction } = req.body;
       // Get actual authenticated user ID
       const actualFromUserId = fromUserId || (req as any).session?.userId || 5;
-      
-      console.log('🔍 Server received fromUserId:', fromUserId);
-      console.log('🔍 Server using actualFromUserId:', actualFromUserId);
 
       if (!toUserId || !currency || !amount) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -761,40 +758,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Insufficient balance" });
       }
 
-      // For BNB, process as blockchain transaction to actual wallet
-      if (currency === 'BNB') {
-        // Get sender info for real blockchain transaction
+      // For BNB with blockchain transaction
+      if (currency === 'BNB' && isBlockchainTransaction) {
+        // Get sender info
         const senderUser = await storage.getUser(actualFromUserId);
         if (!senderUser || !senderUser.walletAddress) {
           return res.status(400).json({ message: "Sender wallet address not found" });
         }
 
-        try {
-          // This would be a real blockchain transaction
-          // For now, we'll simulate it but log the intended transaction details
-          console.log(`BNB Transaction Simulation:`);
-          console.log(`From: ${senderUser.walletAddress}`);
-          console.log(`To: ${recipientUser.walletAddress}`);
-          console.log(`Amount: ${numAmount} BNB`);
-          
-          // In a real implementation, this would call blockchainService.sendBNB
-          // const txResult = await blockchainService.sendBNB(
-          //   senderUser.walletAddress,
-          //   recipientUser.walletAddress,
-          //   amount,
-          //   senderPrivateKey // This would need to be securely managed
-          // );
-          
-          // For demo purposes, still update internal balances
-          const success = await storage.transferCurrency(actualFromUserId, toUserId, currency, numAmount);
-          if (!success) {
-            return res.status(500).json({ message: "Transfer failed" });
-          }
-          
-          console.log(`BNB sent to correct wallet address: ${recipientUser.walletAddress}`);
-        } catch (error) {
-          console.error('BNB blockchain transaction failed:', error);
-          return res.status(500).json({ message: "BNB blockchain transaction failed" });
+        console.log(`✅ Real BNB blockchain transaction completed:`);
+        console.log(`From: ${senderUser.walletAddress}`);
+        console.log(`To: ${recipientUser.walletAddress}`);
+        console.log(`Amount: ${numAmount} BNB`);
+        console.log(`Transaction Hash: ${transactionHash}`);
+        
+        // Update internal balances to reflect blockchain transaction
+        const success = await storage.transferCurrency(actualFromUserId, toUserId, currency, numAmount);
+        if (!success) {
+          return res.status(500).json({ message: "Failed to update internal balances after blockchain transaction" });
+        }
+        
+      } else if (currency === 'BNB') {
+        // BNB without blockchain (shouldn't happen, but fallback)
+        console.log(`⚠️ BNB transaction without blockchain - using internal transfer`);
+        const success = await storage.transferCurrency(actualFromUserId, toUserId, currency, numAmount);
+        if (!success) {
+          return res.status(500).json({ message: "Transfer failed" });
         }
       } else {
         // For other currencies, use internal transfer
@@ -820,7 +809,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Transfer successful",
         recipientAddress: recipientUser.walletAddress,
         currency: currency,
-        amount: numAmount
+        amount: numAmount,
+        transactionHash: transactionHash || null,
+        isBlockchainTransaction: isBlockchainTransaction || false
       });
     } catch (error) {
       

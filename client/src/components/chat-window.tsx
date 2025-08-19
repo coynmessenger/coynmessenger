@@ -88,9 +88,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const connectedUserId = getConnectedUserId();
   
-  // Debug: Log the connected user ID
-  console.log('🔍 Connected User ID in ChatWindow:', connectedUserId);
-  
   // Check if this is a self-conversation (messaging yourself)
   const isSelfConversation = connectedUserId === conversation.otherUser.id;
 
@@ -824,15 +821,109 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      console.log('🔍 Sending crypto with fromUserId:', connectedUserId);
-      console.log('🔍 Full crypto data being sent:', { ...cryptoData, fromUserId: connectedUserId });
-      
-      return apiRequest("POST", "/api/wallet/send", {
-        ...cryptoData,
-        fromUserId: connectedUserId // Include the actual logged-in user ID
-      });
+      // For BNB, perform real blockchain transaction using connected wallet
+      if (cryptoData.currency === 'BNB') {
+        try {
+          // Check if Web3 wallet is available
+          if (!window.ethereum) {
+            throw new Error('Please connect your wallet to send BNB');
+          }
+          
+          // Get recipient user wallet address from conversation data
+          const recipientAddress = conversation.otherUser.walletAddress;
+          if (!recipientAddress) {
+            throw new Error('Recipient wallet address not found');
+          }
+          
+          // Validate recipient address format for BNB (BSC)
+          if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
+            throw new Error('Invalid recipient BNB address format');
+          }
+          
+          console.log(`🔴 Initiating real BNB blockchain transaction:`);
+          console.log(`From: Connected Wallet`);
+          console.log(`To: ${recipientAddress}`);
+          console.log(`Amount: ${cryptoData.amount} BNB`);
+          
+          // Request account access
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const senderAddress = accounts[0];
+          
+          console.log(`🔴 Sender address: ${senderAddress}`);
+          
+          // Ensure we're on BSC network (Chain ID: 0x38 = 56)
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x38' }],
+            });
+          } catch (switchError: any) {
+            // If BSC is not added, add it
+            if (switchError.code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x38',
+                  chainName: 'Binance Smart Chain Mainnet',
+                  rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                  nativeCurrency: {
+                    name: 'BNB',
+                    symbol: 'BNB',
+                    decimals: 18,
+                  },
+                  blockExplorerUrls: ['https://bscscan.com/'],
+                }],
+              });
+            } else {
+              throw switchError;
+            }
+          }
+          
+          // Convert amount to Wei (BNB has 18 decimals)
+          const amountWei = '0x' + (BigInt(Math.floor(parseFloat(cryptoData.amount) * 1e18))).toString(16);
+          
+          console.log(`🔴 Amount in Wei: ${amountWei}`);
+          
+          // Create transaction object
+          const transactionParams = {
+            from: senderAddress,
+            to: recipientAddress,
+            value: amountWei,
+            gas: '0x5208', // 21000 gas for simple BNB transfer
+            gasPrice: '0x12A05F200' // 5 Gwei
+          };
+          
+          console.log(`🔴 Transaction params:`, transactionParams);
+          
+          // Send transaction via connected wallet
+          const txHash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [transactionParams],
+          });
+          
+          console.log(`✅ BNB transaction sent! Hash: ${txHash}`);
+          
+          // Now update the backend with the transaction record
+          return apiRequest("POST", "/api/wallet/send", {
+            ...cryptoData,
+            fromUserId: connectedUserId,
+            transactionHash: txHash,
+            isBlockchainTransaction: true
+          });
+          
+        } catch (error: any) {
+          console.error('❌ BNB transaction failed:', error);
+          throw new Error(error.message || 'BNB transaction failed');
+        }
+      } else {
+        // For other currencies, use internal transfer
+        return apiRequest("POST", "/api/wallet/send", {
+          ...cryptoData,
+          fromUserId: connectedUserId
+        });
+      }
     },
-    onSuccess: async (_, variables) => {
+    onSuccess: async (data, variables) => {
       // Use startTransition to prevent blocking video call modal renders
       startTransition(() => {
         setCryptoAmount("");
@@ -850,10 +941,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         });
       }, 150);
       
+      const successMessage = variables.currency === 'BNB' 
+        ? `${variables.amount} ${variables.currency} sent via blockchain to ${conversation.otherUser?.displayName || "Unknown User"}`
+        : `${variables.amount} ${variables.currency} sent to ${conversation.otherUser?.displayName || "Unknown User"}`;
+      
       toast({
-        title: "Crypto sent successfully",
-        description: `${variables.amount} ${variables.currency} sent to ${conversation.otherUser?.displayName || "Unknown User"}`,
+        title: variables.currency === 'BNB' ? "BNB Blockchain Transaction Completed" : "Crypto sent successfully",
+        description: successMessage,
+        duration: 5000
       });
+      
+      // Show transaction hash for BNB transactions
+      if (variables.currency === 'BNB' && data?.transactionHash) {
+        setTimeout(() => {
+          toast({
+            title: "Transaction Hash",
+            description: `Hash: ${data.transactionHash}`,
+            duration: 10000
+          });
+        }, 1000);
+      }
     },
     onError: () => {
       toast({
