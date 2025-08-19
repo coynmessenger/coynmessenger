@@ -19,6 +19,8 @@ class UniversalWalletConnector {
   private provider: WalletProvider | null = null;
   private isConnecting = false;
   private connectionPromise: Promise<WalletConnection> | null = null;
+  private lastConnectionAttempt = 0;
+  private connectionCooldown = 2000; // 2 second cooldown between attempts
 
   constructor() {
     this.detectProvider();
@@ -47,14 +49,21 @@ class UniversalWalletConnector {
     }
   }
 
-  // Universal wallet connection that works in all browsers with specific wallet targeting
+  // Universal wallet connection with enhanced conflict prevention
   async connect(forceNetwork: string = '0x38', preferredWallet?: 'metamask' | 'trust'): Promise<WalletConnection> {
+    // Enhanced cooldown to prevent rapid clicks
+    const now = Date.now();
+    if (now - this.lastConnectionAttempt < this.connectionCooldown) {
+      throw new Error('Please wait before trying to connect again.');
+    }
+    
     // Prevent multiple concurrent connections
     if (this.isConnecting && this.connectionPromise) {
-      console.log('🔄 Connection already in progress, waiting...');
-      return this.connectionPromise;
+      console.log('🔄 Connection already in progress, please wait...');
+      throw new Error('Wallet connection already in progress. Please wait.');
     }
 
+    this.lastConnectionAttempt = now;
     this.isConnecting = true;
     this.connectionPromise = this._performConnection(forceNetwork, preferredWallet);
 
@@ -96,42 +105,70 @@ class UniversalWalletConnector {
     try {
       console.log('🔗 Connecting to wallet...');
       
-      // Step 1: Get existing accounts first (prevents permission popups if already connected)
+      // Step 1: Check if already connected first
       let accounts: string[] = [];
       try {
         accounts = await this.provider.request({ method: 'eth_accounts' });
-        console.log('📋 Found existing connected accounts:', accounts.length);
+        console.log('📋 Found existing accounts:', accounts.length);
       } catch (error) {
-        // Ignore error, will request accounts next
+        console.log('⚠️ Could not get existing accounts:', error);
       }
 
-      // Step 2: Request accounts if none are connected
+      // Step 2: Only request accounts if none are connected
       if (!accounts || accounts.length === 0) {
-        console.log('📋 Requesting wallet access...');
-        accounts = await this.provider.request({ method: 'eth_requestAccounts' });
+        console.log('📋 No accounts connected, requesting wallet access...');
+        console.log('👆 Please approve the connection in your wallet popup');
+        
+        try {
+          accounts = await this.provider.request({ method: 'eth_requestAccounts' });
+        } catch (error: any) {
+          if (error.code === 4001) {
+            throw new Error('Connection cancelled. Please click "Connect" in your wallet to proceed.');
+          } else if (error.code === -32002) {
+            throw new Error('Wallet connection request already pending. Please check your wallet and approve the connection.');
+          } else {
+            throw error;
+          }
+        }
       }
 
       if (!accounts || accounts.length === 0) {
-        throw new Error('No wallet accounts available');
+        throw new Error('No wallet accounts available. Please unlock your wallet and try again.');
       }
 
       const address = accounts[0];
       console.log('✅ Wallet address:', address);
 
       // Step 3: Check current network
-      const currentChainId = await this.provider.request({ method: 'eth_chainId' });
-      console.log('🌐 Current network:', currentChainId);
+      let currentChainId: string;
+      try {
+        currentChainId = await this.provider.request({ method: 'eth_chainId' });
+        console.log('🌐 Current network:', currentChainId);
+      } catch (error) {
+        console.error('❌ Failed to get current network:', error);
+        throw new Error('Could not detect current network. Please check your wallet connection.');
+      }
 
       // Step 4: Force network switch if needed
       if (currentChainId !== forceNetwork) {
-        console.log(`🔄 Switching to network ${forceNetwork}...`);
-        await this.switchNetwork(forceNetwork);
+        console.log(`🔄 Switching from ${currentChainId} to ${forceNetwork}...`);
+        console.log('👆 Please approve the network switch in your wallet');
+        
+        try {
+          await this.switchNetwork(forceNetwork);
+        } catch (error: any) {
+          if (error.code === 4001) {
+            throw new Error('Network switch cancelled. This app requires BSC network to function.');
+          } else {
+            throw error;
+          }
+        }
       }
 
       // Step 5: Verify final network
       const finalChainId = await this.provider.request({ method: 'eth_chainId' });
       if (finalChainId !== forceNetwork) {
-        throw new Error(`Failed to switch to required network. Current: ${finalChainId}, Required: ${forceNetwork}`);
+        throw new Error(`Network switch incomplete. Please manually switch to BSC network in your wallet.`);
       }
 
       // Step 6: Detect wallet type
@@ -152,12 +189,18 @@ class UniversalWalletConnector {
     } catch (error: any) {
       console.error('❌ Wallet connection failed:', error);
       
+      // Provide specific guidance based on error type
       if (error.code === 4001) {
-        throw new Error('Connection cancelled by user. Please try again and approve the wallet connection.');
+        throw new Error('Connection cancelled. Please try again and click "Connect" when your wallet asks for permission.');
       } else if (error.code === -32002) {
-        throw new Error('Wallet request already pending. Please check your wallet and try again.');
+        throw new Error('Connection request pending. Please check your wallet popup and approve the connection.');
+      } else if (error.code === -32603) {
+        throw new Error('Internal wallet error. Please refresh the page and try again.');
+      } else if (error.message && error.message.includes('User denied')) {
+        throw new Error('Connection denied. Please approve the connection in your wallet to continue.');
       } else {
-        throw new Error(error.message || 'Failed to connect wallet. Please try again.');
+        // Re-throw custom errors we created
+        throw error;
       }
     }
   }

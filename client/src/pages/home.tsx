@@ -492,6 +492,7 @@ export default function HomePage() {
   const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
+      console.log('⏳ Connection already in progress...');
       return;
     }
     
@@ -527,12 +528,25 @@ export default function HomePage() {
     } catch (universalError: any) {
       console.error(`❌ Universal wallet connection failed:`, universalError);
       
-      // Don't show alert for install redirects
-      if (!universalError.message?.includes('Redirecting to install') && 
-          !universalError.message?.includes('not installed')) {
-        alert(universalError.message || 'Failed to connect wallet. Please try again.');
+      // Provide user-friendly error messages
+      const errorMessage = universalError.message || 'Failed to connect wallet';
+      
+      // Don't show alerts for install redirects or rapid clicks
+      if (!errorMessage.includes('Redirecting to install') && 
+          !errorMessage.includes('not installed') &&
+          !errorMessage.includes('Please wait before trying')) {
+        
+        // Show helpful error message
+        let userMessage = errorMessage;
+        if (errorMessage.includes('Connection cancelled') || errorMessage.includes('denied')) {
+          userMessage = 'Connection cancelled. To connect your wallet:\n\n1. Click the wallet button again\n2. Click "Connect" when your wallet popup appears\n3. Approve any network switches to BSC';
+        } else if (errorMessage.includes('already pending')) {
+          userMessage = 'Please check your wallet - there may be a popup waiting for your approval.';
+        }
+        
+        alert(userMessage);
       }
-      return; // Exit early on error
+      return;
     }
     
     // This should not be reached due to early return above
