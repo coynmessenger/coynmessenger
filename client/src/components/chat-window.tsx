@@ -1928,7 +1928,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             {msg.senderId === connectedUserId ? '-' : '+'}{msg.cryptoAmount} {msg.cryptoCurrency}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 break-all px-2">
-                            To: {msg.senderId === connectedUserId ? conversation.otherUser.walletAddress : msg.sender?.walletAddress || 'Unknown'}
+                            To: {(() => {
+                              // For BNB transactions, ensure we show the correct BNB-compatible address
+                              if (msg.cryptoCurrency === 'BNB') {
+                                const recipientAddress = msg.senderId === connectedUserId 
+                                  ? conversation.otherUser.walletAddress 
+                                  : msg.sender?.walletAddress;
+                                
+                                // Validate it's a proper BNB (BSC) address
+                                if (recipientAddress && recipientAddress.startsWith('0x') && recipientAddress.length === 42) {
+                                  return recipientAddress;
+                                } else {
+                                  return 'Invalid BNB Address';
+                                }
+                              } else {
+                                // For other currencies, use standard logic
+                                return msg.senderId === connectedUserId 
+                                  ? conversation.otherUser.walletAddress 
+                                  : msg.sender?.walletAddress || 'Unknown';
+                              }
+                            })()}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {formatTimestamp(msg.timestamp)}
