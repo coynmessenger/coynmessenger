@@ -88,6 +88,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const connectedUserId = getConnectedUserId();
   
+  // Debug: Log the connected user ID
+  console.log('🔍 Connected User ID in ChatWindow:', connectedUserId);
+  
   // Check if this is a self-conversation (messaging yourself)
   const isSelfConversation = connectedUserId === conversation.otherUser.id;
 
@@ -821,6 +824,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
+      console.log('🔍 Sending crypto with fromUserId:', connectedUserId);
+      console.log('🔍 Full crypto data being sent:', { ...cryptoData, fromUserId: connectedUserId });
+      
       return apiRequest("POST", "/api/wallet/send", {
         ...cryptoData,
         fromUserId: connectedUserId // Include the actual logged-in user ID

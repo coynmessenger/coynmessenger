@@ -725,6 +725,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { toUserId, currency, amount, conversationId, fromUserId } = req.body;
       // Get actual authenticated user ID
       const actualFromUserId = fromUserId || (req as any).session?.userId || 5;
+      
+      console.log('🔍 Server received fromUserId:', fromUserId);
+      console.log('🔍 Server using actualFromUserId:', actualFromUserId);
 
       if (!toUserId || !currency || !amount) {
         return res.status(400).json({ message: "Missing required fields" });
