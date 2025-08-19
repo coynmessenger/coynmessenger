@@ -851,38 +851,78 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           
           console.log(`🔴 Sender address: ${senderAddress}`);
           
-          // Ensure we're on BSC network (Chain ID: 0x38 = 56)
-          try {
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: '0x38' }],
-            });
-          } catch (switchError: any) {
-            // If BSC is not added, add it
-            if (switchError.code === 4902) {
+          // Check current chain ID
+          const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+          console.log(`🔴 Current chain ID: ${currentChainId}`);
+          
+          // BSC Chain ID is 0x38 (56 in decimal)
+          const bscChainId = '0x38';
+          
+          if (currentChainId !== bscChainId) {
+            console.log(`🔴 Need to switch from ${currentChainId} to BSC (${bscChainId})`);
+            
+            try {
+              // Try to switch to BSC
               await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: '0x38',
-                  chainName: 'Binance Smart Chain Mainnet',
-                  rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-                  nativeCurrency: {
-                    name: 'BNB',
-                    symbol: 'BNB',
-                    decimals: 18,
-                  },
-                  blockExplorerUrls: ['https://bscscan.com/'],
-                }],
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: bscChainId }],
               });
-            } else {
-              throw switchError;
+              console.log(`✅ Successfully switched to BSC network`);
+            } catch (switchError: any) {
+              console.log(`⚠️ Switch error:`, switchError);
+              
+              // If the network doesn't exist (error 4902), add it
+              if (switchError.code === 4902) {
+                console.log(`📋 Adding BSC network to wallet`);
+                try {
+                  await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                      chainId: bscChainId,
+                      chainName: 'BNB Smart Chain',
+                      rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                      nativeCurrency: {
+                        name: 'BNB',
+                        symbol: 'BNB',
+                        decimals: 18,
+                      },
+                      blockExplorerUrls: ['https://bscscan.com/'],
+                    }],
+                  });
+                  console.log(`✅ BSC network added successfully`);
+                } catch (addError: any) {
+                  console.error(`❌ Failed to add BSC network:`, addError);
+                  throw new Error(`Failed to add BSC network. Please add BSC network manually in your wallet.`);
+                }
+              } else if (switchError.code === 4001) {
+                // User rejected the network switch
+                throw new Error('Please approve the network switch to BSC (Binance Smart Chain) to send BNB.');
+              } else {
+                console.error(`❌ Unexpected switch error:`, switchError);
+                throw new Error(`Failed to switch to BSC network. Please switch to BSC manually in your wallet.`);
+              }
             }
+          } else {
+            console.log(`✅ Already on BSC network`);
           }
           
-          // Convert amount to Wei (BNB has 18 decimals)
-          const amountWei = '0x' + (BigInt(Math.floor(parseFloat(cryptoData.amount) * 1e18))).toString(16);
+          // Get current gas price from the network
+          let gasPrice;
+          try {
+            gasPrice = await window.ethereum.request({ method: 'eth_gasPrice' });
+            console.log(`🔴 Network gas price: ${gasPrice}`);
+          } catch (gasPriceError) {
+            console.log(`⚠️ Could not get gas price, using default`);
+            gasPrice = '0x12A05F200'; // 5 Gwei fallback
+          }
           
+          // Convert amount to Wei (BNB has 18 decimals) - use more precise conversion
+          const amountInWei = parseFloat(cryptoData.amount) * Math.pow(10, 18);
+          const amountWei = '0x' + Math.floor(amountInWei).toString(16);
+          
+          console.log(`🔴 Amount: ${cryptoData.amount} BNB`);
           console.log(`🔴 Amount in Wei: ${amountWei}`);
+          console.log(`🔴 Amount in Wei (decimal): ${Math.floor(amountInWei)}`);
           
           // Create transaction object
           const transactionParams = {
@@ -890,18 +930,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             to: recipientAddress,
             value: amountWei,
             gas: '0x5208', // 21000 gas for simple BNB transfer
-            gasPrice: '0x12A05F200' // 5 Gwei
+            gasPrice: gasPrice
           };
           
-          console.log(`🔴 Transaction params:`, transactionParams);
+          console.log(`🔴 Final transaction params:`, transactionParams);
           
           // Send transaction via connected wallet
+          console.log(`🔴 Sending transaction...`);
           const txHash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [transactionParams],
           });
           
           console.log(`✅ BNB transaction sent! Hash: ${txHash}`);
+          console.log(`🔍 View on BSCScan: https://bscscan.com/tx/${txHash}`);
           
           // Now update the backend with the transaction record
           return apiRequest("POST", "/api/wallet/send", {
