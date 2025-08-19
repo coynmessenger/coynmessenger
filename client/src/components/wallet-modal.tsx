@@ -114,11 +114,37 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
             throw new Error('No wallet accounts found. Please connect your wallet.');
           }
 
-          // Verify the connected account matches the user's wallet
-          const connectedAccount = accounts[0].toLowerCase();
-          const userWallet = currentUser.walletAddress.toLowerCase();
-          if (connectedAccount !== userWallet) {
-            throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+          // For BNB transactions, ensure we're using a BNB-compatible wallet address
+          let senderAddress = currentUser.walletAddress;
+          if (data.currency === 'BNB') {
+            // Verify the current user's wallet address is BNB-compatible (BSC address)
+            if (!senderAddress || !senderAddress.startsWith('0x') || senderAddress.length !== 42) {
+              throw new Error('Invalid BNB wallet address. Please connect a valid BSC-compatible wallet.');
+            }
+            
+            // Ensure the connected wallet can send from this address
+            const connectedAccount = accounts[0].toLowerCase();
+            if (connectedAccount !== senderAddress.toLowerCase()) {
+              // Check if the user's wallet address is among the connected accounts
+              const allAccounts = await window.ethereum.request({ method: 'eth_accounts' });
+              const hasCorrectAccount = allAccounts.some((addr: string) => 
+                addr.toLowerCase() === senderAddress.toLowerCase()
+              );
+              
+              if (!hasCorrectAccount) {
+                throw new Error(
+                  `BNB transaction requires wallet address ${senderAddress.slice(0, 6)}...${senderAddress.slice(-4)}. ` +
+                  'Please switch to the correct wallet address for BNB transactions.'
+                );
+              }
+            }
+          } else {
+            // For other currencies, use standard validation
+            const connectedAccount = accounts[0].toLowerCase();
+            const userWallet = currentUser.walletAddress.toLowerCase();
+            if (connectedAccount !== userWallet) {
+              throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+            }
           }
 
           // Handle different networks based on currency
@@ -159,11 +185,17 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           let transactionParameters;
           
           if (data.currency === 'BNB') {
-            // Native BNB transfer
+            // Native BNB transfer - use validated BNB wallet address
             const amountInWei = (parseFloat(data.amount) * Math.pow(10, 18)).toString(16);
+            
+            // Double-check the sender address is valid for BNB
+            if (!senderAddress || !senderAddress.startsWith('0x') || senderAddress.length !== 42) {
+              throw new Error('Invalid sender address for BNB transaction.');
+            }
+            
             transactionParameters = {
               to: data.recipientAddress,
-              from: currentUser.walletAddress,
+              from: senderAddress, // Use the validated BNB address
               value: '0x' + amountInWei,
               gas: '0x5208', // 21000 gas limit
               gasPrice: '0x4A817C800', // 20 Gwei
@@ -191,7 +223,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
             
             transactionParameters = {
               to: tokenAddress,
-              from: currentUser.walletAddress,
+              from: senderAddress, // Use the validated sender address
               value: '0x0',
               data: transferData,
               gas: '0x15F90', // 90000 gas limit for token transfers
