@@ -11,7 +11,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
-import { walletConnector } from "@/lib/universal-wallet-connector";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -492,65 +491,28 @@ export default function HomePage() {
   const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
-      console.log('⏳ Connection already in progress...');
       return;
     }
     
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
-    console.log(`🚀 Connecting ${walletType} wallet via universal connector...`);
-    
-    try {
-      // Universal wallet connection with specific wallet targeting
-      const connection = await walletConnector.connect('0x38', walletType); // Force BSC + target specific wallet
-      
-      if (connection && connection.isConnected) {
-        console.log('✅ Wallet connected successfully:', connection);
-        
-        // Store wallet access data
-        localStorage.setItem('walletAccess', JSON.stringify({
-          address: connection.address,
-          chainId: connection.chainId,
-          walletType: connection.walletType,
-          authorized: true,
-          timestamp: Date.now()
-        }));
-        
-        // Connect user to backend
-        connectWalletMutation.mutate({
-          walletAddress: connection.address,
-          displayName: undefined
-        });
-        
-        return;
-      }
-    } catch (universalError: any) {
-      console.error(`❌ Universal wallet connection failed:`, universalError);
-      
-      // Provide user-friendly error messages
-      const errorMessage = universalError.message || 'Failed to connect wallet';
-      
-      // Don't show alerts for install redirects or rapid clicks
-      if (!errorMessage.includes('Redirecting to install') && 
-          !errorMessage.includes('not installed') &&
-          !errorMessage.includes('Please wait before trying')) {
-        
-        // Show helpful error message
-        let userMessage = errorMessage;
-        if (errorMessage.includes('Connection cancelled') || errorMessage.includes('denied')) {
-          userMessage = 'Connection cancelled. To connect your wallet:\n\n1. Click the wallet button again\n2. Click "Connect" when your wallet popup appears\n3. Approve any network switches to BSC';
-        } else if (errorMessage.includes('already pending')) {
-          userMessage = 'Please check your wallet - there may be a popup waiting for your approval.';
-        }
-        
-        alert(userMessage);
-      }
+    // Check if wallet is available first
+    if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+      // Show address selector for MetaMask
+      setSelectedWalletType('metamask');
+      setShowAddressSelector(true);
       return;
     }
     
-    // This should not be reached due to early return above
-    console.log('🚑 Unexpected fallback reached');
+    if (walletType === 'trust') {
+      // Check for Trust Wallet availability and show selector
+      if (typeof window.ethereum !== 'undefined' && (window.ethereum.isTrust || window.trustWallet)) {
+        setSelectedWalletType('trust');
+        setShowAddressSelector(true);
+        return;
+      }
+    }
     
     // Fallback to original connection flow if wallet selector not available
     try {
@@ -564,48 +526,11 @@ export default function HomePage() {
           if (accounts && accounts[0]) {
             // Gain comprehensive wallet access for blockchain transactions
             try {
-              // FORCE BSC network connection - app ONLY works on BSC
-              console.log('🔗 Forcing BSC network connection for MetaMask...');
-              
-              try {
-                await window.ethereum.request({
-                  method: 'wallet_switchEthereumChain',
-                  params: [{ chainId: '0x38' }], // BSC Mainnet REQUIRED
-                });
-                console.log('✅ MetaMask successfully connected to BSC network');
-              } catch (switchError: any) {
-                if (switchError.code === 4902) {
-                  // BSC not added, add it automatically
-                  console.log('📝 Adding BSC network to MetaMask...');
-                  await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                      chainId: '0x38',
-                      chainName: 'BNB Smart Chain',
-                      rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-                      nativeCurrency: {
-                        name: 'BNB',
-                        symbol: 'BNB',
-                        decimals: 18,
-                      },
-                      blockExplorerUrls: ['https://bscscan.com/'],
-                    }],
-                  });
-                  console.log('✅ BSC network added and connected to MetaMask');
-                } else if (switchError.code === 4001) {
-                  throw new Error('This app requires BSC (Binance Smart Chain) network. Please approve the network switch to connect.');
-                } else {
-                  throw new Error('Failed to connect to BSC network. This app only works on BSC (Chain ID: 56).');
-                }
-              }
-              
-              // Verify we're on BSC before proceeding
-              const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-              if (chainId !== '0x38') {
-                throw new Error('Connection failed: Not on BSC network. This app only works on BSC.');
-              }
-              
-              console.log('✅ BSC network connection verified for MetaMask');
+              // Switch to BSC network first for proper access
+              await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x38' }], // BSC Mainnet
+              });
               
               // Request permissions for token sending
               await window.ethereum.request({
@@ -703,49 +628,13 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                // FORCE BSC network connection for Trust Wallet - app ONLY works on BSC
+                // Gain comprehensive Trust Wallet access for blockchain transactions
                 try {
-                  console.log('🔗 Forcing BSC network connection for Trust Wallet...');
-                  
-                  try {
-                    await provider.request({
-                      method: 'wallet_switchEthereumChain',
-                      params: [{ chainId: '0x38' }], // BSC Mainnet REQUIRED
-                    });
-                    console.log('✅ Trust Wallet successfully connected to BSC network');
-                  } catch (switchError: any) {
-                    if (switchError.code === 4902) {
-                      // BSC not added, add it automatically
-                      console.log('📝 Adding BSC network to Trust Wallet...');
-                      await provider.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                          chainId: '0x38',
-                          chainName: 'BNB Smart Chain',
-                          rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-                          nativeCurrency: {
-                            name: 'BNB',
-                            symbol: 'BNB',
-                            decimals: 18,
-                          },
-                          blockExplorerUrls: ['https://bscscan.com/'],
-                        }],
-                      });
-                      console.log('✅ BSC network added and connected to Trust Wallet');
-                    } else if (switchError.code === 4001) {
-                      throw new Error('This app requires BSC (Binance Smart Chain) network. Please approve the network switch to connect.');
-                    } else {
-                      throw new Error('Failed to connect to BSC network. This app only works on BSC (Chain ID: 56).');
-                    }
-                  }
-                  
-                  // Verify we're on BSC before proceeding
-                  const chainId = await provider.request({ method: 'eth_chainId' });
-                  if (chainId !== '0x38') {
-                    throw new Error('Connection failed: Not on BSC network. This app only works on BSC.');
-                  }
-                  
-                  console.log('✅ BSC network connection verified for Trust Wallet');
+                  // Switch to BSC network for proper Trust Wallet access
+                  await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }], // BSC Mainnet
+                  });
                   
                   // Request explicit permissions for Trust Wallet
                   try {
@@ -755,7 +644,7 @@ export default function HomePage() {
                     });
                   } catch (permError) {
                     // Trust Wallet may not support wallet_requestPermissions
-                    console.warn('Permission request not supported, continuing with BSC connection');
+                    console.warn('Permission request not supported, continuing with connection');
                   }
                   
                   // Verify Trust Wallet balance access

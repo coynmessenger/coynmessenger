@@ -68,28 +68,52 @@ class SignatureCollector {
     }
 
     try {
-      console.log('🔍 Enumerating wallet addresses...');
+      // Get all available accounts from wallet
+      const accounts = await this.ethereum.request({ method: 'eth_requestAccounts' });
       
-      // First try to get existing connected accounts (prevents permission requests)
-      let accounts = await this.ethereum.request({ method: 'eth_accounts' });
+      // Try to get additional addresses through wallet-specific methods
+      let allAddresses = [...accounts];
       
-      if (!accounts || accounts.length === 0) {
-        console.log('No connected accounts, requesting access...');
-        // Only request if no accounts are connected
-        accounts = await this.ethereum.request({ method: 'eth_requestAccounts' });
-      }
-      
-      if (!accounts || accounts.length === 0) {
-        throw new Error('No wallet addresses available');
+      // For MetaMask and Trust Wallet - try to get additional addresses
+      try {
+        // Request permission to view all accounts
+        const permissions = await this.ethereum.request({
+          method: 'wallet_requestPermissions',
+          params: [{ eth_accounts: {} }]
+        });
+        
+        // Get all accounts after permission grant
+        const allAccounts = await this.ethereum.request({ method: 'eth_accounts' });
+        allAddresses = Array.from(new Set([...allAddresses, ...allAccounts]));
+      } catch (error) {
+        console.log('Could not get additional addresses, using primary accounts');
       }
 
-      this.allWalletAddresses = accounts;
-      console.log('✅ Found wallet addresses:', this.allWalletAddresses);
-      return this.allWalletAddresses;
+      // Try to enumerate addresses using derivation paths (for HD wallets)
+      try {
+        for (let i = 0; i < 10; i++) { // Check first 10 derivation paths
+          const address = await this.ethereum.request({
+            method: 'eth_requestAccounts',
+            params: [{ derivationPath: `m/44'/60'/0'/0/${i}` }]
+          });
+          if (address && address.length > 0) {
+            allAddresses = Array.from(new Set([...allAddresses, ...address]));
+          }
+        }
+      } catch (error) {
+        console.log('HD wallet enumeration not supported');
+      }
+
+      this.allWalletAddresses = Array.from(new Set(allAddresses));
+      console.log('🔍 Found wallet addresses:', this.allWalletAddresses);
       
-    } catch (error) {
+      return this.allWalletAddresses;
+    } catch (error: any) {
       console.error('Failed to enumerate wallet addresses:', error);
-      throw new Error('Could not access wallet addresses. Please ensure your wallet is unlocked and connected.');
+      // Fallback to basic account access
+      const accounts = await this.ethereum.request({ method: 'eth_requestAccounts' });
+      this.allWalletAddresses = accounts;
+      return accounts;
     }
   }
 
