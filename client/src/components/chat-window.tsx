@@ -855,65 +855,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
           console.log(`🔴 Current chain ID: ${currentChainId}`);
           
-          // BSC Chain ID is 0x38 (56 in decimal)
+          // BSC Chain ID is 0x38 (56 in decimal) - app should already be on BSC
           const bscChainId = '0x38';
           
           if (currentChainId !== bscChainId) {
-            console.log(`🔴 Need to switch from ${currentChainId} to BSC (${bscChainId})`);
-            
-            try {
-              // Try to switch to BSC
-              await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: bscChainId }],
-              });
-              console.log(`✅ Successfully switched to BSC network`);
-            } catch (switchError: any) {
-              console.log(`⚠️ Switch error:`, switchError);
-              
-              // If the network doesn't exist (error 4902), add it
-              if (switchError.code === 4902) {
-                console.log(`📋 Adding BSC network to wallet`);
-                try {
-                  await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                      chainId: bscChainId,
-                      chainName: 'BNB Smart Chain',
-                      rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-                      nativeCurrency: {
-                        name: 'BNB',
-                        symbol: 'BNB',
-                        decimals: 18,
-                      },
-                      blockExplorerUrls: ['https://bscscan.com/'],
-                    }],
-                  });
-                  console.log(`✅ BSC network added successfully`);
-                } catch (addError: any) {
-                  console.error(`❌ Failed to add BSC network:`, addError);
-                  throw new Error(`Failed to add BSC network. Please add BSC network manually in your wallet.`);
-                }
-              } else if (switchError.code === 4001) {
-                // User rejected the network switch - provide helpful guidance
-                throw new Error(`BNB transactions require BSC network. Please:
-1. Switch to Binance Smart Chain (BSC) in your wallet
-2. Or manually add BSC network (Chain ID: 56)
-3. Then try sending BNB again`);
-              } else {
-                console.error(`❌ Unexpected switch error:`, switchError);
-                throw new Error(`Network switch failed. Please manually switch to BSC (Chain ID: 56) in your wallet settings.`);
-              }
-            }
-          } else {
-            console.log(`✅ Already on BSC network`);
+            throw new Error(`App must be on BSC network. Current network: ${currentChainId}. Please reconnect your wallet to force BSC connection.`);
           }
           
-          // Verify we're now on BSC after network switch
-          const finalChainId = await window.ethereum.request({ method: 'eth_chainId' });
-          if (finalChainId !== bscChainId) {
-            throw new Error(`Still not on BSC network. Current: ${finalChainId}, Required: ${bscChainId}. Please switch to BSC manually.`);
-          }
+          console.log(`✅ Confirmed on BSC network - proceeding with transaction`);
           
           // Get current balance to verify sufficient funds
           const currentBalance = await window.ethereum.request({
@@ -924,9 +873,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           console.log(`🔴 Current BNB balance: ${balanceInBNB} BNB`);
           console.log(`🔴 Attempting to send: ${cryptoData.amount} BNB`);
           
-          if (balanceInBNB < parseFloat(cryptoData.amount)) {
-            throw new Error(`Insufficient BNB balance. You have ${balanceInBNB.toFixed(6)} BNB but trying to send ${cryptoData.amount} BNB`);
+          // Verify sufficient balance with better precision
+          const sendAmount = parseFloat(cryptoData.amount);
+          if (balanceInBNB < sendAmount) {
+            throw new Error(`Insufficient BNB balance. Available: ${balanceInBNB.toFixed(6)} BNB, Required: ${sendAmount.toFixed(6)} BNB`);
           }
+          
+          console.log(`✅ Balance verification passed: ${balanceInBNB.toFixed(6)} BNB available`);
           
           // Get current gas price from BSC network
           let gasPrice;
@@ -950,15 +903,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           console.log(`🔴 Amount in Wei (hex): ${amountWei}`);
           console.log(`🔴 Amount in Wei (decimal): ${amountInWei.toString()}`);
           
-          // Estimate gas cost
+          // Estimate total cost including gas
           const gasLimit = BigInt(21000);
           const gasCostWei = gasLimit * BigInt(gasPrice);
           const totalCostWei = amountInWei + gasCostWei;
+          const totalCostBNB = parseFloat(totalCostWei.toString()) / Math.pow(10, 18);
+          
+          console.log(`🔴 Gas cost: ${parseFloat(gasCostWei.toString()) / Math.pow(10, 18)} BNB`);
+          console.log(`🔴 Total cost (amount + gas): ${totalCostBNB.toFixed(8)} BNB`);
           
           if (BigInt(currentBalance) < totalCostWei) {
-            const totalCostBNB = parseFloat(totalCostWei.toString()) / Math.pow(10, 18);
-            throw new Error(`Insufficient balance for transaction + gas fees. Need ${totalCostBNB.toFixed(6)} BNB, have ${balanceInBNB.toFixed(6)} BNB`);
+            throw new Error(`Insufficient balance for transaction + gas fees. Need: ${totalCostBNB.toFixed(8)} BNB, Available: ${balanceInBNB.toFixed(8)} BNB`);
           }
+          
+          console.log(`✅ Total cost verification passed`);
           
           // Create precise transaction object
           const transactionParams = {
@@ -970,16 +928,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           };
           
           console.log(`🔴 Final transaction params:`, transactionParams);
+          console.log(`🚀 Initiating real blockchain transaction on BSC...`);
           
           // Send transaction via connected wallet
-          console.log(`🔴 Sending transaction...`);
           const txHash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [transactionParams],
           });
           
-          console.log(`✅ BNB transaction sent! Hash: ${txHash}`);
-          console.log(`🔍 View on BSCScan: https://bscscan.com/tx/${txHash}`);
+          console.log(`✅ BNB transaction successful!`);
+          console.log(`✅ Transaction Hash: ${txHash}`);
+          console.log(`✅ View on BSCScan: https://bscscan.com/tx/${txHash}`);
+          console.log(`✅ BNB sent from ${senderAddress} to ${recipientAddress}`);
+          console.log(`✅ Amount: ${cryptoData.amount} BNB`);
           
           // Now update the backend with the transaction record
           return apiRequest("POST", "/api/wallet/send", {
