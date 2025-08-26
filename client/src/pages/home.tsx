@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signature-collector";
+import { EthereumProvider } from "@walletconnect/ethereum-provider";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
@@ -44,7 +45,7 @@ export default function HomePage() {
   const [isRedirectingToWallet, setIsRedirectingToWallet] = useState(false);
   const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
   const [showAddressSelector, setShowAddressSelector] = useState(false);
-  const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
+  const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | 'walletconnect' | null>(null);
 
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
@@ -424,7 +425,7 @@ export default function HomePage() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
+  const handleWeb3Connect = async (walletType: 'metamask' | 'trust' | 'walletconnect') => {
     // Prevent multiple simultaneous connections
     if (connectWalletMutation.isPending) {
       return;
@@ -448,6 +449,13 @@ export default function HomePage() {
         setShowAddressSelector(true);
         return;
       }
+    }
+    
+    if (walletType === 'walletconnect') {
+      // Show address selector for WalletConnect
+      setSelectedWalletType('walletconnect');
+      setShowAddressSelector(true);
+      return;
     }
     
     // Fallback to original connection flow if wallet selector not available
@@ -755,6 +763,58 @@ export default function HomePage() {
             window.open('https://trustwallet.com/download', '_blank');
           }
         }
+      } else if (walletType === 'walletconnect') {
+        // WalletConnect v2 implementation
+        try {
+          console.log('🔗 Connecting via WalletConnect...');
+          
+          // Create WalletConnect Provider
+          const provider = await EthereumProvider.init({
+            projectId: "2f05a7cdc2674bb905b88b5cd5854bf4", // Replace with your actual project ID
+            chains: [56, 1], // BSC and Ethereum
+            showQrModal: true,
+            qrModalOptions: {
+              themeMode: "dark",
+              themeVariables: {
+                "--wcm-z-index": "1000"
+              }
+            }
+          });
+
+          // Enable session (triggers QR Code modal)
+          const accounts = await provider.enable();
+          
+          if (accounts && accounts.length > 0) {
+            console.log('✅ WalletConnect connected:', accounts[0]);
+            
+            // Store wallet access for transactions
+            localStorage.setItem('walletAccess', JSON.stringify({
+              address: accounts[0],
+              provider: 'walletconnect',
+              chainId: provider.chainId || 56,
+              authorized: true,
+              timestamp: Date.now()
+            }));
+            
+            // Store the provider for later use
+            (window as any).walletConnectProvider = provider;
+            
+            // Connect the user
+            connectWalletMutation.mutate({
+              walletAddress: accounts[0],
+              displayName: undefined
+            });
+          } else {
+            throw new Error('No accounts found from WalletConnect');
+          }
+        } catch (wcError: any) {
+          console.error('❌ WalletConnect connection failed:', wcError);
+          if (wcError.message?.includes('User rejected') || wcError.message?.includes('rejected')) {
+            alert('Connection cancelled by user');
+          } else {
+            alert('Failed to connect via WalletConnect. Please try again.');
+          }
+        }
       }
     } catch (error) {
 
@@ -929,8 +989,8 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* 2x1 Grid of Wallet Options */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* 3x1 Grid of Wallet Options */}
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     {/* MetaMask */}
                     <Button 
                       onClick={() => handleWeb3Connect('metamask')}
@@ -963,6 +1023,19 @@ export default function HomePage() {
                         />
                       </div>
                       <span className="text-sm font-semibold">Trust Wallet</span>
+                    </Button>
+
+                    {/* WalletConnect */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('walletconnect')}
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                        <span className="text-white text-lg font-bold">WC</span>
+                      </div>
+                      <span className="text-sm font-semibold">WalletConnect</span>
                     </Button>
                   </div>
 
