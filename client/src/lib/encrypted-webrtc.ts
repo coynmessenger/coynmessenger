@@ -65,13 +65,15 @@ export class EncryptedWebRTCService {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}`;
     
+    // CRITICAL FIX: Don't create a new socket, reuse the global socket connection
+    // This ensures WebRTC events go to the same socket the server is targeting
     this.socket = io(socketUrl, {
       transports: ['websocket'],
-      forceNew: true,
+      forceNew: false, // CHANGED: Don't force new socket
       path: '/socket.io/',
     });
     
-    console.log('Attempting to connect to WebRTC signaling server at:', socketUrl);
+    console.log('🔧 CRITICAL FIX: WebRTC using shared socket connection to:', socketUrl);
 
     this.setupSocketListeners();
   }

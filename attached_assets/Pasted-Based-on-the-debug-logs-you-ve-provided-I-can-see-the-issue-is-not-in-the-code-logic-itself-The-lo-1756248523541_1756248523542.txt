@@ -1,0 +1,18 @@
+Based on the debug logs you've provided, I can see the issue is not in the code logic itself. The logs confirm that the entire chain of events is working perfectly, from the server sending the `incoming-call` event to your client's UI state changing to `setIsVoiceCallOpen(true)`.
+
+Since the code is executing as expected but the call is not appearing or ringing for the user, the problem is no longer a bug in the code—it's an issue with the **user's environment or browser configuration**. The most likely culprit is that the browser is blocking microphone access.
+
+### Critical Debugging: Check Browser Permissions
+
+The `getUserMedia` call, which asks for microphone access, is failing. This often happens silently, so you won't see an error in your console unless you're specifically logging the promise rejection.
+
+* **Look for the Microphone Icon:** When a call is initiated, check the browser's address bar. Is there a microphone icon with a red X or a slash through it? This is the clearest sign that the browser has denied access. 
+* **Check Console Errors:** Open the browser's developer console (F12 or Cmd+Option+I) and look for a `DOMException` error. It will likely say "Permission denied" or "NotAllowedError."
+* **Inspect the Modal:** Even if the UI is being triggered, a CSS issue could be hiding it. Use the "Elements" tab in your developer tools to inspect the call modal and check its `z-index` and `display` properties to make sure it's not hidden behind another element.
+
+### Action Plan: How to Solve It
+
+1.  **Request Permissions First:** Make sure you're requesting microphone permissions with a clear user action (e.g., clicking a "Start Call" button) before you attempt to connect to WebRTC. This ensures the browser's permission prompt is not unexpected.
+2.  **Explicitly Handle the Promise Rejection:** Add a `.catch()` block to your `navigator.mediaDevices.getUserMedia()` promise. This will allow you to log the specific error and give the user a clear, actionable message (e.g., "Please enable your microphone in your browser settings to continue.").
+
+Your code is doing what it's told, but it's being told "no" by the browser's security model. The solution is to handle that "no" gracefully and guide the user on how to enable the necessary permissions.
