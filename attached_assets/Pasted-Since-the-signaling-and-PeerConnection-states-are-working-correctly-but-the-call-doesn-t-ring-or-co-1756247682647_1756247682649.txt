@@ -1,0 +1,35 @@
+Since the signaling and PeerConnection states are working correctly, but the call doesn't ring or connect, the issue is almost certainly with how your app is handling the **audio media stream and UI**. The signaling is doing its job, but the final steps on the client-side are missing.
+
+Here's a breakdown of what's likely happening and how to fix it:
+
+### 1\. Missing Incoming Call UI 🔔
+
+The first thing the recipient of a call needs is a visual notification. Your signaling server is sending the `incoming-call` event, but the client isn't showing a UI for it.
+
+  * **Action:** On the receiving client, you need a listener for the `incoming-call` event. When this event is triggered, your code must do two things:
+    1.  **Show a Modal or Component:** Render a UI element that says "Incoming call from [user]" with "Accept" and "Decline" buttons.
+    2.  **Play a Ringtone:** Trigger an audio file (e.g., a simple `.mp3` or `.wav`) to play a ringing sound. The user needs an audible alert, just like with a normal phone.
+
+### 2\. Failure to Handle Media Streams 🎧
+
+After the handshake, the most common issue is that the media streams (audio/video) are not being attached to the correct elements. The handshake can complete successfully, but if the `MediaStream` isn't handled correctly, there will be no sound.
+
+  * **Action:** The caller's `RTCPeerConnection` must have a listener for the `ontrack` event. This event fires when the remote peer adds a media stream. You must take this stream and attach it to an audio element.
+
+Here's an example of what that client-side logic should look like for a successful connection:
+
+```javascript
+// Caller's side
+peerConnection.ontrack = (event) => {
+  // Attach the remote audio stream to an audio element
+  const remoteAudio = document.getElementById('remote-audio');
+  if (remoteAudio) {
+    remoteAudio.srcObject = event.streams[0];
+    remoteAudio.play();
+  }
+};
+```
+
+  * **Final Check:** You must also ensure that the initial local audio stream (from the user's microphone) is added to the peer connection on both the caller and receiver. This is done using `peerConnection.addTrack(track, stream)`.
+
+By implementing a visible incoming call UI and ensuring the media streams are correctly attached to the respective audio elements, you will complete the full call flow, allowing users to see, hear, and answer calls as they would in any other app.
