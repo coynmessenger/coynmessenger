@@ -44,72 +44,38 @@ export default function HomePage() {
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
 
-  // Authentication guard - redirect authenticated users directly to the app
+  // Single consolidated authentication check and redirect logic
   useEffect(() => {
-    const checkAuthAndRedirect = () => {
+    const handleAuthenticationAndRedirect = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const fromWallet = urlParams.get('from_wallet') === 'true';
       const walletReturn = urlParams.get('wallet_return') === 'true';
-      const sessionId = urlParams.get('session');
       
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       const userSignedOut = localStorage.getItem('userSignedOut');
-      const pendingConnection = localStorage.getItem('pendingWalletConnection');
-      const storedSessionId = localStorage.getItem('walletSessionId');
       const userClickedHome = localStorage.getItem('userClickedHome');
       
-      // If coming from wallet with matching session and authenticated, redirect immediately
-      if ((fromWallet || walletReturn) && storedConnected === 'true' && storedUser) {
-        console.log('User returning from wallet with authentication, redirecting to messenger...');
-        // Clean up URL parameters
+      // Clean up URL parameters first
+      if (fromWallet || walletReturn) {
         const cleanUrl = `${window.location.origin}${window.location.pathname}`;
         window.history.replaceState({}, document.title, cleanUrl);
-        setLocation("/messenger");
-        return;
       }
       
-      // If returning from wallet but not yet authenticated, wait for connection
-      if ((fromWallet || walletReturn) && sessionId === storedSessionId && pendingConnection === 'true') {
-        console.log('User returned from wallet, waiting for authentication...');
-        // Clear redirect state since user has returned
-        setIsRedirectingToWallet(false);
-        setWalletRedirectMessage("");
-        // Clean up URL but don't redirect yet, let the wallet connection complete
-        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
-        window.history.replaceState({}, document.title, cleanUrl);
-        return;
-      }
-      
-      // Don't redirect if there's a pending wallet connection (user is in process of connecting)
-      if (pendingConnection === 'true') {
-        return;
-      }
-      
-      // Don't redirect if user explicitly clicked home button
-      if (userClickedHome === 'true') {
+      // Don't redirect if user explicitly chose to stay on homepage
+      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
         console.log('User explicitly navigated to homepage, staying on homepage');
-        // Don't clear the flag immediately - keep it for this session
         sessionStorage.setItem('userOnHomepage', 'true');
         return;
       }
       
-      // Don't redirect if user is explicitly staying on homepage for this session
-      if (sessionStorage.getItem('userOnHomepage') === 'true') {
-        console.log('User staying on homepage for this session');
-        return;
-      }
-      
-      // If user is authenticated and hasn't explicitly signed out, redirect to messenger
+      // Redirect authenticated users to messenger
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
         try {
           const parsedUser = JSON.parse(storedUser);
-          if (parsedUser && parsedUser.id && parsedUser.walletAddress) {
+          if (parsedUser?.id && parsedUser?.walletAddress) {
             console.log('Authenticated user detected, redirecting to messenger...');
-            // Immediate redirect for returning users
-            setTimeout(() => {
-              setLocation("/messenger");
-            }, 200);
+            setLocation("/messenger");
             return;
           }
         } catch (error) {
@@ -121,37 +87,33 @@ export default function HomePage() {
       }
     };
 
-    // Check after a brief delay to allow wallet detection to complete
-    setTimeout(checkAuthAndRedirect, 100);
-  }, []); // Empty dependency array - only run once on mount
+    // Single execution with minimal delay
+    const timer = setTimeout(handleAuthenticationAndRedirect, 50);
+    return () => clearTimeout(timer);
+  }, []); // Run only once on mount
 
   // Removed automatic user data fetching to prevent conflicts with localStorage updates
 
   // Listen for display name updates from settings modal
   useEffect(() => {
     const handleDisplayNameUpdate = (event: CustomEvent) => {
-      
-      // Only update if the event is for the current connected user
       if (connectedUser && event.detail?.userId === connectedUser.id) {
         const updatedStoredUser = localStorage.getItem('connectedUser');
         if (updatedStoredUser) {
-          const parsedUser = JSON.parse(updatedStoredUser);
-          
-          // Verify the user ID matches before updating state
-          if (parsedUser.id === connectedUser.id) {
-            setConnectedUser(parsedUser);
-          } else {
-
+          try {
+            const parsedUser = JSON.parse(updatedStoredUser);
+            if (parsedUser.id === connectedUser.id) {
+              setConnectedUser(parsedUser);
+            }
+          } catch (error) {
+            console.error('Failed to parse updated user data:', error);
           }
         }
       }
     };
 
     window.addEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
-    
-    return () => {
-      window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
-    };
+    return () => window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
   }, [connectedUser?.id]);
 
   // Add window event listener for wallet connection updates
@@ -196,55 +158,40 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
-      // Store connection state in localStorage
+      console.log('✅ Wallet connection successful, consolidating authentication flow');
+      
+      // Clean up any competing states first
+      localStorage.removeItem('pendingWalletConnection');
+      localStorage.removeItem('walletConnectionAttempt');
+      localStorage.removeItem('walletRedirectState');
+      localStorage.removeItem('userSignedOut');
+      
+      // Store connection state
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
       localStorage.setItem('connectedUserId', user.id.toString());
       
-      // Store display name for other components
       if (user.displayName) {
         localStorage.setItem('userDisplayName', user.displayName);
       }
       
-      // Clear all cache to prevent stale data conflicts
-      queryClient.clear();
-      
-      // Immediately update cache data for both query key patterns
+      // Update cache and state
       queryClient.setQueryData(["/api/user"], user);
       queryClient.setQueryData(["/api/user", user.id], user);
-      queryClient.setQueryData(["/api/user", { userId: user.id }], user);
-      
-      // Invalidate user queries to ensure fresh data across all components
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user", user.id] });
-      
-      // Invalidate conversation queries to refresh user data in conversation lists
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", user.id] });
       
-      // Force immediate state update - this is the key fix
+      // Update component state
       setConnectedUser(user);
       setIsConnected(true);
       
-      // Clear any pending connection flags
-      localStorage.removeItem('pendingWalletConnection');
+      // Clean URL
+      const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+      window.history.replaceState({}, document.title, cleanUrl);
       
-      // Dispatch custom event to trigger UI updates
-      window.dispatchEvent(new CustomEvent('walletConnected', { detail: user }));
-      
-      // Automatically redirect to messenger after successful authentication
-      // This makes the app standalone - users are taken directly into the main interface
-      // Check if user is returning from a wallet app signature
-      const isReturningFromWallet = localStorage.getItem('pendingWalletConnection') === 'true' || 
-                                    document.referrer.includes('metamask') || 
-                                    document.referrer.includes('trustwallet') ||
-                                    performance.navigation.type === 2; // Back navigation
-      
-      const redirectDelay = isReturningFromWallet ? 500 : 1500; // Faster redirect for wallet returns
-      
-      setTimeout(() => {
-        setLocation("/messenger");
-      }, redirectDelay);
+      // Single event-driven redirect - no timeouts or delays
+      console.log('🔄 Redirecting to messenger...');
+      setLocation("/messenger");
     },
   });
 
