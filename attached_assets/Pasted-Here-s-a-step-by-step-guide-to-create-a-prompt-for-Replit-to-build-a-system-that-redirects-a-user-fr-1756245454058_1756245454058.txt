@@ -1,0 +1,74 @@
+Here's a step-by-step guide to create a prompt for Replit to build a system that redirects a user from a mobile wallet's in-app browser back to your native app. This process requires both front-end and back-end logic.
+
+### 1\. Front-End: Initiate the Deep Link
+
+Your Replit prompt needs to create a button in your front-end code that initiates the wallet connection using a deep link that includes a special return URL.
+
+**Replit Prompt:**
+
+```prompt
+Create a React component using Vite and Tailwind CSS. The component should have a "Connect Wallet" button. When clicked on a mobile device, it should generate a deep link for the user's wallet app (e.g., Trust Wallet, MetaMask). The deep link must include a `returnUrl` query parameter that points to a specific endpoint on our back-end server (e.g., `https://your-dapp.com/api/redirect?from_app=true`). The button should redirect the user to this deep link to open the wallet app.
+```
+
+**Key Code to Implement:**
+
+```javascript
+// Example of a deep link for a generic wallet
+const deepLink = `wallet-app://dapp/https://your-dapp.com?returnUrl=${encodeURIComponent('https://your-dapp.com/redirect-to-app')}`;
+
+window.location.href = deepLink;
+```
+
+-----
+
+### 2\. Back-End: Handle the Redirect
+
+After the user signs in or approves the transaction in the wallet app, the wallet browser will navigate to the `returnUrl` you provided. Your back-end server needs to handle this request and perform a final redirect back to the native app.
+
+**Replit Prompt:**
+
+```prompt
+Create a Node.js Express server with a single GET route at `/api/redirect-to-app`. This route will receive a request from the mobile wallet's in-app browser. The route's purpose is to redirect the user from the in-app browser back to our native mobile application. The server should respond with a 302 status code and a "Location" header set to our app's universal link (e.g., `your-app-scheme://` or `https://your-dapp.com/app`). The server should also include a JavaScript snippet in the response to immediately close the in-app browser tab after the redirect, if possible.
+```
+
+**Key Code to Implement:**
+
+```javascript
+// Node.js Express server code
+app.get('/api/redirect-to-app', (req, res) => {
+  const deepLink = "your-app-scheme://"; // Your native app's deep link
+  const htmlContent = `
+    <html>
+      <head>
+        <title>Redirecting...</title>
+      </head>
+      <body>
+        <script>
+          window.location.href = "${deepLink}";
+          // Attempt to close the window after a brief delay
+          setTimeout(() => {
+            window.close();
+          }, 100);
+        </script>
+        <p>You are being redirected back to the app...</p>
+      </body>
+    </html>
+  `;
+  res.send(htmlContent);
+});
+```
+
+-----
+
+### 3\. Native App: Receive and Handle the Redirect
+
+The final step is to ensure your native app is configured to correctly handle the deep link when it's opened.
+
+**Replit Prompt:**
+
+```prompt
+Explain the steps to configure an iOS app (using a universal link) and an Android app (using an app link) to properly handle the deep link from the web server. The explanation should cover:
+- For iOS: Creating an `apple-app-site-association` file and setting up the Associated Domains capability in Xcode.
+- For Android: Creating a `assetlinks.json` file on the server and adding an `<intent-filter>` to the `AndroidManifest.xml` with the `autoVerify` attribute.
+The explanation should also describe how to retrieve data (like an authentication token) from the deep link URL once the app has opened.
+```
