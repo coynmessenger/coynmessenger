@@ -336,9 +336,18 @@ class WalletConnector {
 // Export singleton instance
 export const walletConnector = new WalletConnector();
 
-// Type definitions for window.ethereum
+// Type definitions for window.ethereum and trustWallet
 declare global {
   interface Window {
-    ethereum?: WalletProvider;
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+      on?: (event: string, callback: (...args: any[]) => void) => void;
+      removeListener?: (event: string, callback: (...args: any[]) => void) => void;
+      isMetaMask?: boolean;
+      isTrust?: boolean;
+    };
+    trustWallet?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+    };
   }
 }

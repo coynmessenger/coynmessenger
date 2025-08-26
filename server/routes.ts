@@ -494,8 +494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (conversation.isGroup) {
             participants = await storage.getGroupMembers(conversationId);
           } else {
-            // For regular conversations, get participants from user1 and user2
-            participants = [conversation.user1, conversation.user2].filter(Boolean);
+            // For regular conversations, get participants by their IDs
+            const participant1 = conversation.participant1Id ? await storage.getUser(conversation.participant1Id) : null;
+            const participant2 = conversation.participant2Id ? await storage.getUser(conversation.participant2Id) : null;
+            participants = [participant1, participant2].filter(Boolean);
           }
           
           participants.forEach(participant => {
@@ -538,7 +540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(500).json({ 
         message: "Failed to send message", 
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+        error: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
       });
     }
   });

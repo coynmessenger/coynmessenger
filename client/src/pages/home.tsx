@@ -22,20 +22,7 @@ import type { User } from "@shared/schema";
 
 
 
-// Web3 Wallet type declarations
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      isMetaMask?: boolean;
-      isTrust?: boolean;
-  
-    };
-    trustWallet?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-    };
-  }
-}
+// Web3 Wallet type declarations are now in wallet-connector.ts
 
 export default function HomePage() {
   useScrollToTop();
