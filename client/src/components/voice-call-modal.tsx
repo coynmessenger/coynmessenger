@@ -8,6 +8,7 @@ import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
+import { microphoneService } from "@/lib/microphone-service";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -191,35 +192,46 @@ export default function VoiceCallModal({
             console.warn('🔔 INCOMING CALL: Ringtone failed to start:', error);
           });
         
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-          .then((stream) => {
-            console.log('✅ INCOMING CALL: Microphone permissions granted');
-            // Store the stream temporarily - we'll use it when user accepts
-            (window as any).tempIncomingCallStream = stream;
-            setCallStatus("ringing"); // Now we can show ringing state
+        // Request microphone permissions with enhanced error handling
+        microphoneService.requestPermissionWithFallback()
+          .then((result) => {
+            if (result.success && result.stream) {
+              console.log('✅ INCOMING CALL: Microphone permissions granted');
+              // Store the stream temporarily - we'll use it when user accepts
+              (window as any).tempIncomingCallStream = result.stream;
+              setCallStatus("ringing"); // Now we can show ringing state
+            } else {
+              throw new Error(result.error?.message || 'Failed to get microphone access');
+            }
           })
-          .catch((error) => {
+          .catch(async (error) => {
             console.error('❌ INCOMING CALL: Microphone permission denied:', error);
             setCallStatus("ended");
             
             // Stop ringtone on error
             ringtoneService.stopRingtone();
             
-            // Show user-friendly error message
-            let errorMessage = 'Microphone access is required to receive calls.';
-            if (error.name === 'NotAllowedError') {
-              errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings to receive calls.';
-            } else if (error.name === 'NotFoundError') {
-              errorMessage = 'No microphone found. Please connect a microphone to receive calls.';
-            } else if (error.name === 'NotReadableError') {
-              errorMessage = 'Microphone is already in use by another application.';
+            // Get detailed error information
+            const permissionResult = await microphoneService.requestPermissionWithFallback();
+            
+            let title = "Call Failed";
+            let description = 'Microphone access is required to receive calls.';
+            
+            if (!permissionResult.success && permissionResult.error) {
+              title = permissionResult.error.type === 'permission_denied' ? 'Microphone Access Denied' : 'Call Failed';
+              description = permissionResult.error.message;
+              
+              if (permissionResult.error.userAction) {
+                description += `\n\n${permissionResult.error.userAction}`;
+              }
             }
             
             import("@/hooks/use-toast").then(({ toast }) => {
               toast({
-                title: "Cannot Receive Call",
-                description: errorMessage,
+                title,
+                description,
                 variant: "destructive",
+                duration: 8000, // Longer duration for important error messages
               });
             });
             
@@ -319,22 +331,30 @@ export default function VoiceCallModal({
         console.error('❌ ACCEPT: Failed to accept call:', error);
         setCallStatus("ended");
         
-        // Show user-friendly error messages
-        let errorMessage = 'Failed to accept call';
-        if (error.message && error.message.includes('Microphone access denied')) {
-          errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings and try again.';
-        } else if (error.message && error.message.includes('No microphone found')) {
-          errorMessage = 'No microphone found. Please connect a microphone and try again.';
-        } else if (error.message && error.message.includes('already in use')) {
-          errorMessage = 'Microphone is already in use by another application. Please close other apps using the microphone and try again.';
+        // Get detailed error information for better user guidance
+        const permissionResult = await microphoneService.requestPermissionWithFallback();
+        
+        let title = "Call Failed";
+        let description = 'Failed to accept call';
+        
+        if (!permissionResult.success && permissionResult.error) {
+          title = permissionResult.error.type === 'permission_denied' ? 'Microphone Access Required' : 'Call Failed';
+          description = permissionResult.error.message;
+          
+          if (permissionResult.error.userAction) {
+            description += `\n\n${permissionResult.error.userAction}`;
+          }
+        } else if (error.message) {
+          description = error.message;
         }
         
         // Show toast notification
         import("@/hooks/use-toast").then(({ toast }) => {
           toast({
-            title: "Call Failed",
-            description: errorMessage,
+            title,
+            description,
             variant: "destructive",
+            duration: 8000, // Longer duration for important error messages
           });
         });
         
