@@ -965,6 +965,21 @@ export default function HomePage() {
                       <span className="text-sm font-semibold">Trust Wallet</span>
                     </Button>
                   </div>
+
+                  {/* Display Name Input */}
+                  <div className="space-y-2 mt-6">
+                    <Label htmlFor="displayName" className="text-foreground">
+                      Display Name (Optional)
+                    </Label>
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Your Name"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="h-12 sm:h-10 text-base sm:text-sm bg-input border-border focus:border-primary text-foreground"
+                    />
+                  </div>
                 </div>
 
               </div>
