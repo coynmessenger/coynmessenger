@@ -888,11 +888,10 @@ export default function HomePage() {
           <div className="flex items-center justify-center mb-4">
             {/* Coynful Logo with Enhanced Glow */}
             <div className="relative ml-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-300/20 to-amber-300/20 dark:from-orange-400/30 dark:to-amber-400/30 blur-3xl opacity-60 scale-150 animate-pulse"></div>
               <LazyImage 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
-                className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
+                className="h-28 w-auto opacity-90 hover:opacity-100 transition-all duration-500 hover:scale-105"
                 placeholder="Loading Coynful logo..."
               />
             </div>
