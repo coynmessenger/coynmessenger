@@ -559,6 +559,35 @@ export class EncryptedWebRTCService {
         console.warn('⚠️ CLIENT: WebRTC connection disconnected');
       }
     };
+
+    // Enhanced signaling state debugging
+    call.peerConnection.onsignalingstatechange = () => {
+      const signalingState = call.peerConnection?.signalingState;
+      console.log('📡 CLIENT: Signaling state changed:', signalingState);
+      
+      switch (signalingState) {
+        case 'stable':
+          console.log('✅ Signaling: Ready for new offer/answer exchange');
+          break;
+        case 'have-local-offer':
+          console.log('📤 Signaling: Local offer created, waiting for answer');
+          break;
+        case 'have-remote-offer':
+          console.log('📥 Signaling: Remote offer received, creating answer');
+          break;
+        case 'have-local-pranswer':
+          console.log('📤 Signaling: Local provisional answer created');
+          break;
+        case 'have-remote-pranswer':
+          console.log('📥 Signaling: Remote provisional answer received');
+          break;
+        case 'closed':
+          console.log('❌ Signaling: Connection closed');
+          break;
+        default:
+          console.log('❓ Signaling: Unknown state:', signalingState);
+      }
+    };
     
     // Monitor ICE connection state
     call.peerConnection.oniceconnectionstatechange = () => {
