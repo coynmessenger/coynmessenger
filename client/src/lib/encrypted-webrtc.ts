@@ -410,22 +410,34 @@ export class EncryptedWebRTCService {
       };
 
       let localStream: MediaStream;
-      try {
-        console.log('🎤 Requesting microphone permissions for incoming call...');
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('✅ Microphone access granted for incoming call');
-      } catch (error: any) {
-        console.error('❌ Microphone permission error on accept:', error);
-        
-        // Provide specific error messages
-        if (error.name === 'NotAllowedError') {
-          throw new Error('Microphone access denied. Please allow microphone permissions to accept calls.');
-        } else if (error.name === 'NotFoundError') {
-          throw new Error('No microphone found. Please connect a microphone to accept calls.');
-        } else if (error.name === 'NotReadableError') {
-          throw new Error('Microphone is already in use by another application.');
-        } else {
-          throw new Error(`Failed to access microphone: ${error.message}`);
+      
+      // Check if we have a pre-authorized stream from the incoming call preparation
+      const tempStream = (window as any).tempIncomingCallStream;
+      
+      if (tempStream) {
+        console.log('✅ WebRTC: Using pre-authorized microphone stream for call acceptance');
+        localStream = tempStream;
+        // Clean up the temporary reference
+        delete (window as any).tempIncomingCallStream;
+      } else {
+        // Fallback: Get user media with proper error handling
+        try {
+          console.log('🎤 Requesting microphone permissions for incoming call (fallback)...');
+          localStream = await navigator.mediaDevices.getUserMedia(constraints);
+          console.log('✅ Microphone access granted for incoming call');
+        } catch (error: any) {
+          console.error('❌ Microphone permission error on accept:', error);
+          
+          // Provide specific error messages
+          if (error.name === 'NotAllowedError') {
+            throw new Error('Microphone access denied. Please allow microphone permissions to accept calls.');
+          } else if (error.name === 'NotFoundError') {
+            throw new Error('No microphone found. Please connect a microphone to accept calls.');
+          } else if (error.name === 'NotReadableError') {
+            throw new Error('Microphone is already in use by another application.');
+          } else {
+            throw new Error(`Failed to access microphone: ${error.message}`);
+          }
         }
       }
       

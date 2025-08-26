@@ -1,0 +1,27 @@
+Calls are stuck at "ringing" because the incoming user hasn't granted microphone permissions, which is a required step for a WebRTC connection to be established. The incoming user's client needs to access their microphone to create a valid media stream, which is then used to generate a Session Description Protocol (SDP) "answer." Without this, the call setup process halts.
+
+How to Fix This
+
+    Request Permissions Explicitly: Ensure that your application is using navigator.mediaDevices.getUserMedia to request microphone permissions on the incoming call side. This should happen as soon as the incoming call is detected, before you create the RTCPeerConnection.
+
+    Handle Permission Rejection: You must have a clear way to handle when a user denies permission. The getUserMedia promise will reject with an error. When this happens, your application should:
+
+        Inform the user that the call can't connect without microphone access.
+
+        Show a button or link to prompt them to grant permission in their browser's settings.
+
+    Condition for Sending SDP Answer: Your code must be structured so that the SDP "answer" is only sent to the outgoing caller after the incoming user has successfully granted microphone permissions.
+
+Here is a simplified flow:
+
+    Outgoing User: Initiates call, gets microphone access, creates an SDP "offer," and sends it to the incoming user.
+
+    Incoming User: Receives the SDP "offer."
+
+        Your app immediately attempts to get microphone permissions using getUserMedia.
+
+        IF SUCCESSFUL: Your app uses the microphone stream to create an SDP "answer," which is then sent back to the outgoing user. The call then connects.
+
+        IF REJECTED: Your app displays a message to the user and does not create or send the SDP "answer." This is why the outgoing caller's state is stuck at "ringing."
+
+By checking the microphone permissions on the incoming side before sending the SDP answer, you can ensure that the WebRTC connection only proceeds when all the necessary conditions are met.

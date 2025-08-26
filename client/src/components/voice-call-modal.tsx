@@ -159,16 +159,49 @@ export default function VoiceCallModal({
       return;
     }
 
-    // Show notification for incoming calls
+    // Show notification for incoming calls and immediately request microphone permissions
     if (callType === "incoming" && user) {
       const callerName = user.displayName || user.signInName || `@${user.walletAddress?.slice(-6)}` || user.username || "Unknown";
       notificationService.showCallNotification(callerName, 'voice');
       
       // Set the encrypted call ID for incoming calls
       if (incomingCallId) {
-
         setEncryptedCallId(incomingCallId);
-        setCallStatus("ringing");
+        setCallStatus("connecting"); // Start with connecting while we get permissions
+        
+        // CRITICAL: Request microphone permissions immediately for incoming calls
+        console.log('🎤 INCOMING CALL: Requesting microphone permissions immediately...');
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+          .then((stream) => {
+            console.log('✅ INCOMING CALL: Microphone permissions granted');
+            // Store the stream temporarily - we'll use it when user accepts
+            (window as any).tempIncomingCallStream = stream;
+            setCallStatus("ringing"); // Now we can show ringing state
+          })
+          .catch((error) => {
+            console.error('❌ INCOMING CALL: Microphone permission denied:', error);
+            setCallStatus("ended");
+            
+            // Show user-friendly error message
+            let errorMessage = 'Microphone access is required to receive calls.';
+            if (error.name === 'NotAllowedError') {
+              errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings to receive calls.';
+            } else if (error.name === 'NotFoundError') {
+              errorMessage = 'No microphone found. Please connect a microphone to receive calls.';
+            } else if (error.name === 'NotReadableError') {
+              errorMessage = 'Microphone is already in use by another application.';
+            }
+            
+            import("@/hooks/use-toast").then(({ toast }) => {
+              toast({
+                title: "Cannot Receive Call",
+                description: errorMessage,
+                variant: "destructive",
+              });
+            });
+            
+            if (onCallEnd) onCallEnd();
+          });
       }
     }
 
@@ -245,11 +278,19 @@ export default function VoiceCallModal({
   const handleAcceptCall = async () => {
     if (encryptedCallId && webrtcService.current) {
       try {
+        // Check if we already have the media stream from the incoming call preparation
+        const tempStream = (window as any).tempIncomingCallStream;
+        if (tempStream) {
+          console.log('✅ ACCEPT: Using pre-authorized microphone stream');
+          // Clean up the temporary reference
+          delete (window as any).tempIncomingCallStream;
+        }
+        
         await webrtcService.current.acceptCall(encryptedCallId);
         setCallStatus("connected");
         if (onCallStart) onCallStart();
       } catch (error: any) {
-
+        console.error('❌ ACCEPT: Failed to accept call:', error);
         setCallStatus("ended");
         
         // Show user-friendly error messages
