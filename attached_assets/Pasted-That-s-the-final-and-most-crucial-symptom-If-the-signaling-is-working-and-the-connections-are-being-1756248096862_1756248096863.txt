@@ -1,0 +1,60 @@
+That's the final and most crucial symptom. If the signaling is working and the connections are being established, the lack of ringing or notification indicates a **client-side UI and media handling problem**. The data is flowing, but your app isn't doing anything with it.
+
+The problem likely lies in these two areas:
+
+-----
+
+### 1\. Handling the Incoming Call Event 🔔
+
+Your signaling server is successfully sending an `incoming-call` event, but the recipient's client is not acting on it.
+
+  * **Action:** You need a listener in your client-side code that specifically handles this event. When it's received, your code should:
+
+      * **Show a Call UI:** Render a pop-up or a dedicated call screen showing the caller's name or ID. This is where you put "Accept" and "Decline" buttons.
+      * **Play a Sound:** Trigger an audio file (e.g., a `.mp3`) to play a ringing sound. A user won't know they have a call without an audible alert. This is a critical piece of the "like any other app" user experience.
+
+  * **Example Logic:**
+
+    ```javascript
+    // In your client-side encrypted-webrtc.ts or a related component
+    socket.on('incoming-call', (data) => {
+      // Logic to show the call modal
+      // e.g., set state: setIsIncomingCall(true), setCallerId(data.callerId)
+      
+      // Play a ringing sound
+      const ringtone = new Audio('/path/to/ringtone.mp3');
+      ringtone.play();
+
+      // You can also add the peer connection logic here once the user accepts
+    });
+    ```
+
+-----
+
+### 2\. Attaching Remote Media Streams 🎧
+
+Even after the handshake is complete, there will be no sound or video if the remote stream isn't connected to a media element.
+
+  * **Action:** You must have an **`ontrack` event listener** on your `RTCPeerConnection` instance. This event fires when the remote peer adds a media track (like from their microphone). Your code must then take this new track and attach it to an `<audio>` or `<video>` element in your HTML.
+
+  * **Example Logic:**
+
+    ```javascript
+    // In your client-side encrypted-webrtc.ts
+    peerConnection.ontrack = (event) => {
+      // Get the remote audio stream
+      const remoteAudioStream = event.streams[0];
+      
+      // Get your hidden audio element from the DOM
+      const remoteAudioElement = document.getElementById('remote-audio');
+      
+      // Attach the stream to the element
+      if (remoteAudioElement) {
+        remoteAudioElement.srcObject = remoteAudioStream;
+        // Make sure it starts playing
+        remoteAudioElement.play(); 
+      }
+    };
+    ```
+
+By implementing these two final pieces—a visual/audible incoming call notification and the correct handling of remote media streams—you will complete the full WebRTC call flow. This will transform your app from one that can theoretically connect to one that provides a seamless, real-time calling experience.
