@@ -7,6 +7,7 @@ import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
+import { ringtoneService } from "@/lib/ringtone-service";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -180,6 +181,16 @@ export default function VoiceCallModal({
         
         // CRITICAL: Request microphone permissions immediately for incoming calls
         console.log('🎤 INCOMING CALL: Requesting microphone permissions immediately...');
+        
+        // Start ringtone for incoming call
+        ringtoneService.startRingtone()
+          .then(() => {
+            console.log('🔔 INCOMING CALL: Ringtone started');
+          })
+          .catch((error) => {
+            console.warn('🔔 INCOMING CALL: Ringtone failed to start:', error);
+          });
+        
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })
           .then((stream) => {
             console.log('✅ INCOMING CALL: Microphone permissions granted');
@@ -190,6 +201,9 @@ export default function VoiceCallModal({
           .catch((error) => {
             console.error('❌ INCOMING CALL: Microphone permission denied:', error);
             setCallStatus("ended");
+            
+            // Stop ringtone on error
+            ringtoneService.stopRingtone();
             
             // Show user-friendly error message
             let errorMessage = 'Microphone access is required to receive calls.';
@@ -287,6 +301,9 @@ export default function VoiceCallModal({
   const handleAcceptCall = async () => {
     if (encryptedCallId && webrtcService.current) {
       try {
+        // Stop ringtone when call is accepted
+        ringtoneService.stopRingtone();
+        
         // Check if we already have the media stream from the incoming call preparation
         const tempStream = (window as any).tempIncomingCallStream;
         if (tempStream) {
@@ -327,6 +344,9 @@ export default function VoiceCallModal({
   };
 
   const handleEndCall = () => {
+    // Stop ringtone when call is ended/rejected
+    ringtoneService.stopRingtone();
+    
     if (encryptedCallId && webrtcService.current) {
       webrtcService.current.endCall(encryptedCallId);
     }
