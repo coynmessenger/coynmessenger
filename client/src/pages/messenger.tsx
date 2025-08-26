@@ -278,27 +278,38 @@ export default function MessengerPage() {
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
               console.log('🔔 MESSENGER: Global WebRTC incoming call received:', call);
+              console.log('🔔 MESSENGER: Call details:', { fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               console.log('🔔 MESSENGER: Available users:', allUsers.map(u => ({ id: u.id, name: u.displayName })));
+              console.log('🔔 MESSENGER: Current modal states:', { isVoiceCallOpen, isVideoCallOpen });
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
               console.log('🔔 MESSENGER: Caller user found:', callerUser);
               
               if (callerUser) {
-                // Store incoming call data with call ID
+                // Store incoming call data with call ID FIRST
+                console.log('🔔 MESSENGER: Setting incoming call data...');
                 setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
                 
+                // IMMEDIATELY open the appropriate modal
                 if (call.type === 'voice') {
                   console.log('🔔 MESSENGER: Opening voice call modal for incoming call with ID:', call.callId);
-                  // Show voice call modal for incoming call
                   setIsVoiceCallOpen(true);
+                  
+                  // Double-check state will be set
+                  setTimeout(() => {
+                    console.log('🔔 MESSENGER: Voice modal state after opening:', { 
+                      isVoiceCallOpen: true, 
+                      incomingCallData: { fromUserId: call.fromUserId, type: call.type, callId: call.callId } 
+                    });
+                  }, 100);
                 } else if (call.type === 'video') {
                   console.log('🔔 MESSENGER: Opening video call modal for incoming call with ID:', call.callId);
-                  // Show video call modal for incoming call
                   setIsVideoCallOpen(true);
                 }
               } else {
                 console.log('🔔 MESSENGER: No caller user found for ID:', call.fromUserId);
+                console.log('🔔 MESSENGER: All available user IDs:', allUsers.map(u => u.id.toString()));
               }
             },
             onCallAccepted: (call) => {

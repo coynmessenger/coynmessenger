@@ -34,6 +34,15 @@ export default function VoiceCallModal({
   isCallActive = false,
   incomingCallId
 }: VoiceCallModalProps) {
+  
+  // Add debugging for props
+  console.log('🎙️ VOICE MODAL: Rendered with props:', {
+    isOpen,
+    user: user ? { id: user.id, name: user.displayName } : null,
+    callType,
+    incomingCallId
+  });
+  
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);

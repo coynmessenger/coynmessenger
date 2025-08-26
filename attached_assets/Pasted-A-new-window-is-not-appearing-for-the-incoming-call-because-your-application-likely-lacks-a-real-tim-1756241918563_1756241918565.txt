@@ -1,0 +1,73 @@
+A new window is not appearing for the incoming call because your application likely lacks a real-time event listener or a dedicated UI state to handle incoming calls. The browser's security model prevents applications from opening new windows or popups without a direct user action. You must display the call window within the current page.
+
+How to Fix This
+
+To display a call notification window, your application needs to do three things: listen for an incoming call event, update your application's state, and conditionally render the call UI.
+
+1. Real-Time Event Listener
+
+On the incoming user's side, your application must have an active event listener to detect when a call is placed. This is typically done through your signaling server (e.g., a WebSocket connection).
+
+    Outgoing Caller: When the user clicks "Call," their app sends a message to the signaling server.
+
+    Signaling Server: The server receives the message and forwards it to the intended recipient.
+
+    Incoming Caller: Your app's WebSocket listener receives this message.
+
+JavaScript
+
+// Pseudo-code for a WebSocket listener on the incoming user's side
+signalingServer.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+
+  if (message.type === 'incoming-call') {
+    // This is the trigger! Now, show the UI.
+    // ...
+  }
+};
+
+2. Update Application State
+
+Once your event listener detects an incoming call, you must update the application's state to reflect that a call is in progress. Using a state management library like React's useState or Zustand is a clean way to handle this.
+JavaScript
+
+// In your React component
+const [incomingCall, setIncomingCall] = useState(null);
+
+// Inside your signaling listener
+signalingServer.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+
+  if (message.type === 'incoming-call') {
+    // Store call details in state. This will trigger a re-render.
+    setIncomingCall({
+      callerId: message.callerId,
+      // ... other call data
+    });
+  }
+};
+
+This approach allows your application to "remember" that there is an incoming call, even as other parts of the UI update.
+
+3. Conditionally Render the Call Window
+
+With your state updated, you can use conditional rendering to show or hide the incoming call window. The UI for the incoming call, including the "Answer" and "Cancel" buttons, should be a component that is only rendered when the incomingCall state variable is not null.
+JavaScript
+
+// In your React component's return statement
+return (
+  <div>
+    {/* Other parts of your application UI */}
+    {/* ... */}
+
+    {incomingCall && (
+      <div className="incoming-call-window">
+        <h3>Incoming Call from {incomingCall.callerId}</h3>
+        <button onClick={handleAnswer}>Answer</button>
+        <button onClick={handleCancel}>Cancel</button>
+      </div>
+    )}
+  </div>
+);
+
+By following these steps, you can create a seamless incoming call experience that is not blocked by browser security. Your application will react in real-time to incoming calls by changing its internal state, which in turn displays the correct UI for the user.
