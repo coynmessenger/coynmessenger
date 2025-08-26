@@ -27,13 +27,34 @@ export class EncryptedWebRTCService {
   private eventHandlers: CallEventHandlers = {};
   private isInitialized = false;
 
-  // WebRTC configuration with STUN servers
+  // WebRTC configuration with STUN and TURN servers
   private rtcConfiguration: RTCConfiguration = {
     iceServers: [
+      // Google STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      // OpenRelay TURN server (free public TURN server)
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      }
     ],
     iceCandidatePoolSize: 10,
+    iceTransportPolicy: 'all' // Use both STUN and TURN
   };
 
   constructor() {
@@ -490,24 +511,61 @@ export class EncryptedWebRTCService {
         // Send encrypted ICE candidate
         const targetUserId = call.participants.find(p => p !== this.localUserId);
         if (targetUserId) {
+          console.log('🧊 CLIENT: Sending ICE candidate to:', targetUserId);
+          console.log('- Candidate type:', event.candidate.type);
+          console.log('- Protocol:', event.candidate.protocol);
           this.socket.emit('ice-candidate', {
             callId: call.callId,
             targetUserId,
             candidate: event.candidate,
           });
         }
+      } else if (!event.candidate) {
+        console.log('🏁 CLIENT: ICE gathering complete');
       }
     };
 
     call.peerConnection.onconnectionstatechange = () => {
-      console.log('Connection state:', call.peerConnection?.connectionState);
+      const state = call.peerConnection?.connectionState;
+      console.log('🔌 CLIENT: Connection state changed:', state);
       
-      if (call.peerConnection?.connectionState === 'connected') {
-        console.log('Encrypted call connection established');
-      } else if (call.peerConnection?.connectionState === 'failed') {
-        console.log('Call connection failed');
+      if (state === 'connected') {
+        console.log('✅ CLIENT: WebRTC connection established successfully!');
+      } else if (state === 'failed') {
+        console.error('❌ CLIENT: WebRTC connection failed - likely NAT/firewall issue');
+        console.log('💡 TIP: Check TURN server configuration and firewall settings');
         this.endCall(call.callId);
+        // Notify UI about connection failure
+        if (this.eventHandlers.onCallEnded) {
+          this.eventHandlers.onCallEnded({
+            callId: call.callId,
+            endedBy: 'system',
+            reason: 'Connection failed - NAT/firewall issue'
+          });
+        }
+      } else if (state === 'disconnected') {
+        console.warn('⚠️ CLIENT: WebRTC connection disconnected');
       }
+    };
+    
+    // Monitor ICE connection state
+    call.peerConnection.oniceconnectionstatechange = () => {
+      const state = call.peerConnection?.iceConnectionState;
+      console.log('🧊 CLIENT: ICE connection state changed:', state);
+      
+      if (state === 'failed') {
+        console.error('❌ CLIENT: ICE negotiation failed - check STUN/TURN servers');
+      } else if (state === 'checking') {
+        console.log('🔍 CLIENT: Checking ICE candidates...');
+      } else if (state === 'connected' || state === 'completed') {
+        console.log('✅ CLIENT: ICE connection established!');
+      }
+    };
+    
+    // Monitor ICE gathering state
+    call.peerConnection.onicegatheringstatechange = () => {
+      const state = call.peerConnection?.iceGatheringState;
+      console.log('📍 CLIENT: ICE gathering state:', state);
     };
   }
 

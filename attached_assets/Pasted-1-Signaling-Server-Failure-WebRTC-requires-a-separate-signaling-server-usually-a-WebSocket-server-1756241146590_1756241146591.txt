@@ -1,0 +1,35 @@
+1. Signaling Server Failure
+
+WebRTC requires a separate signaling server (usually a WebSocket server) to function. This server acts as a "matchmaker" to help peers exchange the necessary information to connect.
+
+    Check WebSocket Connection: Ensure your frontend is successfully connecting to your signaling server. Look for WebSocket connection errors in the browser console.
+
+    Verify Message Exchange: Confirm that your server is correctly relaying the required WebRTC messages between the users. The most important messages are the Session Description Protocol (SDP) offer and answer, and the ICE (Interactive Connectivity Establishment) candidates.
+
+2. Network and NAT Traversal Issues
+
+WebRTC calls can fail if a user is behind a NAT (Network Address Translation) or firewall that prevents a direct connection. This is the single most common reason for connection failures.
+
+    STUN Server (Session Traversal Utilities for NAT): A STUN server helps a peer discover its public IP address and port. Without it, peers behind certain types of firewalls cannot find each other.
+
+TURN Server (Traversal Using Relays around NAT): If a direct peer-to-peer connection is not possible (e.g., due to a strict corporate firewall), a TURN server acts as a relay, routing all media traffic between the peers. This is a crucial fallback.
+
+To fix this, ensure you are providing a list of working STUN and TURN servers when you create your RTCPeerConnection object. A lack of a TURN server often results in calls failing to connect entirely.
+
+3. Missing Media and Permissions
+
+WebRTC will fail if it can't access the user's camera or microphone.
+
+    Request Permissions: Make sure you are correctly calling getUserMedia to request media access and handling the promise correctly.
+
+    Handle Denied Permissions: Check if the user has denied camera/microphone access. The getUserMedia promise will reject in this case, and your application should provide a graceful fallback or error message.
+
+4. Browser Console Errors
+
+The most direct way to pinpoint the problem is to open your browser's developer console. WebRTC provides very descriptive error messages that can tell you exactly what is failing.
+
+    "Failed to set remote answer": This often indicates an issue with the SDP message received from the remote peer, or a timing issue in the signaling.
+
+    "ICE negotiation failed": This is a clear sign that the peers were unable to find a common network path to connect, which points directly to STUN/TURN server configuration issues.
+
+Your fix lies in inspecting and debugging the code that sets up your WebRTC RTCPeerConnection and handles the signaling server communication.

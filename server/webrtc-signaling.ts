@@ -276,10 +276,20 @@ export class EncryptedWebRTCSignaling {
         answer?: RTCSessionDescriptionInit 
       }) => {
         const accepterId = this.socketUsers.get(socket.id);
-        if (!accepterId) return;
+        if (!accepterId) {
+          console.error('❌ SERVER: accept-call - accepter not found');
+          return;
+        }
+
+        console.log('📞 SERVER: accept-call received');
+        console.log('- Accepter ID:', accepterId);
+        console.log('- Call ID:', data.callId);
 
         const call = this.activeCalls.get(data.callId);
-        if (!call) return;
+        if (!call) {
+          console.error('❌ SERVER: Call not found:', data.callId);
+          return;
+        }
 
         const accepterEncryption = this.encryptionServices.get(accepterId);
         if (!accepterEncryption) return;
@@ -326,7 +336,16 @@ export class EncryptedWebRTCSignaling {
         candidate: RTCIceCandidateInit
       }) => {
         const senderId = this.socketUsers.get(socket.id);
-        if (!senderId) return;
+        if (!senderId) {
+          console.error('❌ SERVER: ICE candidate sender not found');
+          return;
+        }
+
+        console.log('🧊 SERVER: ICE candidate received');
+        console.log('- From:', senderId);
+        console.log('- To:', data.targetUserId);
+        console.log('- Call ID:', data.callId);
+        console.log('- Candidate type:', (data.candidate as any).type);
 
         const senderEncryption = this.encryptionServices.get(senderId);
         const targetSocketId = this.userSockets.get(data.targetUserId);
@@ -339,6 +358,7 @@ export class EncryptedWebRTCSignaling {
               data.candidate
             );
 
+            console.log('📤 SERVER: Sending encrypted ICE candidate to target');
             this.io.to(targetSocketId).emit('ice-candidate', {
               callId: data.callId,
               fromUserId: senderId,
@@ -347,6 +367,7 @@ export class EncryptedWebRTCSignaling {
             });
           } catch (error) {
             
+            console.log('📤 SERVER: Sending unencrypted ICE candidate to target (fallback)');
             // Send unencrypted as fallback
             this.io.to(targetSocketId).emit('ice-candidate', {
               callId: data.callId,
