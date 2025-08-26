@@ -18,6 +18,8 @@ import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import WalletAddressSelector from "@/components/wallet-address-selector";
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
+import LazyImage from "@/components/lazy-image";
 import type { User } from "@shared/schema";
 
 
@@ -887,13 +889,11 @@ export default function HomePage() {
             {/* Coynful Logo with Enhanced Glow */}
             <div className="relative ml-4">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 dark:from-orange-500 dark:to-amber-500 blur-3xl opacity-40 scale-150 animate-pulse"></div>
-              <img 
+              <LazyImage 
                 src={coynfulLogoPath} 
                 alt="Coynful Logo" 
                 className="h-28 w-auto relative z-10 drop-shadow-[0_0_50px_rgba(251,146,60,0.9)] hover:drop-shadow-[0_0_70px_rgba(251,146,60,1)] transition-all duration-500 hover:scale-105"
-                loading="eager"
-                decoding="async"
-                style={{ imageRendering: 'auto' }}
+                placeholder="Loading Coynful logo..."
               />
             </div>
           </div>
@@ -940,7 +940,7 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <img 
+                        <LazyImage 
                           src={metamaskLogo} 
                           alt="MetaMask" 
                           className="w-8 h-8 object-contain"
@@ -957,7 +957,7 @@ export default function HomePage() {
                       variant="outline"
                     >
                       <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <img 
+                        <LazyImage 
                           src={trustWalletLogo} 
                           alt="Trust Wallet" 
                           className="w-8 h-8 object-contain"
@@ -1142,7 +1142,7 @@ export default function HomePage() {
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1 hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer group"
             >
-              <img 
+              <LazyImage 
                 src={coynLogoPath} 
                 alt="COYN" 
                 className="h-6 w-6 object-contain group-hover:drop-shadow-[0_0_10px_rgba(251,146,60,0.7)] transition-all duration-300"
@@ -1186,6 +1186,9 @@ export default function HomePage() {
         isOpen={showPrivacyModal} 
         onClose={() => setShowPrivacyModal(false)} 
       />
+      
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }

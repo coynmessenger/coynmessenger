@@ -2,7 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ea580c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="COYN Messenger" />
+    <link rel="apple-touch-icon" href="/src/assets/COYN-symbol-square_1750808237977.png" />
+    
+    <!-- Enhanced SEO and Social Meta -->
+    <title>COYN Messenger - Secure Crypto Communication</title>
+    <meta name="description" content="Secure messaging with cryptocurrency wallet integration and encrypted voice/video calls. Real-time chat with BNB, USDT, and COYN transactions." />
+    <meta name="keywords" content="crypto messenger, blockchain chat, secure messaging, cryptocurrency wallet, encrypted calls" />
+    
+    <!-- Open Graph Meta -->
+    <meta property="og:title" content="COYN Messenger - Secure Crypto Communication" />
+    <meta property="og:description" content="Secure messaging with cryptocurrency wallet integration and encrypted voice/video calls" />
+    <meta property="og:image" content="/src/assets/COYN-symbol-square_1750808237977.png" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Fonts and Preloading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -24,6 +45,42 @@
     </audio>
     
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration for PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registered successfully:', registration.scope);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New content available, notify user
+                    console.log('🔄 New version available');
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.log('❌ Service Worker registration failed:', error);
+            });
+        });
+      }
+      
+      // PWA Install Prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show install button or notification
+        console.log('📱 PWA install prompt available');
+      });
+    </script>
+    
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>

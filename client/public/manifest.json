@@ -1,0 +1,60 @@
+{
+  "name": "COYN Messenger",
+  "short_name": "COYN",
+  "description": "Secure messaging with cryptocurrency wallet integration and encrypted voice/video calls",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#ea580c",
+  "background_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/src/assets/COYN-symbol-square_1750808237977.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/src/assets/COYN-symbol-square_1750808237977.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "social", "communication"],
+  "screenshots": [
+    {
+      "src": "/src/assets/COYN-symbol-square_1750808237977.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Messenger",
+      "short_name": "Chat",
+      "description": "Open COYN Messenger",
+      "url": "/messenger",
+      "icons": [
+        {
+          "src": "/src/assets/COYN-symbol-square_1750808237977.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet",
+      "description": "Open crypto wallet",
+      "url": "/messenger?wallet=true",
+      "icons": [
+        {
+          "src": "/src/assets/COYN-symbol-square_1750808237977.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
