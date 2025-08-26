@@ -77,7 +77,7 @@ export const walletBalances = pgTable("wallet_balances", {
   userId: integer("user_id").notNull(),
   currency: text("currency").notNull(), // BNB, COYN, USDT
   balance: decimal("balance", { precision: 18, scale: 8 }).notNull(),
-  usdValue: decimal("usd_value", { precision: 10, scale: 2 }),
+  usdValue: decimal("usd_value", { precision: 15, scale: 2 }),
   changePercent: decimal("change_percent", { precision: 5, scale: 2 }),
 });
 

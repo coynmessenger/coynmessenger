@@ -23,7 +23,7 @@ class BlockchainService {
   private tokenContracts = {
     BNB: 'native', // BNB is the native token
     USDT: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
-    COYN: '0x162539172B53E9a93B7d98FB6C41682de558A320', // COYN token contract on BSC
+    COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', // COYN token contract on BSC
   };
 
   constructor() {
@@ -68,7 +68,7 @@ class BlockchainService {
 
       return balances;
     } catch (error) {
-      
+      console.error('Error in getWalletBalances:', error);
       // Return zero balances as fallback
       return [
         { currency: 'BNB', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
@@ -95,9 +95,12 @@ class BlockchainService {
       const contract = new ethers.Contract(tokenAddress, abi, this.provider);
       
       const balance = await contract.balanceOf(walletAddress);
-      return ethers.formatUnits(balance, decimals);
-    } catch (error) {
+      const formattedBalance = ethers.formatUnits(balance, decimals);
       
+      console.log(`Token balance for ${walletAddress} at ${tokenAddress}: ${formattedBalance}`);
+      return formattedBalance;
+    } catch (error) {
+      console.error(`Error fetching token balance for ${tokenAddress}:`, error);
       return '0.00000000';
     }
   }
