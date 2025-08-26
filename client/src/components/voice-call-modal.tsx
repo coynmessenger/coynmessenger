@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move, SwitchCamera } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
@@ -48,6 +48,7 @@ export default function VoiceCallModal({
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
+  const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
   const [callDuration, setCallDuration] = useState(0);
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
   
@@ -377,6 +378,35 @@ export default function VoiceCallModal({
     }
   };
 
+  // Quick action handlers
+  const handleToggleMute = () => {
+    if (currentStream) {
+      const audioTracks = currentStream.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = isMuted; // Toggle enabled state
+      });
+    }
+    setIsMuted(!isMuted);
+  };
+
+  const handleToggleSpeaker = () => {
+    if (remoteAudioRef.current) {
+      try {
+        // Toggle speaker/earpiece output
+        if (typeof (remoteAudioRef.current as any).setSinkId === 'function') {
+          // Use setSinkId if available (Chrome/Edge)
+          (remoteAudioRef.current as any).setSinkId(isSpeakerOn ? 'default' : 'speaker');
+        } else {
+          // Fallback: adjust volume
+          remoteAudioRef.current.volume = isSpeakerOn ? 0.7 : 1.0;
+        }
+      } catch (error) {
+        console.log('Speaker toggle not supported on this device');
+      }
+    }
+    setIsSpeakerOn(!isSpeakerOn);
+  };
+
   const handleEndCall = () => {
     // Stop ringtone when call is ended/rejected
     ringtoneService.stopRingtone();
@@ -650,20 +680,37 @@ export default function VoiceCallModal({
           {callStatus !== "ended" && (
             <div className="flex justify-center">
               {callStatus === "connected" && (
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Top Row */}
+                <div className="flex justify-center space-x-3">
+                  {/* Quick Action Buttons Row */}
+                  
                   {/* Mute Button */}
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className={`w-14 h-14 rounded-full border-2 transition-all duration-300 ${
+                    onClick={handleToggleMute}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
                       isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
                     }`}
+                    title={isMuted ? "Unmute" : "Mute"}
                   >
-                    {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+
+                  {/* Speaker Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleToggleSpeaker}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
+                      isSpeakerOn 
+                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30 shadow-lg shadow-blue-500/20" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
+                    }`}
+                    title={isSpeakerOn ? "Turn off speaker" : "Turn on speaker"}
+                  >
+                    {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                   </Button>
 
                   {/* Video Button */}
@@ -681,33 +728,19 @@ export default function VoiceCallModal({
                         onClose(); // Close voice call modal
                       }
                     }}
-                    className="w-14 h-14 rounded-full border-2 transition-all duration-300 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400"
+                    className="w-12 h-12 rounded-full border-2 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400 transition-all duration-200"
                     title="Switch to video call"
                   >
-                    <Video className="h-6 w-6" />
-                  </Button>
-
-                  {/* Bottom Row */}
-                  {/* Speaker Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsSpeakerOn(!isSpeakerOn)}
-                    className={`w-14 h-14 rounded-full border-2 transition-all duration-300 ${
-                      isSpeakerOn 
-                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
-                    }`}
-                  >
-                    {isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
+                    <Video className="h-5 w-5" />
                   </Button>
 
                   {/* End Call Button */}
                   <Button
                     onClick={handleEndCall}
-                    className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
+                    className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30"
+                    title="End call"
                   >
-                    <PhoneOff className="h-6 w-6" />
+                    <PhoneOff className="h-5 w-5" />
                   </Button>
                 </div>
               )}

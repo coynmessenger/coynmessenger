@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move, SwitchCamera } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
@@ -27,6 +27,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSelfViewExpanded, setIsSelfViewExpanded] = useState(false);
+  const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
+  const [currentCamera, setCurrentCamera] = useState<'user' | 'environment'>('user');
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
   
   const [callDuration, setCallDuration] = useState(0);
@@ -262,6 +264,80 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         
         if (onCallEnd) onCallEnd();
       }
+    }
+  };
+
+  // Quick action handlers
+  const handleToggleMute = () => {
+    if (currentStream) {
+      const audioTracks = currentStream.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = isMuted; // Toggle enabled state
+      });
+    }
+    setIsMuted(!isMuted);
+  };
+
+  const handleToggleVideo = () => {
+    if (currentStream) {
+      const videoTracks = currentStream.getVideoTracks();
+      videoTracks.forEach(track => {
+        track.enabled = isVideoOff; // Toggle enabled state
+      });
+    }
+    setIsVideoOff(!isVideoOff);
+  };
+
+  const handleSwitchCamera = async () => {
+    if (!currentStream) return;
+    
+    try {
+      // Stop current video track
+      const videoTracks = currentStream.getVideoTracks();
+      videoTracks.forEach(track => track.stop());
+      
+      // Switch camera facing mode
+      const newCamera = currentCamera === 'user' ? 'environment' : 'user';
+      
+      // Get new stream with switched camera
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: { 
+          facingMode: newCamera,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      
+      // Update current stream
+      setCurrentStream(newStream);
+      setCurrentCamera(newCamera);
+      
+      // Update the peer connection with new video track if connected
+      if (webrtcService.current && encryptedCallId) {
+        const call = (webrtcService.current as any).activeCalls?.get(encryptedCallId);
+        if (call?.peerConnection) {
+          const sender = call.peerConnection.getSenders().find((s: any) => 
+            s.track && s.track.kind === 'video'
+          );
+          if (sender) {
+            const newVideoTrack = newStream.getVideoTracks()[0];
+            await sender.replaceTrack(newVideoTrack);
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Failed to switch camera:', error);
+      // Show toast notification about camera switch failure
+      import("@/hooks/use-toast").then(({ toast }) => {
+        toast({
+          title: "Camera Switch Failed",
+          description: "Unable to switch camera. Check camera permissions.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      });
     }
   };
 
@@ -640,18 +716,18 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
 
           {/* Call Controls */}
           {callStatus !== "ended" && (
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center space-x-3">
               {callStatus === "connected" && (
                 <>
                   {/* Mute Button */}
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                    onClick={handleToggleMute}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
                       isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
                     }`}
                     title={isMuted ? "Unmute" : "Mute"}
                   >
@@ -662,15 +738,26 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setIsVideoOff(!isVideoOff)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                    onClick={handleToggleVideo}
+                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
                       isVideoOff 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50"
+                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
+                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
                     }`}
                     title={isVideoOff ? "Turn on your camera" : "Turn off your camera"}
                   >
                     {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                  </Button>
+
+                  {/* Camera Switch Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleSwitchCamera}
+                    className="w-12 h-12 rounded-full border-2 transition-all duration-200 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
+                    title="Switch camera"
+                  >
+                    <SwitchCamera className="h-5 w-5" />
                   </Button>
                 </>
               )}
@@ -678,7 +765,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               {/* End Call Button */}
               <Button
                 onClick={handleEndCall}
-                className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
+                className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30"
                 title="End call"
               >
                 <PhoneOff className="h-5 w-5" />

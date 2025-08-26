@@ -109,14 +109,7 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('🚨🚨🚨 INCOMING CALL DEBUG - Client received incoming-call event 🚨🚨🚨');
-      console.log('🚨 Call data:', data);
-      console.log('🚨 Current user ID:', this.localUserId);
-      console.log('🚨 Event handlers available:', !!this.eventHandlers.onIncomingCall);
-      console.log('🚨 Handler details:', this.eventHandlers);
-      console.log('🚨 All event handlers:', Object.keys(this.eventHandlers));
-      console.log('🚨 Socket connected:', this.socket?.connected);
-      console.log('🚨 Service initialized:', this.isInitialized);
+      console.log('📞 Incoming call received from user:', data.fromUserId);
       
       try {
         // Store call information
@@ -310,7 +303,7 @@ export class EncryptedWebRTCService {
         return;
       }
 
-      console.log(`🚨🚨🚨 CRITICAL: Authenticating user ${userId} with WebRTC signaling server 🚨🚨🚨`);
+      console.log(`Authenticating user ${userId} with WebRTC signaling server`);
       
       const timeout = setTimeout(() => {
         console.error(`Authentication timeout for user ${userId}`);
@@ -318,13 +311,11 @@ export class EncryptedWebRTCService {
       }, 10000);
 
       this.socket!.once('authenticated', (data) => {
-        console.log(`🚨🚨🚨 CRITICAL: Authentication successful for user ${userId} 🚨🚨🚨`);
-        console.log(`🚨🚨🚨 CRITICAL: Auth data received:`, data);
+        console.log(`Authentication successful for user ${userId}`);
         clearTimeout(timeout);
         resolve();
       });
 
-      console.log(`🚨🚨🚨 CRITICAL: Sending authenticate event with userId: ${userId} 🚨🚨🚨`);
       this.socket!.emit('authenticate', { userId });
     });
   }
@@ -459,17 +450,11 @@ export class EncryptedWebRTCService {
       } else {
         // Fallback: Get user media with proper error handling
         try {
-          console.log('🎤🚨 CRITICAL: Requesting microphone permissions for incoming call (fallback)...');
-          console.log('🎤🚨 CRITICAL: Browser supports getUserMedia:', !!navigator.mediaDevices?.getUserMedia);
-          console.log('🎤🚨 CRITICAL: Constraints:', constraints);
-          
+          console.log('🎤 Requesting microphone permissions...');
           localStream = await navigator.mediaDevices.getUserMedia(constraints);
-          console.log('✅🚨 CRITICAL: Microphone access granted for incoming call');
-          console.log('✅🚨 CRITICAL: Stream tracks:', localStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
+          console.log('✅ Microphone access granted');
         } catch (error: any) {
-          console.error('❌🚨 CRITICAL: Microphone permission error on accept:', error);
-          console.error('❌🚨 CRITICAL: Error name:', error.name);
-          console.error('❌🚨 CRITICAL: Error message:', error.message);
+          console.error('❌ Microphone permission error:', error);
           
           // Provide specific error messages
           if (error.name === 'NotAllowedError') {
