@@ -277,40 +277,21 @@ export default function MessengerPage() {
           // Set up global WebRTC handlers for incoming calls IMMEDIATELY after initialization
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
-              console.log('🔔 MESSENGER: Global WebRTC incoming call received:', call);
-              console.log('🔔 MESSENGER: Call details:', { fromUserId: call.fromUserId, type: call.type, callId: call.callId });
-              console.log('🔔 MESSENGER: Available users:', allUsers.map(u => ({ id: u.id, name: u.displayName })));
-              console.log('🔔 MESSENGER: Current modal states:', { isVoiceCallOpen, isVideoCallOpen });
+              console.log('📞 Incoming call received:', call);
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
-              console.log('🔔 MESSENGER: Caller user found:', callerUser);
-              console.log('🔔 MESSENGER: All users for matching:', allUsers.map(u => ({ id: u.id, idString: u.id.toString(), displayName: u.displayName })));
               
               if (callerUser) {
-                // Store incoming call data with call ID FIRST
-                console.log('🔔 MESSENGER: Setting incoming call data...');
+                // Store incoming call data with call ID
                 setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
                 
-                // IMMEDIATELY open the appropriate modal
+                // Open the appropriate modal
                 if (call.type === 'voice') {
-                  console.log('🔔 MESSENGER: Opening voice call modal for incoming call with ID:', call.callId);
                   setIsVoiceCallOpen(true);
-                  
-                  // Double-check state will be set
-                  setTimeout(() => {
-                    console.log('🔔 MESSENGER: Voice modal state after opening:', { 
-                      isVoiceCallOpen: true, 
-                      incomingCallData: { fromUserId: call.fromUserId, type: call.type, callId: call.callId } 
-                    });
-                  }, 100);
                 } else if (call.type === 'video') {
-                  console.log('🔔 MESSENGER: Opening video call modal for incoming call with ID:', call.callId);
                   setIsVideoCallOpen(true);
                 }
-              } else {
-                console.log('🔔 MESSENGER: No caller user found for ID:', call.fromUserId);
-                console.log('🔔 MESSENGER: All available user IDs:', allUsers.map(u => u.id.toString()));
               }
             },
             onCallAccepted: (call) => {

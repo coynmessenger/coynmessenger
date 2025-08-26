@@ -65,11 +65,11 @@ export class EncryptedWebRTCService {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}`;
     
-    // CRITICAL FIX: Don't create a new socket, reuse the global socket connection
-    // This ensures WebRTC events go to the same socket the server is targeting
+    console.log('🔧 WebRTC initializing socket connection to:', socketUrl);
+    
     this.socket = io(socketUrl, {
       transports: ['websocket'],
-      forceNew: false, // CHANGED: Don't force new socket
+      forceNew: false,
       path: '/socket.io/',
     });
     
@@ -124,24 +124,14 @@ export class EncryptedWebRTCService {
 
         // Trigger the incoming call event for UI
         if (this.eventHandlers.onIncomingCall) {
-          console.log('✅ CRITICAL: Triggering onIncomingCall handler for call:', data.callId);
-          console.log('✅ CRITICAL: Handler function exists:', typeof this.eventHandlers.onIncomingCall);
-          console.log('✅ CRITICAL: About to call handler with data:', { callId: data.callId, fromUserId: data.fromUserId, type: data.type });
-          
-          try {
-            this.eventHandlers.onIncomingCall({
-              callId: data.callId,
-              fromUserId: data.fromUserId,
-              type: data.type,
-            });
-            console.log('✅ CRITICAL: onIncomingCall handler executed successfully');
-          } catch (handlerError) {
-            console.error('❌ CRITICAL: onIncomingCall handler failed:', handlerError);
-          }
+          this.eventHandlers.onIncomingCall({
+            callId: data.callId,
+            fromUserId: data.fromUserId,
+            type: data.type,
+          });
+          console.log('✅ Incoming call handler triggered for call:', data.callId);
         } else {
-          console.error('❌ CRITICAL: No onIncomingCall handler available!');
-          console.log('❌ CRITICAL: Available handlers:', Object.keys(this.eventHandlers));
-          console.log('❌ CRITICAL: Handler object:', this.eventHandlers);
+          console.error('❌ No incoming call handler available');
         }
 
         // If there's an offer, prepare for potential acceptance
