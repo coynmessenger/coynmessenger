@@ -1,0 +1,37 @@
+A WebRTC call not working is a complex issue because the process relies on multiple components functioning perfectly in sequence. The fact that neither outgoing nor incoming calls work suggests a fundamental problem in your WebRTC configuration or signaling flow, rather than an isolated issue on one end.
+
+To get your calls working like any other app, you need to verify the three core phases of a WebRTC connection:
+
+1. Signaling: The Call Handshake 🤝
+
+This is the "matchmaking" phase where users exchange essential information to set up a connection. Without this, a call can't even start.
+
+Troubleshooting Checklist:
+
+    Message Exchange: Check your Socket.IO server logs. Are offer, answer, and icecandidate messages being sent and received properly? A common issue is a message being sent but not broadcasted to the correct peer.
+
+    User State: Ensure your server is accurately tracking who is online and available to receive a call. When an incoming call is initiated, does the server correctly identify and notify the recipient's client?
+
+    PeerConnection State: On the front end, use the browser's developer tools to check the RTCPeerConnection's signaling state. It should move from stable to have-local-offer (for the caller) or have-remote-offer (for the receiver). If it's stuck in closed or have-remote-pranswer, something is wrong in the handshake.
+
+2. NAT Traversal: The Direct Connection 🌐
+
+Once the handshake is complete, peers attempt to establish a direct connection. This is where most WebRTC calls fail due to network firewalls and Network Address Translation (NAT) routers. This is also where your logs might not show an error, because the problem is preventing the data from ever reaching the server.
+
+    STUN Server Configuration: The iceServers property of your RTCPeerConnection must include one or more STUN servers (e.g., stun:stun.l.google.com:19302). STUN servers help peers discover their public IP address and port, which is essential for a direct peer-to-peer connection.
+
+    TURN Server as a Fallback: For users behind restrictive firewalls (like on corporate or campus networks), a direct connection will fail. You need a TURN (Traversal Using Relays around NAT) server as a fallback. A TURN server acts as a relay, passing all media data between the two peers. If your calls work on a home network but not on a corporate one, this is almost certainly the problem.
+
+    ICE Candidate Exchange: Your code must listen for icecandidate events on the RTCPeerConnection and send these candidates to the other peer via your signaling server. Without this exchange, peers don't know how to connect. The other peer must then add these candidates using addIceCandidate().
+
+3. Media Streams and UI 🎤
+
+Even with a perfect connection, a call won't work if the media isn't handled correctly.
+
+    Permissions: You must request and obtain microphone and camera permissions from the user using navigator.mediaDevices.getUserMedia(). If the user denies these permissions, the call will fail silently.
+
+    MediaStream to UI: The stream obtained from getUserMedia() must be attached to an HTML <video> or <audio> element using element.srcObject = stream for the user to see or hear the local media.
+
+    Remote Media: On the receiving peer, your code must listen for the ontrack event from the RTCPeerConnection and attach the remote stream to the appropriate video or audio element.
+
+If you systematically go through each of these steps, checking your server logs, browser console, and peer connection states, you will be able to pinpoint the exact point of failure. The most common culprit for WebRTC failures is a missing or improperly configured STUN/TURN server setup.

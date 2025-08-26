@@ -53,6 +53,7 @@ export default function VoiceCallModal({
   
   // WebRTC service instance
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -139,6 +140,19 @@ export default function VoiceCallModal({
           },
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
+          },
+          onRemoteStream: (stream) => {
+            console.log('🔊 VOICE CALL: Received remote audio stream');
+            if (remoteAudioRef.current) {
+              remoteAudioRef.current.srcObject = stream;
+              remoteAudioRef.current.play()
+                .then(() => {
+                  console.log('✅ VOICE CALL: Remote audio playback started successfully');
+                })
+                .catch((error) => {
+                  console.error('❌ VOICE CALL: Failed to start remote audio playback:', error);
+                });
+            }
           }
         });
       }
@@ -729,6 +743,14 @@ export default function VoiceCallModal({
           )}
         </div>
       </DialogContent>
+      
+      {/* Hidden audio element for remote stream */}
+      <audio 
+        ref={remoteAudioRef} 
+        autoPlay 
+        playsInline
+        style={{ display: 'none' }}
+      />
     </Dialog>
   );
 }
