@@ -292,6 +292,18 @@ body::before {
       min-width: 44px;
     }
   }
+  
+  /* Crisp icon rendering on mobile devices */
+  @media screen and (max-width: 768px) {
+    svg, button svg, .lucide {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      shape-rendering: geometricPrecision;
+      transform: translateZ(0);
+    }
+  }
 }
 
 /* Enhanced COYN logo preload optimization */

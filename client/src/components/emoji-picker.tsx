@@ -50,7 +50,7 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
               : 'text-gray-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
           }`}
         >
-          <Smile className="h-4 w-4 sm:h-4 sm:w-4" />
+          <Smile className="h-4 w-4 sm:h-4 sm:w-4 antialiased" style={{ imageRendering: 'crisp-edges' }} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
