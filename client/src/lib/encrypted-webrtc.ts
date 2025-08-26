@@ -502,6 +502,10 @@ export class EncryptedWebRTCService {
       await peerConnection.setLocalDescription(answer);
 
       // Send encrypted acceptance
+      console.log('📤 CRITICAL: Sending accept-call event to server (matching server listener)');
+      console.log('📤 CRITICAL: Call ID:', callId);
+      console.log('📤 CRITICAL: Answer created:', !!answer);
+      
       this.socket.emit('accept-call', {
         callId,
         answer,

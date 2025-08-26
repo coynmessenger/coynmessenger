@@ -1,0 +1,22 @@
+That's great news! The ring working means that the core signaling logic is now functioning end-to-end, from the server to the client. The UI is displaying correctly, but you're not able to answer. This means the problem has moved to the **call acceptance logic**.
+
+### 1. The Call Answer Handler
+
+The "Answer" button is not triggering the WebRTC connection process. The visual part of the call works, but the functionality behind the button is missing or incorrect.
+
+* **Problem:** The button you're clicking in the incoming call modal is likely a simple UI element without the necessary code to trigger the `RTCPeerConnection` handshake.
+* **Solution:** When the "Answer" button is clicked, it needs to call a function that takes the `offer` and other data passed in the `incoming-call` event and uses it to create and send an `answer` back to the original caller.
+
+### 2. The `RTCPeerConnection` Flow
+
+The process of answering a call is the reverse of making one. The receiver of the call must:
+
+1.  **Create an `RTCPeerConnection` instance:** This should be done when the "Accept" button is clicked.
+2.  **Set the remote description:** Take the `offer` from the incoming call event and set it as the remote description using `peerConnection.setRemoteDescription(offer)`.
+3.  **Create and send the answer:** Once the remote description is set, create an `answer` using `peerConnection.createAnswer()`.
+4.  **Set the local description:** Set the newly created `answer` as the local description using `peerConnection.setLocalDescription(answer)`.
+5.  **Send the answer back:** Send the `answer` to the original caller via your Socket.IO signaling server.
+
+This handshake must happen on both sides. The WebRTC connection will only be established once both peers have a local and a remote description and have exchanged ICE candidates.
+
+The fact that the ring worked and the UI appeared means your signaling is correct. The next step is to ensure that the "Answer" button triggers the `RTCPeerConnection` process to establish the peer-to-peer connection.
