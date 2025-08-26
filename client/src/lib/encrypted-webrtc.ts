@@ -310,7 +310,7 @@ export class EncryptedWebRTCService {
         return;
       }
 
-      console.log(`Authenticating user ${userId} with WebRTC signaling server`);
+      console.log(`🚨🚨🚨 CRITICAL: Authenticating user ${userId} with WebRTC signaling server 🚨🚨🚨`);
       
       const timeout = setTimeout(() => {
         console.error(`Authentication timeout for user ${userId}`);
@@ -318,11 +318,13 @@ export class EncryptedWebRTCService {
       }, 10000);
 
       this.socket!.once('authenticated', (data) => {
-        console.log(`Authentication successful for user ${userId}`);
+        console.log(`🚨🚨🚨 CRITICAL: Authentication successful for user ${userId} 🚨🚨🚨`);
+        console.log(`🚨🚨🚨 CRITICAL: Auth data received:`, data);
         clearTimeout(timeout);
         resolve();
       });
 
+      console.log(`🚨🚨🚨 CRITICAL: Sending authenticate event with userId: ${userId} 🚨🚨🚨`);
       this.socket!.emit('authenticate', { userId });
     });
   }
