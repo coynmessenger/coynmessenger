@@ -10,14 +10,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import WalletAccessValidator from "@/lib/wallet-access-validator";
 import { Coins, Plus } from "lucide-react";
-import { SiBinance, SiTether, SiBitcoin } from "react-icons/si";
+import { SiBinance, SiTether } from "react-icons/si";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import type { WalletBalance } from "@shared/schema";
 
 const getCryptoIcon = (crypto: string) => {
   switch (crypto) {
-    case 'BTC':
-      return <SiBitcoin className="w-5 h-5 text-orange-500" />;
     case 'BNB':
       return <SiBinance className="w-5 h-5 text-yellow-500" />;
     case 'USDT':

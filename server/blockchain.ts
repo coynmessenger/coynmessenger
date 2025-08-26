@@ -24,26 +24,11 @@ class BlockchainService {
     BNB: 'native', // BNB is the native token
     USDT: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
     COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', // COYN token contract on BSC
-    BTC: 'bitcoin', // Bitcoin native
   };
 
   constructor() {
     // Use BSC mainnet RPC
     this.provider = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
-  }
-
-  // Get Bitcoin balance using BlockCypher API
-  async getBitcoinBalance(address: string): Promise<string> {
-    try {
-      const response = await axios.get(`https://api.blockcypher.com/v1/btc/main/addrs/${address}/balance`);
-      const satoshis = response.data.balance || 0;
-      // Convert satoshis to BTC (1 BTC = 100,000,000 satoshis)
-      const btc = (satoshis / 100000000).toFixed(8);
-      return btc;
-    } catch (error) {
-      console.error('❌ Error fetching Bitcoin balance:', error);
-      return '0.00000000';
-    }
   }
 
   async getWalletBalances(walletAddress: string): Promise<TokenBalance[]> {
@@ -81,17 +66,6 @@ class BlockchainService {
         changePercent: prices.coyn.usd_24h_change.toFixed(2)
       });
 
-      // Get BTC balance - for demo, we'll use a test Bitcoin address
-      // In production, user would provide their BTC address separately
-      const btcTestAddress = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'; // Genesis block address for demo
-      const btcBalance = await this.getBitcoinBalance(btcTestAddress);
-      balances.push({
-        currency: 'BTC',
-        balance: btcBalance,
-        usdValue: (parseFloat(btcBalance) * prices.bitcoin.usd).toFixed(2),
-        changePercent: prices.bitcoin.usd_24h_change.toFixed(2)
-      });
-
       return balances;
     } catch (error) {
       // Return zero balances as fallback
@@ -99,7 +73,6 @@ class BlockchainService {
         { currency: 'BNB', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
         { currency: 'USDT', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
         { currency: 'COYN', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
-        { currency: 'BTC', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
       ];
     }
   }
@@ -133,7 +106,7 @@ class BlockchainService {
     try {
       const response = await axios.get(this.coingeckoApiUrl, {
         params: {
-          ids: 'binancecoin,tether,bitcoin',
+          ids: 'binancecoin,tether',
           vs_currencies: 'usd',
           include_24hr_change: true
         }
@@ -148,11 +121,10 @@ class BlockchainService {
       return prices;
     } catch (error) {
       
-      // Return fallback prices including COYN and BTC
+      // Return fallback prices including COYN
       return {
         binancecoin: { usd: 600, usd_24h_change: 0 },
         tether: { usd: 1, usd_24h_change: 0 },
-        bitcoin: { usd: 100000, usd_24h_change: 2.5 },
         coyn: { usd: 0.90, usd_24h_change: 4.70 }
       };
     }

@@ -20,7 +20,7 @@ import {
   Wallet,
   RefreshCw
 } from "lucide-react";
-import { SiBinance, SiBitcoin } from "react-icons/si";
+import { SiBinance } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
