@@ -90,6 +90,7 @@ export class EncryptedWebRTCService {
       console.log('- Call data:', data);
       console.log('- Current user ID:', this.localUserId);
       console.log('- Event handlers available:', !!this.eventHandlers.onIncomingCall);
+      console.log('- Handler details:', this.eventHandlers);
       console.log('- All event handlers:', Object.keys(this.eventHandlers));
       console.log('- Socket connected:', this.socket?.connected);
       console.log('- Service initialized:', this.isInitialized);
@@ -339,14 +340,28 @@ export class EncryptedWebRTCService {
       await peerConnection.setLocalDescription(offer);
 
       // Send encrypted call invitation
-      console.log(`Sending initiate-call event for ${type} call to ${targetUserId}`);
+      console.log(`📤 CLIENT: Sending initiate-call event for ${type} call to ${targetUserId}`);
+      console.log('- Socket connected:', this.socket?.connected);
+      console.log('- Local user ID:', this.localUserId);
+      console.log('- Target user ID:', targetUserId);
+      
       this.socket.emit('initiate-call', {
         targetUserId,
         type,
         offer,
       });
 
-      console.log(`Initiated encrypted ${type} call to ${targetUserId} with callId: ${callId}`);
+      console.log(`✅ CLIENT: Initiated encrypted ${type} call to ${targetUserId} with callId: ${callId}`);
+      
+      // Listen for call initiated confirmation
+      this.socket.once('call-initiated', (data: { callId: string, targetUserId: string }) => {
+        console.log('✅ CLIENT: Call initiated confirmation received:', data);
+      });
+      
+      this.socket.once('call-error', (data: { error: string }) => {
+        console.error('❌ CLIENT: Call error received:', data.error);
+      });
+      
       return callId;
       
     } catch (error) {

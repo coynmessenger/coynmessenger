@@ -44,9 +44,16 @@ export class EncryptedWebRTCSignaling {
       socket.on('authenticate', async (data: { userId: string }) => {
         const { userId } = data;
         
+        console.log('🔐 SERVER: User authentication request');
+        console.log('- User ID:', userId);
+        console.log('- Socket ID:', socket.id);
+        
         // Store user-socket mapping
         this.userSockets.set(userId, socket.id);
         this.socketUsers.set(socket.id, userId);
+        
+        console.log('- User sockets map size:', this.userSockets.size);
+        console.log('- All authenticated users:', Array.from(this.userSockets.keys()));
 
         // Initialize encryption service for user
         if (!this.encryptionServices.has(userId)) {
@@ -142,15 +149,23 @@ export class EncryptedWebRTCSignaling {
       }) => {
         const callerId = this.socketUsers.get(socket.id);
         
+        console.log('📞 SERVER: initiate-call received');
+        console.log('- Caller ID:', callerId);
+        console.log('- Target User ID:', data.targetUserId);
+        console.log('- Call type:', data.type);
+        
         // Debug: Call initiation
         if (!callerId) {
+          console.error('❌ SERVER: No caller ID found for socket:', socket.id);
+          socket.emit('call-error', { error: 'Caller not authenticated' });
           return;
         }
 
         const targetSocketId = this.userSockets.get(data.targetUserId);
         const callerEncryption = this.encryptionServices.get(callerId);
         
-
+        console.log('- Target socket ID:', targetSocketId);
+        console.log('- Caller encryption available:', !!callerEncryption);
 
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -197,7 +212,10 @@ export class EncryptedWebRTCSignaling {
             }
 
             // Send encrypted call invitation
-
+            console.log('✅ SERVER: Sending incoming-call event to target user');
+            console.log('- To socket:', targetSocketId);
+            console.log('- Call ID:', callId);
+            console.log('- From user:', callerId);
             
             this.io.to(targetSocketId).emit('incoming-call', {
               callId,
@@ -207,7 +225,10 @@ export class EncryptedWebRTCSignaling {
               encrypted: true
             });
 
-
+            console.log('📤 SERVER: incoming-call event sent successfully');
+            
+            // Notify caller that call is being placed
+            socket.emit('call-initiated', { callId, targetUserId: data.targetUserId });
             
           } catch (error) {
             
