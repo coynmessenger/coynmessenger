@@ -66,7 +66,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const connectedUser = getConnectedUser();
   const userId = connectedUser.id;
 
-  // Fetch wallet balances using comprehensive wallet data when available
+  // Fetch wallet balances from API
   const { data: walletBalances = [], refetch: refetchBalances } = useQuery<WalletBalance[]>({
     queryKey: ["/api/wallet/balances", userId],
     queryFn: async () => {
@@ -74,29 +74,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         throw new Error('User ID is required');
       }
 
-      // First, check if we have comprehensive wallet data
-      const comprehensiveBalances = localStorage.getItem('comprehensiveBalances');
-      if (comprehensiveBalances) {
-        const totalBalances = JSON.parse(comprehensiveBalances);
-        console.log('💰 Using comprehensive balances from all wallet addresses:', totalBalances);
-        
-        // Return formatted balance data
-        return [{
-          id: 1,
-          userId: userId,
-          btcBalance: totalBalances.btc || '0',
-          bnbBalance: totalBalances.bnb || '0',
-          usdtBalance: totalBalances.usdt || '0',
-          coynBalance: totalBalances.coyn || '0',
-          btcUsdValue: (parseFloat(totalBalances.btc || '0') * 98000).toFixed(2),
-          bnbUsdValue: (parseFloat(totalBalances.bnb || '0') * 600).toFixed(2),
-          usdtUsdValue: totalBalances.usdt || '0',
-          coynUsdValue: (parseFloat(totalBalances.coyn || '0') * 0.85).toFixed(2),
-          lastUpdated: new Date()
-        }];
-      }
-
-      // Fallback to API for non-comprehensive wallets
       const response = await fetch(`/api/wallet/balances?userId=${userId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balances');
@@ -106,28 +83,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     enabled: !!userId,
   });
 
-  // Real-time cryptocurrency market prices
-  const getCurrentMarketPrices = () => {
-    return {
-      BTC: 100000,   // $100,000 per BTC
-      BNB: 600,      // $600 per BNB  
-      USDT: 1.00,    // $1.00 per USDT (stable)
-      COYN: 0.85     // $0.85 per COYN
-    };
-  };
-
-  // Calculate USD value - use fetched values for Trust Wallet users, demo prices for others
-  const calculateRealTimeUSDValue = (balance: string, currency: string, fetchedUsdValue?: string | null) => {
-    // For Trust Wallet users, use the real USD value fetched from blockchain
-    if (isTrustWalletUser && fetchedUsdValue) {
-      return parseFloat(fetchedUsdValue);
-    }
-    
-    // For demo users, use demo market prices
-    const amount = parseFloat(balance || "0");
-    const prices = getCurrentMarketPrices();
-    const currentPrice = prices[currency as keyof typeof prices] || 0;
-    return amount * currentPrice;
+  // Calculate USD value using the data from API
+  const calculateUSDValue = (balance: WalletBalance) => {
+    return parseFloat(balance.usdValue || "0");
   };
 
   // Check if current user has a real Trust Wallet address
@@ -154,20 +112,20 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   });
 
-  // Calculate total balance - use real USD values for Trust Wallet users
+  // Calculate total balance from USD values in API
   const totalBalance = walletBalances.reduce((sum, balance) => {
-    const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue);
-    return sum + realTimeValue;
+    const usdValue = calculateUSDValue(balance);
+    return sum + usdValue;
   }, 0);
 
-  // Calculate 24h portfolio change (weighted average with real-time prices)
+  // Calculate 24h portfolio change (weighted average)
   const calculatePortfolioChange = () => {
     if (totalBalance === 0) return 0;
     
     let totalChange = 0;
     walletBalances.forEach(balance => {
-      const realTimeValue = calculateRealTimeUSDValue(balance.balance, balance.currency);
-      const weight = realTimeValue / totalBalance;
+      const usdValue = calculateUSDValue(balance);
+      const weight = usdValue / totalBalance;
       const change = parseFloat(balance.changePercent || "0");
       totalChange += weight * change;
     });
@@ -630,7 +588,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                               {formatBalance(balance.balance, balance.currency)} {balance.currency}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {formatUSD(calculateRealTimeUSDValue(balance.balance, balance.currency, balance.usdValue).toString())}
+                              {formatUSD(calculateUSDValue(balance).toString())}
                             </div>
                           </div>
                         </div>

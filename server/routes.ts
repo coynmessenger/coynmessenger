@@ -654,9 +654,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      const balances = await storage.getUserWalletBalances(userId);
+      // Get existing balances from database first
+      let balances = await storage.getUserWalletBalances(userId);
+      
+      // Initialize wallet balances if user doesn't have any
+      if (balances.length === 0) {
+        await storage.initializeWalletBalances(userId);
+        balances = await storage.getUserWalletBalances(userId);
+      }
+      
       res.json(balances);
     } catch (error) {
+      console.error('Error fetching wallet balances:', error);
       res.status(500).json({ message: "Failed to get wallet balances" });
     }
   });
@@ -670,7 +679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
 
-      
+      console.log(`Refreshing wallet balances for user ${userId}`);
 
       // Get user info to check if they have a real wallet address
       const user = await storage.getUser(parseInt(userId));
@@ -678,25 +687,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Initialize wallet balances if user doesn't have any
+      let currentBalances = await storage.getUserWalletBalances(parseInt(userId));
+      if (currentBalances.length === 0) {
+        await storage.initializeWalletBalances(parseInt(userId));
+        currentBalances = await storage.getUserWalletBalances(parseInt(userId));
+      }
+
       let refreshedBalances;
 
       if (user.walletAddress && user.walletAddress.startsWith('0x') && user.walletAddress.length === 42) {
         // Real Trust Wallet user - fetch actual blockchain balances
-        
+        console.log(`Fetching real blockchain balances for Trust Wallet user: ${user.walletAddress}`);
         refreshedBalances = await blockchainService.getWalletBalances(user.walletAddress);
         
         // Update all balances with real blockchain data
         for (const balance of refreshedBalances) {
-          await storage.updateWalletBalance(parseInt(userId), balance.currency, {
-            balance: balance.balance, // Real blockchain amounts
-            usdValue: balance.usdValue, // Real USD values
-            changePercent: balance.changePercent
-          });
+          // Check if balance record exists
+          const existingBalance = await storage.getUserCurrencyBalance(parseInt(userId), balance.currency);
+          if (existingBalance) {
+            await storage.updateWalletBalance(parseInt(userId), balance.currency, {
+              balance: balance.balance, // Real blockchain amounts
+              usdValue: balance.usdValue, // Real USD values
+              changePercent: balance.changePercent
+            });
+          } else {
+            // Create new balance record if it doesn't exist
+            await storage.createWalletBalance({
+              userId: parseInt(userId),
+              currency: balance.currency,
+              balance: balance.balance,
+              usdValue: balance.usdValue,
+              changePercent: balance.changePercent
+            });
+          }
         }
         
       } else {
         // Demo user - use demo-friendly refresh to maintain balances and update USD values
-        const currentBalances = await storage.getUserWalletBalances(parseInt(userId));
+        console.log(`Refreshing demo balances for user ${userId}`);
         refreshedBalances = await blockchainService.refreshDemoBalances(currentBalances);
         
         // Update USD values in database
@@ -707,17 +736,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             changePercent: balance.changePercent
           });
         }
-        
       }
 
       // Return updated balances
       const updatedBalances = await storage.getUserWalletBalances(parseInt(userId));
       
-      
+      console.log(`Successfully refreshed balances for user ${userId}:`, updatedBalances);
       res.json(updatedBalances);
     } catch (error) {
-      
-      res.status(500).json({ message: "Internal server error" });
+      console.error('Error refreshing wallet balances:', error);
+      res.status(500).json({ message: "Failed to refresh wallet balances" });
     }
   });
 

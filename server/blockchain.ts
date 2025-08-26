@@ -23,7 +23,7 @@ class BlockchainService {
   private tokenContracts = {
     BNB: 'native', // BNB is the native token
     USDT: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
-    COYN: '0x0000000000000000000000000000000000000000', // Placeholder for COYN token
+    COYN: '0x162539172B53E9a93B7d98FB6C41682de558A320', // COYN token contract on BSC
     BTC: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', // BTCB on BSC
   };
 
@@ -66,12 +66,13 @@ class BlockchainService {
         changePercent: prices.tether.usd_24h_change.toFixed(2)
       });
 
-      // Get COYN balance (mock for now since we don't have real contract)
+      // Get COYN balance
+      const coynBalance = await this.getTokenBalance(walletAddress, this.tokenContracts.COYN, 18);
       balances.push({
         currency: 'COYN',
-        balance: '0.00000000', // Will be real once COYN contract is deployed
-        usdValue: '0.00',
-        changePercent: '0.00'
+        balance: coynBalance,
+        usdValue: (parseFloat(coynBalance) * prices.coyn.usd).toFixed(2),
+        changePercent: prices.coyn.usd_24h_change.toFixed(2)
       });
 
       return balances;
@@ -120,14 +121,22 @@ class BlockchainService {
           include_24hr_change: true
         }
       });
-      return response.data;
+      
+      // Add COYN price data (fixed price for demo)
+      const prices = {
+        ...response.data,
+        coyn: { usd: 0.90, usd_24h_change: 4.70 }
+      };
+      
+      return prices;
     } catch (error) {
       
-      // Return fallback prices
+      // Return fallback prices including COYN
       return {
         bitcoin: { usd: 100000, usd_24h_change: 0 },
         binancecoin: { usd: 600, usd_24h_change: 0 },
-        tether: { usd: 1, usd_24h_change: 0 }
+        tether: { usd: 1, usd_24h_change: 0 },
+        coyn: { usd: 0.90, usd_24h_change: 4.70 }
       };
     }
   }
@@ -223,10 +232,10 @@ class BlockchainService {
         return (numAmount * prices.binancecoin.usd).toFixed(2);
       case 'USDT':
         // USDT is always 1:1 with USD - this is critical for accurate representation
-        return numAmount.toFixed(2);
+        return (numAmount * prices.tether.usd).toFixed(2);
       case 'COYN':
-        // COYN fixed at $0.90 for demo purposes
-        return (numAmount * 0.90).toFixed(2);
+        // COYN uses dynamic pricing from the prices object
+        return (numAmount * prices.coyn.usd).toFixed(2);
       default:
         return '0.00';
     }
@@ -253,7 +262,7 @@ class BlockchainService {
             changePercent = prices.tether?.usd_24h_change?.toFixed(2) || '0.00';
             break;
           case 'COYN':
-            changePercent = '4.70'; // Fixed demo percentage for COYN
+            changePercent = prices.coyn?.usd_24h_change?.toFixed(2) || '4.70';
             break;
         }
         
