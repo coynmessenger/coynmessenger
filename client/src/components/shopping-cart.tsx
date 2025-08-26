@@ -41,7 +41,6 @@ interface ShoppingCartProps {
 }
 
 const CRYPTO_RATES = {
-  BTC: "96,845.23",
   BNB: "683.12", 
   USDT: "1.00",
   COYN: "2.45"
@@ -211,7 +210,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'address' | 'review' | 'payment'>('cart');
-  const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
+  const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BNB");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
     addressLine1: '',

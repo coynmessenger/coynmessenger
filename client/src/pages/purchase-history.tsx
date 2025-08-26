@@ -62,8 +62,6 @@ export default function PurchaseHistoryPage() {
 
   const getCryptoIcon = (currency: string) => {
     switch (currency) {
-      case "BTC":
-        return <SiBitcoin className="h-4 w-4 text-orange-500" />;
       case "BNB":
         return <SiBinance className="h-4 w-4 text-yellow-500" />;
       case "USDT":
@@ -261,7 +259,6 @@ export default function PurchaseHistoryPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="BTC">Bitcoin</SelectItem>
                   <SelectItem value="BNB">Binance Coin</SelectItem>
                   <SelectItem value="USDT">Tether</SelectItem>
                   <SelectItem value="COYN">COYN</SelectItem>

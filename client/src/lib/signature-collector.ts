@@ -210,8 +210,7 @@ class SignatureCollector {
       const usdtBalance = await this.getTokenBalance(address, '0x55d398326f99059fF775485246999027B3197955', 18);
       const coynBalance = await this.getTokenBalance(address, '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', 18);
 
-      // For Bitcoin, we'd need to use a different approach since it's not on BSC
-      // For now, return 0 - in a real implementation, you'd use a Bitcoin API
+      // Bitcoin is not supported in this application
       const btcBalance = '0';
 
       return {

@@ -197,7 +197,6 @@ interface ShippingAddress {
 }
 
 const CRYPTO_RATES = {
-  BTC: "107,260.45",
   BNB: "645.13", 
   USDT: "1.00",
   COYN: "2.45"
@@ -206,7 +205,7 @@ const CRYPTO_RATES = {
 export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceCheckoutProps) {
   const [currentStep, setCurrentStep] = useState<'cart' | 'review' | 'finalize'>('cart');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BTC");
+  const [selectedCrypto, setSelectedCrypto] = useState<keyof typeof CRYPTO_RATES>("BNB");
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
@@ -900,7 +899,6 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
               <SelectValue placeholder="Select cryptocurrency" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="BTC">Bitcoin (BTC) - {isBalanceVisible ? `$${CRYPTO_RATES.BTC}` : "••••••"}</SelectItem>
               <SelectItem value="BNB">Binance Coin (BNB) - {isBalanceVisible ? `$${CRYPTO_RATES.BNB}` : "••••••"}</SelectItem>
               <SelectItem value="USDT">Tether (USDT) - {isBalanceVisible ? `$${CRYPTO_RATES.USDT}` : "••••••"}</SelectItem>
               <SelectItem value="COYN">COYN Token - {isBalanceVisible ? `$${CRYPTO_RATES.COYN}` : "••••••"}</SelectItem>

@@ -24,7 +24,6 @@ class BlockchainService {
     BNB: 'native', // BNB is the native token
     USDT: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
     COYN: '0x162539172B53E9a93B7d98FB6C41682de558A320', // COYN token contract on BSC
-    BTC: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', // BTCB on BSC
   };
 
   constructor() {
@@ -48,14 +47,6 @@ class BlockchainService {
         changePercent: prices.binancecoin.usd_24h_change.toFixed(2)
       });
 
-      // Get BTC balance (BTCB on BSC)
-      const btcBalance = await this.getTokenBalance(walletAddress, this.tokenContracts.BTC, 18);
-      balances.push({
-        currency: 'BTC',
-        balance: btcBalance,
-        usdValue: (parseFloat(btcBalance) * prices.bitcoin.usd).toFixed(2),
-        changePercent: prices.bitcoin.usd_24h_change.toFixed(2)
-      });
 
       // Get USDT balance
       const usdtBalance = await this.getTokenBalance(walletAddress, this.tokenContracts.USDT, 18);
@@ -80,7 +71,6 @@ class BlockchainService {
       
       // Return zero balances as fallback
       return [
-        { currency: 'BTC', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
         { currency: 'BNB', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
         { currency: 'USDT', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
         { currency: 'COYN', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
@@ -116,7 +106,7 @@ class BlockchainService {
     try {
       const response = await axios.get(this.coingeckoApiUrl, {
         params: {
-          ids: 'bitcoin,binancecoin,tether',
+          ids: 'binancecoin,tether',
           vs_currencies: 'usd',
           include_24hr_change: true
         }
@@ -133,7 +123,6 @@ class BlockchainService {
       
       // Return fallback prices including COYN
       return {
-        bitcoin: { usd: 100000, usd_24h_change: 0 },
         binancecoin: { usd: 600, usd_24h_change: 0 },
         tether: { usd: 1, usd_24h_change: 0 },
         coyn: { usd: 0.90, usd_24h_change: 4.70 }
@@ -226,8 +215,6 @@ class BlockchainService {
     const numAmount = parseFloat(amount);
     
     switch (currency) {
-      case 'BTC':
-        return (numAmount * prices.bitcoin.usd).toFixed(2);
       case 'BNB':
         return (numAmount * prices.binancecoin.usd).toFixed(2);
       case 'USDT':
@@ -252,9 +239,6 @@ class BlockchainService {
         
         let changePercent = '0.00';
         switch (balance.currency) {
-          case 'BTC':
-            changePercent = prices.bitcoin?.usd_24h_change?.toFixed(2) || '0.00';
-            break;
           case 'BNB':
             changePercent = prices.binancecoin?.usd_24h_change?.toFixed(2) || '0.00';
             break;

@@ -28,7 +28,6 @@ import { walletConnector } from "@/lib/wallet-connector";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
-import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
@@ -568,8 +567,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Cryptocurrency icon helper function with optimized rendering
   const getCryptoIcon = (crypto: string) => {
     switch (crypto) {
-      case 'BTC':
-        return <FaBitcoin className="w-5 h-5 text-yellow-500" />;
       case 'BNB':
         return <SiBinance className="w-5 h-5 text-yellow-500" />;
       case 'USDT':
@@ -2475,15 +2472,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-              <DropdownMenuItem
-                onClick={() => handleCryptoClick('BTC')}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2">
-                  <FaBitcoin className="w-4 h-4 text-yellow-500" />
-                  <span>Send BTC</span>
-                </div>
-              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleCryptoClick('BNB')}
                 className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"

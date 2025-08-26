@@ -214,7 +214,6 @@ export default function MarketplaceWalletHover({
   // Real-time cryptocurrency market prices
   const getCurrentMarketPrices = () => {
     return {
-      BTC: 100000,   // $100,000 per BTC
       BNB: 600,      // $600 per BNB  
       USDT: 1.00,    // $1.00 per USDT (stable)
       COYN: 0.85     // $0.85 per COYN
@@ -238,7 +237,6 @@ export default function MarketplaceWalletHover({
   const formatBalance = (balance: string, currency: string) => {
     const num = parseFloat(balance);
     if (currency === "USDT") return num.toFixed(2);
-    if (currency === "BTC") return num.toFixed(8);
     if (currency === "BNB") return num.toFixed(6);
     return num.toFixed(3);
   };
@@ -252,8 +250,6 @@ export default function MarketplaceWalletHover({
 
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
-      case "BTC":
-        return <SiBitcoin className="h-5 w-5 text-orange-500" />;
       case "BNB":
         return <SiBinance className="h-5 w-5 text-yellow-500" />;
       case "USDT":

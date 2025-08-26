@@ -50,7 +50,6 @@ interface Product {
 }
 
 interface CryptoRates {
-  BTC: number;
   BNB: number;
   USDT: number;
   COYN: number;
@@ -71,7 +70,6 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
 
   const usdPrice = parseFloat(product.price);
   const cryptoPrices: Record<string, string> = {
-    BTC: (usdPrice / cryptoRates.BTC).toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 8 }),
     BNB: (usdPrice / cryptoRates.BNB).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 }),
     USDT: (usdPrice / cryptoRates.USDT).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     COYN: (usdPrice / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -217,7 +215,7 @@ export default function MarketplacePage() {
   });
 
   // Fetch crypto rates
-  const { data: cryptoRates = { BTC: 45000, BNB: 300, USDT: 1, COYN: 0.15 } } = useQuery<CryptoRates>({
+  const { data: cryptoRates = { BNB: 300, USDT: 1, COYN: 0.15 } } = useQuery<CryptoRates>({
     queryKey: ["/api/crypto/rates"],
     queryFn: async () => {
       const res = await fetch("/api/crypto/rates");

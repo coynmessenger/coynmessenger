@@ -558,7 +558,6 @@ export class DatabaseStorage implements IStorage {
 
     // Initialize with default cryptocurrency balances
     const defaultBalances = [
-      { userId, currency: "BTC", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
       { userId, currency: "BNB", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
       { userId, currency: "USDT", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
       { userId, currency: "COYN", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },

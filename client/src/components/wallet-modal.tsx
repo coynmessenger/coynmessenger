@@ -26,7 +26,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   const queryClient = useQueryClient();
   
   const [view, setView] = useState<"main" | "send" | "qr" | "success">("main");
-  const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency || "BTC");
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency || "BNB");
   const [amount, setAmount] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [showBalance, setShowBalance] = useState(true);
@@ -150,9 +150,6 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           // Handle different networks based on currency
           let targetChainId = '0x38'; // BSC Mainnet for BNB
           
-          if (data.currency === 'BTC') {
-            throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
-          }
 
           // Switch to appropriate network
           try {
@@ -323,7 +320,6 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   // Real-time cryptocurrency market prices
   const getCurrentMarketPrices = () => {
     return {
-      BTC: 100000,   // $100,000 per BTC
       BNB: 600,      // $600 per BNB  
       USDT: 1.00,    // $1.00 per USDT (stable)
       COYN: 0.85     // $0.85 per COYN
@@ -346,8 +342,6 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
-      case "BTC":
-        return <SiBitcoin className="h-5 w-5 text-orange-500" />;
       case "BNB":
         return <SiBinance className="h-5 w-5 text-yellow-500" />;
       case "USDT":
@@ -389,7 +383,6 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
   const get24hChange = (currency: string) => {
     const changes: { [key: string]: number } = {
-      BTC: 2.5,
       BNB: -1.2,
       USDT: 0.0,
       COYN: 5.8

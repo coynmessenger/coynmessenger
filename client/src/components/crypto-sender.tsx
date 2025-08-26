@@ -10,15 +10,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import WalletAccessValidator from "@/lib/wallet-access-validator";
 import { Coins, Plus } from "lucide-react";
-import { FaBitcoin } from "react-icons/fa";
 import { SiBinance, SiTether } from "react-icons/si";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
 import type { WalletBalance } from "@shared/schema";
 
 const getCryptoIcon = (crypto: string) => {
   switch (crypto) {
-    case 'BTC':
-      return <FaBitcoin className="w-5 h-5 text-orange-500" />;
     case 'BNB':
       return <SiBinance className="w-5 h-5 text-yellow-500" />;
     case 'USDT':
@@ -195,8 +192,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
               gas: '0x15F90', // 90000 gas limit for token transfer
               gasPrice: gasPrice,
             };
-          } else if (data.currency === 'BTC') {
-            throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
           } else {
             throw new Error(`Unsupported currency: ${data.currency}`);
           }
@@ -399,7 +394,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
           <div className="space-y-2">
             <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm mb-3">Send Crypto</h3>
             <div className="grid grid-cols-2 gap-2">
-              {['BTC', 'BNB', 'USDT', 'COYN'].map((crypto) => (
+              {['BNB', 'USDT', 'COYN'].map((crypto) => (
                 <Button
                   key={crypto}
                   onClick={() => handleCryptoSend(crypto)}

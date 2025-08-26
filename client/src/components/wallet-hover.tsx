@@ -148,7 +148,6 @@ export default function WalletHover({ isVisible, onClose, anchorRef, onOpenSend,
   const formatBalance = (balance: string, currency: string) => {
     const num = parseFloat(balance);
     if (currency === "USDT") return num.toFixed(2);
-    if (currency === "BTC") return num.toFixed(8);
     if (currency === "BNB") return num.toFixed(6);
     return num.toFixed(3);
   };

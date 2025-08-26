@@ -20,7 +20,7 @@ import {
   Wallet,
   RefreshCw
 } from "lucide-react";
-import { SiBinance, SiBitcoin } from "react-icons/si";
+import { SiBinance } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
@@ -137,11 +137,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
   // Currency configurations
   const currencyConfig: { [key: string]: { icon: JSX.Element; name: string; color: string } } = {
-    BTC: { 
-      icon: <SiBitcoin className="w-6 h-6 text-orange-500" />, 
-      name: "Bitcoin", 
-      color: "text-orange-500" 
-    },
     BNB: { 
       icon: <SiBinance className="w-6 h-6 text-yellow-500" />, 
       name: "Binance Coin", 
@@ -269,8 +264,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
             gas: '0x15F90', // 90000 gas limit
             gasPrice: '0x4A817C800', // 20 Gwei
           };
-        } else if (currency === 'BTC') {
-          throw new Error('BTC transactions require a Bitcoin wallet. Please use a dedicated Bitcoin wallet.');
         } else {
           throw new Error(`Unsupported currency: ${currency}`);
         }
@@ -380,12 +373,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     const num = parseFloat(balance);
     
     // Format with commas and appropriate decimal places
-    if (currency === "BTC") {
-      return num.toLocaleString('en-US', {
-        minimumFractionDigits: 6,
-        maximumFractionDigits: 6
-      });
-    }
     if (currency === "USDT") {
       return num.toLocaleString('en-US', {
         minimumFractionDigits: 2,

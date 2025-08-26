@@ -72,7 +72,6 @@ interface Product {
 }
 
 interface CryptoRates {
-  BTC: number;
   BNB: number;
   USDT: number;
   COYN: number;
@@ -346,8 +345,6 @@ export default function ProductPage() {
 
   const getCryptoIcon = (currency: string) => {
     switch (currency) {
-      case "BTC":
-        return <SiBitcoin className="h-4 w-4 text-orange-500" />;
       case "BNB":
         return <SiBinance className="h-4 w-4 text-yellow-500" />;
       case "USDT":
@@ -570,10 +567,6 @@ export default function ProductPage() {
                     <div className="flex items-center gap-2">
                       <img src={coynLogoPath} alt="COYN" className="h-5 w-5 rounded-full" />
                       <span className="font-bold text-yellow-700 dark:text-yellow-400">≈ {(parseFloat(product.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <SiBitcoin className="h-5 w-5 text-orange-500" />
-                      <span className="font-medium text-gray-700 dark:text-gray-300">≈ {(parseFloat(product.price) / cryptoRates.BTC).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} BTC</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <SiBinance className="h-5 w-5 text-yellow-500" />
