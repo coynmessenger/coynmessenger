@@ -68,7 +68,6 @@ class BlockchainService {
 
       return balances;
     } catch (error) {
-      console.error('Error in getWalletBalances:', error);
       // Return zero balances as fallback
       return [
         { currency: 'BNB', balance: '0.00000000', usdValue: '0.00', changePercent: '0.00' },
@@ -97,10 +96,8 @@ class BlockchainService {
       const balance = await contract.balanceOf(walletAddress);
       const formattedBalance = ethers.formatUnits(balance, decimals);
       
-      console.log(`Token balance for ${walletAddress} at ${tokenAddress}: ${formattedBalance}`);
       return formattedBalance;
     } catch (error) {
-      console.error(`Error fetching token balance for ${tokenAddress}:`, error);
       return '0.00000000';
     }
   }

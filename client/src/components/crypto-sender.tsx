@@ -155,7 +155,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             // ERC-20 token transfer with proper formatting
             const tokenAddresses = {
               'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
-              'COYN': '0x8B36a84Ff5a75D4A32B5c9e5a7cA2bFc4A1C5698', // COYN token address (real BSC address)
+              'COYN': '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', // COYN token address (real BSC address)
             };
             
             const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];

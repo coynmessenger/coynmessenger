@@ -819,23 +819,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      // For BNB, perform real blockchain transaction
-      if (cryptoData.currency === 'BNB') {
+      // For BNB, USDT, and COYN, perform real blockchain transactions
+      if (cryptoData.currency === 'BNB' || cryptoData.currency === 'USDT' || cryptoData.currency === 'COYN') {
         // Get recipient user wallet address from conversation data
         const recipientAddress = conversation.otherUser.walletAddress;
         if (!recipientAddress) {
           throw new Error('Recipient wallet address not found');
         }
         
-        // Validate recipient address format for BNB (BSC)
+        // Validate recipient address format for BSC tokens
         if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
-          throw new Error('Invalid recipient BNB address format');
+          throw new Error(`Invalid recipient ${cryptoData.currency} address format`);
         }
         
         try {
-          console.log(`🔴 Initiating BNB blockchain transaction`);
+          console.log(`🔴 Initiating ${cryptoData.currency} blockchain transaction`);
           console.log(`To: ${recipientAddress}`);
-          console.log(`Amount: ${cryptoData.amount} BNB`);
+          console.log(`Amount: ${cryptoData.amount} ${cryptoData.currency}`);
           
           // Connect wallet if not already connected
           if (!walletConnector.isConnected()) {
@@ -843,14 +843,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             await walletConnector.connectWallet();
           }
           
-          // Send BNB transaction using wallet connector
-          const txResult = await walletConnector.sendBNB(recipientAddress, cryptoData.amount);
+          // Send transaction based on currency type
+          let txResult;
+          if (cryptoData.currency === 'BNB') {
+            txResult = await walletConnector.sendBNB(recipientAddress, cryptoData.amount);
+          } else if (cryptoData.currency === 'USDT') {
+            txResult = await walletConnector.sendUSDT(recipientAddress, cryptoData.amount);
+          } else if (cryptoData.currency === 'COYN') {
+            txResult = await walletConnector.sendCOYN(recipientAddress, cryptoData.amount);
+          } else {
+            throw new Error(`Unsupported currency: ${cryptoData.currency}`);
+          }
           
-          console.log(`✅ BNB transaction successful!`);
+          console.log(`✅ ${cryptoData.currency} transaction successful!`);
           console.log(`Transaction hash: ${txResult.hash}`);
           console.log(`From: ${txResult.from}`);
           console.log(`To: ${txResult.to}`);
-          console.log(`Amount: ${txResult.value} BNB`);
+          console.log(`Amount: ${txResult.value} ${cryptoData.currency}`);
           
           // Update backend with successful blockchain transaction
           return apiRequest("POST", "/api/wallet/send", {
@@ -862,18 +871,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             isBlockchainTransaction: true
           });
           
-        } catch (bnbError: any) {
-          console.error(`❌ BNB transaction failed:`, bnbError);
+        } catch (txError: any) {
+          console.error(`❌ ${cryptoData.currency} transaction failed:`, txError);
           
           // If user rejected or specific wallet issues, provide clear feedback
-          if (bnbError.message.includes('rejected') || bnbError.message.includes('cancelled')) {
-            throw new Error('BNB transaction was cancelled by user');
-          } else if (bnbError.message.includes('Insufficient')) {
-            throw new Error('Insufficient BNB balance for transaction and gas fees');
-          } else if (bnbError.message.includes('No Web3 wallet')) {
-            throw new Error('Please install MetaMask or Trust Wallet to send BNB');
+          if (txError.message.includes('rejected') || txError.message.includes('cancelled')) {
+            throw new Error(`${cryptoData.currency} transaction was cancelled by user`);
+          } else if (txError.message.includes('Insufficient')) {
+            throw new Error(`Insufficient ${cryptoData.currency} balance for transaction and gas fees`);
+          } else if (txError.message.includes('No Web3 wallet')) {
+            throw new Error(`Please install MetaMask or Trust Wallet to send ${cryptoData.currency}`);
           } else {
-            throw new Error(`BNB transaction failed: ${bnbError.message}`);
+            throw new Error(`${cryptoData.currency} transaction failed: ${txError.message}`);
           }
         }
       } else {

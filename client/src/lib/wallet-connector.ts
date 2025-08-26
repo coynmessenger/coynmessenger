@@ -246,6 +246,107 @@ class WalletConnector {
     }
   }
 
+  // Send USDT token
+  async sendUSDT(toAddress: string, amount: string): Promise<{
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+  }> {
+    return this.sendToken(toAddress, amount, 'USDT', '0x55d398326f99059fF775485246999027B3197955', 18);
+  }
+
+  // Send COYN token
+  async sendCOYN(toAddress: string, amount: string): Promise<{
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+  }> {
+    return this.sendToken(toAddress, amount, 'COYN', '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', 18);
+  }
+
+  // Generic token transfer method
+  private async sendToken(toAddress: string, amount: string, tokenSymbol: string, tokenAddress: string, decimals: number): Promise<{
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+  }> {
+    if (!this.currentWallet || !this.signer) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      console.log(`💰 Preparing ${tokenSymbol} transaction...`);
+      console.log(`From: ${this.currentWallet.address}`);
+      console.log(`To: ${toAddress}`);
+      console.log(`Amount: ${amount} ${tokenSymbol}`);
+
+      // Validate addresses
+      if (!ethers.isAddress(toAddress)) {
+        throw new Error('Invalid recipient address');
+      }
+      if (!ethers.isAddress(tokenAddress)) {
+        throw new Error('Invalid token contract address');
+      }
+
+      // Convert amount to token units (with specified decimals)
+      const value = ethers.parseUnits(amount, decimals);
+      
+      // Create token contract instance
+      const tokenAbi = [
+        'function transfer(address to, uint256 amount) returns (bool)',
+        'function balanceOf(address account) view returns (uint256)',
+        'function decimals() view returns (uint8)'
+      ];
+      const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, this.signer);
+
+      // Check token balance
+      const balance = await tokenContract.balanceOf(this.currentWallet.address);
+      if (balance < value) {
+        throw new Error(`Insufficient ${tokenSymbol} balance`);
+      }
+
+      console.log('📝 Signing token transfer transaction...');
+      
+      // Send token transfer transaction
+      const transaction = await tokenContract.transfer(toAddress, value);
+      
+      console.log('✅ Token transaction sent:', transaction.hash);
+      console.log('⏳ Waiting for confirmation...');
+      
+      // Wait for confirmation
+      const receipt = await transaction.wait();
+      
+      if (!receipt || receipt.status !== 1) {
+        throw new Error('Token transaction failed');
+      }
+
+      console.log(`🎉 ${tokenSymbol} transaction confirmed!`);
+      
+      return {
+        hash: transaction.hash,
+        from: this.currentWallet.address,
+        to: toAddress,
+        value: amount
+      };
+
+    } catch (error: any) {
+      console.error(`❌ ${tokenSymbol} transaction failed:`, error);
+      
+      if (error.code === 4001) {
+        throw new Error('Transaction cancelled by user');
+      } else if (error.code === 'INSUFFICIENT_FUNDS') {
+        throw new Error(`Insufficient funds for ${tokenSymbol} transaction and gas`);
+      } else if (error.reason) {
+        throw new Error(error.reason);
+      }
+      
+      throw new Error(`${tokenSymbol} transaction failed: ${error.message || 'Unknown error'}`);
+    }
+  }
+
   // Set up wallet event listeners
   private setupEventListeners(provider: WalletProvider): void {
     if (!provider.on) return;
