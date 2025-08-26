@@ -68,6 +68,8 @@ export const messages = pgTable("messages", {
   gifUrl: text("gif_url"), // GIF URL from GIPHY
   gifTitle: text("gif_title"), // GIF title/description
   gifId: text("gif_id"), // GIPHY ID for the GIF
+  // Blockchain transaction fields
+  transactionHash: text("transaction_hash"), // Blockchain transaction hash for crypto transfers
   isStarred: boolean("is_starred").default(false),
   timestamp: timestamp("timestamp").defaultNow(),
 });

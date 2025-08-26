@@ -758,7 +758,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         productImage: null,
         gifUrl: null,
         gifTitle: null,
-        gifId: null
+        gifId: null,
+        transactionHash: null
       };
       
       // Add optimistic message to cache
@@ -2061,6 +2062,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {formatTimestamp(msg.timestamp)}
                           </div>
+                          {/* BSCScan transaction link */}
+                          {msg.transactionHash && (msg.cryptoCurrency === 'BNB' || msg.cryptoCurrency === 'USDT' || msg.cryptoCurrency === 'COYN') && (
+                            <div className="mt-3">
+                              <a
+                                href={`https://bscscan.com/tx/${msg.transactionHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-700/50"
+                              >
+                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
+                                  <path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2v-2a1 1 0 10-2 0v2H5V7h2a1 1 0 000-2H5z"/>
+                                </svg>
+                                <span>View on BSCScan</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

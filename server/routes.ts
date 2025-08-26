@@ -830,7 +830,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: `Sent ${amount} ${currency}`,
         messageType: "crypto_transfer" as const,
         cryptoAmount: amount,
-        cryptoCurrency: currency
+        cryptoCurrency: currency,
+        transactionHash: transactionHash || null
       };
 
       await storage.createMessage(transferMessage);
