@@ -285,6 +285,7 @@ export default function MessengerPage() {
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
               console.log('🔔 MESSENGER: Caller user found:', callerUser);
+              console.log('🔔 MESSENGER: All users for matching:', allUsers.map(u => ({ id: u.id, idString: u.id.toString(), displayName: u.displayName })));
               
               if (callerUser) {
                 // Store incoming call data with call ID FIRST

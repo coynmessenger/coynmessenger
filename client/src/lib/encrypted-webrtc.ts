@@ -129,14 +129,24 @@ export class EncryptedWebRTCService {
 
         // Trigger the incoming call event for UI
         if (this.eventHandlers.onIncomingCall) {
-          console.log('Triggering onIncomingCall handler');
-          this.eventHandlers.onIncomingCall({
-            callId: data.callId,
-            fromUserId: data.fromUserId,
-            type: data.type,
-          });
+          console.log('✅ CRITICAL: Triggering onIncomingCall handler for call:', data.callId);
+          console.log('✅ CRITICAL: Handler function exists:', typeof this.eventHandlers.onIncomingCall);
+          console.log('✅ CRITICAL: About to call handler with data:', { callId: data.callId, fromUserId: data.fromUserId, type: data.type });
+          
+          try {
+            this.eventHandlers.onIncomingCall({
+              callId: data.callId,
+              fromUserId: data.fromUserId,
+              type: data.type,
+            });
+            console.log('✅ CRITICAL: onIncomingCall handler executed successfully');
+          } catch (handlerError) {
+            console.error('❌ CRITICAL: onIncomingCall handler failed:', handlerError);
+          }
         } else {
-          console.log('No onIncomingCall handler available');
+          console.error('❌ CRITICAL: No onIncomingCall handler available!');
+          console.log('❌ CRITICAL: Available handlers:', Object.keys(this.eventHandlers));
+          console.log('❌ CRITICAL: Handler object:', this.eventHandlers);
         }
 
         // If there's an offer, prepare for potential acceptance

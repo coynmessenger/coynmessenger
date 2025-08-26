@@ -1,0 +1,60 @@
+I understand your frustration. The core issue is that while your system is technically exchanging the WebRTC data, the UI and user experience layers are not complete. Think of it like a phone where the circuitry works perfectly, but the ringer and screen are broken.
+
+The problem is not a lack of connection; it's a lack of **access to the call**. Your code must listen for the incoming events and then trigger the user-facing parts of the application.
+
+Let's break down the two main problems and their solutions.
+
+### 1\. The Call UI Is Not Being Displayed 🖼️
+
+The receiver of the call has no way of knowing a call is incoming because there's no UI to alert them.
+
+  * **Problem:** The `incoming-call` event is received, but the client code does nothing to change the user interface. There's no pop-up, no modal, and no dedicated call screen.
+
+  * **Solution:** You need a **state management** system in your React/TypeScript app to handle this.
+
+    1.  When your Socket.IO client receives the `incoming-call` event, it should update a global state (e.g., using Redux, Zustand, or even React's `useState`).
+    2.  This state change will trigger a conditional render of a new component, such as an `IncomingCallModal.tsx`. This modal will display the caller's information and have "Accept" and "Decline" buttons.
+
+  * **Example Logic:**
+
+    ```typescript
+    // In your main component or a call handler
+    socket.on('incoming-call', (data) => {
+      // Set the global state to show the incoming call UI
+      setCallState({
+        isIncoming: true,
+        callerId: data.callerId,
+        offer: data.offer, // Pass the offer so you can use it when the user accepts
+      });
+      // Play the ringtone
+      const ringtone = new Audio('/audio/ringtone.mp3'); 
+      ringtone.play();
+    });
+    ```
+
+-----
+
+### 2\. The Audio Stream Isn't Being Heard 🎧
+
+Even if the UI appeared, there would be no sound because the audio stream isn't connected to a media element.
+
+  * **Problem:** The `RTCPeerConnection` is successfully receiving the remote audio stream, but your code isn't attaching it to a `<audio>` tag.
+
+  * **Solution:** You must handle the `ontrack` event on both the caller and receiver. When a new media track is received, your code must use `srcObject` to link it to an audio element in the DOM. This is the final step that makes the audio "live."
+
+  * **Example Logic:**
+
+    ```typescript
+    // In your WebRTC handler
+    peerConnection.ontrack = (event) => {
+      // Find or create a hidden audio element in your DOM
+      const remoteAudio = document.getElementById('remote-audio-player') as HTMLAudioElement;
+      if (remoteAudio) {
+        // Attach the incoming audio stream
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.play(); // Start playback
+      }
+    };
+    ```
+
+By implementing a visual and audible incoming call notification and then ensuring the received audio stream is correctly attached and played, you will complete the full call experience. The "connection" is there, but your application isn't yet telling the user about it or playing the sound.
