@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Wallet Connect Demo</title>
+    <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Main Container */
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        /* Typography */
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            min-width: 200px;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Wallet Connection Status */
+        .wallet-status {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .wallet-address {
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        /* Wallet Provider Buttons */
+        .wallet-providers {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .wallet-provider {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            gap: 15px;
+        }
+
+        .wallet-provider:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .wallet-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .wallet-info h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .wallet-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #fcc;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #cfc;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                min-width: 150px;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Application Container -->
+    <div class="container">
+        <h1>🔗 Web3 Wallet</h1>
+        <p class="subtitle">Connect your wallet to get started</p>
+        
+        <!-- Wallet Connection Status Display -->
+        <div id="walletStatus" class="wallet-status" style="display: none;">
+            <h3>✅ Wallet Connected</h3>
+            <div id="walletAddress" class="wallet-address"></div>
+            <div id="walletBalance"></div>
+        </div>
+        
+        <!-- Error/Success Messages -->
+        <div id="messageContainer"></div>
+        
+        <!-- Main Action Buttons -->
+        <div style="margin: 30px 0; display: flex; flex-direction: column; gap: 15px;">
+            <button id="connectBtn" class="btn btn-primary">
+                🔌 Connect Wallet
+            </button>
+            <button id="disconnectBtn" class="btn btn-secondary" style="display: none;">
+                🔌 Disconnect Wallet
+            </button>
+        </div>
+    </div>
+
+    <!-- Wallet Selection Modal -->
+    <div id="walletModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title">Choose Wallet</h2>
+                <p>Select a wallet provider to connect</p>
+            </div>
+            
+            <div class="wallet-providers">
+                <!-- MetaMask Provider -->
+                <div class="wallet-provider" onclick="connectWallet('metamask')">
+                    <div class="wallet-icon" style="background: linear-gradient(135deg, #f6851b, #e2761b);">
+                        🦊
+                    </div>
+                    <div class="wallet-info">
+                        <h3>MetaMask</h3>
+                        <p>Connect using MetaMask browser extension</p>
+                    </div>
+                </div>
+                
+                <!-- WalletConnect Provider -->
+                <div class="wallet-provider" onclick="connectWallet('walletconnect')">
+                    <div class="wallet-icon" style="background: linear-gradient(135deg, #3b99fc, #1a73e8);">
+                        📱
+                    </div>
+                    <div class="wallet-info">
+                        <h3>WalletConnect</h3>
+                        <p>Connect using mobile wallet apps</p>
+                    </div>
+                </div>
+                
+                <!-- Coinbase Wallet Provider -->
+                <div class="wallet-provider" onclick="connectWallet('coinbase')">
+                    <div class="wallet-icon" style="background: linear-gradient(135deg, #0052ff, #0040cc);">
+                        🏦
+                    </div>
+                    <div class="wallet-info">
+                        <h3>Coinbase Wallet</h3>
+                        <p>Connect using Coinbase Wallet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include ethers.js library from CDN -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    
+    <script>
+        // Global Variables for Web3 State Management
+        let provider = null;        // Ethereum provider instance
+        let signer = null;         // Wallet signer instance
+        let userAccount = null;    // Connected wallet address
+        let isConnecting = false;  // Connection state flag
+
+        // DOM Element References
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const walletModal = document.getElementById('walletModal');
+        const walletStatus = document.getElementById('walletStatus');
+        const walletAddress = document.getElementById('walletAddress');
+        const walletBalance = document.getElementById('walletBalance');
+        const messageContainer = document.getElementById('messageContainer');
+
+        /**
+         * Initialize the application when the page loads
+         * Checks for existing wallet connections and sets up event listeners
+         */
+        window.addEventListener('load', async () => {
+            console.log('🚀 Initializing Web3 Wallet Connect Demo');
+            
+            // Set up button event listeners
+            connectBtn.addEventListener('click', openModal);
+            disconnectBtn.addEventListener('click', disconnectWallet);
+            
+            // Check if user was previously connected (browser session)
+            await checkExistingConnection();
+            
+            // Listen for account changes in MetaMask
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', handleChainChanged);
+            }
+        });
+
+        /**
+         * Check if the user has a wallet already connected from a previous session
+         * This provides a seamless experience for returning users
+         */
+        async function checkExistingConnection() {
+            try {
+                if (window.ethereum) {
+                    console.log('🔍 Checking for existing wallet connection...');
+                    
+                    // Request accounts without triggering connection popup
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_accounts' 
+                    });
+                    
+                    if (accounts.length > 0) {
+                        console.log('✅ Found existing connection:', accounts[0]);
+                        await establishConnection(accounts[0]);
+                    } else {
+                        console.log('ℹ️ No existing connection found');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error checking existing connection:', error);
+            }
+        }
+
+        /**
+         * Opens the wallet selection modal
+         * Shows available wallet providers for user to choose from
+         */
+        function openModal() {
+            console.log('📱 Opening wallet selection modal');
+            walletModal.classList.add('show');
+            clearMessages(); // Clear any previous error messages
+        }
+
+        /**
+         * Closes the wallet selection modal
+         */
+        function closeModal() {
+            console.log('❌ Closing wallet selection modal');
+            walletModal.classList.remove('show');
+        }
+
+        /**
+         * Main wallet connection function
+         * Handles different wallet providers (MetaMask, WalletConnect, Coinbase)
+         * @param {string} walletType - The type of wallet to connect ('metamask', 'walletconnect', 'coinbase')
+         */
+        async function connectWallet(walletType) {
+            // Prevent multiple simultaneous connection attempts
+            if (isConnecting) {
+                console.log('⚠️ Connection already in progress...');
+                return;
+            }
+
+            isConnecting = true;
+            console.log(`🔗 Attempting to connect to ${walletType} wallet...`);
+            
+            // Update UI to show loading state
+            updateConnectButton('Connecting...', true);
+            clearMessages();
+
+            try {
+                let accounts = [];
+
+                switch (walletType) {
+                    case 'metamask':
+                        accounts = await connectMetaMask();
+                        break;
+                    case 'walletconnect':
+                        showMessage('WalletConnect integration would require additional setup', 'error');
+                        return;
+                    case 'coinbase':
+                        showMessage('Coinbase Wallet integration would require additional setup', 'error');
+                        return;
+                    default:
+                        throw new Error('Unsupported wallet type');
+                }
+
+                if (accounts && accounts.length > 0) {
+                    await establishConnection(accounts[0]);
+                    closeModal();
+                    showMessage('Wallet connected successfully! 🎉', 'success');
+                } else {
+                    throw new Error('No accounts found');
+                }
+
+            } catch (error) {
+                console.error('❌ Wallet connection failed:', error);
+                
+                // Handle specific error types
+                if (error.code === 4001) {
+                    showMessage('Connection rejected by user', 'error');
+                } else if (error.code === -32002) {
+                    showMessage('Connection request already pending. Please check your wallet.', 'error');
+                } else {
+                    showMessage(`Connection failed: ${error.message}`, 'error');
+                }
+            } finally {
+                isConnecting = false;
+                updateConnectButton('🔌 Connect Wallet', false);
+            }
+        }
+
+        /**
+         * Connect to MetaMask wallet specifically
+         * Handles MetaMask installation check and account request
+         * @returns {Promise<Array>} Array of connected accounts
+         */
+        async function connectMetaMask() {
+            // Check if MetaMask is installed
+            if (typeof window.ethereum === 'undefined') {
+                throw new Error('MetaMask is not installed. Please install MetaMask browser extension.');
+            }
+
+            // Check if this is actually MetaMask (not another wallet)
+            if (!window.ethereum.isMetaMask) {
+                console.log('⚠️ Non-MetaMask provider detected, attempting connection anyway...');
+            }
+
+            console.log('🦊 Connecting to MetaMask...');
+            
+            // Request account access from MetaMask
+            const accounts = await window.ethereum.request({
+                method: 'eth_requestAccounts'
+            });
+
+            console.log('✅ MetaMask accounts received:', accounts);
+            return accounts;
+        }
+
+        /**
+         * Establish the Web3 connection after getting account access
+         * Sets up provider, signer, and fetches account information
+         * @param {string} account - The wallet address to connect
+         */
+        async function establishConnection(account) {
+            try {
+                console.log('🔧 Establishing Web3 connection for account:', account);
+                
+                // Create ethers provider from window.ethereum
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                
+                // Get the signer (this represents the connected wallet)
+                signer = provider.getSigner();
+                
+                // Store the connected account
+                userAccount = account;
+                
+                // Fetch and display account information
+                await updateAccountInfo();
+                
+                // Update UI to reflect connected state
+                updateUIForConnectedState();
+                
+                console.log('✅ Web3 connection established successfully');
+                
+            } catch (error) {
+                console.error('❌ Failed to establish Web3 connection:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * Fetch and display account information (balance, address)
+         * Updates the UI with current wallet details
+         */
+        async function updateAccountInfo() {
+            try {
+                if (!provider || !userAccount) return;
+
+                console.log('📊 Fetching account information...');
+                
+                // Get the account balance in ETH
+                const balance = await provider.getBalance(userAccount);
+                const balanceInEth = ethers.utils.formatEther(balance);
+                
+                // Get the current network
+                const network = await provider.getNetwork();
+                
+                // Update UI with account information
+                walletAddress.textContent = `${userAccount.slice(0, 6)}...${userAccount.slice(-4)}`;
+                walletBalance.innerHTML = `
+                    <strong>Balance:</strong> ${parseFloat(balanceInEth).toFixed(4)} ETH<br>
+                    <strong>Network:</strong> ${network.name} (${network.chainId})
+                `;
+                
+                console.log('✅ Account information updated');
+                
+            } catch (error) {
+                console.error('❌ Failed to fetch account information:', error);
+                walletBalance.innerHTML = '<em>Unable to fetch balance</em>';
+            }
+        }
+
+        /**
+         * Update UI to reflect connected wallet state
+         * Shows wallet status and switches button visibility
+         */
+        function updateUIForConnectedState() {
+            walletStatus.style.display = 'block';
+            connectBtn.style.display = 'none';
+            disconnectBtn.style.display = 'inline-flex';
+            console.log('🎨 UI updated for connected state');
+        }
+
+        /**
+         * Update UI to reflect disconnected wallet state
+         * Hides wallet status and switches button visibility
+         */
+        function updateUIForDisconnectedState() {
+            walletStatus.style.display = 'none';
+            connectBtn.style.display = 'inline-flex';
+            disconnectBtn.style.display = 'none';
+            console.log('🎨 UI updated for disconnected state');
+        }
+
+        /**
+         * Disconnect the current wallet connection
+         * Clears all Web3 state and resets UI
+         */
+        async function disconnectWallet() {
+            console.log('🔌 Disconnecting wallet...');
+            
+            try {
+                // Clear Web3 state
+                provider = null;
+                signer = null;
+                userAccount = null;
+                
+                // Update UI
+                updateUIForDisconnectedState();
+                clearMessages();
+                
+                // Note: We cannot actually "disconnect" from MetaMask programmatically
+                // The user would need to disconnect from within MetaMask itself
+                showMessage('Wallet disconnected from app. To fully disconnect, please disconnect from your wallet extension.', 'success');
+                
+                console.log('✅ Wallet disconnected successfully');
+                
+            } catch (error) {
+                console.error('❌ Error during disconnection:', error);
+                showMessage('Error during disconnection', 'error');
+            }
+        }
+
+        /**
+         * Handle account changes (when user switches accounts in MetaMask)
+         * @param {Array} accounts - Array of new accounts
+         */
+        async function handleAccountsChanged(accounts) {
+            console.log('👤 Account changed:', accounts);
+            
+            if (accounts.length === 0) {
+                // User disconnected their wallet
+                await disconnectWallet();
+                showMessage('Wallet disconnected', 'error');
+            } else if (accounts[0] !== userAccount) {
+                // User switched to a different account
+                await establishConnection(accounts[0]);
+                showMessage('Account switched successfully', 'success');
+            }
+        }
+
+        /**
+         * Handle network/chain changes (when user switches networks in MetaMask)
+         * @param {string} chainId - New chain ID
+         */
+        async function handleChainChanged(chainId) {
+            console.log('🔗 Chain changed to:', chainId);
+            
+            // Refresh the page to reset the connection
+            // This is recommended by MetaMask for handling chain changes
+            window.location.reload();
+        }
+
+        /**
+         * Update the connect button text and disabled state
+         * @param {string} text - Button text to display
+         * @param {boolean} disabled - Whether button should be disabled
+         */
+        function updateConnectButton(text, disabled) {
+            connectBtn.textContent = text;
+            connectBtn.disabled = disabled;
+            
+            if (disabled) {
+                connectBtn.innerHTML = `<div class="spinner"></div> ${text}`;
+            }
+        }
+
+        /**
+         * Display a message to the user (success or error)
+         * @param {string} message - Message text to display
+         * @param {string} type - Message type ('success' or 'error')
+         */
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.textContent = message;
+            
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => messageDiv.remove(), 300);
+                }, 5000);
+            }
+        }
+
+        /**
+         * Clear all displayed messages
+         */
+        function clearMessages() {
+            messageContainer.innerHTML = '';
+        }
+
+        /**
+         * Close modal when clicking outside of it
+         */
+        walletModal.addEventListener('click', (e) => {
+            if (e.target === walletModal) {
+                closeModal();
+            }
+        });
+
+        /**
+         * Handle escape key to close modal
+         */
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && walletModal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        // Log initialization complete
+        console.log('🎯 Web3 Wallet Connect Demo initialized');
+    </script>
+</body>
+</html>
