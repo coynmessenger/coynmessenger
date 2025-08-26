@@ -109,14 +109,14 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('🔔 INCOMING CALL DEBUG - Client received incoming-call event');
-      console.log('- Call data:', data);
-      console.log('- Current user ID:', this.localUserId);
-      console.log('- Event handlers available:', !!this.eventHandlers.onIncomingCall);
-      console.log('- Handler details:', this.eventHandlers);
-      console.log('- All event handlers:', Object.keys(this.eventHandlers));
-      console.log('- Socket connected:', this.socket?.connected);
-      console.log('- Service initialized:', this.isInitialized);
+      console.log('🚨🚨🚨 INCOMING CALL DEBUG - Client received incoming-call event 🚨🚨🚨');
+      console.log('🚨 Call data:', data);
+      console.log('🚨 Current user ID:', this.localUserId);
+      console.log('🚨 Event handlers available:', !!this.eventHandlers.onIncomingCall);
+      console.log('🚨 Handler details:', this.eventHandlers);
+      console.log('🚨 All event handlers:', Object.keys(this.eventHandlers));
+      console.log('🚨 Socket connected:', this.socket?.connected);
+      console.log('🚨 Service initialized:', this.isInitialized);
       
       try {
         // Store call information
@@ -457,11 +457,17 @@ export class EncryptedWebRTCService {
       } else {
         // Fallback: Get user media with proper error handling
         try {
-          console.log('🎤 Requesting microphone permissions for incoming call (fallback)...');
+          console.log('🎤🚨 CRITICAL: Requesting microphone permissions for incoming call (fallback)...');
+          console.log('🎤🚨 CRITICAL: Browser supports getUserMedia:', !!navigator.mediaDevices?.getUserMedia);
+          console.log('🎤🚨 CRITICAL: Constraints:', constraints);
+          
           localStream = await navigator.mediaDevices.getUserMedia(constraints);
-          console.log('✅ Microphone access granted for incoming call');
+          console.log('✅🚨 CRITICAL: Microphone access granted for incoming call');
+          console.log('✅🚨 CRITICAL: Stream tracks:', localStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
         } catch (error: any) {
-          console.error('❌ Microphone permission error on accept:', error);
+          console.error('❌🚨 CRITICAL: Microphone permission error on accept:', error);
+          console.error('❌🚨 CRITICAL: Error name:', error.name);
+          console.error('❌🚨 CRITICAL: Error message:', error.message);
           
           // Provide specific error messages
           if (error.name === 'NotAllowedError') {

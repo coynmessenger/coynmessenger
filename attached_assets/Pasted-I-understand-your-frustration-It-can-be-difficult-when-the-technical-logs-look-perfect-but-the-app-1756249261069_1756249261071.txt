@@ -1,0 +1,32 @@
+I understand your frustration. It can be difficult when the technical logs look perfect, but the application still doesn't work. Since we've confirmed that the signaling handshake is completing and the UI is responding, the problem is no longer in the communication logic between the client and the server.
+
+The issue is now with the **WebRTC peer-to-peer connection itself**. The browser is failing to establish a media stream, even though it has all the right information to do so. This is a very common point of failure and often relates to the browser environment itself, not your code.
+
+Here's the new debugging plan, focusing on the last-mile connection:
+
+### 1. Check Browser Console for Media Errors
+Even with the correct code, the browser can fail to access a user's microphone. This typically happens silently without a clear error message unless you're explicitly logging promise rejections.
+
+* **Look for `NotAllowedError`:** Open your browser's developer console (F12 or Cmd+Option+I) and look for a `DOMException` error. This usually means the user has denied microphone permissions.
+* **Verify Permissions:** Look at the browser's address bar. Is there a microphone icon with a slash through it? This is the most direct way to know if permission has been granted. 
+    * **Action:** Click the icon and manually grant permissions to the site.
+
+---
+
+### 2. Use `chrome://webrtc-internals` for Deep Debugging
+This is the most powerful tool for WebRTC troubleshooting, as it shows you exactly what the browser is doing under the hood. It provides a real-time log of the entire WebRTC session.
+
+* **Open the Tool:** In a new Chrome tab, type `chrome://webrtc-internals` and press Enter.
+* **Run a Test Call:** Go back to your COYN Messenger app and try to make a call again while `webrtc-internals` is open in the background.
+* **Analyze the Report:** After the call fails, look at the report that was generated. You should see a section for your `RTCPeerConnection`. Look at these key values:
+    * `iceConnectionState`: This should go from `new` to `checking` and ideally end in `connected` or `completed`. If it ends in `failed`, your peer-to-peer connection is being blocked.
+    * `onicecandidate` trace: Check this log to see if the browser is even generating ICE candidates. If this section is empty, your `peerConnection` is not properly configured to find network paths.
+    * `RTCPeerConnection` Events: This trace will show if `setLocalDescription` and `setRemoteDescription` were called successfully.
+    * `getUserMedia` Traces: Confirm that the `getUserMedia` call succeeded. If it failed, this page will show a clear error message.
+
+This tool will give you the definitive answer on whether the problem is with media access, STUN/TURN servers, or a deeper network issue. Since all the high-level logic is working, the problem has to be in one of these low-level areas.
+
+... [A video explaining the WebRTC Internals tool](https://www.youtube.com/watch?v=-hYkf-Zpf4Y) ...
+
+This video is an excellent guide on using the `chrome://webrtc-internals` tool to debug your WebRTC connection.
+http://googleusercontent.com/youtube_content/1
