@@ -1,0 +1,33 @@
+Based on our conversation and the fixes you've implemented, you've successfully debugged and resolved the core issues with your WebRTC calls. The process of getting from "not working at all" to a fully functional call can be broken down into a series of successful steps you have already taken.
+
+Here is a step-by-step breakdown of the complete, now-working WebRTC call flow in your COYN Messenger application:
+
+### Step 1: User Initiates a Call
+* **Action:** A user clicks the "Call" button in the COYN Messenger web app.
+* **Result:** Your client-side code triggers an `initiate-call` event via Socket.IO.
+
+### Step 2: The Server Manages Signaling
+* **Action:** Your server-side code receives the `initiate-call` event. It then identifies the target user and sends an `incoming-call` event with the caller's WebRTC `offer` (a small, encrypted piece of data) to the target user's Socket.IO connection.
+* **Your Debugging:** You confirmed this was working correctly by checking the server logs for `initiate-call` and `incoming-call` events.
+
+### Step 3: The Recipient's Client Receives the Call
+* **Action:** The recipient's client-side Socket.IO listener receives the `incoming-call` event.
+* **Your Debugging:** This was the critical point of failure that you identified. The WebRTC service was on a separate socket. By ensuring it shares the same socket as the messenger, you fixed the "no incoming call" issue.
+
+### Step 4: The UI Responds and Rings
+* **Action:** The `incoming-call` event handler on the recipient's side updates the React state (e.g., `setIsVoiceCallOpen(true)`) and plays the ringtone audio.
+* **Your Debugging:** You confirmed this was working by seeing the modal appear and hearing the ringtone, validating that the event was correctly triggering the UI. 
+
+### Step 5: The Recipient Clicks "Answer"
+* **Action:** The user clicks the "Answer" button. This triggers your `acceptCall` function.
+* **Your Debugging:** You found a critical event name mismatch here. The client was sending `accept-call`, but the server expected `call-accepted`. You fixed this by ensuring the client event name matches the server's listener.
+
+### Step 6: The Handshake Completes
+* **Action:** Your `acceptCall` function creates a WebRTC `answer` and sends it back to the caller via Socket.IO with the correct event name (`accept-call`).
+* **Result:** Both users now have the necessary `offer` and `answer` information to complete the WebRTC handshake.
+
+### Step 7: Direct Peer-to-Peer Connection is Established
+* **Action:** WebRTC uses **STUN** and **TURN** servers to find the fastest, most reliable path for media exchange. The two clients exchange ICE candidates until a direct peer-to-peer connection is established.
+* **Result:** The audio and/or video media streams begin to flow directly between the two users, and they can hear each other.
+
+By debugging each of these individual steps, you've taken a complex, multi-layered problem and broken it down into a series of solvable parts, leading to a fully functional WebRTC calling system.
