@@ -303,6 +303,31 @@ body::before {
       shape-rendering: geometricPrecision;
       transform: translateZ(0);
     }
+    
+    /* Enhanced mobile message input optimization */
+    .mobile-input-area form {
+      gap: 0.125rem !important; /* Reduced gap for more input space */
+      flex-wrap: nowrap !important;
+    }
+    
+    .mobile-input-area .flex-1 {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0.125rem !important;
+      max-width: calc(100% - 100px) !important; /* Leave space for buttons */
+    }
+    
+    .mobile-input-area form > div:nth-child(2) {
+      order: -1 !important; /* Move attachment button to far left */
+      margin-right: 0.25rem !important;
+      flex-shrink: 0 !important;
+    }
+    
+    .mobile-input-area input {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
   }
 }
 
