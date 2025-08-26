@@ -722,7 +722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency via chat
   app.post("/api/wallet/send", async (req, res) => {
     try {
-      const { toUserId, currency, amount, conversationId, fromUserId, transactionHash, isBlockchainTransaction } = req.body;
+      const { toUserId, currency, amount, conversationId, fromUserId, transactionHash, isBlockchainTransaction, senderAddress, recipientAddress } = req.body;
       // Get actual authenticated user ID
       const actualFromUserId = fromUserId || (req as any).session?.userId || 5;
 
@@ -767,8 +767,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         console.log(`✅ Real BNB blockchain transaction completed:`);
-        console.log(`From: ${senderUser.walletAddress}`);
-        console.log(`To: ${recipientUser.walletAddress}`);
+        console.log(`From: ${senderAddress || senderUser.walletAddress}`);
+        console.log(`To: ${recipientAddress || recipientUser.walletAddress}`);
         console.log(`Amount: ${numAmount} BNB`);
         console.log(`Transaction Hash: ${transactionHash}`);
         

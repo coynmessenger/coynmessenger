@@ -24,6 +24,7 @@ import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
+import { walletConnector } from "@/lib/wallet-connector";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
@@ -821,7 +822,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      // For BNB, check if we can perform real blockchain transaction
+      // For BNB, perform real blockchain transaction
       if (cryptoData.currency === 'BNB') {
         // Get recipient user wallet address from conversation data
         const recipientAddress = conversation.otherUser.walletAddress;
@@ -834,92 +835,49 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           throw new Error('Invalid recipient BNB address format');
         }
         
-        // Check if we're in an environment that supports Web3
-        const canUseWeb3 = window.ethereum && (window.self === window.top);
-        
-        if (canUseWeb3) {
-          try {
-            console.log(`🔴 Attempting real BNB blockchain transaction`);
-            console.log(`To: ${recipientAddress}`);
-            console.log(`Amount: ${cryptoData.amount} BNB`);
-            
-            // Request account access
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const senderAddress = accounts[0];
-            console.log(`🔴 Sender address: ${senderAddress}`);
-            
-            // Check/switch to BSC network
-            const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-            const bscChainId = '0x38';
-            
-            if (currentChainId !== bscChainId) {
-              await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: bscChainId }],
-              });
-            }
-            
-            // Prepare transaction
-            const amountInWei = parseFloat(cryptoData.amount) * Math.pow(10, 18);
-            const amountWei = '0x' + Math.floor(amountInWei).toString(16);
-            
-            const transactionParams = {
-              from: senderAddress,
-              to: recipientAddress,
-              value: amountWei,
-              gas: '0x5208'
-            };
-            
-            // Send blockchain transaction
-            const txHash = await window.ethereum.request({
-              method: 'eth_sendTransaction',
-              params: [transactionParams],
-            });
-            
-            console.log(`✅ Real BNB transaction sent! Hash: ${txHash}`);
-            
-            // Update backend with successful blockchain transaction
-            return apiRequest("POST", "/api/wallet/send", {
-              ...cryptoData,
-              fromUserId: connectedUserId,
-              transactionHash: txHash,
-              isBlockchainTransaction: true
-            });
-            
-          } catch (web3Error: any) {
-            console.log(`⚠️ Web3 transaction failed:`, web3Error);
-            
-            // If user rejected or wallet blocked, fall back to internal transaction
-            if (web3Error.code === 4001) {
-              console.log(`📝 Falling back to internal BNB tracking`);
-              
-              // Still process as internal transaction with note
-              return apiRequest("POST", "/api/wallet/send", {
-                ...cryptoData,
-                fromUserId: connectedUserId,
-                transactionNote: `BNB transaction prepared for ${recipientAddress} - complete in external wallet`,
-                isBlockchainTransaction: false
-              });
-            } else {
-              throw web3Error;
-            }
+        try {
+          console.log(`🔴 Initiating BNB blockchain transaction`);
+          console.log(`To: ${recipientAddress}`);
+          console.log(`Amount: ${cryptoData.amount} BNB`);
+          
+          // Connect wallet if not already connected
+          if (!walletConnector.isConnected()) {
+            console.log('🔗 Connecting to wallet...');
+            await walletConnector.connectWallet();
           }
-        } else {
-          console.log(`📝 Web3 not available - using internal BNB tracking`);
           
-          // Fallback: Create internal transaction record with instructions
-          toast({
-            title: "BNB Transaction Instructions",
-            description: `Send ${cryptoData.amount} BNB to ${recipientAddress} using your wallet app`,
-            duration: 10000
-          });
+          // Send BNB transaction using wallet connector
+          const txResult = await walletConnector.sendBNB(recipientAddress, cryptoData.amount);
           
+          console.log(`✅ BNB transaction successful!`);
+          console.log(`Transaction hash: ${txResult.hash}`);
+          console.log(`From: ${txResult.from}`);
+          console.log(`To: ${txResult.to}`);
+          console.log(`Amount: ${txResult.value} BNB`);
+          
+          // Update backend with successful blockchain transaction
           return apiRequest("POST", "/api/wallet/send", {
             ...cryptoData,
             fromUserId: connectedUserId,
-            transactionNote: `Manual BNB transfer needed to ${recipientAddress}`,
-            isBlockchainTransaction: false
+            transactionHash: txResult.hash,
+            senderAddress: txResult.from,
+            recipientAddress: txResult.to,
+            isBlockchainTransaction: true
           });
+          
+        } catch (bnbError: any) {
+          console.error(`❌ BNB transaction failed:`, bnbError);
+          
+          // If user rejected or specific wallet issues, provide clear feedback
+          if (bnbError.message.includes('rejected') || bnbError.message.includes('cancelled')) {
+            throw new Error('BNB transaction was cancelled by user');
+          } else if (bnbError.message.includes('Insufficient')) {
+            throw new Error('Insufficient BNB balance for transaction and gas fees');
+          } else if (bnbError.message.includes('No Web3 wallet')) {
+            throw new Error('Please install MetaMask or Trust Wallet to send BNB');
+          } else {
+            throw new Error(`BNB transaction failed: ${bnbError.message}`);
+          }
         }
       } else {
         // For other currencies, use internal transfer
