@@ -318,6 +318,11 @@ export class EncryptedWebRTCSignaling {
 
         // Notify caller that call was accepted
         const callerSocketId = call.participants[0].socketId;
+        console.log('📤 SERVER: Sending call-accepted to caller');
+        console.log('- To socket:', callerSocketId);
+        console.log('- Answer included:', !!data.answer);
+        console.log('- Encrypted:', isEncrypted);
+        
         this.io.to(callerSocketId).emit('call-accepted', {
           callId: data.callId,
           byUserId: accepterId,
@@ -325,6 +330,8 @@ export class EncryptedWebRTCSignaling {
           answer: !isEncrypted ? data.answer : undefined,
           encrypted: isEncrypted
         });
+        
+        console.log('✅ SERVER: call-accepted event sent successfully');
 
         
       });

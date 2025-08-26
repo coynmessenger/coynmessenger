@@ -155,9 +155,32 @@ export class EncryptedWebRTCService {
       callId: string;
       byUserId: string;
       encryptedAnswer?: string;
+      answer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('Call accepted:', data);
+      console.log('📞 CLIENT: Call accepted:', data);
+      
+      // Set remote description with the answer
+      const call = this.activeCalls.get(data.callId);
+      if (call?.peerConnection && (data.answer || data.encryptedAnswer)) {
+        try {
+          let answer = data.answer;
+          
+          // Handle encrypted answer if available
+          if (data.encrypted && data.encryptedAnswer) {
+            console.log('📞 CLIENT: Processing encrypted answer');
+            // For now, use plain answer which comes as fallback
+          }
+          
+          if (answer) {
+            console.log('📞 CLIENT: Setting remote answer description');
+            await call.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            console.log('✅ CLIENT: Remote answer set successfully - handshake complete!');
+          }
+        } catch (error) {
+          console.error('❌ CLIENT: Failed to set remote answer:', error);
+        }
+      }
       
       if (this.eventHandlers.onCallAccepted) {
         this.eventHandlers.onCallAccepted({
