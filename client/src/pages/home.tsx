@@ -845,7 +845,7 @@ export default function HomePage() {
     },
     {
       icon: Shield,
-      title: "Smart Escrow",
+      title: "Smart Escrow (Coming Soon)",
       description: "Safe peer-to-peer trades with automated escrow protection"
     },
     {
@@ -855,7 +855,7 @@ export default function HomePage() {
     },
     {
       icon: ShoppingBag,
-      title: "Crypto Marketplace",
+      title: "Crypto Marketplace (Coming Soon)",
       description: "Pay with digital currency"
     }
   ];
