@@ -1060,20 +1060,22 @@ export default function HomePage() {
         </div>
 
         {/* Legal Links */}
-        <div className="text-center mt-6 space-x-4">
-          <button
-            onClick={() => setShowTermsModal(true)}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
-          >
-            Terms & Conditions
-          </button>
-          <span className="text-sm text-muted-foreground">•</span>
-          <button
-            onClick={() => setShowPrivacyModal(true)}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
-          >
-            Privacy Policy
-          </button>
+        <div className="text-center mt-6">
+          <span className="text-sm text-muted-foreground">
+            <button
+              onClick={() => setShowTermsModal(true)}
+              className="text-muted-foreground hover:text-foreground underline transition-colors"
+            >
+              Terms & Conditions
+            </button>
+            {" • "}
+            <button
+              onClick={() => setShowPrivacyModal(true)}
+              className="text-muted-foreground hover:text-foreground underline transition-colors"
+            >
+              Privacy Policy
+            </button>
+          </span>
         </div>
 
         {/* Powered by COYN */}
