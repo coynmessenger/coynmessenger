@@ -855,7 +855,7 @@ export default function HomePage() {
     },
     {
       icon: ShoppingBag,
-      title: "Crypto Marketplace (Coming Soon)",
+      title: "Marketplace (Coming Soon)",
       description: "Pay with digital currency"
     }
   ];
