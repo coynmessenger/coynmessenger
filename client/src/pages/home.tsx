@@ -1045,7 +1045,7 @@ export default function HomePage() {
             <Card key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
               <CardHeader className="pb-3">
                 <feature.icon className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-2" />
-                <CardTitle className="text-lg text-black dark:text-white whitespace-nowrap">{feature.title}</CardTitle>
+                <CardTitle className="text-lg text-black dark:text-white">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
