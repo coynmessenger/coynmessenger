@@ -31,7 +31,6 @@ export default function HomePage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [walletAddress, setWalletAddress] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
   });
@@ -96,27 +95,6 @@ export default function HomePage() {
 
   // Removed automatic user data fetching to prevent conflicts with localStorage updates
 
-  // Listen for display name updates from settings modal
-  useEffect(() => {
-    const handleDisplayNameUpdate = (event: CustomEvent) => {
-      if (connectedUser && event.detail?.userId === connectedUser.id) {
-        const updatedStoredUser = localStorage.getItem('connectedUser');
-        if (updatedStoredUser) {
-          try {
-            const parsedUser = JSON.parse(updatedStoredUser);
-            if (parsedUser.id === connectedUser.id) {
-              setConnectedUser(parsedUser);
-            }
-          } catch (error) {
-            console.error('Failed to parse updated user data:', error);
-          }
-        }
-      }
-    };
-
-    window.addEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
-    return () => window.removeEventListener('displayNameUpdated', handleDisplayNameUpdate as EventListener);
-  }, [connectedUser?.id]);
 
   // Add window event listener for wallet connection updates
   useEffect(() => {
@@ -173,9 +151,6 @@ export default function HomePage() {
       localStorage.setItem('connectedUser', JSON.stringify(user));
       localStorage.setItem('connectedUserId', user.id.toString());
       
-      if (user.displayName) {
-        localStorage.setItem('userDisplayName', user.displayName);
-      }
       
       // Update cache and state
       queryClient.setQueryData(["/api/user"], user);
@@ -808,7 +783,6 @@ export default function HomePage() {
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
     localStorage.removeItem('connectedUserId');
-    localStorage.removeItem('userDisplayName');
     
     // Clear any session storage
     sessionStorage.clear();
@@ -817,7 +791,6 @@ export default function HomePage() {
     setIsConnected(false);
     setConnectedUser(null);
     setWalletAddress('');
-    setDisplayName('');
     
     // Disconnect from any Web3 providers if connected
     if (window.ethereum) {
