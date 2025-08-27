@@ -306,27 +306,43 @@ body::before {
     
     /* Enhanced mobile message input optimization */
     .mobile-input-area form {
-      gap: 0.125rem !important; /* Reduced gap for more input space */
+      gap: 0.0625rem !important; /* Minimal gap for maximum input space */
       flex-wrap: nowrap !important;
+      padding: 0.25rem !important;
     }
     
     .mobile-input-area .flex-1 {
       flex: 1 1 auto !important;
       min-width: 0 !important;
-      margin-left: 0 !important;
+      margin-left: 0.125rem !important;
       margin-right: 0.125rem !important;
-      max-width: calc(100% - 100px) !important; /* Leave space for buttons */
+      max-width: calc(100% - 80px) !important; /* More space for text input */
     }
     
     .mobile-input-area form > div:nth-child(2) {
       order: -1 !important; /* Move attachment button to far left */
-      margin-right: 0.25rem !important;
+      margin-right: 0.125rem !important;
       flex-shrink: 0 !important;
     }
     
     .mobile-input-area input {
       width: 100% !important;
       min-width: 0 !important;
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+    
+    /* Compact button styling for mobile */
+    .mobile-input-area button {
+      padding: 0.125rem !important;
+      min-width: 1.5rem !important;
+      min-height: 1.5rem !important;
+    }
+    
+    /* Send button positioning */
+    .mobile-input-area form > button:last-child {
+      margin-left: 0.125rem !important;
+      flex-shrink: 0 !important;
     }
   }
 }
