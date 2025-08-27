@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, MessageCircle, Shield, Coins, ArrowRight, Check, Globe, Heart, ShoppingCart, ShoppingBag } from "lucide-react";
@@ -30,7 +28,6 @@ export default function HomePage() {
   useScrollToTop();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [walletAddress, setWalletAddress] = useState("");
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
   });
@@ -126,14 +123,10 @@ export default function HomePage() {
   }, []);
 
   const connectWalletMutation = useMutation({
-    mutationFn: async ({ walletAddress, displayName }: { walletAddress: string; displayName?: string }) => {
+    mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
       try {
-        return await apiRequest("POST", "/api/users/find-or-create", {
-          walletAddress,
-          displayName
-        });
+        return await apiRequest("POST", "/api/users/find-or-create", { walletAddress });
       } catch (error: any) {
-        // Re-throw the actual error from the server
         throw new Error(error.message || "Failed to connect wallet");
       }
     },
@@ -217,10 +210,7 @@ export default function HomePage() {
             localStorage.removeItem('walletConnectionAttempt');
             
             // Connect the wallet and navigate to messenger immediately
-            connectWalletMutation.mutate({
-              walletAddress: accounts[0],
-              displayName: undefined
-            });
+            connectWalletMutation.mutate({ walletAddress: accounts[0] });
           }
         } catch (error) {
           // Silently handle errors
@@ -316,10 +306,7 @@ export default function HomePage() {
                 localStorage.removeItem('walletConnectionAttempt');
                 
                 // Connect the wallet and navigate to messenger immediately
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
+                connectWalletMutation.mutate({ walletAddress: accounts[0] });
               } else if (accounts && accounts.length > 0 && isConnected) {
                 localStorage.removeItem('pendingWalletConnection');
                 localStorage.removeItem('pendingWalletType');
@@ -343,10 +330,7 @@ export default function HomePage() {
                       localStorage.removeItem('walletConnectionAttempt');
                       
                       // Connect the wallet and navigate to messenger immediately  
-                      connectWalletMutation.mutate({
-                        walletAddress: requestedAccounts[0],
-                        displayName: undefined
-                      });
+                      connectWalletMutation.mutate({ walletAddress: requestedAccounts[0] });
                     }
                   } catch (requestError) {
                     // Trust Wallet specific error handling
@@ -382,18 +366,6 @@ export default function HomePage() {
     };
   }, [isConnected, connectWalletMutation]);
 
-  const handleConnectWallet = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!walletAddress.trim() || !isValidCoynAddress(walletAddress)) return;
-    
-    // Clear sign out flag since user is manually connecting
-    localStorage.removeItem('userSignedOut');
-    
-    connectWalletMutation.mutate({
-      walletAddress: walletAddress.trim(),
-      displayName: displayName.trim() || undefined,
-    });
-  };
 
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -468,17 +440,11 @@ export default function HomePage() {
                 timestamp: Date.now()
               }));
               
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
+              connectWalletMutation.mutate({ walletAddress: accounts[0] });
             } catch (authError) {
               console.error('Wallet authorization failed:', authError);
               // Try basic connection without full authorization
-              connectWalletMutation.mutate({
-                walletAddress: accounts[0],
-                displayName: undefined
-              });
+              connectWalletMutation.mutate({ walletAddress: accounts[0] });
             }
             
             // Force immediate UI update for MetaMask
@@ -506,10 +472,7 @@ export default function HomePage() {
               
               if (accounts && accounts[0]) {
                 localStorage.removeItem('pendingWalletConnection');
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
+                connectWalletMutation.mutate({ walletAddress: accounts[0] });
               }
             } catch (error) {
               // Fallback to deep link
@@ -589,17 +552,11 @@ export default function HomePage() {
 
                   console.log(`🎯 Connected to ${comprehensiveWalletData.allAddresses.length} Trust Wallet addresses with total balances:`, comprehensiveWalletData.totalBalances);
                   
-                  connectWalletMutation.mutate({
-                    walletAddress: accounts[0],
-                    displayName: undefined
-                  });
+                  connectWalletMutation.mutate({ walletAddress: accounts[0] });
                 } catch (authError) {
                   console.error('Trust Wallet authorization failed:', authError);
                   // Try basic Trust Wallet connection
-                  connectWalletMutation.mutate({
-                    walletAddress: accounts[0],
-                    displayName: undefined
-                  });
+                  connectWalletMutation.mutate({ walletAddress: accounts[0] });
                 }
               }
             } catch (error) {
@@ -679,10 +636,7 @@ export default function HomePage() {
               });
               
               if (accounts && accounts[0]) {
-                connectWalletMutation.mutate({
-                  walletAddress: accounts[0],
-                  displayName: undefined
-                });
+                connectWalletMutation.mutate({ walletAddress: accounts[0] });
               }
             } catch (error) {
 
@@ -752,10 +706,7 @@ export default function HomePage() {
       }));
 
       // Connect with selected address
-      connectWalletMutation.mutate({
-        walletAddress: selectedAddress,
-        displayName: undefined
-      });
+      connectWalletMutation.mutate({ walletAddress: selectedAddress });
       
       console.log(`Connecting with selected ${selectedWalletType} address:`, selectedAddress);
     } catch (error) {
@@ -790,7 +741,6 @@ export default function HomePage() {
     // Reset all state
     setIsConnected(false);
     setConnectedUser(null);
-    setWalletAddress('');
     
     // Disconnect from any Web3 providers if connected
     if (window.ethereum) {
