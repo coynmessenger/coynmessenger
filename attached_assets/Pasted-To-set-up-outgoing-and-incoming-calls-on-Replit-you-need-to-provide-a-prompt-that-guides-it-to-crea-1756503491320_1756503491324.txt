@@ -1,0 +1,50 @@
+To set up outgoing and incoming calls on Replit, you need to provide a prompt that guides it to create the necessary server and client components. The prompt should be specific about the technologies and the communication protocol (WebRTC) you'll be using.
+
+Here is a detailed and well-structured prompt you can use for Replit, broken down into its key components:
+
+### **Prompt for Replit**
+
+**Project Goal:**
+"Create a full-stack, real-time video and audio chat application using WebRTC for peer-to-peer communication. The application should support one-on-one calls for outgoing and incoming calls."
+
+---
+
+**Technical Stack:**
+"The backend should use Node.js with Express and `socket.io` for the signaling server. The frontend should be a simple HTML/CSS/JavaScript client. The project must be fully functional on Replit."
+
+---
+
+**Core Functionality (WebRTC Logic):**
+"The application must include the following functionalities:
+
+1.  **User Interface:** A simple, single-page interface with a button to initiate a call and two video elements: one for the local camera feed and one for the remote peer's feed. There should also be a text area to display connection status messages.
+2.  **WebRTC Logic:**
+    * **`getUserMedia`:** Access the user's camera and microphone to get a local video stream.
+    * **`RTCPeerConnection`:** Instantiate a peer connection object.
+    * **STUN Server:** Use a public STUN server (e.g., `stun:stun.l.google.com:19302`) to help peers discover their public IP addresses.
+3.  **Signaling Server Logic (`socket.io`):**
+    * The server should handle a list of connected clients.
+    * When a user wants to make an outgoing call, they click a button that sends a `call-request` event to the signaling server, including their socket ID.
+    * The signaling server relays this request to the intended recipient's socket ID.
+    * **SDP Exchange:**
+        * When a peer receives a call request, it should create an `RTCPeerConnection` and generate an SDP 'offer'.
+        * This offer is sent to the signaling server with an event like `offer`.
+        * The server relays the `offer` to the other peer, who then creates an `RTCPeerConnection` and generates an SDP 'answer'.
+        * The 'answer' is sent back to the server and relayed to the original caller.
+    * **ICE Candidate Exchange:**
+        * Both peers must listen for `icecandidate` events on their `RTCPeerConnection`.
+        * When a candidate is generated, they should send it to the signaling server.
+        * The server relays the candidate to the other peer, who adds it to their `RTCPeerConnection`.
+4.  **Outgoing and Incoming Calls:** The system should be designed to handle both an initial call request (outgoing) and the subsequent response (incoming) to establish the peer-to-peer connection."
+
+---
+
+**Code Structure:**
+"Organize the project with a clear separation between the server-side code (e.g., `server.js`) and the client-side code (e.g., `index.html` and `client.js`)."
+
+---
+
+**Example Output:**
+"The final project should result in a single Replit instance that, when run, hosts both the signaling server and the front-end, allowing a user to open the same URL in two different browser tabs to test a successful one-on-one call."
+
+This prompt is specific enough to guide the Replit AI, but general enough to allow for a flexible and robust implementation.
