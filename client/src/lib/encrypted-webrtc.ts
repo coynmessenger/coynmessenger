@@ -211,7 +211,14 @@ export class EncryptedWebRTCService {
       
       const call = this.activeCalls.get(data.callId);
       if (!call?.peerConnection) {
-        console.log('No peer connection found for ICE candidate');
+        console.log('No peer connection found for ICE candidate - may be timing issue');
+        return;
+      }
+      
+      // Check if remote description is set before adding ICE candidates
+      if (!call.peerConnection.remoteDescription) {
+        console.log('⚠️ WARNING: Trying to add ICE candidate before remote description is set');
+        // Could implement queueing here if needed
         return;
       }
 
@@ -476,8 +483,9 @@ export class EncryptedWebRTCService {
 
       // Set remote description if we have an offer
       if (call.remoteOffer) {
-        console.log('Setting remote offer description');
+        console.log('📞 ACCEPT: Setting remote offer description');
         await peerConnection.setRemoteDescription(new RTCSessionDescription(call.remoteOffer));
+        console.log('✅ ACCEPT: Remote offer set successfully');
       }
 
       // Create answer

@@ -216,12 +216,14 @@ export class EncryptedWebRTCSignaling {
             console.log('- To socket:', targetSocketId);
             console.log('- Call ID:', callId);
             console.log('- From user:', callerId);
+            console.log('- Offer data available:', !!data.offer);
             
             this.io.to(targetSocketId).emit('incoming-call', {
               callId,
               fromUserId: callerId,
               type: data.type,
               encryptedOffer,
+              offer: data.offer, // Always include plain offer as fallback
               encrypted: true
             });
 
