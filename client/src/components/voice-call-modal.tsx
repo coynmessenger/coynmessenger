@@ -281,7 +281,7 @@ export default function VoiceCallModal({
     console.log('📞 DEEP TEST: callInitiatedRef.current:', callInitiatedRef.current);
     console.log('📞 DEEP TEST: All conditions met:', callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current);
     
-    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current) {
+    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current && isOpen) {
       console.log('📞 DEEP TEST: ✅ STARTING OUTGOING CALL INITIATION...');
       callInitiatedRef.current = true; // Prevent multiple calls
       setCallStatus("connecting");

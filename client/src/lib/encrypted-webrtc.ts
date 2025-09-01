@@ -328,7 +328,7 @@ export class EncryptedWebRTCService {
       const timeout = setTimeout(() => {
         console.error(`Authentication timeout for user ${userId}`);
         reject(new Error('Authentication timeout'));
-      }, 10000);
+      }, 30000); // Increased to 30 seconds for better stability
 
       this.socket!.once('authenticated', (data) => {
         console.log(`🔧 DEEP TEST: Authentication successful for user ${userId}`, data);
@@ -664,15 +664,25 @@ export class EncryptedWebRTCService {
       } else if (state === 'failed') {
         console.error('❌ CLIENT: WebRTC connection failed - likely NAT/firewall issue');
         console.log('💡 TIP: Check TURN server configuration and firewall settings');
-        this.endCall(call.callId);
-        // Notify UI about connection failure
-        if (this.eventHandlers.onCallEnded) {
-          this.eventHandlers.onCallEnded({
-            callId: call.callId,
-            endedBy: 'system',
-            reason: 'Connection failed - NAT/firewall issue'
-          });
-        }
+        
+        // Give it more time before ending the call - sometimes ICE takes longer
+        setTimeout(() => {
+          const stillFailed = call.peerConnection?.iceConnectionState === 'failed';
+          if (stillFailed) {
+            console.log('❌ CLIENT: ICE connection still failed after retry period, ending call');
+            this.endCall(call.callId);
+            // Notify UI about connection failure
+            if (this.eventHandlers.onCallEnded) {
+              this.eventHandlers.onCallEnded({
+                callId: call.callId,
+                endedBy: 'system',
+                reason: 'Connection failed - NAT/firewall issue'
+              });
+            }
+          } else {
+            console.log('✅ CLIENT: ICE connection recovered after retry period');
+          }
+        }, 10000); // Give 10 more seconds for ICE to recover
       } else if (state === 'disconnected') {
         console.warn('⚠️ CLIENT: WebRTC connection disconnected');
       }
