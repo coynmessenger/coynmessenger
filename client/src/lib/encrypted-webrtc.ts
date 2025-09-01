@@ -83,6 +83,7 @@ export class EncryptedWebRTCService {
 
     this.socket.on('connect', () => {
       console.log('Connected to encrypted WebRTC signaling server');
+      console.log('🔧 CRITICAL: Socket ID:', this.socket?.id);
     });
 
     this.socket.on('authenticated', (data: { userId: string; publicKey: string; encryptionEnabled: boolean }) => {
@@ -90,6 +91,7 @@ export class EncryptedWebRTCService {
       this.publicKey = data.publicKey;
       this.isInitialized = true;
       console.log('WebRTC authentication successful, encryption enabled:', data.encryptionEnabled);
+      console.log('🔧 CRITICAL: Authenticated user:', data.userId, 'on socket:', this.socket?.id);
       
       if (this.eventHandlers.onEncryptionStatusChanged) {
         this.eventHandlers.onEncryptionStatusChanged(data.encryptionEnabled);
@@ -109,7 +111,8 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('📞 Incoming call received from user:', data.fromUserId);
+      console.log('📞 CRITICAL: Incoming call received from user:', data.fromUserId);
+      console.log('📞 CRITICAL: Call data:', data);
       
       try {
         // Store call information
