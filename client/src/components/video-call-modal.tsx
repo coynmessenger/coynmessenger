@@ -239,13 +239,19 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   };
 
   const handleAcceptCall = async () => {
+    console.log('🎯 VIDEO ACCEPT BUTTON CLICKED');
+    console.log('🆔 Encrypted Call ID:', encryptedCallId);
+    console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
+    
     if (encryptedCallId && webrtcService.current) {
       try {
+        console.log('📞 VIDEO ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
+        console.log('✅ VIDEO ACCEPT: Call accepted successfully');
         setCallStatus("connected");
         if (onCallStart) onCallStart();
       } catch (error: any) {
-
+        console.error('❌ VIDEO ACCEPT: Failed to accept call:', error);
         setCallStatus("ended");
         
         // Show user-friendly error messages

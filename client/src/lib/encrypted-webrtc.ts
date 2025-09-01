@@ -112,8 +112,12 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('📞 CRITICAL: Incoming call received from user:', data.fromUserId);
-      console.log('📞 CRITICAL: Call data:', data);
+      console.log('📞 CRITICAL INCOMING CALL: Event received on client socket!');
+      console.log('📞 CRITICAL INCOMING CALL: Socket ID:', this.socket?.id);
+      console.log('📞 CRITICAL INCOMING CALL: From user:', data.fromUserId);
+      console.log('📞 CRITICAL INCOMING CALL: Call type:', data.type);
+      console.log('📞 CRITICAL INCOMING CALL: Call ID:', data.callId);
+      console.log('📞 CRITICAL INCOMING CALL: Full data:', data);
       
       try {
         // Store call information

@@ -303,9 +303,10 @@ export default function MessengerPage() {
           // Set up global WebRTC handlers for incoming calls IMMEDIATELY after initialization
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
-              console.log('📞 Incoming call received:', call);
+              console.log('📞 CRITICAL: Incoming call received in messenger handler:', call);
               console.log('👥 All users available:', allUsers.length);
               console.log('🔍 Looking for caller user ID:', call.fromUserId);
+              console.log('🎯 Current modal states - Voice:', isVoiceCallOpen, 'Video:', isVideoCallOpen);
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
@@ -313,16 +314,24 @@ export default function MessengerPage() {
               
               // Always show the call modal, even if user is not found in the list
               // The modal can handle missing user gracefully
+              console.log('🔧 Setting incoming call data:', { fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               
               // Open the appropriate modal
               if (call.type === 'voice') {
-                console.log('🎙️ Opening voice call modal');
+                console.log('🎙️ CRITICAL: Opening voice call modal');
                 setIsVoiceCallOpen(true);
+                console.log('🎙️ CRITICAL: Voice call modal should now be open');
               } else if (call.type === 'video') {
-                console.log('📹 Opening video call modal');
+                console.log('📹 CRITICAL: Opening video call modal');
                 setIsVideoCallOpen(true);
+                console.log('📹 CRITICAL: Video call modal should now be open');
               }
+              
+              // Force a re-render to ensure modals show
+              setTimeout(() => {
+                console.log('🔄 Post-timeout modal states - Voice:', isVoiceCallOpen, 'Video:', isVideoCallOpen);
+              }, 100);
             },
             onCallAccepted: (call) => {
               console.log('Global WebRTC call accepted:', call);
@@ -1004,16 +1013,24 @@ export default function MessengerPage() {
         onClose={handleCloseWallet}
         initialCurrency={selectedWalletCurrency}
       />
+      {/* Video Call Modal - Enhanced debugging */}
       <VideoCallModal
         isOpen={isVideoCallOpen}
         onClose={() => {
+          console.log('📹 Video call modal closing');
           setIsVideoCallOpen(false);
           setIncomingCallData(null);
         }}
         user={
           incomingCallData && incomingCallData.type === 'video'
             ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
-              { id: parseInt(incomingCallData.fromUserId), name: `User ${incomingCallData.fromUserId}`, username: `user_${incomingCallData.fromUserId}` }
+              { 
+                id: parseInt(incomingCallData.fromUserId), 
+                displayName: `User ${incomingCallData.fromUserId}`,
+                signInName: `user_${incomingCallData.fromUserId}`,
+                username: `user_${incomingCallData.fromUserId}`,
+                walletAddress: `0x...${incomingCallData.fromUserId}`
+              }
             : currentConversation?.otherUser
         }
         callType={
@@ -1027,16 +1044,24 @@ export default function MessengerPage() {
             : undefined
         }
       />
+      {/* Voice Call Modal - Enhanced debugging */}
       <VoiceCallModal
         isOpen={isVoiceCallOpen}
         onClose={() => {
+          console.log('🎙️ Voice call modal closing');
           setIsVoiceCallOpen(false);
           setIncomingCallData(null);
         }}
         user={
           incomingCallData && incomingCallData.type === 'voice'
             ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
-              { id: parseInt(incomingCallData.fromUserId), name: `User ${incomingCallData.fromUserId}`, username: `user_${incomingCallData.fromUserId}` }
+              { 
+                id: parseInt(incomingCallData.fromUserId), 
+                displayName: `User ${incomingCallData.fromUserId}`,
+                signInName: `user_${incomingCallData.fromUserId}`,
+                username: `user_${incomingCallData.fromUserId}`,
+                walletAddress: `0x...${incomingCallData.fromUserId}`
+              }
             : currentConversation?.otherUser
         }
         callType={

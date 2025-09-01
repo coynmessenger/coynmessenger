@@ -778,7 +778,12 @@ export default function VoiceCallModal({
                 <PhoneOff className="h-8 w-8" />
               </Button>
               <Button
-                onClick={handleAcceptCall}
+                onClick={() => {
+                  console.log('🎯 ANSWER BUTTON CLICKED - Adding enhanced debugging');
+                  console.log('🔧 Button click event triggered');
+                  console.log('📞 Calling handleAcceptCall function');
+                  handleAcceptCall();
+                }}
                 className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
               >
                 <Phone className="h-8 w-8" />
