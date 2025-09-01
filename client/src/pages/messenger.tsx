@@ -362,31 +362,35 @@ export default function MessengerPage() {
           conversationId: data.conversationId
         });
         
-        // Always show visual indicator for unread messages
-        // Dismiss any existing toast for this conversation
-        const existingToastId = activeToasts.get(data.conversationId);
-        if (existingToastId) {
-          dismiss(existingToastId);
-        }
-        
-        // Create new toast and track its ID for visual indicator
-        const newToast = toast({
-          title: `New message from ${data.senderName}`,
-          description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
-          duration: isConversationOpen ? 2000 : 4000, // Shorter duration if conversation is open
-        });
-        
-        // Store toast ID for unread indicator (regardless of conversation state)
-        setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
-        
-        // Clean up toast reference when it expires
-        setTimeout(() => {
-          setActiveToasts(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(data.conversationId);
-            return newMap;
+        // Only show toast notification if conversation is NOT currently open
+        if (!isConversationOpen) {
+          // Dismiss any existing toast for this conversation
+          const existingToastId = activeToasts.get(data.conversationId);
+          if (existingToastId) {
+            dismiss(existingToastId);
+          }
+          
+          // Create new toast and track its ID for visual indicator
+          const newToast = toast({
+            title: `New message from ${data.senderName}`,
+            description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
+            duration: 4000,
           });
-        }, isConversationOpen ? 2000 : 4000);
+          
+          // Store toast ID for unread indicator
+          setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
+          
+          // Clean up toast reference when it expires
+          setTimeout(() => {
+            setActiveToasts(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(data.conversationId);
+              return newMap;
+            });
+          }, 4000);
+        } else {
+          console.log('🔇 No notification shown - conversation is currently open');
+        }
       }
     });
 
