@@ -375,11 +375,10 @@ export default function MessengerPage() {
           dataConversationId: data.conversationId
         });
         
-        // Always mark conversation as having unread messages (for visual highlighting)
-        setActiveToasts(prev => new Map(prev.set(data.conversationId, 'unread')));
-        
-        // Only show toast notification if conversation is NOT currently open
+        // Only mark conversation as unread AND show notification if conversation is NOT currently open
         if (!isConversationOpen) {
+          // Mark conversation as having unread messages (for visual highlighting)
+          setActiveToasts(prev => new Map(prev.set(data.conversationId, 'unread')));
           // Dismiss any existing toast for this conversation
           const existingToastId = activeToasts.get(data.conversationId);
           if (existingToastId && existingToastId !== 'unread') {
@@ -393,9 +392,9 @@ export default function MessengerPage() {
             duration: 4000,
           });
           
-          console.log('📱 Toast notification shown for conversation:', data.conversationId);
+          console.log('📱 Toast notification shown and conversation marked as unread:', data.conversationId);
         } else {
-          console.log('🔇 No toast notification shown - conversation is currently open, but conversation remains highlighted');
+          console.log('🔇 No notification or highlighting - conversation is currently open and user can see messages in real-time');
         }
       }
     });
