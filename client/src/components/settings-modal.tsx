@@ -215,6 +215,16 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Handle notification settings changes
   const handleNotificationChange = async (checked: boolean) => {
     if (checked) {
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        toast({
+          title: "Not Supported",
+          description: "Your browser doesn't support notifications.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Request permission when enabling notifications
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
