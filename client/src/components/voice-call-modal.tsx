@@ -260,7 +260,18 @@ export default function VoiceCallModal({
     }
 
     // Initiate encrypted WebRTC call for outgoing calls (only once)
+    console.log('📞 DEEP TEST: ===============================');
+    console.log('📞 DEEP TEST: OUTGOING CALL CONDITION CHECK');
+    console.log('📞 DEEP TEST: ===============================');
+    console.log('📞 DEEP TEST: callType:', callType);
+    console.log('📞 DEEP TEST: webrtcService.current available:', !!webrtcService.current);
+    console.log('📞 DEEP TEST: user available:', !!user);
+    console.log('📞 DEEP TEST: encryptedCallId:', encryptedCallId);
+    console.log('📞 DEEP TEST: callInitiatedRef.current:', callInitiatedRef.current);
+    console.log('📞 DEEP TEST: All conditions met:', callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current);
+    
     if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current) {
+      console.log('📞 DEEP TEST: ✅ STARTING OUTGOING CALL INITIATION...');
       callInitiatedRef.current = true; // Prevent multiple calls
       setCallStatus("connecting");
       
@@ -312,7 +323,7 @@ export default function VoiceCallModal({
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
     }
-  }, [isOpen, isCallActive, onCallStart]); // Removed incomingCallId to prevent multiple calls
+  }, [isOpen, isCallActive, onCallStart, webrtcService.current, user, callType, encryptedCallId]); // Added dependencies for proper triggering
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
