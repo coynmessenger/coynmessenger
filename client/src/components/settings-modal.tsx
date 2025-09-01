@@ -216,7 +216,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const handleNotificationChange = async (checked: boolean) => {
     if (checked) {
       // Check if notifications are supported
-      if (!('Notification' in window)) {
+      if (typeof window === 'undefined' || !window.Notification) {
         toast({
           title: "Not Supported",
           description: "Your browser doesn't support notifications.",
@@ -225,12 +225,22 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         return;
       }
       
-      // Request permission when enabling notifications
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
+      try {
+        // Request permission when enabling notifications
+        const permission = await window.Notification.requestPermission();
+        if (permission !== 'granted') {
+          toast({
+            title: "Permission Required",
+            description: "Please allow notifications in your browser settings to receive push notifications.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
         toast({
-          title: "Permission Required",
-          description: "Please allow notifications in your browser settings to receive push notifications.",
+          title: "Permission Error",
+          description: "Unable to request notification permission. Please check your browser settings.",
           variant: "destructive",
         });
         return;
