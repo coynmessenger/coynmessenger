@@ -92,6 +92,7 @@ export class EncryptedWebRTCService {
       this.isInitialized = true;
       console.log('WebRTC authentication successful, encryption enabled:', data.encryptionEnabled);
       console.log('🔧 CRITICAL: Authenticated user:', data.userId, 'on socket:', this.socket?.id);
+      console.log('🔧 CRITICAL: WebRTC socket ready to receive calls on socket:', this.socket?.id);
       
       if (this.eventHandlers.onEncryptionStatusChanged) {
         this.eventHandlers.onEncryptionStatusChanged(data.encryptionEnabled);
@@ -297,10 +298,19 @@ export class EncryptedWebRTCService {
     }
 
     return new Promise((resolve, reject) => {
-      if (this.isInitialized && this.localUserId === userId) {
-        console.log(`Already initialized for user ${userId}`);
+      if (this.isInitialized && this.localUserId === userId && this.socket?.connected) {
+        console.log(`Already initialized for user ${userId} with connected socket ${this.socket?.id}`);
         resolve();
         return;
+      }
+      
+      // Clean up existing connection if reinitializing
+      if (this.socket && this.socket.connected) {
+        console.log('🔧 CRITICAL: Cleaning up previous WebRTC socket connection:', this.socket.id);
+        this.socket.disconnect();
+        this.isInitialized = false;
+        // Recreate fresh socket connection
+        this.initializeSocket();
       }
 
       console.log(`Authenticating user ${userId} with WebRTC signaling server`);

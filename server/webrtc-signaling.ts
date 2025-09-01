@@ -48,7 +48,11 @@ export class EncryptedWebRTCSignaling {
         console.log('- User ID:', userId);
         console.log('- Socket ID:', socket.id);
         
-        // Store user-socket mapping
+        // Store user-socket mapping (OVERWRITE previous connections)
+        const previousSocketId = this.userSockets.get(userId);
+        if (previousSocketId) {
+          console.log('⚠️ SERVER: User', userId, 'had previous socket:', previousSocketId, 'replacing with:', socket.id);
+        }
         this.userSockets.set(userId, socket.id);
         this.socketUsers.set(socket.id, userId);
         
