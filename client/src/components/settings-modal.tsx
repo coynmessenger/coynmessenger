@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
+import { NotificationService } from "@/lib/notification-service";
 
 // Utility function to get effective display name (mirrors backend logic)
 function getEffectiveDisplayName(user: User): string {
@@ -197,9 +198,69 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const [walletAddress, setWalletAddress] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  // Initialize notification service and load settings
+  const notificationService = NotificationService.getInstance();
   const [notifications, setNotifications] = useState(true);
   const [autoConnect, setAutoConnect] = useState(true);
   const [messagePreview, setMessagePreview] = useState(true);
+
+  // Load notification settings from service on mount
+  useEffect(() => {
+    const settings = notificationService.getSettings();
+    setNotifications(settings.pushNotifications);
+    setMessagePreview(settings.messagePreview);
+    setAutoConnect(settings.autoConnectWallet);
+  }, [notificationService]);
+
+  // Handle notification settings changes
+  const handleNotificationChange = async (checked: boolean) => {
+    if (checked) {
+      // Request permission when enabling notifications
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast({
+          title: "Permission Required",
+          description: "Please allow notifications in your browser settings to receive push notifications.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    setNotifications(checked);
+    notificationService.updateSettings({ pushNotifications: checked });
+    
+    toast({
+      title: checked ? "Notifications Enabled" : "Notifications Disabled",
+      description: checked 
+        ? "You'll now receive push notifications for new messages" 
+        : "Push notifications have been turned off",
+    });
+  };
+
+  const handleMessagePreviewChange = (checked: boolean) => {
+    setMessagePreview(checked);
+    notificationService.updateSettings({ messagePreview: checked });
+    
+    toast({
+      title: checked ? "Message Preview Enabled" : "Message Preview Disabled", 
+      description: checked
+        ? "Notification content will show message previews"
+        : "Notifications will not show message content",
+    });
+  };
+
+  const handleAutoConnectChange = (checked: boolean) => {
+    setAutoConnect(checked);
+    notificationService.updateSettings({ autoConnectWallet: checked });
+    
+    toast({
+      title: checked ? "Auto-connect Enabled" : "Auto-connect Disabled",
+      description: checked
+        ? "Wallet will automatically connect to COYN network"
+        : "Manual wallet connection required",
+    });
+  };
   
   // Mailing address state
   const [fullName, setFullName] = useState("");
@@ -872,7 +933,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 </div>
                 <Switch
                   checked={notifications}
-                  onCheckedChange={setNotifications}
+                  onCheckedChange={handleNotificationChange}
                 />
               </div>
               <Separator className="bg-slate-600" />
@@ -883,7 +944,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 </div>
                 <Switch
                   checked={messagePreview}
-                  onCheckedChange={setMessagePreview}
+                  onCheckedChange={handleMessagePreviewChange}
                 />
               </div>
             </CardContent>
@@ -908,7 +969,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 </div>
                 <Switch
                   checked={autoConnect}
-                  onCheckedChange={setAutoConnect}
+                  onCheckedChange={handleAutoConnectChange}
                 />
               </div>
               <Separator className="bg-slate-600" />
