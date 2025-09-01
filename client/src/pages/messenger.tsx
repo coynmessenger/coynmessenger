@@ -12,6 +12,7 @@ import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
+import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
@@ -74,6 +75,7 @@ export default function MessengerPage() {
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video'; callId: string } | null>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -1078,6 +1080,49 @@ export default function MessengerPage() {
         onClose={handleCloseWallet}
         initialCurrency={selectedWalletCurrency}
       />
+      {/* Voice Call Modal */}
+      <VoiceCallModal
+        isOpen={isVoiceCallOpen}
+        onClose={() => {
+          console.log('🎙️ Voice call modal closing');
+          setIsVoiceCallOpen(false);
+          setIncomingCallData(null);
+        }}
+        user={
+          incomingCallData && incomingCallData.type === 'voice'
+            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
+              { 
+                id: parseInt(incomingCallData.fromUserId), 
+                displayName: `User ${incomingCallData.fromUserId}`,
+                signInName: `user_${incomingCallData.fromUserId}`,
+                username: `user_${incomingCallData.fromUserId}`,
+                walletAddress: `0x...${incomingCallData.fromUserId}`,
+                profilePicture: null,
+                isOnline: null,
+                isSetup: null,
+                lastSeen: null,
+                fullName: null,
+                addressLine1: null,
+                addressLine2: null,
+                city: null,
+                state: null,
+                zipCode: null,
+                country: null
+              }
+            : currentConversation?.otherUser
+        }
+        callType={
+          incomingCallData && incomingCallData.type === 'voice'
+            ? 'incoming'
+            : 'outgoing'
+        }
+        incomingCallId={
+          incomingCallData && incomingCallData.type === 'voice'
+            ? incomingCallData.callId
+            : undefined
+        }
+      />
+      
       {/* Video Call Modal - Enhanced debugging */}
       <VideoCallModal
         isOpen={isVideoCallOpen}
@@ -1094,7 +1139,18 @@ export default function MessengerPage() {
                 displayName: `User ${incomingCallData.fromUserId}`,
                 signInName: `user_${incomingCallData.fromUserId}`,
                 username: `user_${incomingCallData.fromUserId}`,
-                walletAddress: `0x...${incomingCallData.fromUserId}`
+                walletAddress: `0x...${incomingCallData.fromUserId}`,
+                profilePicture: null,
+                isOnline: null,
+                isSetup: null,
+                lastSeen: null,
+                fullName: null,
+                addressLine1: null,
+                addressLine2: null,
+                city: null,
+                state: null,
+                zipCode: null,
+                country: null
               }
             : currentConversation?.otherUser
         }

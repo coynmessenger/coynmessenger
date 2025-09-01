@@ -308,9 +308,12 @@ export class EncryptedWebRTCService {
       }
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('Disconnected from encrypted WebRTC signaling server');
-      this.isInitialized = false;
+    this.socket.on('disconnect', (reason) => {
+      console.log('Disconnected from encrypted WebRTC signaling server, reason:', reason);
+      // Only mark as uninitialized if it's a real disconnect, not during HMR
+      if (reason !== 'transport close' && reason !== 'io client disconnect') {
+        this.isInitialized = false;
+      }
     });
   }
 
@@ -352,6 +355,10 @@ export class EncryptedWebRTCService {
 
       this.socket!.on('disconnect', (reason) => {
         console.error('🔧 DEEP TEST: Socket disconnected during init:', reason);
+        // Don't fail initialization for temporary disconnects during development
+        if (reason === 'transport close' || reason === 'io client disconnect') {
+          console.log('🔧 DEEP TEST: Ignoring temporary disconnect during development');
+        }
       });
 
       console.log('🔧 DEEP TEST: Emitting authenticate event for user:', userId);
