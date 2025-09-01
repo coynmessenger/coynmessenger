@@ -5,16 +5,20 @@ let globalWebRTCService: EncryptedWebRTCService | null = null;
 
 // Initialize the global WebRTC service
 export const initializeGlobalWebRTC = async (userId: string): Promise<void> => {
+  // Clean up any existing service first to prevent multiple connections
   if (globalWebRTCService) {
-    console.log('Global WebRTC service already initialized');
-    return;
+    console.log('🔧 CRITICAL DEBUG: Cleaning up existing WebRTC service before reinitializing');
+    globalWebRTCService.cleanup();
+    globalWebRTCService = null;
   }
 
   try {
-    console.log('Initializing global WebRTC service for user:', userId);
+    console.log('🔧 CRITICAL DEBUG: Initializing NEW global WebRTC service for user:', userId);
     globalWebRTCService = new EncryptedWebRTCService();
     await globalWebRTCService.initialize(userId);
-    console.log('Global WebRTC service initialized successfully for user:', userId);
+    console.log('🔧 CRITICAL DEBUG: Global WebRTC service initialized successfully for user:', userId);
+    console.log('🔧 CRITICAL DEBUG: New socket ID:', globalWebRTCService.getSocketId());
+    console.log('🔧 CRITICAL DEBUG: New socket connected:', globalWebRTCService.socket?.connected);
   } catch (error) {
     console.error('Failed to initialize global WebRTC service:', error);
     globalWebRTCService = null;

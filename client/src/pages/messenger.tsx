@@ -290,9 +290,13 @@ export default function MessengerPage() {
 
     // Initialize global WebRTC service for calls (only once)
     const initializeWebRTC = async () => {
-        if (globalWebRTCInitialized) return;
+        if (globalWebRTCInitialized) {
+          console.log('🔧 CRITICAL DEBUG: WebRTC already initialized, skipping...');
+          return;
+        }
         
         try {
+          console.log('🔧 CRITICAL DEBUG: Starting WebRTC initialization for user:', connectedUserId);
           setGlobalWebRTCInitialized(true);
           await initializeGlobalWebRTC(connectedUserId.toString());
           console.log('Global WebRTC service initialized for user:', connectedUserId);
