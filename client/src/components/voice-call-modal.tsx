@@ -45,6 +45,17 @@ export default function VoiceCallModal({
     incomingCallId
   });
   
+  // Initialize WebRTC service from global service on mount
+  useEffect(() => {
+    const globalService = getGlobalWebRTC();
+    if (globalService) {
+      console.log('🔧 VOICE MODAL: Setting WebRTC service from global service');
+      webrtcService.current = globalService;
+    } else {
+      console.log('❌ VOICE MODAL: No global WebRTC service available');
+    }
+  }, []);
+  
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
@@ -52,7 +63,7 @@ export default function VoiceCallModal({
   const [callDuration, setCallDuration] = useState(0);
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
   
-  // WebRTC service instance
+  // WebRTC service instance - get from global service
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   

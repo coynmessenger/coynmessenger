@@ -65,7 +65,10 @@ export class EncryptedWebRTCService {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}`;
     
-    console.log('🔧 WebRTC initializing socket connection to:', socketUrl);
+    console.log('🔧 DEEP TEST: WebRTC initializing socket connection to:', socketUrl);
+    console.log('🔧 DEEP TEST: Window location:', window.location.href);
+    console.log('🔧 DEEP TEST: Protocol:', protocol);
+    console.log('🔧 DEEP TEST: Host:', window.location.host);
     
     this.socket = io(socketUrl, {
       transports: ['websocket'],
@@ -73,7 +76,7 @@ export class EncryptedWebRTCService {
       path: '/socket.io/',
     });
     
-    console.log('🔧 CRITICAL FIX: WebRTC using shared socket connection to:', socketUrl);
+    console.log('🔧 DEEP TEST: Socket instance created, setting up listeners...');
 
     this.setupSocketListeners();
   }
@@ -82,8 +85,10 @@ export class EncryptedWebRTCService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('Connected to encrypted WebRTC signaling server');
-      console.log('🔧 CRITICAL: Socket ID:', this.socket?.id);
+      console.log('🔧 DEEP TEST: Connected to encrypted WebRTC signaling server');
+      console.log('🔧 DEEP TEST: Socket ID:', this.socket?.id);
+      console.log('🔧 DEEP TEST: Socket connected:', this.socket?.connected);
+      console.log('🔧 DEEP TEST: Socket transport:', this.socket?.io?.engine?.transport?.name);
     });
 
     this.socket.on('authenticated', (data: { userId: string; publicKey: string; encryptionEnabled: boolean }) => {
@@ -326,11 +331,22 @@ export class EncryptedWebRTCService {
       }, 10000);
 
       this.socket!.once('authenticated', (data) => {
-        console.log(`Authentication successful for user ${userId}`);
+        console.log(`🔧 DEEP TEST: Authentication successful for user ${userId}`, data);
         clearTimeout(timeout);
         resolve();
       });
 
+      this.socket!.on('connect_error', (error) => {
+        console.error('🔧 DEEP TEST: Socket connection error:', error);
+        clearTimeout(timeout);
+        reject(new Error(`Socket connection failed: ${error.message}`));
+      });
+
+      this.socket!.on('disconnect', (reason) => {
+        console.error('🔧 DEEP TEST: Socket disconnected during init:', reason);
+      });
+
+      console.log('🔧 DEEP TEST: Emitting authenticate event for user:', userId);
       this.socket!.emit('authenticate', { userId });
     });
   }
