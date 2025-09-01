@@ -13,6 +13,7 @@ import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
+import { requireAuth } from "./middleware/security";
 
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
 
@@ -1082,14 +1083,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload profile picture
-  app.post("/api/user/upload-avatar", upload.single('profileImage'), async (req, res) => {
+  app.post("/api/user/upload-avatar", requireAuth, upload.single('profileImage'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      // Get user ID from query parameter or default to session user (5)
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : 5;
+      // Get user ID from session (authenticated user)
+      const userId = req.session.userId;
       const profilePicture = `/uploads/avatars/${req.file.filename}`;
       
       

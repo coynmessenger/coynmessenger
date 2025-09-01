@@ -51,11 +51,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('profileImage', file);
-      formData.append('userId', user?.id?.toString() || '');
       
       const response = await fetch('/api/user/upload-avatar', {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include session cookies
       });
       
       if (!response.ok) {
@@ -73,10 +73,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         description: "Your new profile picture has been saved.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload your profile picture. Please try again.",
+        description: "Failed to upload your profile picture. Please check your connection and try again.",
         variant: "destructive",
       });
     },
@@ -200,6 +201,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
+                      capture="environment"
                       onChange={handleFileSelect}
                       className="hidden"
                     />
