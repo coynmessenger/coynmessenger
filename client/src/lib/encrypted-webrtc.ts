@@ -441,6 +441,11 @@ export class EncryptedWebRTCService {
         console.error('❌ CLIENT: Call error received:', data.error);
       });
       
+      // Listen for call accepted confirmation
+      this.socket.once('call-accepted-confirmation', (data: { callId: string, fromUserId: string }) => {
+        console.log('✅ CLIENT: Call accepted confirmation received:', data);
+      });
+      
       return callId;
       
     } catch (error) {
@@ -536,13 +541,15 @@ export class EncryptedWebRTCService {
       console.log('📤 CRITICAL: Sending accept-call event to server (matching server listener)');
       console.log('📤 CRITICAL: Call ID:', callId);
       console.log('📤 CRITICAL: Answer created:', !!answer);
+      console.log('📤 CRITICAL: Socket ID:', this.socket?.id);
+      console.log('📤 CRITICAL: Socket connected:', this.socket?.connected);
       
       this.socket.emit('accept-call', {
         callId,
         answer,
       });
 
-      console.log('Call accepted with encryption');
+      console.log('✅ CRITICAL: Call acceptance sent to server, waiting for confirmation...');
       
     } catch (error) {
       console.error('Failed to accept call:', error);

@@ -345,6 +345,12 @@ export class EncryptedWebRTCSignaling {
         });
         
         console.log('✅ SERVER: call-accepted event sent successfully');
+        
+        // Send confirmation back to accepter that acceptance was processed
+        socket.emit('call-accepted-confirmation', {
+          callId: data.callId,
+          fromUserId: call.participants[0].userId
+        });
 
         
       });
