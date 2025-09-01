@@ -151,8 +151,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       return;
     }
 
-    // Initiate encrypted WebRTC video call for outgoing calls
-    if (callType === "outgoing" && webrtcService.current && user) {
+    // Initiate encrypted WebRTC video call for outgoing calls (only once)
+    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId) {
       setCallStatus("connecting");
       
       const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
@@ -215,7 +215,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setEncryptedCallId(incomingCallId);
       }
     }
-  }, [isOpen, isCallActive, onCallStart, incomingCallId]);
+  }, [isOpen, isCallActive, onCallStart]); // Removed incomingCallId to prevent multiple calls
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

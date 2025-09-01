@@ -255,8 +255,8 @@ export default function VoiceCallModal({
       }
     }
 
-    // Initiate encrypted WebRTC call for outgoing calls
-    if (callType === "outgoing" && webrtcService.current && user) {
+    // Initiate encrypted WebRTC call for outgoing calls (only once)
+    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId) {
       setCallStatus("connecting");
       
       const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
@@ -307,7 +307,7 @@ export default function VoiceCallModal({
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
     }
-  }, [isOpen, isCallActive, onCallStart, incomingCallId]);
+  }, [isOpen, isCallActive, onCallStart]); // Removed incomingCallId to prevent multiple calls
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

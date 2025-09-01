@@ -304,20 +304,24 @@ export default function MessengerPage() {
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
               console.log('📞 Incoming call received:', call);
+              console.log('👥 All users available:', allUsers.length);
+              console.log('🔍 Looking for caller user ID:', call.fromUserId);
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
+              console.log('👤 Found caller user:', callerUser);
               
-              if (callerUser) {
-                // Store incoming call data with call ID
-                setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
-                
-                // Open the appropriate modal
-                if (call.type === 'voice') {
-                  setIsVoiceCallOpen(true);
-                } else if (call.type === 'video') {
-                  setIsVideoCallOpen(true);
-                }
+              // Always show the call modal, even if user is not found in the list
+              // The modal can handle missing user gracefully
+              setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
+              
+              // Open the appropriate modal
+              if (call.type === 'voice') {
+                console.log('🎙️ Opening voice call modal');
+                setIsVoiceCallOpen(true);
+              } else if (call.type === 'video') {
+                console.log('📹 Opening video call modal');
+                setIsVideoCallOpen(true);
               }
             },
             onCallAccepted: (call) => {
@@ -1008,7 +1012,8 @@ export default function MessengerPage() {
         }}
         user={
           incomingCallData && incomingCallData.type === 'video'
-            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId)
+            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
+              { id: parseInt(incomingCallData.fromUserId), name: `User ${incomingCallData.fromUserId}`, username: `user_${incomingCallData.fromUserId}` }
             : currentConversation?.otherUser
         }
         callType={
@@ -1030,7 +1035,8 @@ export default function MessengerPage() {
         }}
         user={
           incomingCallData && incomingCallData.type === 'voice'
-            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId)
+            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
+              { id: parseInt(incomingCallData.fromUserId), name: `User ${incomingCallData.fromUserId}`, username: `user_${incomingCallData.fromUserId}` }
             : currentConversation?.otherUser
         }
         callType={
