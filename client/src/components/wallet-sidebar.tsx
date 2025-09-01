@@ -415,8 +415,8 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       />
       
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500">
-        <div className="flex flex-col h-full">
+      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500 overflow-hidden">
+        <div className="flex flex-col h-full overflow-y-auto">
           {/* Header */}
           <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
             <div className="flex items-center justify-between">
@@ -534,7 +534,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           </div>
 
           {/* Assets */}
-          <div className="flex-1 overflow-y-auto px-6 pb-4">
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assets</h3>
