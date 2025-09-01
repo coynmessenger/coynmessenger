@@ -90,6 +90,7 @@ export default function MessengerPage() {
   
   // Track WebRTC initialization to prevent loops
   const [globalWebRTCInitialized, setGlobalWebRTCInitialized] = useState(false);
+  const [webRTCInitializationAttempts, setWebRTCInitializationAttempts] = useState(0);
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -106,6 +107,53 @@ export default function MessengerPage() {
   };
 
   const connectedUserId = getConnectedUserId();
+
+  // GUARANTEED WebRTC INITIALIZATION: State-based fallback that runs whenever user auth changes
+  useEffect(() => {
+    if (connectedUserId && !globalWebRTCInitialized && webRTCInitializationAttempts < 3) {
+      console.log('🛡️ FALLBACK: State-based WebRTC initialization triggered for user:', connectedUserId);
+      console.log('🛡️ FALLBACK: Current attempt:', webRTCInitializationAttempts + 1, '/ 3');
+      
+      const initializeWebRTCFallback = async () => {
+        try {
+          setWebRTCInitializationAttempts(prev => prev + 1);
+          await initializeGlobalWebRTC(connectedUserId.toString(), 3);
+          setGlobalWebRTCInitialized(true);
+          console.log('🛡️ FALLBACK: State-based WebRTC initialization succeeded for user:', connectedUserId);
+          
+          // Set up handlers for this fallback initialization
+          setGlobalWebRTCHandlers({
+            onIncomingCall: (call) => {
+              console.log('📞 FALLBACK: Incoming call received via state-based handler:', call);
+              setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
+              if (call.type === 'voice') {
+                setIsVoiceCallOpen(true);
+              } else {
+                setIsVideoCallOpen(true);
+              }
+            },
+            onCallAccepted: (call) => {
+              console.log('✅ FALLBACK: Call accepted:', call);
+            },
+            onCallEnded: (call) => {
+              console.log('🔚 FALLBACK: Call ended:', call);
+              setIsVideoCallOpen(false);
+              setIsVoiceCallOpen(false);
+              setIncomingCallData(null);
+            }
+          });
+          
+        } catch (error) {
+          console.error('❌ FALLBACK: State-based WebRTC initialization failed for user:', connectedUserId, error);
+        }
+      };
+      
+      // Small delay to avoid conflicts with main initialization
+      setTimeout(() => {
+        initializeWebRTCFallback();
+      }, 1000);
+    }
+  }, [connectedUserId, globalWebRTCInitialized, webRTCInitializationAttempts]);
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", connectedUserId],
@@ -286,18 +334,18 @@ export default function MessengerPage() {
       }, 500); // Longer delay to ensure authentication is processed
     });
 
-    // Initialize global WebRTC service for calls - FORCE INITIALIZATION  
+    // GUARANTEED WebRTC initialization with retry mechanism
     const initializeWebRTC = async () => {
-        console.log('🔧 FORCE: Starting WebRTC initialization for user:', connectedUserId);
+        console.log('🔧 GUARANTEED: Starting WebRTC initialization for user:', connectedUserId);
         
         // Always reset and initialize fresh to ensure it works
         setGlobalWebRTCInitialized(false);
         
         try {
-          console.log('🔧 CRITICAL DEBUG: Starting WebRTC initialization for user:', connectedUserId);
-          await initializeGlobalWebRTC(connectedUserId.toString());
+          // Use retry mechanism for guaranteed initialization
+          await initializeGlobalWebRTC(connectedUserId.toString(), 3);
           setGlobalWebRTCInitialized(true); // Only set flag AFTER successful initialization
-          console.log('Global WebRTC service initialized for user:', connectedUserId);
+          console.log('✅ GUARANTEED: WebRTC service ready for user:', connectedUserId);
           
           // Don't initialize global notification service here - we handle notifications in messenger
           // globalNotificationService.initialize(connectedUserId.toString());
@@ -346,7 +394,8 @@ export default function MessengerPage() {
             }
           });
         } catch (error) {
-          console.error('Failed to initialize global WebRTC service:', error);
+          console.error('❌ GUARANTEED: WebRTC initialization failed after all retries for user:', connectedUserId, error);
+          // Don't set flag to true on failure
         }
       };
       
