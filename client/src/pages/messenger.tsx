@@ -360,13 +360,14 @@ export default function MessengerPage() {
       
       // Show notification for new messages from other users
       if (data.senderId !== connectedUserId && data.senderName) {
-        const isConversationOpen = selectedConversation && selectedConversation.toString() === data.conversationId;
+        // Check if the conversation is currently open by checking if ChatWindow is rendered for this conversation
+        const chatWindow = document.querySelector(`[data-conversation-id="${data.conversationId}"]`);
+        const isConversationOpen = !!chatWindow;
         console.log('🔔 Notification check:', {
           isConversationOpen,
           shouldShowNotification: !isConversationOpen,
           conversationId: data.conversationId,
-          selectedConversation,
-          selectedConversationString: selectedConversation?.toString(),
+          isConversationOpenByDom: !!chatWindow,
           dataConversationId: data.conversationId
         });
         
@@ -551,12 +552,14 @@ export default function MessengerPage() {
         <div className="flex flex-1">
           <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
-              <ChatWindow
-                conversation={currentConversation}
-                onToggleSidebar={() => {}}
-                onBack={() => setSelectedConversation(null)}
-                searchQuery={searchQuery}
-              />
+              <div data-conversation-id={selectedConversation}>
+                <ChatWindow
+                  conversation={currentConversation}
+                  onToggleSidebar={() => {}}
+                  onBack={() => setSelectedConversation(null)}
+                  searchQuery={searchQuery}
+                />
+              </div>
             ) : (
               <div className="flex-1 flex flex-col bg-background">
 
