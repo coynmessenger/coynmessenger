@@ -56,6 +56,9 @@ export default function VoiceCallModal({
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   
+  // Prevent multiple call initiations
+  const callInitiatedRef = useRef(false);
+  
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -175,6 +178,7 @@ export default function VoiceCallModal({
         setIsMuted(false);
         setIsSpeakerOn(false);
         setEncryptedCallId(null);
+        callInitiatedRef.current = false; // Reset call initiation flag
       }
       return;
     }
@@ -256,7 +260,8 @@ export default function VoiceCallModal({
     }
 
     // Initiate encrypted WebRTC call for outgoing calls (only once)
-    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId) {
+    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current) {
+      callInitiatedRef.current = true; // Prevent multiple calls
       setCallStatus("connecting");
       
       const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
