@@ -9,6 +9,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signature-collector";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
+import { globalNotificationService } from "@/lib/global-notification-service";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -73,6 +74,10 @@ export default function HomePage() {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser?.id && parsedUser?.walletAddress) {
             console.log('Authenticated user detected, redirecting to messenger...');
+            
+            // Initialize global notification service for authenticated users on Home page
+            globalNotificationService.initialize(parsedUser.id.toString());
+            
             setLocation("/messenger");
             return;
           }
@@ -103,6 +108,9 @@ export default function HomePage() {
         const parsedUser = JSON.parse(storedUser);
         setConnectedUser(parsedUser);
         setIsConnected(true);
+        
+        // Initialize global notification service for authenticated users staying on Home page
+        globalNotificationService.initialize(parsedUser.id.toString());
       }
     };
 

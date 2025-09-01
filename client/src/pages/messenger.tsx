@@ -21,6 +21,7 @@ import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
 import { initializeGlobalWebRTC, getGlobalWebRTC, setGlobalWebRTCHandlers, cleanupGlobalWebRTC } from "@/lib/global-webrtc";
+import { globalNotificationService } from "@/lib/global-notification-service";
 
 // Enhanced COYN logo preloading with multiple optimization strategies
 const preloadImage = (src: string) => {
@@ -274,6 +275,9 @@ export default function MessengerPage() {
           await initializeGlobalWebRTC(connectedUserId.toString());
           console.log('Global WebRTC service initialized for user:', connectedUserId);
           
+          // Initialize global notification service
+          globalNotificationService.initialize(connectedUserId.toString());
+          
           // Set up global WebRTC handlers for incoming calls IMMEDIATELY after initialization
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
@@ -369,6 +373,54 @@ export default function MessengerPage() {
             });
           }, 3000);
         }
+      }
+    });
+
+    // Listen for instant notifications from server
+    socketConnection.on('instant-notification', (data: {
+      type: 'message' | 'call' | 'transaction';
+      title: string;
+      body: string;
+      conversationId?: string;
+      messageId?: string;
+      fromUserId?: string;
+      fromUserName?: string;
+      timestamp: string;
+    }) => {
+      console.log('📱 Instant notification received:', data);
+      
+      // Show toast notification immediately
+      const newToast = toast({
+        title: data.title,
+        description: data.body,
+        duration: 5000, // Show for 5 seconds
+      });
+      
+      // If this is a message notification, track it for conversation unread indicator
+      if (data.type === 'message' && data.conversationId) {
+        setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
+        
+        // Clean up toast reference when it expires
+        setTimeout(() => {
+          setActiveToasts(prev => {
+            const newMap = new Map(prev);
+            if (data.conversationId) {
+              newMap.delete(data.conversationId);
+            }
+            return newMap;
+          });
+        }, 5000);
+      }
+      
+      // Also trigger browser notification if available
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(data.title, {
+          body: data.body,
+          icon: '/generated-icon.png',
+          tag: `coyn-instant-${data.type}-${data.conversationId || 'general'}`,
+          requireInteraction: false,
+          silent: false
+        });
       }
     });
 
