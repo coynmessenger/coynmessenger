@@ -257,8 +257,9 @@ export default function MessengerPage() {
       // Authenticate with server
       socketConnection.emit('authenticate', { userId: connectedUserId });
       
-      // Wait a moment for authentication to process before joining rooms
+      // Wait longer for authentication to process before joining rooms
       setTimeout(() => {
+        console.log('🏠 FIXED: Attempting to join conversation rooms after auth delay');
         // Join all conversation rooms for this user
         console.log('🏠 Checking conversations to join:', { 
           conversationsCount: conversations?.length || 0, 
@@ -267,7 +268,7 @@ export default function MessengerPage() {
         
         if (conversations && conversations.length > 0) {
           conversations.forEach(conversation => {
-            console.log('🏠 Joining conversation room:', conversation.id);
+            console.log('🏠 FIXED: Joining conversation room:', conversation.id);
             socketConnection.emit('join-conversation', { 
               conversationId: conversation.id.toString() 
             });
@@ -275,7 +276,7 @@ export default function MessengerPage() {
         } else {
           console.log('⚠️ No conversations found to join, will retry when conversations load');
         }
-      }, 100); // Small delay to ensure authentication is processed
+      }, 500); // Longer delay to ensure authentication is processed
     });
 
     // Initialize global WebRTC service for calls (only once)
@@ -331,6 +332,8 @@ export default function MessengerPage() {
     // Listen for new messages
     socketConnection.on('new_message', (data) => {
       console.log('🔔 MESSENGER: New message received via Socket.IO:', data);
+      console.log('🔔 MESSENGER: Current user ID:', connectedUserId);
+      console.log('🔔 MESSENGER: Selected conversation:', selectedConversation);
       console.log('📧 Message details:', {
         senderId: data.senderId,
         senderName: data.senderName,
@@ -463,6 +466,25 @@ export default function MessengerPage() {
       }
     };
   }, [connectedUserId]); // Simplified dependencies to prevent loops
+
+  // Separate effect to join conversation rooms when conversations are loaded
+  useEffect(() => {
+    if (!socket || !conversations || conversations.length === 0) return;
+
+    console.log('🏠 CONVERSATIONS LOADED: Joining rooms for loaded conversations:', {
+      conversationsCount: conversations.length,
+      conversations: conversations.map(c => c.id)
+    });
+
+    // Join all conversation rooms
+    conversations.forEach(conversation => {
+      console.log('🏠 CONVERSATIONS LOADED: Joining room for conversation:', conversation.id);
+      socket.emit('join-conversation', { 
+        conversationId: conversation.id.toString() 
+      });
+    });
+
+  }, [socket, conversations]); // Trigger when socket is connected AND conversations are loaded
 
   return (
     <div className="flex h-screen watercolor-bg bg-background text-foreground relative">
