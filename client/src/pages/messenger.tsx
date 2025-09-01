@@ -108,23 +108,26 @@ export default function MessengerPage() {
 
   const connectedUserId = getConnectedUserId();
 
-  // GUARANTEED WebRTC INITIALIZATION: State-based fallback that runs whenever user auth changes
+  // UNIVERSAL WebRTC INITIALIZATION: Runs immediately when user is authenticated
   useEffect(() => {
-    if (connectedUserId && !globalWebRTCInitialized && webRTCInitializationAttempts < 3) {
-      console.log('🛡️ FALLBACK: State-based WebRTC initialization triggered for user:', connectedUserId);
-      console.log('🛡️ FALLBACK: Current attempt:', webRTCInitializationAttempts + 1, '/ 3');
+    if (connectedUserId) {
+      console.log('🚀 UNIVERSAL: Immediate WebRTC initialization for user:', connectedUserId);
       
-      const initializeWebRTCFallback = async () => {
+      const initializeWebRTCUniversal = async () => {
         try {
-          setWebRTCInitializationAttempts(prev => prev + 1);
+          // Reset state and force fresh initialization
+          setGlobalWebRTCInitialized(false);
+          setWebRTCInitializationAttempts(0);
+          
+          console.log('🚀 UNIVERSAL: Starting guaranteed WebRTC initialization...');
           await initializeGlobalWebRTC(connectedUserId.toString(), 3);
           setGlobalWebRTCInitialized(true);
-          console.log('🛡️ FALLBACK: State-based WebRTC initialization succeeded for user:', connectedUserId);
+          console.log('🚀 UNIVERSAL: WebRTC initialization complete for user:', connectedUserId);
           
-          // Set up handlers for this fallback initialization
+          // Set up universal call handlers
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
-              console.log('📞 FALLBACK: Incoming call received via state-based handler:', call);
+              console.log('📞 UNIVERSAL: Incoming call received:', call);
               setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               if (call.type === 'voice') {
                 setIsVoiceCallOpen(true);
@@ -133,10 +136,10 @@ export default function MessengerPage() {
               }
             },
             onCallAccepted: (call) => {
-              console.log('✅ FALLBACK: Call accepted:', call);
+              console.log('✅ UNIVERSAL: Call accepted:', call);
             },
             onCallEnded: (call) => {
-              console.log('🔚 FALLBACK: Call ended:', call);
+              console.log('🔚 UNIVERSAL: Call ended:', call);
               setIsVideoCallOpen(false);
               setIsVoiceCallOpen(false);
               setIncomingCallData(null);
@@ -144,16 +147,20 @@ export default function MessengerPage() {
           });
           
         } catch (error) {
-          console.error('❌ FALLBACK: State-based WebRTC initialization failed for user:', connectedUserId, error);
+          console.error('❌ UNIVERSAL: WebRTC initialization failed for user:', connectedUserId, error);
+          // Retry once more if it failed
+          if (webRTCInitializationAttempts < 1) {
+            console.log('🔄 UNIVERSAL: Retrying WebRTC initialization...');
+            setWebRTCInitializationAttempts(1);
+            setTimeout(() => initializeWebRTCUniversal(), 2000);
+          }
         }
       };
       
-      // Small delay to avoid conflicts with main initialization
-      setTimeout(() => {
-        initializeWebRTCFallback();
-      }, 1000);
+      // Initialize immediately, no delays
+      initializeWebRTCUniversal();
     }
-  }, [connectedUserId, globalWebRTCInitialized, webRTCInitializationAttempts]);
+  }, [connectedUserId]); // Only depend on connectedUserId to trigger once per user
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", connectedUserId],
@@ -399,10 +406,15 @@ export default function MessengerPage() {
         }
       };
       
-      // Force WebRTC initialization for every user
-      initializeWebRTC().catch((error) => {
-        console.error('❌ CRITICAL: WebRTC initialization failed for user:', connectedUserId, error);
-      });
+      // Secondary WebRTC initialization (backup)
+      setTimeout(() => {
+        if (!globalWebRTCInitialized) {
+          console.log('🔄 BACKUP: Running secondary WebRTC initialization...');
+          initializeWebRTC().catch((error) => {
+            console.error('❌ BACKUP: Secondary WebRTC initialization failed for user:', connectedUserId, error);
+          });
+        }
+      }, 3000);
 
     // Listen for new messages
     socketConnection.on('new_message', (data) => {

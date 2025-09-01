@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
+import { useEffect } from "react";
 import HomePage from "@/pages/home";
 import MessengerPage from "@/pages/messenger";
 import MarketplacePage from "@/pages/marketplace";
@@ -29,6 +31,43 @@ function Router() {
 }
 
 function App() {
+  // GLOBAL WebRTC INITIALIZATION: Initialize WebRTC for any authenticated user
+  useEffect(() => {
+    const initGlobalWebRTC = () => {
+      try {
+        const storedUser = localStorage.getItem('connectedUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          const userId = parsedUser.id;
+          
+          if (userId) {
+            console.log('🌍 GLOBAL: Initializing WebRTC globally for user:', userId);
+            initializeGlobalWebRTC(userId.toString(), 3).then(() => {
+              console.log('🌍 GLOBAL: WebRTC globally initialized for user:', userId);
+            }).catch((error) => {
+              console.error('🌍 GLOBAL: Global WebRTC initialization failed:', error);
+            });
+          }
+        }
+      } catch (error) {
+        console.error('🌍 GLOBAL: Error checking for authenticated user:', error);
+      }
+    };
+    
+    // Initialize on app load
+    initGlobalWebRTC();
+    
+    // Also listen for localStorage changes (when user logs in/out)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'connectedUser') {
+        setTimeout(initGlobalWebRTC, 500); // Small delay to ensure storage is updated
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="coyn-theme">
