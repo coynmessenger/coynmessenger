@@ -287,8 +287,8 @@ export default function MessengerPage() {
           await initializeGlobalWebRTC(connectedUserId.toString());
           console.log('Global WebRTC service initialized for user:', connectedUserId);
           
-          // Initialize global notification service
-          globalNotificationService.initialize(connectedUserId.toString());
+          // Don't initialize global notification service here - we handle notifications in messenger
+          // globalNotificationService.initialize(connectedUserId.toString());
           
           // Set up global WebRTC handlers for incoming calls IMMEDIATELY after initialization
           setGlobalWebRTCHandlers({
@@ -330,7 +330,7 @@ export default function MessengerPage() {
 
     // Listen for new messages
     socketConnection.on('new_message', (data) => {
-      console.log('🔔 New message received via Socket.IO:', data);
+      console.log('🔔 MESSENGER: New message received via Socket.IO:', data);
       console.log('📧 Message details:', {
         senderId: data.senderId,
         senderName: data.senderName,
@@ -398,7 +398,7 @@ export default function MessengerPage() {
       fromUserName?: string;
       timestamp: string;
     }) => {
-      console.log('📱 Instant notification received:', data);
+      console.log('📱 MESSENGER: Instant notification received:', data);
       
       // Show toast notification immediately
       const newToast = toast({
