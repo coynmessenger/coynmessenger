@@ -152,14 +152,18 @@ export default function MessengerPage() {
   const clearNotificationsForConversation = (conversationId: string) => {
     // Dismiss active toast notification immediately using toast ID
     const existingToastId = activeToasts.get(conversationId);
-    if (existingToastId) {
+    if (existingToastId && existingToastId !== 'unread') {
       dismiss(existingToastId);
-      setActiveToasts(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(conversationId);
-        return newMap;
-      });
     }
+    
+    // Clear the unread indicator (highlighting) when conversation is opened
+    setActiveToasts(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(conversationId);
+      return newMap;
+    });
+    
+    console.log('🧹 Cleared notifications and highlighting for conversation:', conversationId);
     
     // Notify server to clear notifications
     if (socket) {
@@ -371,34 +375,27 @@ export default function MessengerPage() {
           dataConversationId: data.conversationId
         });
         
+        // Always mark conversation as having unread messages (for visual highlighting)
+        setActiveToasts(prev => new Map(prev.set(data.conversationId, 'unread')));
+        
         // Only show toast notification if conversation is NOT currently open
         if (!isConversationOpen) {
           // Dismiss any existing toast for this conversation
           const existingToastId = activeToasts.get(data.conversationId);
-          if (existingToastId) {
+          if (existingToastId && existingToastId !== 'unread') {
             dismiss(existingToastId);
           }
           
-          // Create new toast and track its ID for visual indicator
+          // Create new toast notification
           const newToast = toast({
             title: `New message from ${data.senderName}`,
             description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
             duration: 4000,
           });
           
-          // Store toast ID for unread indicator
-          setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
-          
-          // Clean up toast reference when it expires
-          setTimeout(() => {
-            setActiveToasts(prev => {
-              const newMap = new Map(prev);
-              newMap.delete(data.conversationId);
-              return newMap;
-            });
-          }, 4000);
+          console.log('📱 Toast notification shown for conversation:', data.conversationId);
         } else {
-          console.log('🔇 No notification shown - conversation is currently open');
+          console.log('🔇 No toast notification shown - conversation is currently open, but conversation remains highlighted');
         }
       }
     });
@@ -573,7 +570,7 @@ export default function MessengerPage() {
                     <div>
                       <div className="divide-y divide-border">
                         {filteredConversations.map((conversation) => {
-                          // Check if this conversation has unread messages (show notification only if there's an active toast)
+                          // Check if this conversation has unread messages (highlighted until opened)
                           const hasUnreadMessages = activeToasts.has(conversation.id.toString());
                           
                           return (
