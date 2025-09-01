@@ -328,8 +328,9 @@ export default function MessengerPage() {
               
               // Open the appropriate modal
               if (call.type === 'voice') {
-                console.log('🎙️ CRITICAL: Voice calls now handled by chat window modal');
-                // Voice calls are handled by the chat window, not global modal
+                console.log('🎙️ CRITICAL: Opening voice call modal for incoming call');
+                setIsVoiceCallOpen(true); // This was missing! Voice calls need modal too
+                console.log('🎙️ CRITICAL: Voice call modal should now be open');
               } else if (call.type === 'video') {
                 console.log('📹 CRITICAL: Opening video call modal');
                 setIsVideoCallOpen(true);
@@ -347,6 +348,7 @@ export default function MessengerPage() {
             onCallEnded: (call) => {
               console.log('Global WebRTC call ended:', call);
               setIsVideoCallOpen(false);
+              setIsVoiceCallOpen(false); // Also close voice call modal
               setIncomingCallData(null);
             }
           });
