@@ -66,6 +66,11 @@ export default function MessengerPage() {
     localStorage.removeItem('userClickedHome');
   }, []);
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  
+  // Debug: Track selectedConversation changes
+  useEffect(() => {
+    console.log('🎯 SELECTED CONVERSATION CHANGED:', selectedConversation);
+  }, [selectedConversation]);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
@@ -359,7 +364,10 @@ export default function MessengerPage() {
         console.log('🔔 Notification check:', {
           isConversationOpen,
           shouldShowNotification: !isConversationOpen,
-          conversationId: data.conversationId
+          conversationId: data.conversationId,
+          selectedConversation,
+          selectedConversationString: selectedConversation?.toString(),
+          dataConversationId: data.conversationId
         });
         
         // Only show toast notification if conversation is NOT currently open
