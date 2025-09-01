@@ -389,7 +389,7 @@ export default function MessengerPage() {
           const newToast = toast({
             title: `New message from ${data.senderName}`,
             description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
-            duration: 3000,
+            duration: 4500,
             onClick: () => {
               console.log('🖱️ Toast notification clicked - opening conversation:', data.conversationId);
               // Dismiss this toast with fade animation
@@ -424,7 +424,7 @@ export default function MessengerPage() {
       const newToast = toast({
         title: data.title,
         description: data.body,
-        duration: 3000, // Show for 3 seconds
+        duration: 4500, // Show for 4.5 seconds
         onClick: data.conversationId ? () => {
           console.log('🖱️ Instant notification clicked - opening conversation:', data.conversationId);
           // Dismiss this toast with fade animation
