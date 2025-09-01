@@ -418,12 +418,19 @@ export class EncryptedWebRTCService {
 
   // Accept an incoming call
   async acceptCall(callId: string): Promise<void> {
+    console.log('🎯 ACCEPT CALL: Starting acceptance for callId:', callId);
+    console.log('🗂️ ACCEPT CALL: Active calls map size:', this.activeCalls.size);
+    console.log('🗂️ ACCEPT CALL: Active call IDs:', Array.from(this.activeCalls.keys()));
+    
     if (!this.socket || !this.isInitialized) {
       throw new Error('Service not initialized');
     }
 
     const call = this.activeCalls.get(callId);
+    console.log('📞 ACCEPT CALL: Found call object:', !!call);
     if (!call) {
+      console.error('❌ ACCEPT CALL: Call not found in active calls');
+      console.error('Available calls:', Array.from(this.activeCalls.keys()));
       throw new Error('Call not found');
     }
 

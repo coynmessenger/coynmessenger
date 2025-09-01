@@ -326,6 +326,10 @@ export default function VoiceCallModal({
   };
 
   const handleAcceptCall = async () => {
+    console.log('🎯 ACCEPT BUTTON CLICKED');
+    console.log('🆔 Encrypted Call ID:', encryptedCallId);
+    console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
+    
     if (encryptedCallId && webrtcService.current) {
       try {
         // Stop ringtone when call is accepted
@@ -339,7 +343,9 @@ export default function VoiceCallModal({
           delete (window as any).tempIncomingCallStream;
         }
         
+        console.log('📞 ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
+        console.log('✅ ACCEPT: Call accepted successfully');
         setCallStatus("connected");
         if (onCallStart) onCallStart();
       } catch (error: any) {
