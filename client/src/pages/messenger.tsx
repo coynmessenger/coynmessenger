@@ -385,11 +385,20 @@ export default function MessengerPage() {
             dismiss(existingToastId);
           }
           
-          // Create new toast notification
+          // Create new toast notification with click handler
           const newToast = toast({
             title: `New message from ${data.senderName}`,
             description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
             duration: 4000,
+            action: {
+              label: "View",
+              onClick: () => {
+                console.log('🖱️ Toast notification clicked - opening conversation:', data.conversationId);
+                setSelectedConversation(parseInt(data.conversationId));
+                // Clear notifications for this conversation since user is now viewing it
+                clearNotificationsForConversation(data.conversationId);
+              }
+            }
           });
           
           console.log('📱 Toast notification shown and conversation marked as unread:', data.conversationId);
@@ -412,11 +421,20 @@ export default function MessengerPage() {
     }) => {
       console.log('📱 MESSENGER: Instant notification received:', data);
       
-      // Show toast notification immediately
+      // Show toast notification immediately with click handler
       const newToast = toast({
         title: data.title,
         description: data.body,
         duration: 5000, // Show for 5 seconds
+        action: data.conversationId ? {
+          label: "View",
+          onClick: () => {
+            console.log('🖱️ Instant notification clicked - opening conversation:', data.conversationId);
+            setSelectedConversation(parseInt(data.conversationId!));
+            // Clear notifications for this conversation since user is now viewing it
+            clearNotificationsForConversation(data.conversationId!);
+          }
+        } : undefined
       });
       
       // If this is a message notification, track it for conversation unread indicator
