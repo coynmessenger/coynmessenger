@@ -258,12 +258,20 @@ export default function MessengerPage() {
       socketConnection.emit('authenticate', { userId: connectedUserId });
       
       // Join all conversation rooms for this user
+      console.log('🏠 Checking conversations to join:', { 
+        conversationsCount: conversations?.length || 0, 
+        conversations: conversations?.map(c => c.id) || [] 
+      });
+      
       if (conversations && conversations.length > 0) {
         conversations.forEach(conversation => {
+          console.log('🏠 Joining conversation room:', conversation.id);
           socketConnection.emit('join-conversation', { 
             conversationId: conversation.id.toString() 
           });
         });
+      } else {
+        console.log('⚠️ No conversations found to join, will retry when conversations load');
       }
       
       // Initialize global WebRTC service for calls (only once)

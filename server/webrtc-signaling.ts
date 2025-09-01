@@ -77,7 +77,12 @@ export class EncryptedWebRTCSignaling {
       // Join conversation room for real-time messages
       socket.on('join-conversation', (data: { conversationId: string }) => {
         const { conversationId } = data;
+        const userId = this.socketUsers.get(socket.id);
 
+        console.log('🏠 SERVER: User joining conversation room');
+        console.log('- User ID:', userId);
+        console.log('- Socket ID:', socket.id);
+        console.log('- Conversation ID:', conversationId);
         
         socket.join(`conversation-${conversationId}`);
         
@@ -86,6 +91,8 @@ export class EncryptedWebRTCSignaling {
           this.conversationRooms.set(conversationId, new Set());
         }
         this.conversationRooms.get(conversationId)!.add(socket.id);
+        
+        console.log('- Room users count:', this.conversationRooms.get(conversationId)?.size || 0);
       });
 
       // Leave conversation room
@@ -513,6 +520,14 @@ export class EncryptedWebRTCSignaling {
   // Broadcast new message to all users in a conversation
   broadcastNewMessage(conversationId: string, message: any): void {
     const roomName = `conversation-${conversationId}`;
+    const roomUsers = this.conversationRooms.get(conversationId);
+
+    console.log('📡 SERVER: Broadcasting new message');
+    console.log('- Conversation ID:', conversationId);
+    console.log('- Room name:', roomName);
+    console.log('- Room users count:', roomUsers?.size || 0);
+    console.log('- Sender ID:', message.senderId);
+    console.log('- Message content:', message.content);
 
     this.io.to(roomName).emit('new_message', {
       conversationId,
@@ -522,6 +537,8 @@ export class EncryptedWebRTCSignaling {
       messageType: message.messageType,
       timestamp: new Date().toISOString()
     });
+
+    console.log('✅ SERVER: new_message event emitted to room:', roomName);
   }
 
   // Send instant notification to specific user
@@ -535,12 +552,21 @@ export class EncryptedWebRTCSignaling {
     fromUserName?: string;
   }): void {
     const socketId = this.userSockets.get(userId);
+    
+    console.log('🔔 SERVER: Sending instant notification');
+    console.log('- Target User ID:', userId);
+    console.log('- Target Socket ID:', socketId);
+    console.log('- Notification type:', notification.type);
+    console.log('- Notification title:', notification.title);
+    
     if (socketId) {
-
       this.io.to(socketId).emit('instant-notification', {
         ...notification,
         timestamp: new Date().toISOString()
       });
+      console.log('✅ SERVER: instant-notification event emitted to socket:', socketId);
+    } else {
+      console.log('❌ SERVER: No socket found for user:', userId);
     }
   }
 
