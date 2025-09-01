@@ -117,12 +117,20 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
+      console.log('🧪 COMPREHENSIVE TEST: ==================== INCOMING CALL TEST ====================');
+      console.log('🧪 TEST: Function: incoming-call event handler');
+      console.log('🧪 TEST: Client socket ID:', this.socket?.id);
+      console.log('🧪 TEST: Call ID:', data.callId);
+      console.log('🧪 TEST: From user:', data.fromUserId);
+      console.log('🧪 TEST: Call type:', data.type);
+      console.log('🧪 TEST: Encrypted:', data.encrypted);
+      console.log('🧪 TEST: Has encrypted offer:', !!data.encryptedOffer);
+      console.log('🧪 TEST: Has regular offer:', !!data.offer);
+      console.log('🧪 TEST: Timestamp:', new Date().toISOString());
+      
       console.log('📞 DEEP TEST: ===============================');
       console.log('📞 DEEP TEST: INCOMING CALL RECEIVED ON CLIENT');
       console.log('📞 DEEP TEST: ===============================');
-      console.log('📞 DEEP TEST: Client socket ID:', this.socket?.id);
-      console.log('📞 DEEP TEST: Call ID:', data.callId);
-      console.log('📞 DEEP TEST: From user:', data.fromUserId);
       console.log('📞 DEEP TEST: Call type:', data.type);
       console.log('📞 DEEP TEST: Is encrypted:', data.encrypted);
       console.log('📞 DEEP TEST: Has offer:', !!data.offer);
@@ -379,9 +387,26 @@ export class EncryptedWebRTCService {
 
   // Initiate an encrypted call
   async initiateCall(targetUserId: string, type: 'voice' | 'video'): Promise<string> {
+    console.log('🧪 COMPREHENSIVE TEST: ==================== CALL FUNCTION TEST ====================');
+    console.log('🧪 TEST: Function: initiateCall');
+    console.log('🧪 TEST: Target User ID:', targetUserId);
+    console.log('🧪 TEST: Call Type:', type);
+    console.log('🧪 TEST: Socket Status:', this.socket?.connected);
+    console.log('🧪 TEST: Socket ID:', this.socket?.id);
+    console.log('🧪 TEST: Service Initialized:', this.isInitialized);
+    console.log('🧪 TEST: Local User ID:', this.localUserId);
+    console.log('🧪 TEST: Public Key Available:', !!this.publicKey);
+    console.log('🧪 TEST: Active Calls Count:', this.activeCalls.size);
+    console.log('🧪 TEST: Timestamp:', new Date().toISOString());
+    
+    // Test 1: Service Initialization Check
     if (!this.socket || !this.isInitialized) {
-      throw new Error('Service not initialized');
+      const error = 'Service not initialized';
+      console.error('❌ TEST FAILED: Service Initialization -', error);
+      console.error('❌ ERROR DETAILS: Socket:', !!this.socket, 'Initialized:', this.isInitialized);
+      throw new Error(error);
     }
+    console.log('✅ TEST PASSED: Service Initialization Check');
 
     try {
       // Get user media with proper error handling
@@ -392,11 +417,35 @@ export class EncryptedWebRTCService {
 
       let localStream: MediaStream;
       try {
+        console.log('🧪 TEST: Starting Media Access Test...');
+        console.log('🧪 TEST: Constraints:', JSON.stringify(constraints));
         console.log('🎤 Requesting microphone permissions...');
+        
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('✅ Microphone access granted');
+        
+        console.log('✅ TEST PASSED: Media Access Granted');
+        console.log('🧪 TEST: Audio tracks:', localStream.getAudioTracks().length);
+        console.log('🧪 TEST: Video tracks:', localStream.getVideoTracks().length);
+        console.log('🧪 TEST: Stream active:', localStream.active);
+        
+        // Test audio track details
+        localStream.getAudioTracks().forEach((track, index) => {
+          console.log(`🧪 TEST: Audio Track ${index}:`, {
+            enabled: track.enabled,
+            kind: track.kind,
+            label: track.label,
+            readyState: track.readyState
+          });
+        });
+        
       } catch (error: any) {
-        console.error('❌ Microphone permission error:', error);
+        console.error('❌ TEST FAILED: Media Access -', error);
+        console.error('❌ ERROR DETAILS:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          constraint: error.constraint
+        });
         
         // Provide specific error messages
         if (error.name === 'NotAllowedError') {
@@ -410,16 +459,36 @@ export class EncryptedWebRTCService {
         }
       }
       
-      // Create peer connection
+      // Test 2: Peer Connection Creation
+      console.log('🧪 TEST: Creating RTCPeerConnection...');
+      console.log('🧪 TEST: RTC Configuration:', JSON.stringify(this.rtcConfiguration, null, 2));
+      
       const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
       
-      // Add local stream to peer connection
+      console.log('✅ TEST PASSED: RTCPeerConnection Created');
+      console.log('🧪 TEST: Connection State:', peerConnection.connectionState);
+      console.log('🧪 TEST: ICE Connection State:', peerConnection.iceConnectionState);
+      console.log('🧪 TEST: ICE Gathering State:', peerConnection.iceGatheringState);
+      console.log('🧪 TEST: Signaling State:', peerConnection.signalingState);
+      
+      // Test 3: Adding Local Stream
+      console.log('🧪 TEST: Adding local stream tracks to peer connection...');
+      let trackCount = 0;
       localStream.getTracks().forEach(track => {
+        console.log(`🧪 TEST: Adding track ${trackCount++}:`, {
+          kind: track.kind,
+          label: track.label,
+          enabled: track.enabled,
+          readyState: track.readyState
+        });
         peerConnection.addTrack(track, localStream);
       });
+      console.log('✅ TEST PASSED: All tracks added to peer connection');
 
-      // Generate call ID
+      // Test 4: Call ID Generation
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🧪 TEST: Generated Call ID:', callId);
+      console.log('🧪 TEST: Call ID Format Valid:', /^call_\d+_[a-z0-9]+$/.test(callId));
       
       // Store call information
       const call: EncryptedCall = {
@@ -486,27 +555,47 @@ export class EncryptedWebRTCService {
 
   // Accept an incoming call
   async acceptCall(callId: string): Promise<void> {
+    console.log('🧪 COMPREHENSIVE TEST: ==================== ACCEPT CALL TEST ====================');
+    console.log('🧪 TEST: Function: acceptCall');
+    console.log('🧪 TEST: Call ID to accept:', callId);
+    console.log('🧪 TEST: Active calls map size:', this.activeCalls.size);
+    console.log('🧪 TEST: Active call IDs:', Array.from(this.activeCalls.keys()));
+    console.log('🧪 TEST: Socket initialized:', !!this.socket);
+    console.log('🧪 TEST: Socket connected:', this.socket?.connected);
+    console.log('🧪 TEST: Socket ID:', this.socket?.id);
+    console.log('🧪 TEST: Service initialized:', this.isInitialized);
+    console.log('🧪 TEST: Local user ID:', this.localUserId);
+    console.log('🧪 TEST: Timestamp:', new Date().toISOString());
+    
     console.log('📞 DEEP TEST: ===============================');
     console.log('📞 DEEP TEST: ANSWER BUTTON CLICKED - ACCEPTING CALL');
     console.log('📞 DEEP TEST: ===============================');
-    console.log('📞 DEEP TEST: Call ID to accept:', callId);
-    console.log('📞 DEEP TEST: Active calls map size:', this.activeCalls.size);
-    console.log('📞 DEEP TEST: Active call IDs:', Array.from(this.activeCalls.keys()));
-    console.log('📞 DEEP TEST: Socket initialized:', !!this.socket);
-    console.log('📞 DEEP TEST: Service initialized:', this.isInitialized);
     
+    // Test 1: Service Status Check
     if (!this.socket || !this.isInitialized) {
-      console.error('📞 DEEP TEST: ❌ Service not initialized - cannot accept call');
+      console.error('❌ TEST FAILED: Service Initialization');
+      console.error('❌ ERROR DETAILS: Socket:', !!this.socket, 'Connected:', this.socket?.connected, 'Initialized:', this.isInitialized);
       throw new Error('Service not initialized');
     }
+    console.log('✅ TEST PASSED: Service Initialization Check');
 
+    // Test 2: Call Existence Check
     const call = this.activeCalls.get(callId);
-    console.log('📞 ACCEPT CALL: Found call object:', !!call);
+    console.log('🧪 TEST: Call object found:', !!call);
+    console.log('🧪 TEST: Call details:', call ? {
+      callId: call.callId,
+      participants: call.participants,
+      type: call.type,
+      encrypted: call.encrypted,
+      hasRemoteOffer: !!call.remoteOffer
+    } : 'N/A');
+    
     if (!call) {
-      console.error('❌ ACCEPT CALL: Call not found in active calls');
-      console.error('Available calls:', Array.from(this.activeCalls.keys()));
+      console.error('❌ TEST FAILED: Call Lookup');
+      console.error('❌ ERROR DETAILS: Available calls:', Array.from(this.activeCalls.keys()));
       throw new Error('Call not found');
     }
+    console.log('✅ TEST PASSED: Call Lookup Check');
 
     try {
       // Get user media with proper error handling
