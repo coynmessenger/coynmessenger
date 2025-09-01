@@ -641,7 +641,7 @@ export default function MessengerPage() {
                 className="w-8 h-8 cursor-pointer"
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
+                {...({ fetchpriority: "high" } as any)}
                 style={{ 
                   imageRendering: 'auto',
                   transform: 'translateZ(0)',
@@ -764,7 +764,7 @@ export default function MessengerPage() {
                             className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                             loading="eager"
                             decoding="async"
-                            fetchPriority="high"
+                            {...({ fetchpriority: "high" } as any)}
                             style={{ 
                               imageRendering: 'auto',
                               transform: 'translateZ(0)',
@@ -826,7 +826,7 @@ export default function MessengerPage() {
                                   className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
                                   loading="eager"
                                   decoding="async"
-                                  fetchPriority="high"
+                                  {...({ fetchpriority: "high" } as any)}
                                   style={{ 
                                     imageRendering: 'auto',
                                     transform: 'translateZ(0)',
@@ -898,7 +898,7 @@ export default function MessengerPage() {
                   className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
                   loading="eager"
                   decoding="async"
-                  fetchPriority="high"
+                  {...({ fetchpriority: "high" } as any)}
                   style={{ 
                     imageRendering: 'auto',
                     transform: 'translateZ(0)',
@@ -1053,7 +1053,7 @@ export default function MessengerPage() {
                           className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
                           loading="eager"
                           decoding="async"
-                          fetchPriority="high"
+                          {...({ fetchpriority: "high" } as any)}
                           style={{ 
                             imageRendering: 'auto',
                             transform: 'translateZ(0)',
