@@ -494,47 +494,48 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
             </Card>
           </div>
 
-          {/* Wallet Address */}
-          <div className="px-6 pb-4">
-            <Card className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Wallet Address</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-                        if (currentUser?.walletAddress) {
-                          navigator.clipboard.writeText(currentUser.walletAddress);
-                          toast({
-                            title: "Address Copied",
-                            description: "Wallet address copied to clipboard",
-                          });
-                        }
-                      }}
-                      className="h-8 px-3 text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
-                    >
-                      <Copy className="h-4 w-4 mr-1" />
-                      Copy
-                    </Button>
+          {/* Scrollable Content: Wallet Address + Assets */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-4">
+            {/* Wallet Address */}
+            <div>
+              <Card className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Wallet Address</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+                          if (currentUser?.walletAddress) {
+                            navigator.clipboard.writeText(currentUser.walletAddress);
+                            toast({
+                              title: "Address Copied",
+                              description: "Wallet address copied to clipboard",
+                            });
+                          }
+                        }}
+                        className="h-8 px-3 text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                      <code className="text-xs font-mono text-gray-800 dark:text-gray-200 leading-relaxed break-all">
+                        {(() => {
+                          const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+                          return currentUser?.walletAddress || 'No wallet connected';
+                        })()}
+                      </code>
+                    </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                    <code className="text-xs font-mono text-gray-800 dark:text-gray-200 leading-relaxed break-all">
-                      {(() => {
-                        const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-                        return currentUser?.walletAddress || 'No wallet connected';
-                      })()}
-                    </code>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Assets */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4">
+            {/* Assets */}
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assets</h3>
