@@ -392,6 +392,8 @@ export default function MessengerPage() {
             duration: 4000,
             onClick: () => {
               console.log('🖱️ Toast notification clicked - opening conversation:', data.conversationId);
+              // Dismiss this toast with fade animation
+              dismiss(newToast.id);
               setSelectedConversation(parseInt(data.conversationId));
               // Clear notifications for this conversation since user is now viewing it
               clearNotificationsForConversation(data.conversationId);
@@ -425,6 +427,8 @@ export default function MessengerPage() {
         duration: 5000, // Show for 5 seconds
         onClick: data.conversationId ? () => {
           console.log('🖱️ Instant notification clicked - opening conversation:', data.conversationId);
+          // Dismiss this toast with fade animation
+          dismiss(newToast.id);
           setSelectedConversation(parseInt(data.conversationId!));
           // Clear notifications for this conversation since user is now viewing it
           clearNotificationsForConversation(data.conversationId!);
