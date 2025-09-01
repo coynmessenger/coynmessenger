@@ -515,6 +515,18 @@ export default function MessengerPage() {
     <div className="flex h-screen watercolor-bg bg-background text-foreground relative">
       {/* Watercolor Background Overlay */}
       <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark -z-10"></div>
+      
+      {/* Hidden audio element for incoming call ringtone */}
+      <audio 
+        id="incoming-call-ringtone" 
+        preload="none" 
+        loop
+        style={{ display: 'none' }}
+      >
+        {/* Use data URL for a simple ringtone sound */}
+        <source src="data:audio/mpeg;base64," type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
