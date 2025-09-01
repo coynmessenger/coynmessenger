@@ -160,14 +160,22 @@ export class EncryptedWebRTCSignaling {
       }) => {
         const callerId = this.socketUsers.get(socket.id);
         
-        console.log('📞 SERVER: initiate-call received');
-        console.log('- Caller ID:', callerId);
-        console.log('- Target User ID:', data.targetUserId);
-        console.log('- Call type:', data.type);
+        console.log('📞 DEEP TEST: ===============================');
+        console.log('📞 DEEP TEST: SERVER RECEIVED initiate-call EVENT');
+        console.log('📞 DEEP TEST: ===============================');
+        console.log('📞 DEEP TEST: Caller socket ID:', socket.id);
+        console.log('📞 DEEP TEST: Caller user ID:', callerId);
+        console.log('📞 DEEP TEST: Target user ID:', data.targetUserId);
+        console.log('📞 DEEP TEST: Call type:', data.type);
+        console.log('📞 DEEP TEST: Offer provided:', !!data.offer);
+        console.log('📞 DEEP TEST: Current user-socket mappings:');
+        this.userSockets.forEach((socketId, userId) => {
+          console.log(`📞 DEEP TEST:   User ${userId} -> Socket ${socketId}`);
+        });
         
         // Debug: Call initiation
         if (!callerId) {
-          console.error('❌ SERVER: No caller ID found for socket:', socket.id);
+          console.error('📞 DEEP TEST: ❌ AUTHENTICATION ERROR - No caller ID found for socket:', socket.id);
           socket.emit('call-error', { error: 'Caller not authenticated' });
           return;
         }
@@ -175,8 +183,14 @@ export class EncryptedWebRTCSignaling {
         const targetSocketId = this.userSockets.get(data.targetUserId);
         const callerEncryption = this.encryptionServices.get(callerId);
         
-        console.log('- Target socket ID:', targetSocketId);
-        console.log('- Caller encryption available:', !!callerEncryption);
+        console.log('📞 DEEP TEST: Target socket lookup result:', targetSocketId);
+        console.log('📞 DEEP TEST: Caller encryption service available:', !!callerEncryption);
+        
+        if (!targetSocketId) {
+          console.error('📞 DEEP TEST: ❌ TARGET USER NOT FOUND - User', data.targetUserId, 'is not connected');
+          socket.emit('call-error', { error: 'Target user not found or not connected' });
+          return;
+        }
 
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -223,11 +237,16 @@ export class EncryptedWebRTCSignaling {
             }
 
             // Send encrypted call invitation
-            console.log('✅ SERVER: Sending incoming-call event to target user');
-            console.log('- To socket:', targetSocketId);
-            console.log('- Call ID:', callId);
-            console.log('- From user:', callerId);
-            console.log('- Offer data available:', !!data.offer);
+            console.log('📞 DEEP TEST: ===============================');
+            console.log('📞 DEEP TEST: SENDING CALL TO TARGET USER');
+            console.log('📞 DEEP TEST: ===============================');
+            console.log('📞 DEEP TEST: Target socket ID:', targetSocketId);
+            console.log('📞 DEEP TEST: Call ID:', callId);
+            console.log('📞 DEEP TEST: From user:', callerId);
+            console.log('📞 DEEP TEST: Call type:', data.type);
+            console.log('📞 DEEP TEST: Offer data available:', !!data.offer);
+            console.log('📞 DEEP TEST: Encrypted offer available:', !!encryptedOffer);
+            console.log('📞 DEEP TEST: About to emit incoming-call event...');
             
             this.io.to(targetSocketId).emit('incoming-call', {
               callId,

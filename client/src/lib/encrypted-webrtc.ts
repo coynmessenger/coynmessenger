@@ -112,12 +112,18 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('📞 CRITICAL INCOMING CALL: Event received on client socket!');
-      console.log('📞 CRITICAL INCOMING CALL: Socket ID:', this.socket?.id);
-      console.log('📞 CRITICAL INCOMING CALL: From user:', data.fromUserId);
-      console.log('📞 CRITICAL INCOMING CALL: Call type:', data.type);
-      console.log('📞 CRITICAL INCOMING CALL: Call ID:', data.callId);
-      console.log('📞 CRITICAL INCOMING CALL: Full data:', data);
+      console.log('📞 DEEP TEST: ===============================');
+      console.log('📞 DEEP TEST: INCOMING CALL RECEIVED ON CLIENT');
+      console.log('📞 DEEP TEST: ===============================');
+      console.log('📞 DEEP TEST: Client socket ID:', this.socket?.id);
+      console.log('📞 DEEP TEST: Call ID:', data.callId);
+      console.log('📞 DEEP TEST: From user:', data.fromUserId);
+      console.log('📞 DEEP TEST: Call type:', data.type);
+      console.log('📞 DEEP TEST: Is encrypted:', data.encrypted);
+      console.log('📞 DEEP TEST: Has offer:', !!data.offer);
+      console.log('📞 DEEP TEST: Has encrypted offer:', !!data.encryptedOffer);
+      console.log('📞 DEEP TEST: Full data object:', data);
+      console.log('📞 DEEP TEST: About to trigger UI notification...');
       
       try {
         // Store call information
@@ -419,10 +425,17 @@ export class EncryptedWebRTCService {
       await peerConnection.setLocalDescription(offer);
 
       // Send encrypted call invitation
-      console.log(`📤 CLIENT: Sending initiate-call event for ${type} call to ${targetUserId}`);
-      console.log('- Socket connected:', this.socket?.connected);
-      console.log('- Local user ID:', this.localUserId);
-      console.log('- Target user ID:', targetUserId);
+      console.log(`📞 DEEP TEST: ===================`);
+      console.log(`📞 DEEP TEST: CALL INITIATION PHASE`);
+      console.log(`📞 DEEP TEST: ===================`);
+      console.log(`📞 DEEP TEST: Call ID: ${callId}`);
+      console.log(`📞 DEEP TEST: From user: ${this.localUserId}`);
+      console.log(`📞 DEEP TEST: To user: ${targetUserId}`);
+      console.log(`📞 DEEP TEST: Call type: ${type}`);
+      console.log(`📞 DEEP TEST: Socket connected: ${this.socket?.connected}`);
+      console.log(`📞 DEEP TEST: Socket ID: ${this.socket?.id}`);
+      console.log(`📞 DEEP TEST: Offer created: ${!!offer}`);
+      console.log(`📞 DEEP TEST: About to emit 'initiate-call' event...`);
       
       this.socket.emit('initiate-call', {
         targetUserId,
@@ -430,20 +443,21 @@ export class EncryptedWebRTCService {
         offer,
       });
 
-      console.log(`✅ CLIENT: Initiated encrypted ${type} call to ${targetUserId} with callId: ${callId}`);
+      console.log(`📞 DEEP TEST: ✅ 'initiate-call' event emitted to server`);
+      console.log(`📞 DEEP TEST: Now waiting for server responses...`);
       
       // Listen for call initiated confirmation
       this.socket.once('call-initiated', (data: { callId: string, targetUserId: string }) => {
-        console.log('✅ CLIENT: Call initiated confirmation received:', data);
+        console.log('📞 DEEP TEST: ✅ SERVER CONFIRMED call initiated:', data);
       });
       
       this.socket.once('call-error', (data: { error: string }) => {
-        console.error('❌ CLIENT: Call error received:', data.error);
+        console.error('📞 DEEP TEST: ❌ SERVER ERROR:', data.error);
       });
       
       // Listen for call accepted confirmation
       this.socket.once('call-accepted-confirmation', (data: { callId: string, fromUserId: string }) => {
-        console.log('✅ CLIENT: Call accepted confirmation received:', data);
+        console.log('📞 DEEP TEST: ✅ SERVER CONFIRMED call accepted by:', data.fromUserId);
       });
       
       return callId;
@@ -456,11 +470,17 @@ export class EncryptedWebRTCService {
 
   // Accept an incoming call
   async acceptCall(callId: string): Promise<void> {
-    console.log('🎯 ACCEPT CALL: Starting acceptance for callId:', callId);
-    console.log('🗂️ ACCEPT CALL: Active calls map size:', this.activeCalls.size);
-    console.log('🗂️ ACCEPT CALL: Active call IDs:', Array.from(this.activeCalls.keys()));
+    console.log('📞 DEEP TEST: ===============================');
+    console.log('📞 DEEP TEST: ANSWER BUTTON CLICKED - ACCEPTING CALL');
+    console.log('📞 DEEP TEST: ===============================');
+    console.log('📞 DEEP TEST: Call ID to accept:', callId);
+    console.log('📞 DEEP TEST: Active calls map size:', this.activeCalls.size);
+    console.log('📞 DEEP TEST: Active call IDs:', Array.from(this.activeCalls.keys()));
+    console.log('📞 DEEP TEST: Socket initialized:', !!this.socket);
+    console.log('📞 DEEP TEST: Service initialized:', this.isInitialized);
     
     if (!this.socket || !this.isInitialized) {
+      console.error('📞 DEEP TEST: ❌ Service not initialized - cannot accept call');
       throw new Error('Service not initialized');
     }
 
@@ -538,18 +558,23 @@ export class EncryptedWebRTCService {
       await peerConnection.setLocalDescription(answer);
 
       // Send encrypted acceptance
-      console.log('📤 CRITICAL: Sending accept-call event to server (matching server listener)');
-      console.log('📤 CRITICAL: Call ID:', callId);
-      console.log('📤 CRITICAL: Answer created:', !!answer);
-      console.log('📤 CRITICAL: Socket ID:', this.socket?.id);
-      console.log('📤 CRITICAL: Socket connected:', this.socket?.connected);
+      console.log('📞 DEEP TEST: ===============================');
+      console.log('📞 DEEP TEST: SENDING CALL ACCEPTANCE TO SERVER');
+      console.log('📞 DEEP TEST: ===============================');
+      console.log('📞 DEEP TEST: Call ID:', callId);
+      console.log('📞 DEEP TEST: Answer created:', !!answer);
+      console.log('📞 DEEP TEST: Answer SDP type:', answer?.type);
+      console.log('📞 DEEP TEST: Socket ID:', this.socket?.id);
+      console.log('📞 DEEP TEST: Socket connected:', this.socket?.connected);
+      console.log('📞 DEEP TEST: About to emit accept-call event...');
       
       this.socket.emit('accept-call', {
         callId,
         answer,
       });
 
-      console.log('✅ CRITICAL: Call acceptance sent to server, waiting for confirmation...');
+      console.log('📞 DEEP TEST: ✅ accept-call event sent to server');
+      console.log('📞 DEEP TEST: Waiting for call-accepted-confirmation...');
       
     } catch (error) {
       console.error('Failed to accept call:', error);
