@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Edit3, Save, X } from "lucide-react";
+import { User, Edit3, Save, X, Upload, Camera } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import type { User as UserType } from "@shared/schema";
 
 interface ProfileModalProps {
@@ -18,8 +19,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('file');
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: user } = useQuery<UserType>({
     queryKey: ["/api/user"],
@@ -34,11 +38,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: { displayName?: string; profilePicture?: string }) => {
-      return apiRequest(`/api/users/${user?.id}`, {
-        method: "PUT",
-        body: JSON.stringify(updates),
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest(`/api/users/${user?.id}`, "PUT", JSON.stringify(updates));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -47,12 +47,47 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     },
   });
 
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('profileImage', file);
+      formData.append('userId', user?.id?.toString() || '');
+      
+      const response = await fetch('/api/user/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setProfilePicture(data.profilePicture);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Profile picture updated!",
+        description: "Your new profile picture has been saved.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload your profile picture. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSave = () => {
     if (!user) return;
     
     updateProfileMutation.mutate({
       displayName: displayName.trim(),
-      profilePicture: profilePicture.trim() || null,
+      profilePicture: profilePicture.trim() || undefined,
     });
   };
 
@@ -62,6 +97,39 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       setProfilePicture(user.profilePicture || "");
     }
     setIsEditing(false);
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a JPEG, PNG, or GIF image.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await uploadImageMutation.mutateAsync(file);
+      event.target.value = ''; // Reset file input
+    }
+  };
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
   };
 
   if (!user) return null;
@@ -99,18 +167,71 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             </Avatar>
             
             {isEditing && (
-              <div className="w-full space-y-2">
-                <Label htmlFor="profilePicture" className="text-slate-300">
-                  Profile Picture URL
-                </Label>
-                <Input
-                  id="profilePicture"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={profilePicture}
-                  onChange={(e) => setProfilePicture(e.target.value)}
-                  className="bg-slate-700 border-slate-600 focus:border-cyan-500"
-                />
+              <div className="w-full space-y-4">
+                {/* Upload Method Toggle */}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={uploadMethod === 'file' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setUploadMethod('file')}
+                    className={uploadMethod === 'file' ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900' : 'border-slate-600 hover:bg-slate-700'}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Upload Photo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={uploadMethod === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setUploadMethod('url')}
+                    className={uploadMethod === 'url' ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900' : 'border-slate-600 hover:bg-slate-700'}
+                  >
+                    URL
+                  </Button>
+                </div>
+
+                {uploadMethod === 'file' ? (
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">
+                      Choose Profile Picture
+                    </Label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={triggerFileSelect}
+                      disabled={uploadImageMutation.isPending}
+                      className="w-full border-slate-600 hover:bg-slate-700 min-h-[44px]"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploadImageMutation.isPending ? 'Uploading...' : 'Select Image from Device'}
+                    </Button>
+                    <p className="text-xs text-slate-400 text-center">
+                      JPEG, PNG, or GIF • Max 5MB
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="profilePicture" className="text-slate-300">
+                      Profile Picture URL
+                    </Label>
+                    <Input
+                      id="profilePicture"
+                      type="url"
+                      placeholder="https://example.com/avatar.jpg"
+                      value={profilePicture}
+                      onChange={(e) => setProfilePicture(e.target.value)}
+                      className="bg-slate-700 border-slate-600 focus:border-cyan-500"
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
