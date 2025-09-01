@@ -12,7 +12,6 @@ import ChatWindow from "@/components/chat-window";
 import WalletModal from "@/components/wallet-modal";
 import WalletSidebar from "@/components/wallet-sidebar";
 import VideoCallModal from "@/components/video-call-modal";
-import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
@@ -75,7 +74,6 @@ export default function MessengerPage() {
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
-  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video'; callId: string } | null>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -310,7 +308,7 @@ export default function MessengerPage() {
               console.log('📞 CRITICAL: Incoming call received in messenger handler:', call);
               console.log('👥 All users available:', allUsers.length);
               console.log('🔍 Looking for caller user ID:', call.fromUserId);
-              console.log('🎯 Current modal states - Voice:', isVoiceCallOpen, 'Video:', isVideoCallOpen);
+              console.log('🎯 Current modal states - Video:', isVideoCallOpen);
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
@@ -323,9 +321,8 @@ export default function MessengerPage() {
               
               // Open the appropriate modal
               if (call.type === 'voice') {
-                console.log('🎙️ CRITICAL: Opening voice call modal');
-                setIsVoiceCallOpen(true);
-                console.log('🎙️ CRITICAL: Voice call modal should now be open');
+                console.log('🎙️ CRITICAL: Voice calls now handled by chat window modal');
+                // Voice calls are handled by the chat window, not global modal
               } else if (call.type === 'video') {
                 console.log('📹 CRITICAL: Opening video call modal');
                 setIsVideoCallOpen(true);
@@ -334,7 +331,7 @@ export default function MessengerPage() {
               
               // Force a re-render to ensure modals show
               setTimeout(() => {
-                console.log('🔄 Post-timeout modal states - Voice:', isVoiceCallOpen, 'Video:', isVideoCallOpen);
+                console.log('🔄 Post-timeout modal states - Video:', isVideoCallOpen);
               }, 100);
             },
             onCallAccepted: (call) => {
@@ -342,7 +339,6 @@ export default function MessengerPage() {
             },
             onCallEnded: (call) => {
               console.log('Global WebRTC call ended:', call);
-              setIsVoiceCallOpen(false);
               setIsVideoCallOpen(false);
               setIncomingCallData(null);
             }
@@ -1044,37 +1040,6 @@ export default function MessengerPage() {
         }
         incomingCallId={
           incomingCallData && incomingCallData.type === 'video'
-            ? incomingCallData.callId
-            : undefined
-        }
-      />
-      {/* Voice Call Modal - Enhanced debugging */}
-      <VoiceCallModal
-        isOpen={isVoiceCallOpen}
-        onClose={() => {
-          console.log('🎙️ Voice call modal closing');
-          setIsVoiceCallOpen(false);
-          setIncomingCallData(null);
-        }}
-        user={
-          incomingCallData && incomingCallData.type === 'voice'
-            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
-              { 
-                id: parseInt(incomingCallData.fromUserId), 
-                displayName: `User ${incomingCallData.fromUserId}`,
-                signInName: `user_${incomingCallData.fromUserId}`,
-                username: `user_${incomingCallData.fromUserId}`,
-                walletAddress: `0x...${incomingCallData.fromUserId}`
-              }
-            : currentConversation?.otherUser
-        }
-        callType={
-          incomingCallData && incomingCallData.type === 'voice'
-            ? 'incoming'
-            : 'outgoing'
-        }
-        incomingCallId={
-          incomingCallData && incomingCallData.type === 'voice'
             ? incomingCallData.callId
             : undefined
         }

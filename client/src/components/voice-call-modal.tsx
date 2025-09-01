@@ -323,7 +323,7 @@ export default function VoiceCallModal({
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
     }
-  }, [isOpen, isCallActive, onCallStart, webrtcService.current, user, callType, encryptedCallId]); // Added dependencies for proper triggering
+  }, [isOpen, isCallActive, onCallStart, callType, user?.id]); // Fixed dependencies to prevent infinite loops
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
