@@ -993,7 +993,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
           </Card>
 
           {/* About */}
-          <Card className="bg-slate-700/50 border-slate-600">
+          <Card className="bg-slate-600/30 border-slate-500">
             <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
               <CardTitle className="text-black dark:text-slate-100 flex items-center">
                 <Info className="h-4 w-4 mr-2" />
