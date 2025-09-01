@@ -286,19 +286,18 @@ export default function MessengerPage() {
       }, 500); // Longer delay to ensure authentication is processed
     });
 
-    // Initialize global WebRTC service for calls (only once)
+    // Initialize global WebRTC service for calls - ALWAYS INITIALIZE
     const initializeWebRTC = async () => {
-        // Check if we have both the flag AND the actual service
-        if (globalWebRTCInitialized) {
-          const existingService = getGlobalWebRTC();
-          if (existingService) {
-            console.log('🔧 CRITICAL DEBUG: WebRTC already initialized and service available, skipping...');
-            return;
-          } else {
-            console.log('🔧 CRITICAL DEBUG: WebRTC flag set but service missing, reinitializing...');
-            setGlobalWebRTCInitialized(false); // Reset flag to allow reinitialization
-          }
+        // Always check if service exists, but don't rely on flag alone
+        const existingService = getGlobalWebRTC();
+        if (existingService && existingService.getSocketId()) {
+          console.log('🔧 RESET: WebRTC service exists and has valid socket, keeping it');
+          return;
         }
+        
+        // Reset everything and initialize fresh
+        console.log('🔧 RESET: Initializing fresh WebRTC service for user:', connectedUserId);
+        setGlobalWebRTCInitialized(false);
         
         try {
           console.log('🔧 CRITICAL DEBUG: Starting WebRTC initialization for user:', connectedUserId);
