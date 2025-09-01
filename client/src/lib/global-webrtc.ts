@@ -17,11 +17,20 @@ export const initializeGlobalWebRTC = async (userId: string): Promise<void> => {
     globalWebRTCService = new EncryptedWebRTCService();
     await globalWebRTCService.initialize(userId);
     console.log('🔧 CRITICAL DEBUG: Global WebRTC service initialized successfully for user:', userId);
-    console.log('🔧 CRITICAL DEBUG: New socket ID:', globalWebRTCService.getSocketId());
-    console.log('🔧 CRITICAL DEBUG: New socket connected:', globalWebRTCService.socket?.connected);
+    
+    // Add safety checks before accessing methods
+    if (globalWebRTCService) {
+      console.log('🔧 CRITICAL DEBUG: New socket ID:', globalWebRTCService.getSocketId());
+      console.log('🔧 CRITICAL DEBUG: New socket connected:', globalWebRTCService.socket?.connected);
+    }
+    
+    console.log('🔧 CRITICAL DEBUG: WebRTC service successfully stored in global variable');
   } catch (error) {
-    console.error('Failed to initialize global WebRTC service:', error);
-    globalWebRTCService = null;
+    console.error('🔧 CRITICAL DEBUG: Failed to initialize global WebRTC service:', error);
+    // Only set to null if we actually failed, not for method access errors
+    if (!globalWebRTCService || !globalWebRTCService.socket?.connected) {
+      globalWebRTCService = null;
+    }
     throw error;
   }
 };

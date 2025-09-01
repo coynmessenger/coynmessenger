@@ -288,15 +288,22 @@ export default function MessengerPage() {
 
     // Initialize global WebRTC service for calls (only once)
     const initializeWebRTC = async () => {
+        // Check if we have both the flag AND the actual service
         if (globalWebRTCInitialized) {
-          console.log('🔧 CRITICAL DEBUG: WebRTC already initialized, skipping...');
-          return;
+          const existingService = getGlobalWebRTC();
+          if (existingService) {
+            console.log('🔧 CRITICAL DEBUG: WebRTC already initialized and service available, skipping...');
+            return;
+          } else {
+            console.log('🔧 CRITICAL DEBUG: WebRTC flag set but service missing, reinitializing...');
+            setGlobalWebRTCInitialized(false); // Reset flag to allow reinitialization
+          }
         }
         
         try {
           console.log('🔧 CRITICAL DEBUG: Starting WebRTC initialization for user:', connectedUserId);
-          setGlobalWebRTCInitialized(true);
           await initializeGlobalWebRTC(connectedUserId.toString());
+          setGlobalWebRTCInitialized(true); // Only set flag AFTER successful initialization
           console.log('Global WebRTC service initialized for user:', connectedUserId);
           
           // Don't initialize global notification service here - we handle notifications in messenger

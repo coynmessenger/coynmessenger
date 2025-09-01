@@ -733,6 +733,11 @@ export class EncryptedWebRTCService {
     return Array.from(this.activeCalls.values());
   }
 
+  // Get socket ID for debugging
+  getSocketId(): string | undefined {
+    return this.socket?.id;
+  }
+
   // Toggle audio mute
   toggleAudio(callId: string): boolean {
     const call = this.activeCalls.get(callId);
