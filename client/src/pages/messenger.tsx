@@ -257,25 +257,29 @@ export default function MessengerPage() {
       // Authenticate with server
       socketConnection.emit('authenticate', { userId: connectedUserId });
       
-      // Join all conversation rooms for this user
-      console.log('🏠 Checking conversations to join:', { 
-        conversationsCount: conversations?.length || 0, 
-        conversations: conversations?.map(c => c.id) || [] 
-      });
-      
-      if (conversations && conversations.length > 0) {
-        conversations.forEach(conversation => {
-          console.log('🏠 Joining conversation room:', conversation.id);
-          socketConnection.emit('join-conversation', { 
-            conversationId: conversation.id.toString() 
-          });
+      // Wait a moment for authentication to process before joining rooms
+      setTimeout(() => {
+        // Join all conversation rooms for this user
+        console.log('🏠 Checking conversations to join:', { 
+          conversationsCount: conversations?.length || 0, 
+          conversations: conversations?.map(c => c.id) || [] 
         });
-      } else {
-        console.log('⚠️ No conversations found to join, will retry when conversations load');
-      }
-      
-      // Initialize global WebRTC service for calls (only once)
-      const initializeWebRTC = async () => {
+        
+        if (conversations && conversations.length > 0) {
+          conversations.forEach(conversation => {
+            console.log('🏠 Joining conversation room:', conversation.id);
+            socketConnection.emit('join-conversation', { 
+              conversationId: conversation.id.toString() 
+            });
+          });
+        } else {
+          console.log('⚠️ No conversations found to join, will retry when conversations load');
+        }
+      }, 100); // Small delay to ensure authentication is processed
+    });
+
+    // Initialize global WebRTC service for calls (only once)
+    const initializeWebRTC = async () => {
         if (globalWebRTCInitialized) return;
         
         try {
@@ -323,7 +327,6 @@ export default function MessengerPage() {
       
       // Call the async initialization
       initializeWebRTC();
-    });
 
     // Listen for new messages
     socketConnection.on('new_message', (data) => {
