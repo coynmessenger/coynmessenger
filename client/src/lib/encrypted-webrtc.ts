@@ -58,7 +58,7 @@ export class EncryptedWebRTCService {
   };
 
   constructor() {
-    this.initializeSocket();
+    // Don't auto-initialize socket - wait for explicit initialization
   }
 
   private initializeSocket(): void {
@@ -293,25 +293,20 @@ export class EncryptedWebRTCService {
 
   // Initialize the service with user authentication
   async initialize(userId: string): Promise<void> {
-    if (!this.socket) {
-      this.initializeSocket();
-    }
-
     return new Promise((resolve, reject) => {
+      // Check if already properly initialized for this user
       if (this.isInitialized && this.localUserId === userId && this.socket?.connected) {
-        console.log(`Already initialized for user ${userId} with connected socket ${this.socket?.id}`);
+        console.log(`✅ Already initialized for user ${userId} with connected socket ${this.socket?.id}`);
         resolve();
         return;
       }
       
-      // Clean up existing connection if reinitializing
-      if (this.socket && this.socket.connected) {
-        console.log('🔧 CRITICAL: Cleaning up previous WebRTC socket connection:', this.socket.id);
-        this.socket.disconnect();
-        this.isInitialized = false;
-        // Recreate fresh socket connection
-        this.initializeSocket();
-      }
+      // Clean up any existing connection before creating new one
+      this.cleanup();
+      
+      // Create fresh socket connection
+      console.log('🔧 CRITICAL: Creating new WebRTC socket connection for user:', userId);
+      this.initializeSocket();
 
       console.log(`Authenticating user ${userId} with WebRTC signaling server`);
       
@@ -333,6 +328,27 @@ export class EncryptedWebRTCService {
   // Set event handlers
   setEventHandlers(handlers: CallEventHandlers): void {
     this.eventHandlers = { ...this.eventHandlers, ...handlers };
+  }
+
+  // Clean up existing connection
+  private cleanup(): void {
+    if (this.socket) {
+      console.log('🧹 CRITICAL: Cleaning up WebRTC socket connection:', this.socket.id);
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
+      this.socket = null;
+    }
+    this.isInitialized = false;
+    this.localUserId = null;
+    this.publicKey = null;
+    this.activeCalls.clear();
+  }
+
+  // Public cleanup method for logout/state changes
+  public disconnect(): void {
+    console.log('🔌 CRITICAL: Public disconnect called - cleaning up WebRTC');
+    this.cleanup();
   }
 
   // Initiate an encrypted call
@@ -691,21 +707,6 @@ export class EncryptedWebRTCService {
     return false;
   }
 
-  // Cleanup when component unmounts
-  cleanup(): void {
-    // End all active calls
-    this.activeCalls.forEach((call) => {
-      this.endCall(call.callId);
-    });
-
-    // Disconnect socket
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
-
-    this.isInitialized = false;
-  }
 }
 
 // Singleton instance

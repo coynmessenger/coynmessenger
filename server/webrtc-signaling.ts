@@ -489,11 +489,31 @@ export class EncryptedWebRTCSignaling {
           
           callsToEnd.forEach(callId => this.activeCalls.delete(callId));
 
-          // Clean up mappings
-          this.userSockets.delete(userId);
+          // Clean up mappings - CRITICAL: Only remove if this socket is the current one
+          const currentSocketId = this.userSockets.get(userId);
+          if (currentSocketId === socket.id) {
+            console.log('🔌 SERVER: Removing user socket mapping on disconnect');
+            console.log('- User ID:', userId);
+            console.log('- Socket ID:', socket.id);
+            this.userSockets.delete(userId);
+          } else {
+            console.log('🔌 SERVER: Skipping socket removal - not current socket');
+            console.log('- User ID:', userId);
+            console.log('- Disconnected socket:', socket.id);
+            console.log('- Current socket for user:', currentSocketId);
+          }
+          
+          // Always remove from socketUsers mapping
           this.socketUsers.delete(socket.id);
         }
 
+        // Clean up conversation rooms
+        this.conversationRooms.forEach((sockets, conversationId) => {
+          sockets.delete(socket.id);
+          if (sockets.size === 0) {
+            this.conversationRooms.delete(conversationId);
+          }
+        });
         
       });
     });
