@@ -339,40 +339,40 @@ export default function MessengerPage() {
         queryClient.invalidateQueries({ queryKey: ["/api/conversations", parseInt(data.conversationId), "messages"] });
       }
       
-      // Show notification for new messages from other users only if conversation is not currently open
+      // Show notification for new messages from other users
       if (data.senderId !== connectedUserId && data.senderName) {
         const isConversationOpen = selectedConversation && selectedConversation.toString() === data.conversationId;
         console.log('🔔 Notification check:', {
           isConversationOpen,
-          shouldShowNotification: !isConversationOpen
+          shouldShowNotification: !isConversationOpen,
+          conversationId: data.conversationId
         });
         
-        if (!isConversationOpen) {
-          // Dismiss any existing toast for this conversation
-          const existingToastId = activeToasts.get(data.conversationId);
-          if (existingToastId) {
-            dismiss(existingToastId);
-          }
-          
-          // Create new toast and track its ID
-          const newToast = toast({
-            title: `New message from ${data.senderName}`,
-            description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
-            duration: 3000,
-          });
-          
-          // Store toast ID for dismissal
-          setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
-          
-          // Clean up toast reference when it expires
-          setTimeout(() => {
-            setActiveToasts(prev => {
-              const newMap = new Map(prev);
-              newMap.delete(data.conversationId);
-              return newMap;
-            });
-          }, 3000);
+        // Always show visual indicator for unread messages
+        // Dismiss any existing toast for this conversation
+        const existingToastId = activeToasts.get(data.conversationId);
+        if (existingToastId) {
+          dismiss(existingToastId);
         }
+        
+        // Create new toast and track its ID for visual indicator
+        const newToast = toast({
+          title: `New message from ${data.senderName}`,
+          description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
+          duration: isConversationOpen ? 2000 : 4000, // Shorter duration if conversation is open
+        });
+        
+        // Store toast ID for unread indicator (regardless of conversation state)
+        setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
+        
+        // Clean up toast reference when it expires
+        setTimeout(() => {
+          setActiveToasts(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(data.conversationId);
+            return newMap;
+          });
+        }, isConversationOpen ? 2000 : 4000);
       }
     });
 
@@ -398,14 +398,14 @@ export default function MessengerPage() {
       
       // If this is a message notification, track it for conversation unread indicator
       if (data.type === 'message' && data.conversationId) {
-        setActiveToasts(prev => new Map(prev.set(data.conversationId, newToast.id)));
+        setActiveToasts(prev => new Map(prev.set(data.conversationId!, newToast.id)));
         
         // Clean up toast reference when it expires
         setTimeout(() => {
           setActiveToasts(prev => {
             const newMap = new Map(prev);
             if (data.conversationId) {
-              newMap.delete(data.conversationId);
+              newMap.delete(data.conversationId!);
             }
             return newMap;
           });
