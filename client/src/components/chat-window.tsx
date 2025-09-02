@@ -1822,14 +1822,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Badge>
                 <div className="flex items-center space-x-1 min-w-0 flex-1">
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
-                  <input
+                  <div className="relative flex-1 max-w-[120px] md:max-w-[200px] group">
+                    <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
                       const newQuery = e.target.value;
                       onSearchQueryChange?.(newQuery);
                     }}
-                    className="bg-transparent border-none outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-0 flex-1 max-w-[120px] md:max-w-[200px]"
+                    className="bg-transparent outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium w-full cursor-text hover:bg-white/5 dark:hover:bg-gray-700/10 focus:bg-white/10 dark:focus:bg-gray-700/20 rounded px-1 py-0.5 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600 focus:border-blue-300 dark:focus:border-blue-500"
                     placeholder="Search..."
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -1842,7 +1843,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         onSearchQueryChange?.('');
                       }
                     }}
-                  />
+                    onFocus={(e) => {
+                      // Select all text when focused for easy editing
+                      e.target.select();
+                    }}
+                    autoComplete="off"
+                    spellCheck="false"
+                    />
+                    <div className="absolute -inset-0.5 pointer-events-none border border-transparent group-hover:border-blue-200 dark:group-hover:border-blue-600/30 rounded transition-colors opacity-50"></div>
+                  </div>
                 </div>
               </>
             ) : !isSearching ? (
@@ -1853,14 +1862,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Badge>
                 <div className="flex items-center space-x-1 min-w-0 flex-1">
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
-                  <input
+                  <div className="relative flex-1 max-w-[120px] md:max-w-[200px] group">
+                    <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
                       const newQuery = e.target.value;
                       onSearchQueryChange?.(newQuery);
                     }}
-                    className="bg-transparent border-none outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-0 flex-1 max-w-[120px] md:max-w-[200px]"
+                    className="bg-transparent outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium w-full cursor-text hover:bg-white/5 dark:hover:bg-gray-700/10 focus:bg-white/10 dark:focus:bg-gray-700/20 rounded px-1 py-0.5 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600 focus:border-blue-300 dark:focus:border-blue-500"
                     placeholder="Search..."
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -1873,7 +1883,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         onSearchQueryChange?.('');
                       }
                     }}
-                  />
+                    onFocus={(e) => {
+                      // Select all text when focused for easy editing
+                      e.target.select();
+                    }}
+                    autoComplete="off"
+                    spellCheck="false"
+                    />
+                    <div className="absolute -inset-0.5 pointer-events-none border border-transparent group-hover:border-blue-200 dark:group-hover:border-blue-600/30 rounded transition-colors opacity-50"></div>
+                  </div>
                 </div>
               </div>
             ) : null}
