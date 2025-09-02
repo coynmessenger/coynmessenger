@@ -1822,15 +1822,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Badge>
                 <div className="flex items-center space-x-1 min-w-0 flex-1">
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
-                  <div className="relative flex-1 max-w-[120px] md:max-w-[200px] group">
-                    <input
+                  <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
                       const newQuery = e.target.value;
                       onSearchQueryChange?.(newQuery);
                     }}
-                    className="bg-transparent outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium w-full cursor-text hover:bg-white/5 dark:hover:bg-gray-700/10 focus:bg-white/10 dark:focus:bg-gray-700/20 rounded px-1 py-0.5 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600 focus:border-blue-300 dark:focus:border-blue-500"
+                    className="bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/70 dark:hover:bg-gray-600/70 focus:bg-white dark:focus:bg-gray-600 outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-[80px] max-w-[140px] md:max-w-[180px] cursor-text px-2 py-1 transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-400 dark:focus:border-blue-400 rounded"
                     placeholder="Search..."
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -1849,9 +1848,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     }}
                     autoComplete="off"
                     spellCheck="false"
-                    />
-                    <div className="absolute -inset-0.5 pointer-events-none border border-transparent group-hover:border-blue-200 dark:group-hover:border-blue-600/30 rounded transition-colors opacity-50"></div>
-                  </div>
+                    style={{
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield',
+                      fontSize: '14px',
+                      touchAction: 'manipulation'
+                    }}
+                  />
                 </div>
               </>
             ) : !isSearching ? (
@@ -1862,15 +1865,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Badge>
                 <div className="flex items-center space-x-1 min-w-0 flex-1">
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
-                  <div className="relative flex-1 max-w-[120px] md:max-w-[200px] group">
-                    <input
+                  <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
                       const newQuery = e.target.value;
                       onSearchQueryChange?.(newQuery);
                     }}
-                    className="bg-transparent outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium w-full cursor-text hover:bg-white/5 dark:hover:bg-gray-700/10 focus:bg-white/10 dark:focus:bg-gray-700/20 rounded px-1 py-0.5 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600 focus:border-blue-300 dark:focus:border-blue-500"
+                    className="bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/70 dark:hover:bg-gray-600/70 focus:bg-white dark:focus:bg-gray-600 outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-[80px] max-w-[140px] md:max-w-[180px] cursor-text px-2 py-1 transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-400 dark:focus:border-blue-400 rounded"
                     placeholder="Search..."
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -1889,9 +1891,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     }}
                     autoComplete="off"
                     spellCheck="false"
-                    />
-                    <div className="absolute -inset-0.5 pointer-events-none border border-transparent group-hover:border-blue-200 dark:group-hover:border-blue-600/30 rounded transition-colors opacity-50"></div>
-                  </div>
+                    style={{
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield',
+                      fontSize: '14px',
+                      touchAction: 'manipulation'
+                    }}
+                  />
                 </div>
               </div>
             ) : null}
