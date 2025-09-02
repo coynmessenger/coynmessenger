@@ -16,7 +16,8 @@ import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Home, User as UserIcon, Settings, Users } from "lucide-react";
+import { Home, User as UserIcon, Settings, Users, ChevronUp, ChevronDown, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750808237977.png";
@@ -80,6 +81,10 @@ export default function MessengerPage() {
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [searchResultCount, setSearchResultCount] = useState(0);
+  const [isSearching, setIsSearching] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { toast, dismiss } = useToast();
@@ -109,6 +114,19 @@ export default function MessengerPage() {
   };
 
   const connectedUserId = getConnectedUserId();
+
+  // Search navigation functions
+  const goToNextResult = () => {
+    if (searchResults.length === 0) return;
+    const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+    setCurrentSearchIndex(nextIndex);
+  };
+
+  const goToPreviousResult = () => {
+    if (searchResults.length === 0) return;
+    const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+    setCurrentSearchIndex(prevIndex);
+  };
 
   // UNIVERSAL WebRTC INITIALIZATION: Runs immediately when user is authenticated
   useEffect(() => {
@@ -663,6 +681,14 @@ export default function MessengerPage() {
                   onBack={() => setSelectedConversation(null)}
                   searchQuery={searchQuery}
                   onSearchQueryChange={setSearchQuery}
+                  searchResults={searchResults}
+                  onSearchResultsChange={setSearchResults}
+                  currentSearchIndex={currentSearchIndex}
+                  onCurrentSearchIndexChange={setCurrentSearchIndex}
+                  searchResultCount={searchResultCount}
+                  onSearchResultCountChange={setSearchResultCount}
+                  isSearching={isSearching}
+                  onIsSearchingChange={setIsSearching}
                 />
               </div>
             ) : (
@@ -912,42 +938,85 @@ export default function MessengerPage() {
           </div>
         </nav>
 
-        {/* Mobile Search Bar */}
+        {/* Mobile Search Bar with Navigation */}
         {isSearchOpen && (
-          <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 p-4 z-40">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    // Remove any search highlighting safely
-                    try {
-                      const highlights = document.querySelectorAll('mark');
-                      highlights.forEach(mark => {
-                        if (mark && mark.parentNode) {
-                          const parent = mark.parentNode;
-                          const textNode = document.createTextNode(mark.textContent || '');
-                          parent.replaceChild(textNode, mark);
-                        }
-                      });
-                    } catch (error) {
-                    }
-                  }}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 z-40">
+            <div className="flex items-center space-x-3">
+              {/* Search Results Counter */}
+              {searchQuery && searchResultCount > 0 && (
+                <Badge variant="secondary" className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 shadow-sm whitespace-nowrap shrink-0 font-medium">
+                  {isSearching ? (
+                    <div className="flex items-center space-x-1.5">
+                      <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
+                      <span>Searching...</span>
+                    </div>
+                  ) : (
+                    <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount}</span>
+                  )}
+                </Badge>
               )}
+              
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search messages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
+                  autoFocus
+                />
+              </div>
+              
+              {/* Navigation Controls */}
+              {searchQuery && searchResultCount > 0 && (
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
+                    onClick={goToPreviousResult}
+                    title="Previous result"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
+                    onClick={goToNextResult}
+                    title="Next result"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              
+              {/* Close Search Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
+                onClick={() => {
+                  setSearchQuery("");
+                  setIsSearchOpen(false);
+                  // Remove any search highlighting safely
+                  try {
+                    const highlights = document.querySelectorAll('mark');
+                    highlights.forEach(mark => {
+                      if (mark && mark.parentNode) {
+                        const parent = mark.parentNode;
+                        const textNode = document.createTextNode(mark.textContent || '');
+                        parent.replaceChild(textNode, mark);
+                      }
+                    });
+                  } catch (error) {
+                  }
+                }}
+                title="Close search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}
@@ -961,6 +1030,14 @@ export default function MessengerPage() {
               onBack={() => setSelectedConversation(null)}
               searchQuery={searchQuery}
               onSearchQueryChange={setSearchQuery}
+              searchResults={searchResults}
+              onSearchResultsChange={setSearchResults}
+              currentSearchIndex={currentSearchIndex}
+              onCurrentSearchIndexChange={setCurrentSearchIndex}
+              searchResultCount={searchResultCount}
+              onSearchResultCountChange={setSearchResultCount}
+              isSearching={isSearching}
+              onIsSearchingChange={setIsSearching}
             />
           ) : (
             <div className="flex-1 flex flex-col bg-background">

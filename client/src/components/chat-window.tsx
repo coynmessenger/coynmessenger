@@ -56,9 +56,31 @@ interface ChatWindowProps {
   onBack?: () => void;
   searchQuery?: string;
   onSearchQueryChange?: (query: string) => void;
+  searchResults?: any[];
+  onSearchResultsChange?: (results: any[]) => void;
+  currentSearchIndex?: number;
+  onCurrentSearchIndexChange?: (index: number) => void;
+  searchResultCount?: number;
+  onSearchResultCountChange?: (count: number) => void;
+  isSearching?: boolean;
+  onIsSearchingChange?: (searching: boolean) => void;
 }
 
-export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery, onSearchQueryChange }: ChatWindowProps) {
+export default function ChatWindow({ 
+  conversation, 
+  onToggleSidebar, 
+  onBack, 
+  searchQuery, 
+  onSearchQueryChange,
+  searchResults: externalSearchResults,
+  onSearchResultsChange,
+  currentSearchIndex: externalCurrentSearchIndex,
+  onCurrentSearchIndexChange,
+  searchResultCount: externalSearchResultCount,
+  onSearchResultCountChange,
+  isSearching: externalIsSearching,
+  onIsSearchingChange
+}: ChatWindowProps) {
   const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
@@ -131,7 +153,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [searchResultCount, setSearchResultCount] = useState(0);
+  // Use external search result count state when provided, otherwise use local state
+  const [localSearchResultCount, setLocalSearchResultCount] = useState(0);
+  const searchResultCount = externalSearchResultCount ?? localSearchResultCount;
+  const setSearchResultCount = onSearchResultCountChange ?? setLocalSearchResultCount;
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [showFilePickerModal, setShowFilePickerModal] = useState(false);
@@ -146,9 +171,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     name?: string;
     size?: number;
   } | null>(null);
-  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
-  const [searchResults, setSearchResults] = useState<Message[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  // Use external search state when provided, otherwise use local state
+  const [localCurrentSearchIndex, setLocalCurrentSearchIndex] = useState(0);
+  const [localSearchResults, setLocalSearchResults] = useState<Message[]>([]);
+  const [localIsSearching, setLocalIsSearching] = useState(false);
+  
+  const currentSearchIndex = externalCurrentSearchIndex ?? localCurrentSearchIndex;
+  const setCurrentSearchIndex = onCurrentSearchIndexChange ?? setLocalCurrentSearchIndex;
+  const searchResults = (externalSearchResults ?? localSearchResults) as Message[];
+  const setSearchResults = onSearchResultsChange ?? setLocalSearchResults;
+  const isSearching = externalIsSearching ?? localIsSearching;
+  const setIsSearching = onIsSearchingChange ?? setLocalIsSearching;
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     offsetX: number;
@@ -1803,10 +1836,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       </div>
 
-      {/* Search Results Bar - Now positioned between header and messages */}
-      {searchQuery && (
-        <div className="search-results-bar flex items-center justify-between w-full px-3 py-2.5 md:px-4 md:py-3 bg-white/90 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-700 relative z-40 backdrop-blur-sm shrink-0">
-          <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
+      {/* Search Results Bar removed - functionality moved to top search bar */}
+
+      {/* Messages container */}
+      <div className="flex-1 relative">
+        <div
             {searchResultCount > 0 ? (
               <>
                 <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2.5 md:py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 shadow-sm whitespace-nowrap shrink-0 font-medium">
