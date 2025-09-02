@@ -1392,18 +1392,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Enhanced search functionality with fuzzy matching
   const performAdvancedSearch = (query: string, messageList: (Message & { sender: User })[]) => {
-    console.log(`🔍 SEARCH DEBUG: Starting search for "${query}"`);
-    console.log(`🔍 SEARCH DEBUG: Total messages to search:`, messageList.length);
-    
-    if (!query || query.length < 1) {
-      console.log(`🔍 SEARCH DEBUG: Empty query, returning no results`);
-      return [];
-    }
+    if (!query || query.length < 1) return [];
     
     const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
-    console.log(`🔍 SEARCH DEBUG: Search terms:`, searchTerms);
     
-    const results = messageList.filter(msg => {
+    return messageList.filter(msg => {
       // Search in message content
       const content = (msg.content || '').toLowerCase();
       const senderName = getEffectiveDisplayName(msg.sender).toLowerCase();
@@ -1429,40 +1422,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       
       const searchableText = searchParts.join(' ');
       
-      // Debug each message being checked
-      console.log(`🔍 SEARCH DEBUG: Checking message ${msg.id}:`);
-      console.log(`🔍 SEARCH DEBUG: - Content: "${content}"`);
-      console.log(`🔍 SEARCH DEBUG: - Searchable text: "${searchableText}"`);
-      
       // Fuzzy search - match if any search term is found
-      const isMatch = searchTerms.some(term => {
+      return searchTerms.some(term => {
         // Exact match
-        if (searchableText.includes(term)) {
-          console.log(`🔍 SEARCH DEBUG: ✅ MATCH found for "${term}" in message ${msg.id}`);
-          return true;
-        }
+        if (searchableText.includes(term)) return true;
         
         // Partial word matching for better results
-        const partialMatch = searchableText.split(/\s+/).some(word => 
+        return searchableText.split(/\s+/).some(word => 
           word.includes(term) || term.includes(word)
         );
-        
-        if (partialMatch) {
-          console.log(`🔍 SEARCH DEBUG: ✅ PARTIAL MATCH found for "${term}" in message ${msg.id}`);
-        }
-        
-        return partialMatch;
       });
-      
-      if (!isMatch) {
-        console.log(`🔍 SEARCH DEBUG: ❌ No match for message ${msg.id}`);
-      }
-      
-      return isMatch;
     });
-    
-    console.log(`🔍 SEARCH DEBUG: Found ${results.length} matching messages:`, results.map(r => ({ id: r.id, content: r.content })));
-    return results;
   };
 
   // Enhanced text highlighting with multiple search terms
@@ -1508,8 +1478,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const message = searchResults[resultIndex];
     const messageId = message.id;
     
-    console.log(`🔍 SEARCH NAV: Navigating to result ${resultIndex + 1}/${searchResults.length}, messageId: ${messageId}`);
-    
     // Force React to re-render and then navigate
     setTimeout(() => {
       // Clear any existing focus animations first
@@ -1527,27 +1495,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       const messagesContainer = messagesContainerRef.current;
       if (messagesContainer) {
         element = messagesContainer.querySelector(`[data-message-id="${messageId}"]`);
-        console.log(`🔍 SEARCH NAV: Found in container:`, !!element);
       }
       
       // Strategy 2: Global search
       if (!element) {
         element = document.querySelector(`[data-message-id="${messageId}"]`);
-        console.log(`🔍 SEARCH NAV: Found globally:`, !!element);
-      }
-      
-      // Strategy 3: Check if the message ID exists in our current messages
-      if (!element) {
-        const allMessageElements = document.querySelectorAll('[data-message-id]');
-        const availableIds = Array.from(allMessageElements).map(el => el.getAttribute('data-message-id'));
-        console.log(`🔍 SEARCH NAV: Available IDs:`, availableIds);
-        console.log(`🔍 SEARCH NAV: Looking for ID:`, messageId);
-        console.log(`🔍 SEARCH NAV: ID exists in DOM:`, availableIds.includes(String(messageId)));
       }
       
       if (element) {
-        console.log(`🔍 SEARCH NAV: Successfully found element for message ${messageId}`);
-        
         // First, scroll to the message to get it in view
         element.scrollIntoView({ 
           behavior: 'smooth', 
@@ -1555,21 +1510,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           inline: 'nearest'
         });
         
-        // Remove any message-level highlighting - focus only on search terms
-        
         // Wait for scroll to complete, then highlight ONLY the search terms
         setTimeout(() => {
-          console.log(`🔍 SEARCH NAV: Looking for highlighted search terms`);
-          
           // Find and animate only the highlighted search terms (mark elements)
           const highlightElements = element.querySelectorAll('mark.search-result-container');
-          console.log(`🔍 SEARCH NAV: Found ${highlightElements.length} highlighted search terms`);
           
           if (highlightElements.length > 0) {
             // Focus on the first highlighted term and scroll it into perfect view
             const firstHighlight = highlightElements[0];
-            
-            console.log(`🔍 SEARCH NAV: Scrolling specifically to highlighted search term`);
             
             // Scroll specifically to the highlighted search term itself
             setTimeout(() => {
@@ -1583,8 +1531,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             // Animate ONLY the highlighted search terms with enhanced visibility
             highlightElements.forEach((mark, i) => {
               setTimeout(() => {
-                console.log(`🔍 SEARCH NAV: Highlighting search term: "${mark.textContent}"`);
-                
                 // Enhanced highlighting just for the search term
                 mark.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'; // Gold background
                 mark.style.color = 'rgba(0, 0, 0, 0.9)'; // Dark text
@@ -1612,27 +1558,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 3000);
               }, i * 100);
             });
-          } else {
-            console.log(`🔍 SEARCH NAV: No highlighted terms found for search query: "${searchQuery}"`);
           }
         }, 600);
-        
-        // No message-level focus animation needed
-        
-      } else {
-        console.error(`🔍 SEARCH NAV ERROR: Could not find message element for ID: ${messageId}`);
-        
-        // Debug information
-        const searchResultIds = searchResults.map(r => r.id);
-        const allMessageElements = document.querySelectorAll('[data-message-id]');
-        const domMessageIds = Array.from(allMessageElements).map(el => el.getAttribute('data-message-id'));
-        
-        console.log(`🔍 DEBUG INFO:`);
-        console.log(`- Search result IDs:`, searchResultIds);
-        console.log(`- DOM message IDs:`, domMessageIds);
-        console.log(`- Messages in state:`, messages?.length || 0);
-        console.log(`- Current search query:`, searchQuery);
-        console.log(`- Search results count:`, searchResults.length);
       }
     }, 100);
   };
