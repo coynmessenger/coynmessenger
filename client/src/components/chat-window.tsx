@@ -1824,10 +1824,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
                   <input
                     type="text"
-                    value={searchQuery}
+                    value={searchQuery || ''}
                     onChange={(e) => {
+                      console.log('Search input changed:', e.target.value);
                       const newQuery = e.target.value;
-                      onSearchQueryChange?.(newQuery);
+                      if (onSearchQueryChange) {
+                        onSearchQueryChange(newQuery);
+                      }
                     }}
                     className="bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/70 dark:hover:bg-gray-600/70 focus:bg-white dark:focus:bg-gray-600 outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-[80px] max-w-[140px] md:max-w-[180px] cursor-text px-2 py-1 transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-400 dark:focus:border-blue-400 rounded"
                     placeholder="Search..."
@@ -1839,12 +1842,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }
                       } else if (e.key === 'Escape') {
                         e.preventDefault();
-                        onSearchQueryChange?.('');
+                        if (onSearchQueryChange) {
+                          onSearchQueryChange('');
+                        }
                       }
                     }}
                     onFocus={(e) => {
+                      console.log('Search input focused');
                       // Select all text when focused for easy editing
                       e.target.select();
+                    }}
+                    onClick={(e) => {
+                      console.log('Search input clicked');
+                      e.stopPropagation();
                     }}
                     autoComplete="off"
                     spellCheck="false"
@@ -1867,10 +1877,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
                   <input
                     type="text"
-                    value={searchQuery}
+                    value={searchQuery || ''}
                     onChange={(e) => {
+                      console.log('Search input changed:', e.target.value);
                       const newQuery = e.target.value;
-                      onSearchQueryChange?.(newQuery);
+                      if (onSearchQueryChange) {
+                        onSearchQueryChange(newQuery);
+                      }
                     }}
                     className="bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/70 dark:hover:bg-gray-600/70 focus:bg-white dark:focus:bg-gray-600 outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-[80px] max-w-[140px] md:max-w-[180px] cursor-text px-2 py-1 transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-400 dark:focus:border-blue-400 rounded"
                     placeholder="Search..."
@@ -1882,12 +1895,19 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }
                       } else if (e.key === 'Escape') {
                         e.preventDefault();
-                        onSearchQueryChange?.('');
+                        if (onSearchQueryChange) {
+                          onSearchQueryChange('');
+                        }
                       }
                     }}
                     onFocus={(e) => {
+                      console.log('Search input focused');
                       // Select all text when focused for easy editing
                       e.target.select();
+                    }}
+                    onClick={(e) => {
+                      console.log('Search input clicked');
+                      e.stopPropagation();
                     }}
                     autoComplete="off"
                     spellCheck="false"
