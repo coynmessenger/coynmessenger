@@ -25,8 +25,19 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Get connected user ID from localStorage
+  const connectedUserId = localStorage.getItem('connectedUserId');
+  
   const { data: user } = useQuery<UserType>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user", connectedUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?userId=${connectedUserId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.json();
+    },
+    enabled: !!connectedUserId,
   });
 
   useEffect(() => {
@@ -41,8 +52,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       return apiRequest(`/api/users/${user?.id}`, "PUT", JSON.stringify(updates));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
       setIsEditing(false);
     },
   });
@@ -65,8 +76,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     },
     onSuccess: (data) => {
       setProfilePicture(data.profilePicture);
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
       toast({
         title: "Profile picture updated!",
         description: "Your new profile picture has been saved.",
