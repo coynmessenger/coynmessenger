@@ -1822,62 +1822,48 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Badge>
                 <div className="flex items-center space-x-1 min-w-0 flex-1">
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
-                  <input
-                    type="text"
-                    value={searchQuery || ''}
-                    onChange={(e) => {
-                      const newQuery = e.target.value;
-                      if (onSearchQueryChange) {
-                        onSearchQueryChange(newQuery);
-                      }
-                    }}
-                    className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500 outline-none text-sm text-gray-900 dark:text-gray-100 font-medium min-w-[100px] max-w-[160px] md:max-w-[200px] cursor-text px-3 py-1.5 transition-all duration-200 rounded-md relative z-50"
-                    placeholder="Type to search..."
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (searchResults.length > 0) {
-                          goToNextResult();
-                        }
-                      } else if (e.key === 'Escape') {
-                        e.preventDefault();
+                  <div className="relative flex-1 max-w-[200px]">
+                    <input
+                      type="text"
+                      value={searchQuery || ''}
+                      onChange={(e) => {
+                        const newQuery = e.target.value;
                         if (onSearchQueryChange) {
-                          onSearchQueryChange('');
+                          onSearchQueryChange(newQuery);
                         }
-                      }
-                    }}
-                    onFocus={(e) => {
-                      e.stopPropagation();
-                      // Select all text when focused for easy editing
-                      setTimeout(() => e.target.select(), 10);
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      e.target.focus();
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                    }}
-                    autoComplete="off"
-                    spellCheck="false"
-                    autoFocus={false}
-                    tabIndex={0}
-                    style={{
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield',
-                      fontSize: '14px',
-                      touchAction: 'manipulation',
-                      userSelect: 'text',
-                      pointerEvents: 'auto',
-                      zIndex: 1000,
-                      position: 'relative'
-                    }}
-                  />
+                      }}
+                      className="w-full bg-white dark:bg-gray-800 border-2 border-blue-400 dark:border-blue-500 focus:border-blue-600 dark:focus:border-blue-400 outline-none text-sm text-gray-900 dark:text-gray-100 font-medium px-3 py-2 rounded-md shadow-sm"
+                      placeholder="Edit search..."
+                      autoComplete="off"
+                      spellCheck="false"
+                      style={{
+                        WebkitAppearance: 'none',
+                        fontSize: '14px',
+                        minWidth: '120px',
+                        zIndex: 9999,
+                        position: 'relative'
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (searchResults.length > 0) {
+                            goToNextResult();
+                          }
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          if (onSearchQueryChange) {
+                            onSearchQueryChange('');
+                          }
+                        }
+                      }}
+                      onFocus={(e) => {
+                        e.target.select();
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    />
+                  </div>
                 </div>
               </>
             ) : !isSearching ? (
@@ -1888,62 +1874,48 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </Badge>
                 <div className="flex items-center space-x-1 min-w-0 flex-1">
                   <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
-                  <input
-                    type="text"
-                    value={searchQuery || ''}
-                    onChange={(e) => {
-                      const newQuery = e.target.value;
-                      if (onSearchQueryChange) {
-                        onSearchQueryChange(newQuery);
-                      }
-                    }}
-                    className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500 outline-none text-sm text-gray-900 dark:text-gray-100 font-medium min-w-[100px] max-w-[160px] md:max-w-[200px] cursor-text px-3 py-1.5 transition-all duration-200 rounded-md relative z-50"
-                    placeholder="Type to search..."
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (searchResults.length > 0) {
-                          goToNextResult();
-                        }
-                      } else if (e.key === 'Escape') {
-                        e.preventDefault();
+                  <div className="relative flex-1 max-w-[200px]">
+                    <input
+                      type="text"
+                      value={searchQuery || ''}
+                      onChange={(e) => {
+                        const newQuery = e.target.value;
                         if (onSearchQueryChange) {
-                          onSearchQueryChange('');
+                          onSearchQueryChange(newQuery);
                         }
-                      }
-                    }}
-                    onFocus={(e) => {
-                      e.stopPropagation();
-                      // Select all text when focused for easy editing
-                      setTimeout(() => e.target.select(), 10);
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      e.target.focus();
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                    }}
-                    autoComplete="off"
-                    spellCheck="false"
-                    autoFocus={false}
-                    tabIndex={0}
-                    style={{
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield',
-                      fontSize: '14px',
-                      touchAction: 'manipulation',
-                      userSelect: 'text',
-                      pointerEvents: 'auto',
-                      zIndex: 1000,
-                      position: 'relative'
-                    }}
-                  />
+                      }}
+                      className="w-full bg-white dark:bg-gray-800 border-2 border-blue-400 dark:border-blue-500 focus:border-blue-600 dark:focus:border-blue-400 outline-none text-sm text-gray-900 dark:text-gray-100 font-medium px-3 py-2 rounded-md shadow-sm"
+                      placeholder="Edit search..."
+                      autoComplete="off"
+                      spellCheck="false"
+                      style={{
+                        WebkitAppearance: 'none',
+                        fontSize: '14px',
+                        minWidth: '120px',
+                        zIndex: 9999,
+                        position: 'relative'
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (searchResults.length > 0) {
+                            goToNextResult();
+                          }
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          if (onSearchQueryChange) {
+                            onSearchQueryChange('');
+                          }
+                        }
+                      }}
+                      onFocus={(e) => {
+                        e.target.select();
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             ) : null}
