@@ -1688,42 +1688,45 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
         {/* Search Results Bar */}
         {searchQuery && (
-          <div className="search-results-bar flex items-center justify-between w-full px-3 py-2 md:px-3 md:py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 relative z-40">
-            <div className="flex items-center space-x-2 min-w-0 flex-1">
+          <div className="search-results-bar flex items-center justify-between w-full px-2 py-2 md:px-3 md:py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 relative z-40">
+            <div className="flex items-center space-x-1 md:space-x-2 min-w-0 flex-1">
               {searchResultCount > 0 ? (
                 <>
-                  <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2 md:py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 shadow-sm whitespace-nowrap shrink-0">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-1 md:px-2 md:py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 shadow-sm whitespace-nowrap shrink-0">
                     {isSearching ? (
                       <div className="flex items-center space-x-1">
                         <div className="animate-spin w-3 h-3 border border-yellow-500 border-t-transparent rounded-full"></div>
-                        <span>Searching...</span>
+                        <span className="hidden sm:inline">Searching...</span>
+                        <span className="sm:hidden">...</span>
                       </div>
                     ) : (
                       <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount}</span>
                     )}
                   </Badge>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[80px] md:max-w-none">
                     "{searchQuery}"
                   </span>
                 </>
               ) : !isSearching ? (
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                    No results
+                <div className="flex items-center space-x-1 md:space-x-2">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-1 md:px-2 md:py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <span className="hidden sm:inline">No results</span>
+                    <span className="sm:hidden">0</span>
                   </Badge>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                    for "{searchQuery}"
+                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[80px] md:max-w-none">
+                    <span className="hidden sm:inline">for "{searchQuery}"</span>
+                    <span className="sm:hidden">"{searchQuery}"</span>
                   </span>
                 </div>
               ) : null}
             </div>
             
             {!isSearching && searchResults.length > 1 && (
-              <div className="flex items-center space-x-1 shrink-0 ml-2">
+              <div className="flex items-center space-x-1 shrink-0 ml-1 md:ml-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-sm"
+                  className="h-6 w-6 md:h-7 md:w-7 p-0.5 md:p-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-sm"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1731,12 +1734,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }}
                   title="Previous result"
                 >
-                  <ChevronUp className="h-3.5 w-3.5" />
+                  <ChevronUp className="h-3 w-3 md:h-3.5 md:w-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-sm"
+                  className="h-6 w-6 md:h-7 md:w-7 p-0.5 md:p-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-sm"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1744,7 +1747,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }}
                   title="Next result"
                 >
-                  <ChevronDown className="h-3.5 w-3.5" />
+                  <ChevronDown className="h-3 w-3 md:h-3.5 md:w-3.5" />
                 </Button>
               </div>
             )}
