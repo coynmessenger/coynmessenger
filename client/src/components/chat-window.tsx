@@ -1478,94 +1478,129 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const message = searchResults[resultIndex];
     const messageId = message.id;
     
-    // Give time for React to render the highlighted search results
+    console.log(`🔍 SEARCH NAV: Navigating to result ${resultIndex + 1}/${searchResults.length}, messageId: ${messageId}`);
+    
+    // Force React to re-render and then navigate
     setTimeout(() => {
-      // Find the message container specifically
-      const messagesContainer = document.querySelector('.overflow-y-auto');
+      // Clear any existing focus animations first
+      document.querySelectorAll('.search-result-focus').forEach(el => {
+        el.classList.remove('search-result-focus');
+      });
+      document.querySelectorAll('.search-highlight-pulse').forEach(el => {
+        el.classList.remove('search-highlight-pulse');
+      });
+      
+      // Try multiple strategies to find the message element
       let element = null;
       
+      // Strategy 1: Look in the messages container
+      const messagesContainer = messagesContainerRef.current;
       if (messagesContainer) {
-        // Look for the exact element within the messages container
         element = messagesContainer.querySelector(`[data-message-id="${messageId}"]`);
+        console.log(`🔍 SEARCH NAV: Found in container:`, !!element);
       }
       
-      // Fallback to global search if not found in container
+      // Strategy 2: Global search
       if (!element) {
         element = document.querySelector(`[data-message-id="${messageId}"]`);
+        console.log(`🔍 SEARCH NAV: Found globally:`, !!element);
+      }
+      
+      // Strategy 3: Check if the message ID exists in our current messages
+      if (!element) {
+        const allMessageElements = document.querySelectorAll('[data-message-id]');
+        const availableIds = Array.from(allMessageElements).map(el => el.getAttribute('data-message-id'));
+        console.log(`🔍 SEARCH NAV: Available IDs:`, availableIds);
+        console.log(`🔍 SEARCH NAV: Looking for ID:`, messageId);
+        console.log(`🔍 SEARCH NAV: ID exists in DOM:`, availableIds.includes(String(messageId)));
       }
       
       if (element) {
-        // Clear any existing focus animations from other messages
-        document.querySelectorAll('.search-result-focus').forEach(el => {
-          el.classList.remove('search-result-focus');
-        });
-        document.querySelectorAll('.search-highlight-pulse').forEach(el => {
-          el.classList.remove('search-highlight-pulse');
-        });
+        console.log(`🔍 SEARCH NAV: Successfully found element for message ${messageId}`);
         
-        // Scroll to the element with better positioning for mobile
-        element.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
+        // Get the messages container for proper scrolling
+        const container = messagesContainerRef.current;
+        if (container) {
+          // Calculate the position relative to the container
+          const elementRect = element.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const relativeTop = elementRect.top - containerRect.top + container.scrollTop;
+          
+          // Scroll to center the element in the container
+          const centerPosition = relativeTop - (container.clientHeight / 2) + (elementRect.height / 2);
+          
+          console.log(`🔍 SEARCH NAV: Scrolling to position ${centerPosition}`);
+          
+          // Smooth scroll to the calculated position
+          container.scrollTo({
+            top: Math.max(0, centerPosition),
+            behavior: 'smooth'
+          });
+        } else {
+          // Fallback to element.scrollIntoView
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
         
-        // Add focus animation with better visual feedback
+        // Add visual focus to the entire message
         element.classList.add('search-result-focus');
         
-        // Wait for scroll to complete, then enhance highlighting
+        // Wait for scroll to complete, then highlight the search terms
         setTimeout(() => {
-          // Enhanced highlight animation for search terms - look for mark elements after scroll
+          console.log(`🔍 SEARCH NAV: Looking for highlighted terms in message`);
+          
+          // Find and animate highlighted search terms
           const highlightElements = element.querySelectorAll('mark.search-result-container');
+          console.log(`🔍 SEARCH NAV: Found ${highlightElements.length} highlighted elements`);
           
           if (highlightElements.length > 0) {
-            // Animate each highlighted term
             highlightElements.forEach((mark, i) => {
               setTimeout(() => {
                 mark.classList.add('search-highlight-pulse');
-                
-                // Remove the pulse animation after completion
                 setTimeout(() => {
                   mark.classList.remove('search-highlight-pulse');
-                }, 2000);
-              }, i * 150); // Staggered animation
+                }, 2500);
+              }, i * 200);
             });
           } else {
-            // If no mark elements found, try to find and highlight the search terms manually
-            console.log(`🔍 DEBUG: No mark elements found for message ${messageId}, searching for: "${searchQuery}"`);
+            // Force highlight the entire message container as backup
+            console.log(`🔍 SEARCH NAV: No marks found, highlighting message container`);
+            element.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+            element.style.border = '2px solid rgba(37, 99, 235, 0.3)';
+            element.style.borderRadius = '8px';
             
-            // Force a re-render of highlights by triggering a small state change
             setTimeout(() => {
-              const searchTerms = searchQuery?.toLowerCase().split(/\s+/).filter(term => term.length > 0) || [];
-              const textElements = element.querySelectorAll('*');
-              
-              textElements.forEach(textEl => {
-                if (textEl.textContent && searchTerms.some(term => 
-                  textEl.textContent?.toLowerCase().includes(term)
-                )) {
-                  textEl.classList.add('search-highlight-pulse');
-                  setTimeout(() => {
-                    textEl.classList.remove('search-highlight-pulse');
-                  }, 2000);
-                }
-              });
-            }, 100);
+              element.style.backgroundColor = '';
+              element.style.border = '';
+              element.style.borderRadius = '';
+            }, 3000);
           }
-        }, 500); // Wait for scroll animation to complete
+        }, 800);
         
-        // Remove focus animation after 3 seconds
+        // Remove focus animation
         setTimeout(() => {
           element?.classList.remove('search-result-focus');
-        }, 3000);
+        }, 4000);
         
       } else {
-        console.log(`🔍 DEBUG: Message element not found for ID: ${messageId}`);
+        console.error(`🔍 SEARCH NAV ERROR: Could not find message element for ID: ${messageId}`);
         
-        // Debug: log all available message IDs
-        const allMessages = document.querySelectorAll('[data-message-id]');
-        console.log(`🔍 DEBUG: Available message IDs:`, Array.from(allMessages).map(el => el.getAttribute('data-message-id')));
+        // Debug information
+        const searchResultIds = searchResults.map(r => r.id);
+        const allMessageElements = document.querySelectorAll('[data-message-id]');
+        const domMessageIds = Array.from(allMessageElements).map(el => el.getAttribute('data-message-id'));
+        
+        console.log(`🔍 DEBUG INFO:`);
+        console.log(`- Search result IDs:`, searchResultIds);
+        console.log(`- DOM message IDs:`, domMessageIds);
+        console.log(`- Messages in state:`, messages?.length || 0);
+        console.log(`- Current search query:`, searchQuery);
+        console.log(`- Search results count:`, searchResults.length);
       }
-    }, 300); // Increased timeout to ensure React rendering is complete
+    }, 100);
   };
 
   const goToNextResult = () => {
