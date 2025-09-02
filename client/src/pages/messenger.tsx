@@ -78,7 +78,6 @@ export default function MessengerPage() {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video'; callId: string } | null>(null);
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
@@ -874,20 +873,6 @@ export default function MessengerPage() {
               </h1>
             </div>
             <div className="flex items-center space-x-2">
-              <button 
-                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 transition-colors p-2"
-                onClick={() => {
-                  setIsSearchOpen(!isSearchOpen);
-                  // Clear search when closing search bar
-                  if (isSearchOpen) {
-                    setSearchQuery("");
-                  }
-                }}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
               <button
                 onClick={() => setIsWalletSidebarOpen(true)}
                 className="hover:opacity-80 transition-opacity"
@@ -912,45 +897,6 @@ export default function MessengerPage() {
           </div>
         </nav>
 
-        {/* Mobile Search Bar */}
-        {isSearchOpen && (
-          <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 p-4 z-40">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    // Remove any search highlighting safely
-                    try {
-                      const highlights = document.querySelectorAll('mark');
-                      highlights.forEach(mark => {
-                        if (mark && mark.parentNode) {
-                          const parent = mark.parentNode;
-                          const textNode = document.createTextNode(mark.textContent || '');
-                          parent.replaceChild(textNode, mark);
-                        }
-                      });
-                    } catch (error) {
-                    }
-                  }}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Mobile Main Content */}
         <div className="flex-1 flex flex-col bg-background">
