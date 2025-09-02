@@ -55,9 +55,10 @@ interface ChatWindowProps {
   onToggleSidebar: () => void;
   onBack?: () => void;
   searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
 
-export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery }: ChatWindowProps) {
+export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery, onSearchQueryChange }: ChatWindowProps) {
   const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
   const [showCryptoSend, setShowCryptoSend] = useState(false);
@@ -1819,54 +1820,113 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount}</span>
                   )}
                 </Badge>
-                <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate max-w-[100px] md:max-w-none">
-                  "{searchQuery}"
-                </span>
+                <div className="flex items-center space-x-1 min-w-0 flex-1">
+                  <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      const newQuery = e.target.value;
+                      onSearchQueryChange?.(newQuery);
+                    }}
+                    className="bg-transparent border-none outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-0 flex-1 max-w-[120px] md:max-w-[200px]"
+                    placeholder="Search..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (searchResults.length > 0) {
+                          goToNextResult();
+                        }
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        onSearchQueryChange?.('');
+                      }
+                    }}
+                  />
+                </div>
               </>
             ) : !isSearching ? (
-              <div className="flex items-center space-x-2 md:space-x-3">
+              <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
                 <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2.5 md:py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 whitespace-nowrap font-medium">
                   <span className="hidden sm:inline">No results</span>
                   <span className="sm:hidden">0</span>
                 </Badge>
-                <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate max-w-[100px] md:max-w-none">
-                  <span className="hidden sm:inline">for "{searchQuery}"</span>
-                  <span className="sm:hidden">"{searchQuery}"</span>
-                </span>
+                <div className="flex items-center space-x-1 min-w-0 flex-1">
+                  <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      const newQuery = e.target.value;
+                      onSearchQueryChange?.(newQuery);
+                    }}
+                    className="bg-transparent border-none outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-0 flex-1 max-w-[120px] md:max-w-[200px]"
+                    placeholder="Search..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (searchResults.length > 0) {
+                          goToNextResult();
+                        }
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        onSearchQueryChange?.('');
+                      }
+                    }}
+                  />
+                </div>
               </div>
             ) : null}
           </div>
           
-          {!isSearching && searchResults.length > 1 && (
-            <div className="flex items-center space-x-1.5 shrink-0 ml-2 md:ml-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 md:h-8 md:w-8 p-1 md:p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  goToPreviousResult();
-                }}
-                title="Previous result"
-              >
-                <ChevronUp className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 md:h-8 md:w-8 p-1 md:p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  goToNextResult();
-                }}
-                title="Next result"
-              >
-                <ChevronDown className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center space-x-1.5 shrink-0 ml-2 md:ml-3">
+            {!isSearching && searchResults.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 md:h-8 md:w-8 p-1 md:p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPreviousResult();
+                  }}
+                  title="Previous result"
+                >
+                  <ChevronUp className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 md:h-8 md:w-8 p-1 md:p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 rounded-md"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToNextResult();
+                  }}
+                  title="Next result"
+                >
+                  <ChevronDown className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                </Button>
+              </>
+            )}
+            
+            {/* X button to exit search */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 md:h-8 md:w-8 p-1 md:p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 rounded-md"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Clear search to exit search mode
+                onSearchQueryChange?.('');
+              }}
+              title="Exit search"
+            >
+              <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            </Button>
+          </div>
         </div>
       )}
 

@@ -662,6 +662,7 @@ export default function MessengerPage() {
                   onToggleSidebar={() => {}}
                   onBack={() => setSelectedConversation(null)}
                   searchQuery={searchQuery}
+                  onSearchQueryChange={setSearchQuery}
                 />
               </div>
             ) : (
