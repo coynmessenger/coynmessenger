@@ -1392,11 +1392,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Enhanced search functionality with fuzzy matching
   const performAdvancedSearch = (query: string, messageList: (Message & { sender: User })[]) => {
-    if (!query || query.length < 1) return [];
+    console.log(`🔍 SEARCH DEBUG: Starting search for "${query}"`);
+    console.log(`🔍 SEARCH DEBUG: Total messages to search:`, messageList.length);
+    
+    if (!query || query.length < 1) {
+      console.log(`🔍 SEARCH DEBUG: Empty query, returning no results`);
+      return [];
+    }
     
     const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    console.log(`🔍 SEARCH DEBUG: Search terms:`, searchTerms);
     
-    return messageList.filter(msg => {
+    const results = messageList.filter(msg => {
       // Search in message content
       const content = (msg.content || '').toLowerCase();
       const senderName = getEffectiveDisplayName(msg.sender).toLowerCase();
@@ -1422,17 +1429,40 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       
       const searchableText = searchParts.join(' ');
       
+      // Debug each message being checked
+      console.log(`🔍 SEARCH DEBUG: Checking message ${msg.id}:`);
+      console.log(`🔍 SEARCH DEBUG: - Content: "${content}"`);
+      console.log(`🔍 SEARCH DEBUG: - Searchable text: "${searchableText}"`);
+      
       // Fuzzy search - match if any search term is found
-      return searchTerms.some(term => {
+      const isMatch = searchTerms.some(term => {
         // Exact match
-        if (searchableText.includes(term)) return true;
+        if (searchableText.includes(term)) {
+          console.log(`🔍 SEARCH DEBUG: ✅ MATCH found for "${term}" in message ${msg.id}`);
+          return true;
+        }
         
         // Partial word matching for better results
-        return searchableText.split(/\s+/).some(word => 
+        const partialMatch = searchableText.split(/\s+/).some(word => 
           word.includes(term) || term.includes(word)
         );
+        
+        if (partialMatch) {
+          console.log(`🔍 SEARCH DEBUG: ✅ PARTIAL MATCH found for "${term}" in message ${msg.id}`);
+        }
+        
+        return partialMatch;
       });
+      
+      if (!isMatch) {
+        console.log(`🔍 SEARCH DEBUG: ❌ No match for message ${msg.id}`);
+      }
+      
+      return isMatch;
     });
+    
+    console.log(`🔍 SEARCH DEBUG: Found ${results.length} matching messages:`, results.map(r => ({ id: r.id, content: r.content })));
+    return results;
   };
 
   // Enhanced text highlighting with multiple search terms
