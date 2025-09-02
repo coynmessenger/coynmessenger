@@ -145,6 +145,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setIsVideoOff(false);
         setEncryptedCallId(null);
         callInitiatedRef.current = false; // Reset call initiation flag
+        console.log('📹 VIDEO CALL: ✅ Call initiation flag reset on modal close');
       }
       return;
     }
@@ -175,7 +176,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             setCallStatus("ringing");
           })
           .catch((error) => {
-
+            console.error('📹 VIDEO CALL: ❌ Call initiation failed:', error);
+            
+            // CRITICAL FIX: Reset the call initiated ref on error
+            callInitiatedRef.current = false;
+            
             setCallStatus("ended");
             
             // Show user-friendly error messages

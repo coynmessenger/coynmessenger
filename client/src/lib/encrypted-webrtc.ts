@@ -575,6 +575,15 @@ export class EncryptedWebRTCService {
       console.log(`📞 DEEP TEST: Socket ID: ${this.socket?.id}`);
       console.log(`📞 DEEP TEST: Offer created: ${!!offer}`);
       console.log(`📞 DEEP TEST: About to emit 'initiate-call' event...`);
+      console.log(`🚨 CRITICAL DEBUG: Socket status check before emit:`);
+      console.log(`🚨 CRITICAL DEBUG: - Socket exists: ${!!this.socket}`);
+      console.log(`🚨 CRITICAL DEBUG: - Socket connected: ${this.socket?.connected}`);
+      console.log(`🚨 CRITICAL DEBUG: - Socket ID: ${this.socket?.id}`);
+      console.log(`🚨 CRITICAL DEBUG: - Socket transport: ${this.socket?.io?.engine?.transport?.name}`);
+      console.log(`🚨 CRITICAL DEBUG: - Socket rooms: ${Array.from(this.socket?.rooms || [])}`);
+      
+      // Test socket connection with a ping
+      this.socket.emit('ping-test', { timestamp: Date.now() });
       
       this.socket.emit('initiate-call', {
         targetUserId,
@@ -584,6 +593,12 @@ export class EncryptedWebRTCService {
 
       console.log(`📞 DEEP TEST: ✅ 'initiate-call' event emitted to server`);
       console.log(`📞 DEEP TEST: Now waiting for server responses...`);
+      
+      // Add timeout to detect if server never responds
+      setTimeout(() => {
+        console.error('🚨 CRITICAL DEBUG: ❌ TIMEOUT - No response from server after 5 seconds');
+        console.error('🚨 CRITICAL DEBUG: This indicates server is not receiving our initiate-call event');
+      }, 5000);
       
       // Listen for call initiated confirmation
       this.socket.once('call-initiated', (data: { callId: string, targetUserId: string }) => {

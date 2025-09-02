@@ -190,6 +190,7 @@ export default function VoiceCallModal({
         setIsSpeakerOn(false);
         setEncryptedCallId(null);
         callInitiatedRef.current = false; // Reset call initiation flag
+        console.log('📞 DEEP TEST: ✅ Call initiation flag reset on modal close');
       }
       return;
     }
@@ -281,13 +282,24 @@ export default function VoiceCallModal({
     console.log('📞 DEEP TEST: callInitiatedRef.current:', callInitiatedRef.current);
     console.log('📞 DEEP TEST: All conditions met:', callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current);
     
-    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current && isOpen) {
+    if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && isOpen) {
       console.log('📞 DEEP TEST: ✅ STARTING OUTGOING CALL INITIATION...');
-      callInitiatedRef.current = true; // Prevent multiple calls
-      setCallStatus("connecting");
+      console.log('📞 DEEP TEST: Before setting flag - callInitiatedRef.current:', callInitiatedRef.current);
       
-      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-      if (currentUser.id) {
+      // Force reset and set the flag
+      if (callInitiatedRef.current) {
+        console.log('📞 DEEP TEST: ⚠️ Call initiated flag was true, forcing reset...');
+        callInitiatedRef.current = false;
+      }
+      
+      if (!callInitiatedRef.current) {
+        callInitiatedRef.current = true; // Prevent multiple calls
+        console.log('📞 DEEP TEST: ✅ Call initiated flag set to true');
+        
+        setCallStatus("connecting");
+        
+        const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
+        if (currentUser.id) {
         // Wait for WebRTC service to be fully initialized
         webrtcService.current.initialize(currentUser.id.toString())
           .then(() => {
@@ -301,7 +313,11 @@ export default function VoiceCallModal({
             setCallStatus("ringing");
           })
           .catch((error) => {
-
+            console.error('📞 DEEP TEST: ❌ Call initiation failed:', error);
+            
+            // CRITICAL FIX: Reset the call initiated ref on error
+            callInitiatedRef.current = false;
+            
             setCallStatus("ended");
             
             // Show user-friendly error messages
@@ -325,10 +341,12 @@ export default function VoiceCallModal({
             
             if (onCallEnd) onCallEnd();
           });
-      } else {
-
-        setCallStatus("ended");
-        if (onCallEnd) onCallEnd();
+        } else {
+          console.error('📞 DEEP TEST: ❌ No current user found');
+          callInitiatedRef.current = false;
+          setCallStatus("ended");
+          if (onCallEnd) onCallEnd();
+        }
       }
     } else if (callType === "incoming") {
       // For incoming calls, set to ringing immediately

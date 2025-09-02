@@ -129,6 +129,14 @@ export class EncryptedWebRTCSignaling {
         }
       });
 
+      // Test ping handler for debugging
+      socket.on('ping-test', (data: { timestamp: number }) => {
+        console.log('🚨 CRITICAL DEBUG: Received ping-test from socket:', socket.id, 'at', new Date().toISOString());
+        console.log('🚨 CRITICAL DEBUG: Ping data:', data);
+        const userId = this.socketUsers.get(socket.id);
+        console.log('🚨 CRITICAL DEBUG: User ID for this socket:', userId);
+      });
+
       // Exchange encryption keys between users
       socket.on('exchange-keys', async (data: { targetUserId: string, publicKey: string }) => {
         const senderId = this.socketUsers.get(socket.id);
