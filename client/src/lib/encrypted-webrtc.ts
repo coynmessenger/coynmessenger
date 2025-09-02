@@ -131,10 +131,6 @@ export class EncryptedWebRTCService {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}`;
     
-    console.log('🔧 DEEP TEST: WebRTC initializing socket connection to:', socketUrl);
-    console.log('🔧 DEEP TEST: Window location:', window.location.href);
-    console.log('🔧 DEEP TEST: Protocol:', protocol);
-    console.log('🔧 DEEP TEST: Host:', window.location.host);
     
     this.socket = io(socketUrl, {
       transports: ['websocket'],
@@ -142,7 +138,6 @@ export class EncryptedWebRTCService {
       path: '/socket.io/',
     });
     
-    console.log('🔧 DEEP TEST: Socket instance created, setting up listeners...');
 
     this.setupSocketListeners();
   }

@@ -69,7 +69,6 @@ export default function MessengerPage() {
   
   // Debug: Track selectedConversation changes
   useEffect(() => {
-    console.log('🎯 SELECTED CONVERSATION CHANGED:', selectedConversation);
   }, [selectedConversation]);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
@@ -112,7 +111,6 @@ export default function MessengerPage() {
   // UNIVERSAL WebRTC INITIALIZATION: Runs immediately when user is authenticated
   useEffect(() => {
     if (connectedUserId) {
-      console.log('🚀 UNIVERSAL: Immediate WebRTC initialization for user:', connectedUserId);
       
       const initializeWebRTCUniversal = async () => {
         try {
@@ -120,15 +118,12 @@ export default function MessengerPage() {
           setGlobalWebRTCInitialized(false);
           setWebRTCInitializationAttempts(0);
           
-          console.log('🚀 UNIVERSAL: Starting guaranteed WebRTC initialization...');
           await initializeGlobalWebRTC(connectedUserId.toString(), 3);
           setGlobalWebRTCInitialized(true);
-          console.log('🚀 UNIVERSAL: WebRTC initialization complete for user:', connectedUserId);
           
           // Set up universal call handlers
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
-              console.log('📞 UNIVERSAL: Incoming call received:', call);
               setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               if (call.type === 'voice') {
                 setIsVoiceCallOpen(true);
@@ -137,10 +132,8 @@ export default function MessengerPage() {
               }
             },
             onCallAccepted: (call) => {
-              console.log('✅ UNIVERSAL: Call accepted:', call);
             },
             onCallEnded: (call) => {
-              console.log('🔚 UNIVERSAL: Call ended:', call);
               setIsVideoCallOpen(false);
               setIsVoiceCallOpen(false);
               setIncomingCallData(null);
@@ -151,7 +144,6 @@ export default function MessengerPage() {
           console.error('❌ UNIVERSAL: WebRTC initialization failed for user:', connectedUserId, error);
           // Retry once more if it failed
           if (webRTCInitializationAttempts < 1) {
-            console.log('🔄 UNIVERSAL: Retrying WebRTC initialization...');
             setWebRTCInitializationAttempts(1);
             setTimeout(() => initializeWebRTCUniversal(), 2000);
           }
@@ -217,7 +209,6 @@ export default function MessengerPage() {
       return newMap;
     });
     
-    console.log('🧹 Cleared notifications and highlighting for conversation:', conversationId);
     
     // Notify server to clear notifications
     if (socket) {
@@ -315,7 +306,6 @@ export default function MessengerPage() {
 
     // Handle connection event
     socketConnection.on('connect', () => {
-      console.log('Connected to Socket.IO server for conversations');
       
       // Authenticate with server
       socketConnection.emit('authenticate', { userId: connectedUserId });
@@ -688,7 +678,6 @@ export default function MessengerPage() {
                                 // Clear search when switching conversations on mobile
                                 if (window.innerWidth < 768) {
                                   setSearchQuery("");
-                                  setIsSearchOpen(false);
                                 }
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
