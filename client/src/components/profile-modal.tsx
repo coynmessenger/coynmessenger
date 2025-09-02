@@ -60,31 +60,64 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('🔧 Starting image upload for user:', user?.id);
+      console.log('🔧 ConnectedUserId from localStorage:', connectedUserId);
+      
       const formData = new FormData();
       formData.append('profileImage', file);
       
-      const response = await fetch(`/api/user/upload-avatar?userId=${user?.id}`, {
+      const uploadUrl = `/api/user/upload-avatar?userId=${user?.id}`;
+      console.log('🔧 Upload URL:', uploadUrl);
+      
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
       
+      console.log('🔧 Upload response status:', response.status);
+      console.log('🔧 Upload response ok:', response.ok);
+      
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errorText = await response.text();
+        console.error('🔧 Upload failed with error:', errorText);
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('🔧 Upload successful, result:', result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log('🔧 Upload mutation success, invalidating queries...');
       setProfilePicture(data.profilePicture);
+      
+      console.log('🔧 Auth state before invalidation:', {
+        walletConnected: localStorage.getItem('walletConnected'),
+        connectedUser: localStorage.getItem('connectedUser'),
+        connectedUserId: localStorage.getItem('connectedUserId')
+      });
+      
       queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
+      
+      console.log('🔧 Auth state after invalidation:', {
+        walletConnected: localStorage.getItem('walletConnected'),
+        connectedUser: localStorage.getItem('connectedUser'),
+        connectedUserId: localStorage.getItem('connectedUserId')
+      });
+      
       toast({
         title: "Profile picture updated!",
         description: "Your new profile picture has been saved.",
       });
     },
     onError: (error: any) => {
-      console.error("Upload error:", error);
+      console.error("🔧 Upload mutation error:", error);
+      console.log('🔧 Auth state during error:', {
+        walletConnected: localStorage.getItem('walletConnected'),
+        connectedUser: localStorage.getItem('connectedUser'),
+        connectedUserId: localStorage.getItem('connectedUserId')
+      });
       toast({
         title: "Upload failed",
         description: "Failed to upload your profile picture. Please check your connection and try again.",
