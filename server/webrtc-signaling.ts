@@ -188,14 +188,30 @@ export class EncryptedWebRTCSignaling {
           return;
         }
 
-        const targetSocketId = this.userSockets.get(data.targetUserId);
+        // CRITICAL FIX: Find the WebRTC socket for the target user
+        let targetSocketId: string | undefined;
+        
+        // Look through all user-socket mappings to find the target user's WebRTC socket
+        for (const [userId, socketId] of this.userSockets.entries()) {
+          if (userId === data.targetUserId) {
+            const targetSocket = this.io.sockets.sockets.get(socketId);
+            if (targetSocket && targetSocket.connected) {
+              targetSocketId = socketId;
+              console.log('📞 FOUND VALID: Target socket found:', socketId, 'for user:', userId);
+              break; // Use the first valid connected socket
+            } else {
+              console.log('📞 SKIP: Socket', socketId, 'for user', userId, 'is not connected');
+            }
+          }
+        }
+        
         const callerEncryption = this.encryptionServices.get(callerId);
         
         console.log('📞 DEEP TEST: Target socket lookup result:', targetSocketId);
         console.log('📞 DEEP TEST: Caller encryption service available:', !!callerEncryption);
         
         if (!targetSocketId) {
-          console.error('📞 DEEP TEST: ❌ TARGET USER NOT FOUND - User', data.targetUserId, 'is not connected');
+          console.error('📞 DEEP TEST: ❌ TARGET USER NOT FOUND - User', data.targetUserId, 'has no connected WebRTC socket');
           socket.emit('call-error', { error: 'Target user not found or not connected' });
           return;
         }
