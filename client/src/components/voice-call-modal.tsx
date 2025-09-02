@@ -150,7 +150,16 @@ export default function VoiceCallModal({
             if (onCallStart) onCallStart();
           },
           onCallEnded: (call) => {
+            console.log('📞 CALL ENDED: Received call ended event for call:', call.callId);
             setCallStatus("ended");
+            ringtoneService.stopRingtone(); // Stop any ringtone
+            
+            // Automatically close modal after short delay to show ended state
+            setTimeout(() => {
+              console.log('📞 CALL ENDED: Auto-closing modal after call ended');
+              onClose();
+            }, 1500);
+            
             if (onCallEnd) onCallEnd();
           },
           onEncryptionStatusChanged: (encrypted) => {
@@ -309,8 +318,18 @@ export default function VoiceCallModal({
             throw new Error('WebRTC service not available');
           })
           .then((callId) => {
+            console.log('📞 OUTGOING CALL: Call initiated successfully, ID:', callId);
             setEncryptedCallId(callId);
             setCallStatus("ringing");
+            
+            // Add timeout to automatically end call if no response after 30 seconds
+            setTimeout(() => {
+              if (callStatus === "ringing") {
+                console.log('📞 OUTGOING CALL: Call timeout - no response after 30 seconds');
+                setCallStatus("ended");
+                setTimeout(() => onClose(), 1500);
+              }
+            }, 30000);
           })
           .catch((error) => {
             console.error('📞 DEEP TEST: ❌ Call initiation failed:', error);
