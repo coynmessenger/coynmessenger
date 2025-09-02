@@ -240,7 +240,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* Starred Messages Modal */}
       <Dialog open={showStarredMessages} onOpenChange={setShowStarredMessages}>
-        <DialogContent className="w-[95vw] sm:w-[500px] max-h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
+        <DialogContent className="w-[90vw] sm:w-[500px] max-w-[500px] max-h-[80vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl mx-4 sm:mx-0">
           <div className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
             <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
               <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">

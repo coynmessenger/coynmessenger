@@ -1064,3 +1064,28 @@ mark:hover {
     animation: walletSlideInMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   }
 }
+
+/* Mobile dialog improvements */
+@media (max-width: 768px) {
+  [data-radix-portal] {
+    z-index: 9999 !important;
+  }
+  
+  [data-radix-dialog-overlay] {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9998 !important;
+  }
+  
+  [data-radix-dialog-content] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(90vw, 500px) !important;
+    max-width: 90vw !important;
+    max-height: 85vh !important;
+    margin: 0 !important;
+    z-index: 9999 !important;
+  }
+}
