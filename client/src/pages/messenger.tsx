@@ -960,6 +960,7 @@ export default function MessengerPage() {
               onToggleSidebar={() => {}}
               onBack={() => setSelectedConversation(null)}
               searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
             />
           ) : (
             <div className="flex-1 flex flex-col bg-background">
