@@ -272,14 +272,23 @@ export class EncryptedWebRTCSignaling {
             console.log('📞 DEEP TEST: Encrypted offer available:', !!encryptedOffer);
             console.log('📞 DEEP TEST: About to emit incoming-call event...');
             
-            this.io.to(targetSocketId).emit('incoming-call', {
-              callId,
-              fromUserId: callerId,
-              type: data.type,
-              encryptedOffer,
-              offer: data.offer, // Always include plain offer as fallback
-              encrypted: true
-            });
+            // CRITICAL FIX: Send directly to socket instead of using rooms
+            const targetSocket = this.io.sockets.sockets.get(targetSocketId);
+            if (targetSocket && targetSocket.connected) {
+              console.log('📞 DIRECT EMIT: Sending incoming-call directly to socket:', targetSocketId);
+              targetSocket.emit('incoming-call', {
+                callId,
+                fromUserId: callerId,
+                type: data.type,
+                encryptedOffer,
+                offer: data.offer, // Always include plain offer as fallback
+                encrypted: true
+              });
+            } else {
+              console.error('❌ CRITICAL: Target socket not found or disconnected:', targetSocketId);
+              socket.emit('call-error', { error: 'Target user disconnected' });
+              return;
+            }
 
             console.log('📤 SERVER: incoming-call event sent successfully');
             
@@ -305,13 +314,22 @@ export class EncryptedWebRTCSignaling {
 
             this.activeCalls.set(callId, call);
 
-            this.io.to(targetSocketId).emit('incoming-call', {
-              callId,
-              fromUserId: callerId,
-              type: data.type,
-              offer: data.offer,
-              encrypted: false
-            });
+            // CRITICAL FIX: Send directly to socket for fallback too
+            const targetSocket = this.io.sockets.sockets.get(targetSocketId);
+            if (targetSocket && targetSocket.connected) {
+              console.log('📞 FALLBACK DIRECT EMIT: Sending incoming-call directly to socket:', targetSocketId);
+              targetSocket.emit('incoming-call', {
+                callId,
+                fromUserId: callerId,
+                type: data.type,
+                offer: data.offer,
+                encrypted: false
+              });
+            } else {
+              console.error('❌ CRITICAL: Target socket not found in fallback:', targetSocketId);
+              socket.emit('call-error', { error: 'Target user disconnected' });
+              return;
+            }
 
             
           }
