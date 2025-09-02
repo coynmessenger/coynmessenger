@@ -1086,10 +1086,16 @@ export class EncryptedWebRTCService {
       
       // Get new video stream with desktop constraints
       const constraints = this.getDesktopMediaConstraints('video');
-      constraints.video = {
-        ...constraints.video,
-        deviceId: { exact: nextDevice.deviceId }
-      };
+      if (typeof constraints.video === 'object' && constraints.video !== null) {
+        constraints.video = {
+          ...constraints.video,
+          deviceId: { exact: nextDevice.deviceId }
+        };
+      } else {
+        constraints.video = {
+          deviceId: { exact: nextDevice.deviceId }
+        };
+      }
       
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
       const newVideoTrack = newStream.getVideoTracks()[0];

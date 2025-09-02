@@ -189,20 +189,15 @@ export class EncryptedWebRTCSignaling {
           return;
         }
 
-        // CRITICAL FIX: Find the WebRTC socket for the target user
-        let targetSocketId: string | undefined;
+        // SIMPLIFIED FIX: Direct socket lookup for target user
+        const targetSocketId = this.userSockets.get(data.targetUserId);
         
-        // Look through all user-socket mappings to find the target user's WebRTC socket
-        for (const [userId, socketId] of Array.from(this.userSockets.entries())) {
-          if (userId === data.targetUserId) {
-            const targetSocket = this.io.sockets.sockets.get(socketId);
-            if (targetSocket && targetSocket.connected) {
-              targetSocketId = socketId;
-              console.log('📞 FOUND VALID: Target socket found:', socketId, 'for user:', userId);
-              break; // Use the first valid connected socket
-            } else {
-              console.log('📞 SKIP: Socket', socketId, 'for user', userId, 'is not connected');
-            }
+        if (targetSocketId) {
+          const targetSocket = this.io.sockets.sockets.get(targetSocketId);
+          if (targetSocket && targetSocket.connected) {
+            console.log('📞 FOUND VALID: Target socket found:', targetSocketId, 'for user:', data.targetUserId);
+          } else {
+            console.log('📞 SKIP: Socket', targetSocketId, 'for user', data.targetUserId, 'is not connected');
           }
         }
         
