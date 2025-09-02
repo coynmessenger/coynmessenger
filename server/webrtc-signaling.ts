@@ -193,7 +193,7 @@ export class EncryptedWebRTCSignaling {
         let targetSocketId: string | undefined;
         
         // Look through all user-socket mappings to find the target user's WebRTC socket
-        for (const [userId, socketId] of this.userSockets.entries()) {
+        for (const [userId, socketId] of Array.from(this.userSockets.entries())) {
           if (userId === data.targetUserId) {
             const targetSocket = this.io.sockets.sockets.get(socketId);
             if (targetSocket && targetSocket.connected) {
