@@ -802,8 +802,8 @@ export default function VoiceCallModal({
                 </div>
               )}
 
-              {/* Single End Call Button for non-connected states */}
-              {callStatus !== "connected" && (
+              {/* Single End Call Button for non-connected states (but not for incoming calls in ringing state) */}
+              {callStatus !== "connected" && !(callType === "incoming" && callStatus === "ringing") && (
                 <Button
                   onClick={handleEndCall}
                   className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
