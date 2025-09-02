@@ -9,13 +9,15 @@ export interface EncryptedCall {
   remoteStream?: MediaStream;
   peerConnection?: RTCPeerConnection;
   remoteOffer?: RTCSessionDescriptionInit;
+  status?: 'connecting' | 'ringing' | 'connected' | 'ended';
 }
 
 export interface CallEventHandlers {
   onIncomingCall?: (call: { callId: string; fromUserId: string; type: 'voice' | 'video' }) => void;
-  onCallAccepted?: (call: { callId: string; byUserId: string }) => void;
+  onCallAccepted?: (call: { callId: string; fromUserId: string; type: 'voice' | 'video'; status: string }) => void;
   onCallEnded?: (call: { callId: string; endedBy: string; reason: string }) => void;
   onRemoteStream?: (stream: MediaStream) => void;
+  onLocalStream?: (stream: MediaStream) => void;
   onEncryptionStatusChanged?: (encrypted: boolean) => void;
 }
 
@@ -433,7 +435,7 @@ export class EncryptedWebRTCService {
       this.socket!.on('disconnect', (reason) => {
         console.error('🔧 STABILITY: Socket disconnected during init:', reason);
         // STABILITY FIX: Don't mark as uninitialized for temporary disconnects
-        if (reason === 'transport close' || reason === 'io client disconnect' || reason === 'client namespace disconnect') {
+        if (reason === 'transport close' || reason === 'io client disconnect' || reason === 'ping timeout') {
           console.log('🔧 STABILITY: Ignoring temporary disconnect, maintaining initialized state');
           // Keep the service marked as initialized so it doesn't get recreated unnecessarily
         } else {
@@ -611,7 +613,7 @@ export class EncryptedWebRTCService {
       console.log(`🚨 CRITICAL DEBUG: - Socket connected: ${this.socket?.connected}`);
       console.log(`🚨 CRITICAL DEBUG: - Socket ID: ${this.socket?.id}`);
       console.log(`🚨 CRITICAL DEBUG: - Socket transport: ${this.socket?.io?.engine?.transport?.name}`);
-      console.log(`🚨 CRITICAL DEBUG: - Socket rooms: ${Array.from(this.socket?.rooms || [])}`);
+      console.log(`🚨 CRITICAL DEBUG: - Socket rooms: Connected`);
       
       // Test socket connection with a ping
       this.socket.emit('ping-test', { timestamp: Date.now() });
