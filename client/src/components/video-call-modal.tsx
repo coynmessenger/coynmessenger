@@ -793,14 +793,22 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           {callType === "incoming" && callStatus === "ringing" && (
             <div className="flex justify-center space-x-8">
               <Button
-                onClick={handleEndCall}
+                onClick={() => {
+                  console.log('🔴 VIDEO DECLINE BUTTON CLICKED');
+                  handleEndCall();
+                }}
                 className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
                 title="Decline"
               >
                 <PhoneOff className="h-6 w-6" />
               </Button>
               <Button
-                onClick={handleAcceptCall}
+                onClick={() => {
+                  console.log('🎯 VIDEO ANSWER BUTTON CLICKED - Enhanced debugging');
+                  console.log('🔧 Video button click event triggered');
+                  console.log('📹 Calling handleAcceptCall function');
+                  handleAcceptCall();
+                }}
                 className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
                 title="Accept video call"
               >
@@ -808,6 +816,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               </Button>
             </div>
           )}
+          
+          {/* DEBUG: Show button visibility conditions */}
+          {console.log('📹 BUTTON DEBUG: callType=', callType, 'callStatus=', callStatus, 'shouldShow=', callType === "incoming" && callStatus === "ringing")}
         </div>
       </DialogContent>
     </Dialog>

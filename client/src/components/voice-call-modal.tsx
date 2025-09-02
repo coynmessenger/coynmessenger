@@ -374,9 +374,15 @@ export default function VoiceCallModal({
     console.log('🎯 ACCEPT BUTTON CLICKED');
     console.log('🆔 Encrypted Call ID:', encryptedCallId);
     console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
+    console.log('🎙️ Call Status:', callStatus);
+    console.log('🔧 Call Type:', callType);
+    console.log('👤 User:', user);
     
     if (encryptedCallId && webrtcService.current) {
       try {
+        console.log('📞 INCOMING CALL: Starting accept call process...');
+        setCallStatus("connecting");
+        
         // Stop ringtone when call is accepted
         ringtoneService.stopRingtone();
         
@@ -812,7 +818,10 @@ export default function VoiceCallModal({
           {callType === "incoming" && callStatus === "ringing" && (
             <div className="flex justify-center space-x-8">
               <Button
-                onClick={handleEndCall}
+                onClick={() => {
+                  console.log('🔴 DECLINE BUTTON CLICKED');
+                  handleEndCall();
+                }}
                 className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
               >
                 <PhoneOff className="h-8 w-8" />
@@ -830,6 +839,9 @@ export default function VoiceCallModal({
               </Button>
             </div>
           )}
+          
+          {/* DEBUG: Show button visibility conditions */}
+          {console.log('🎙️ BUTTON DEBUG: callType=', callType, 'callStatus=', callStatus, 'shouldShow=', callType === "incoming" && callStatus === "ringing")}
         </div>
       </DialogContent>
       
