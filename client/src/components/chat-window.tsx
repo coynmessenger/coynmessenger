@@ -1518,72 +1518,76 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       if (element) {
         console.log(`🔍 SEARCH NAV: Successfully found element for message ${messageId}`);
         
-        // Get the messages container for proper scrolling
-        const container = messagesContainerRef.current;
-        if (container) {
-          // Calculate the position relative to the container
-          const elementRect = element.getBoundingClientRect();
-          const containerRect = container.getBoundingClientRect();
-          const relativeTop = elementRect.top - containerRect.top + container.scrollTop;
-          
-          // Scroll to center the element in the container
-          const centerPosition = relativeTop - (container.clientHeight / 2) + (elementRect.height / 2);
-          
-          console.log(`🔍 SEARCH NAV: Scrolling to position ${centerPosition}`);
-          
-          // Smooth scroll to the calculated position
-          container.scrollTo({
-            top: Math.max(0, centerPosition),
-            behavior: 'smooth'
-          });
-        } else {
-          // Fallback to element.scrollIntoView
-          element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center',
-            inline: 'nearest'
-          });
-        }
+        // First, scroll to the message to get it in view
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
         
-        // Add visual focus to the entire message
-        element.classList.add('search-result-focus');
+        // Remove any message-level highlighting - focus only on search terms
         
-        // Wait for scroll to complete, then highlight the search terms
+        // Wait for scroll to complete, then highlight ONLY the search terms
         setTimeout(() => {
-          console.log(`🔍 SEARCH NAV: Looking for highlighted terms in message`);
+          console.log(`🔍 SEARCH NAV: Looking for highlighted search terms`);
           
-          // Find and animate highlighted search terms
+          // Find and animate only the highlighted search terms (mark elements)
           const highlightElements = element.querySelectorAll('mark.search-result-container');
-          console.log(`🔍 SEARCH NAV: Found ${highlightElements.length} highlighted elements`);
+          console.log(`🔍 SEARCH NAV: Found ${highlightElements.length} highlighted search terms`);
           
           if (highlightElements.length > 0) {
+            // Focus on the first highlighted term and scroll it into perfect view
+            const firstHighlight = highlightElements[0];
+            
+            console.log(`🔍 SEARCH NAV: Scrolling specifically to highlighted search term`);
+            
+            // Scroll specifically to the highlighted search term itself
+            setTimeout(() => {
+              firstHighlight.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'center'
+              });
+            }, 200);
+            
+            // Animate ONLY the highlighted search terms with enhanced visibility
             highlightElements.forEach((mark, i) => {
               setTimeout(() => {
-                mark.classList.add('search-highlight-pulse');
+                console.log(`🔍 SEARCH NAV: Highlighting search term: "${mark.textContent}"`);
+                
+                // Enhanced highlighting just for the search term
+                mark.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'; // Gold background
+                mark.style.color = 'rgba(0, 0, 0, 0.9)'; // Dark text
+                mark.style.fontWeight = 'bold';
+                mark.style.transform = 'scale(1.15)';
+                mark.style.boxShadow = '0 0 12px rgba(255, 215, 0, 0.8)';
+                mark.style.border = '2px solid rgba(255, 140, 0, 0.8)';
+                mark.style.borderRadius = '4px';
+                mark.style.padding = '2px 4px';
+                mark.style.transition = 'all 0.3s ease';
+                mark.style.zIndex = '1000';
+                mark.style.position = 'relative';
+                
                 setTimeout(() => {
-                  mark.classList.remove('search-highlight-pulse');
-                }, 2500);
-              }, i * 200);
+                  mark.style.backgroundColor = '';
+                  mark.style.color = '';
+                  mark.style.fontWeight = '';
+                  mark.style.transform = '';
+                  mark.style.boxShadow = '';
+                  mark.style.border = '';
+                  mark.style.borderRadius = '';
+                  mark.style.padding = '';
+                  mark.style.zIndex = '';
+                  mark.style.position = '';
+                }, 3000);
+              }, i * 100);
             });
           } else {
-            // Force highlight the entire message container as backup
-            console.log(`🔍 SEARCH NAV: No marks found, highlighting message container`);
-            element.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
-            element.style.border = '2px solid rgba(37, 99, 235, 0.3)';
-            element.style.borderRadius = '8px';
-            
-            setTimeout(() => {
-              element.style.backgroundColor = '';
-              element.style.border = '';
-              element.style.borderRadius = '';
-            }, 3000);
+            console.log(`🔍 SEARCH NAV: No highlighted terms found for search query: "${searchQuery}"`);
           }
-        }, 800);
+        }, 600);
         
-        // Remove focus animation
-        setTimeout(() => {
-          element?.classList.remove('search-result-focus');
-        }, 4000);
+        // No message-level focus animation needed
         
       } else {
         console.error(`🔍 SEARCH NAV ERROR: Could not find message element for ID: ${messageId}`);
