@@ -15,8 +15,6 @@ import VideoCallModal from "@/components/video-call-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -80,8 +78,6 @@ export default function MessengerPage() {
   const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video'; callId: string } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [modalSearchQuery, setModalSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { toast, dismiss } = useToast();
@@ -867,15 +863,6 @@ export default function MessengerPage() {
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setIsSearchModalOpen(true)}
-                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-md"
-                title="Search Messages"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-              <button
                 onClick={() => setIsWalletSidebarOpen(true)}
                 className="hover:opacity-80 transition-opacity"
                 title="Open COYN Wallet"
@@ -1128,96 +1115,6 @@ export default function MessengerPage() {
         user={user}
       />
 
-      {/* Search Modal */}
-      <Dialog open={isSearchModalOpen} onOpenChange={setIsSearchModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Search Messages</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Search for messages..."
-              value={modalSearchQuery}
-              onChange={(e) => setModalSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && modalSearchQuery.trim()) {
-                  // Navigate to conversation with search query
-                  if (selectedConversation) {
-                    setSearchQuery(modalSearchQuery);
-                    setIsSearchModalOpen(false);
-                    setModalSearchQuery("");
-                  } else {
-                    // If no conversation selected, search through all conversations
-                    const searchTerm = modalSearchQuery.toLowerCase();
-                    
-                    // Find first conversation with matching messages
-                    const foundConversation = conversations?.find(conv => {
-                      const messages = messagesData?.pages?.flat() || [];
-                      return messages.some(msg => 
-                        msg.conversationId === conv.id && 
-                        msg.content.toLowerCase().includes(searchTerm)
-                      );
-                    });
-                    
-                    if (foundConversation) {
-                      setSelectedConversation(foundConversation.id);
-                      setSearchQuery(modalSearchQuery);
-                      setIsSearchModalOpen(false);
-                      setModalSearchQuery("");
-                    }
-                  }
-                }
-              }}
-              autoFocus
-            />
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsSearchModalOpen(false);
-                  setModalSearchQuery("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  if (modalSearchQuery.trim()) {
-                    // Navigate to conversation with search query
-                    if (selectedConversation) {
-                      setSearchQuery(modalSearchQuery);
-                      setIsSearchModalOpen(false);
-                      setModalSearchQuery("");
-                    } else {
-                      // If no conversation selected, search through all conversations
-                      const searchTerm = modalSearchQuery.toLowerCase();
-                      
-                      // Find first conversation with matching messages
-                      const foundConversation = conversations?.find(conv => {
-                        const messages = messagesData?.pages?.flat() || [];
-                        return messages.some(msg => 
-                          msg.conversationId === conv.id && 
-                          msg.content.toLowerCase().includes(searchTerm)
-                        );
-                      });
-                      
-                      if (foundConversation) {
-                        setSelectedConversation(foundConversation.id);
-                        setSearchQuery(modalSearchQuery);
-                        setIsSearchModalOpen(false);
-                        setModalSearchQuery("");
-                      }
-                    }
-                  }
-                }}
-                disabled={!modalSearchQuery.trim()}
-              >
-                Search
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );
