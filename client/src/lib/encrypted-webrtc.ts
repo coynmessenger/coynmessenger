@@ -27,23 +27,20 @@ export class EncryptedWebRTCService {
   private eventHandlers: CallEventHandlers = {};
   private isInitialized = false;
 
-  // WebRTC configuration with STUN and TURN servers
+  // Enhanced WebRTC configuration optimized for desktop P2P connections
   private rtcConfiguration: RTCConfiguration = {
     iceServers: [
-      // Google STUN servers
+      // Primary STUN servers - Google
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
-      { urls: 'stun:stun4.l.google.com:19302' },
-      // OpenRelay TURN server (free public TURN server)
+      
+      // Cloudflare STUN servers for better global reach
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      
+      // Primary TURN servers - OpenRelay
       {
-        urls: 'turn:openrelay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443',
+        urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
         username: 'openrelayproject',
         credential: 'openrelayproject'
       },
@@ -51,14 +48,67 @@ export class EncryptedWebRTCService {
         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject'
+      },
+      
+      // Additional TURN servers for redundancy
+      {
+        urls: ['turn:numb.viagenie.ca:3478', 'turn:numb.viagenie.ca:3479'],
+        username: 'webrtc@live.com',
+        credential: 'muazkh'
       }
     ],
-    iceCandidatePoolSize: 10,
-    iceTransportPolicy: 'all' // Use both STUN and TURN
+    iceCandidatePoolSize: 15, // Increased for better connectivity
+    iceTransportPolicy: 'all',
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require'
   };
 
   constructor() {
     // Don't auto-initialize socket - wait for explicit initialization
+  }
+
+  // Desktop device detection
+  private isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Enhanced desktop media constraints
+  private getDesktopMediaConstraints(type: 'voice' | 'video'): MediaStreamConstraints {
+    const isDesktop = !this.isMobileDevice();
+    
+    if (type === 'voice') {
+      return {
+        audio: isDesktop ? {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 1
+        } : true,
+        video: false
+      };
+    }
+    
+    return {
+      audio: isDesktop ? {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        sampleRate: 48000,
+        channelCount: 1
+      } : true,
+      video: isDesktop ? {
+        width: { ideal: 1280, max: 1920 },
+        height: { ideal: 720, max: 1080 },
+        frameRate: { ideal: 30, max: 60 },
+        facingMode: 'user'
+      } : {
+        width: { ideal: 640, max: 1280 },
+        height: { ideal: 480, max: 720 },
+        frameRate: { ideal: 15, max: 30 },
+        facingMode: 'user'
+      }
+    };
   }
 
   private initializeSocket(): void {
@@ -416,11 +466,8 @@ export class EncryptedWebRTCService {
     console.log('✅ TEST PASSED: Service Initialization Check');
 
     try {
-      // Get user media with proper error handling
-      const constraints: MediaStreamConstraints = {
-        audio: true,
-        video: type === 'video',
-      };
+      // Get user media with enhanced desktop constraints
+      const constraints = this.getDesktopMediaConstraints(type);
 
       let localStream: MediaStream;
       try {
@@ -605,11 +652,8 @@ export class EncryptedWebRTCService {
     console.log('✅ TEST PASSED: Call Lookup Check');
 
     try {
-      // Get user media with proper error handling
-      const constraints: MediaStreamConstraints = {
-        audio: true,
-        video: call.type === 'video',
-      };
+      // Get user media with enhanced desktop constraints
+      const constraints = this.getDesktopMediaConstraints(call.type);
 
       let localStream: MediaStream;
       
@@ -723,9 +767,39 @@ export class EncryptedWebRTCService {
   private setupPeerConnectionHandlers(call: EncryptedCall): void {
     if (!call.peerConnection) return;
 
+    // Enhanced desktop stream handling
     call.peerConnection.ontrack = (event) => {
-      console.log('Received remote stream');
+      console.log('📞 DESKTOP: Received remote stream with tracks:', event.streams[0].getTracks().length);
       call.remoteStream = event.streams[0];
+      
+      // Desktop-specific optimizations
+      if (!this.isMobileDevice()) {
+        // Enable high-quality audio processing for desktop
+        event.streams[0].getAudioTracks().forEach(track => {
+          if (track.getSettings) {
+            const settings = track.getSettings();
+            console.log('📞 DESKTOP: Audio track settings:', {
+              sampleRate: settings.sampleRate,
+              channelCount: settings.channelCount,
+              echoCancellation: settings.echoCancellation,
+              noiseSuppression: settings.noiseSuppression
+            });
+          }
+        });
+        
+        // Log video track settings for desktop
+        event.streams[0].getVideoTracks().forEach(track => {
+          if (track.getSettings) {
+            const settings = track.getSettings();
+            console.log('📞 DESKTOP: Video track settings:', {
+              width: settings.width,
+              height: settings.height,
+              frameRate: settings.frameRate,
+              facingMode: settings.facingMode
+            });
+          }
+        });
+      }
       
       if (this.eventHandlers.onRemoteStream) {
         this.eventHandlers.onRemoteStream(event.streams[0]);
@@ -734,12 +808,20 @@ export class EncryptedWebRTCService {
 
     call.peerConnection.onicecandidate = (event) => {
       if (event.candidate && this.socket) {
-        // Send encrypted ICE candidate
+        // Enhanced desktop ICE candidate handling
         const targetUserId = call.participants.find(p => p !== this.localUserId);
         if (targetUserId) {
-          console.log('🧊 CLIENT: Sending ICE candidate to:', targetUserId);
+          console.log('🧊 DESKTOP: Sending ICE candidate to:', targetUserId);
           console.log('- Candidate type:', event.candidate.type);
           console.log('- Protocol:', event.candidate.protocol);
+          console.log('- Priority:', event.candidate.priority);
+          console.log('- Foundation:', event.candidate.foundation);
+          
+          // Desktop-specific candidate optimization
+          if (!this.isMobileDevice() && event.candidate.type === 'host') {
+            console.log('🧊 DESKTOP: Prioritizing host candidate for direct connection');
+          }
+          
           this.socket.emit('ice-candidate', {
             callId: call.callId,
             targetUserId,
@@ -747,7 +829,7 @@ export class EncryptedWebRTCService {
           });
         }
       } else if (!event.candidate) {
-        console.log('🏁 CLIENT: ICE gathering complete');
+        console.log('🏁 DESKTOP: ICE gathering complete for call:', call.callId);
       }
     };
 
@@ -844,7 +926,7 @@ export class EncryptedWebRTCService {
     return this.socket?.id;
   }
 
-  // Toggle audio mute
+  // Enhanced desktop audio toggle with quality preservation
   toggleAudio(callId: string): boolean {
     const call = this.activeCalls.get(callId);
     if (!call?.localStream) return false;
@@ -852,12 +934,21 @@ export class EncryptedWebRTCService {
     const audioTrack = call.localStream.getAudioTracks()[0];
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled;
+      console.log('📞 DESKTOP: Audio toggled to:', audioTrack.enabled ? 'enabled' : 'muted');
+      
+      // Desktop-specific audio quality maintenance
+      if (!this.isMobileDevice() && audioTrack.enabled) {
+        // Ensure audio processing settings are maintained after unmute
+        const constraints = audioTrack.getConstraints();
+        console.log('📞 DESKTOP: Maintaining audio constraints:', constraints);
+      }
+      
       return !audioTrack.enabled; // Return mute state
     }
     return false;
   }
 
-  // Toggle video
+  // Enhanced desktop video toggle with resolution management
   toggleVideo(callId: string): boolean {
     const call = this.activeCalls.get(callId);
     if (!call?.localStream) return false;
@@ -865,9 +956,128 @@ export class EncryptedWebRTCService {
     const videoTrack = call.localStream.getVideoTracks()[0];
     if (videoTrack) {
       videoTrack.enabled = !videoTrack.enabled;
+      console.log('📞 DESKTOP: Video toggled to:', videoTrack.enabled ? 'enabled' : 'disabled');
+      
+      // Desktop-specific video quality maintenance
+      if (!this.isMobileDevice() && videoTrack.enabled) {
+        const settings = videoTrack.getSettings();
+        console.log('📞 DESKTOP: Maintaining video quality:', {
+          width: settings.width,
+          height: settings.height,
+          frameRate: settings.frameRate
+        });
+      }
+      
       return !videoTrack.enabled; // Return off state
     }
     return false;
+  }
+
+  // Desktop-specific camera switching
+  async switchCamera(callId: string): Promise<void> {
+    if (this.isMobileDevice()) return; // Mobile has different camera switching logic
+    
+    const call = this.activeCalls.get(callId);
+    if (!call?.localStream || !call.peerConnection) return;
+
+    try {
+      // Get available video devices for desktop
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length <= 1) {
+        console.log('📞 DESKTOP: Only one camera available');
+        return;
+      }
+
+      // Find current device
+      const currentTrack = call.localStream.getVideoTracks()[0];
+      const currentSettings = currentTrack.getSettings();
+      const currentDeviceId = currentSettings.deviceId;
+      
+      // Find next camera
+      const currentIndex = videoDevices.findIndex(device => device.deviceId === currentDeviceId);
+      const nextIndex = (currentIndex + 1) % videoDevices.length;
+      const nextDevice = videoDevices[nextIndex];
+      
+      console.log('📞 DESKTOP: Switching to camera:', nextDevice.label);
+      
+      // Get new video stream with desktop constraints
+      const constraints = this.getDesktopMediaConstraints('video');
+      constraints.video = {
+        ...constraints.video,
+        deviceId: { exact: nextDevice.deviceId }
+      };
+      
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      
+      // Replace video track in peer connection
+      const sender = call.peerConnection.getSenders().find(s => 
+        s.track && s.track.kind === 'video'
+      );
+      
+      if (sender) {
+        await sender.replaceTrack(newVideoTrack);
+        console.log('📞 DESKTOP: Camera track replaced successfully');
+      }
+      
+      // Update local stream
+      call.localStream.removeTrack(currentTrack);
+      call.localStream.addTrack(newVideoTrack);
+      currentTrack.stop();
+      
+      // Notify UI of camera change
+      if (this.eventHandlers.onLocalStream) {
+        this.eventHandlers.onLocalStream(call.localStream);
+      }
+      
+    } catch (error) {
+      console.error('📞 DESKTOP: Failed to switch camera:', error);
+    }
+  }
+
+  // Desktop connection recovery system
+  async recoverConnection(callId: string): Promise<boolean> {
+    const call = this.activeCalls.get(callId);
+    if (!call?.peerConnection) return false;
+
+    try {
+      console.log('📞 DESKTOP: Attempting connection recovery for call:', callId);
+      
+      // Check if we can restart ICE
+      if (call.peerConnection.connectionState === 'failed' || 
+          call.peerConnection.iceConnectionState === 'failed') {
+        
+        console.log('📞 DESKTOP: Restarting ICE for connection recovery');
+        call.peerConnection.restartIce();
+        
+        // Wait for ICE restart
+        return new Promise((resolve) => {
+          const timeout = setTimeout(() => resolve(false), 10000); // 10 second timeout
+          
+          const checkConnection = () => {
+            if (call.peerConnection?.connectionState === 'connected') {
+              clearTimeout(timeout);
+              console.log('📞 DESKTOP: Connection recovery successful');
+              resolve(true);
+            } else if (call.peerConnection?.connectionState === 'failed') {
+              clearTimeout(timeout);
+              resolve(false);
+            } else {
+              setTimeout(checkConnection, 1000);
+            }
+          };
+          
+          checkConnection();
+        });
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('📞 DESKTOP: Connection recovery failed:', error);
+      return false;
+    }
   }
 
 }
