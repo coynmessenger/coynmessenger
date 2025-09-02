@@ -63,6 +63,28 @@ class GlobalNotificationService {
     // Listen for instant notifications from server
     this.socket.on('instant-notification', (data: NotificationData) => {
       console.log('🔔 Global instant notification received:', data);
+      
+      // CRITICAL FIX: Handle call notifications specially
+      if (data.type === 'call') {
+        console.log('📞 CALL NOTIFICATION: Received call notification via instant notification system');
+        console.log('📞 CALL NOTIFICATION: From user:', data.fromUserId);
+        console.log('📞 CALL NOTIFICATION: Call ID:', data.conversationId);
+        
+        // Get the global WebRTC service and trigger incoming call
+        const globalWebRTC = (window as any).globalWebRTCService;
+        if (globalWebRTC && globalWebRTC.eventHandlers?.onIncomingCall) {
+          console.log('📞 CALL NOTIFICATION: Triggering incoming call modal...');
+          globalWebRTC.eventHandlers.onIncomingCall({
+            callId: data.conversationId || 'unknown',
+            fromUserId: data.fromUserId || 'unknown',
+            type: data.title?.includes('video') ? 'video' : 'voice'
+          });
+          console.log('✅ CALL NOTIFICATION: Incoming call modal should now appear');
+        } else {
+          console.error('❌ CALL NOTIFICATION: No WebRTC service or handler available');
+        }
+      }
+      
       this.showNotification(data);
     });
 

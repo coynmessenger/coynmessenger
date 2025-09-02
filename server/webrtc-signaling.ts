@@ -219,10 +219,29 @@ export class EncryptedWebRTCSignaling {
         if (targetSocketId && callerEncryption) {
           const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           
+          // CRITICAL FIX: Use instant notification system for reliable call delivery
+          console.log('📞 RELIABILITY FIX: Sending call via instant notification system...');
+          this.sendInstantNotification(data.targetUserId, {
+            type: 'call',
+            title: `Incoming ${data.type} call`,
+            body: `Call from user ${callerId}`,
+            fromUserId: callerId,
+            fromUserName: `User ${callerId}`,
+            conversationId: callId, // Use callId as conversation identifier
+          });
+          console.log('📞 RELIABILITY FIX: Call notification sent successfully');
+          
+          // Also send confirmation to caller that call was initiated
+          socket.emit('call-initiated', {
+            callId: callId,
+            targetUserId: data.targetUserId
+          });
+          
           // Get target user's encryption service
           const targetEncryption = this.encryptionServices.get(data.targetUserId);
           if (!targetEncryption) {
-            
+            console.error('📞 SERVER ERROR: No encryption service for target user:', data.targetUserId);
+            socket.emit('call-error', { error: 'Target user encryption not available' });
             return;
           }
 

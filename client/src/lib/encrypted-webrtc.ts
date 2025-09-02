@@ -384,18 +384,31 @@ export class EncryptedWebRTCService {
   // Initialize the service with user authentication
   async initialize(userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Check if already properly initialized for this user
-      if (this.isInitialized && this.localUserId === userId && this.socket?.connected) {
-        console.log(`✅ Already initialized for user ${userId} with connected socket ${this.socket?.id}`);
+      // STABILITY FIX: Check if already properly initialized for this user with a more strict check
+      if (this.isInitialized && 
+          this.localUserId === userId && 
+          this.socket?.connected && 
+          this.socket?.id) {
+        console.log(`✅ STABILITY: Already initialized for user ${userId} with stable socket ${this.socket?.id}`);
+        console.log(`✅ STABILITY: Skipping reinitialization to prevent socket churn`);
         resolve();
         return;
       }
       
-      // Clean up any existing connection before creating new one
-      this.cleanup();
+      // STABILITY FIX: Only cleanup if we really need to (different user or truly disconnected)
+      if (this.localUserId !== userId || !this.socket?.connected) {
+        console.log('🔧 STABILITY: Cleaning up previous connection for user switch or disconnection');
+        this.cleanup();
+      } else {
+        console.log('🔧 STABILITY: Keeping existing connection, just marking as initialized');
+        this.isInitialized = true;
+        this.localUserId = userId;
+        resolve();
+        return;
+      }
       
-      // Create fresh socket connection
-      console.log('🔧 CRITICAL: Creating new WebRTC socket connection for user:', userId);
+      // Create fresh socket connection only when necessary
+      console.log('🔧 STABILITY: Creating new WebRTC socket connection for user:', userId);
       this.initializeSocket();
 
       console.log(`Authenticating user ${userId} with WebRTC signaling server`);
@@ -418,10 +431,14 @@ export class EncryptedWebRTCService {
       });
 
       this.socket!.on('disconnect', (reason) => {
-        console.error('🔧 DEEP TEST: Socket disconnected during init:', reason);
-        // Don't fail initialization for temporary disconnects during development
-        if (reason === 'transport close' || reason === 'io client disconnect') {
-          console.log('🔧 DEEP TEST: Ignoring temporary disconnect during development');
+        console.error('🔧 STABILITY: Socket disconnected during init:', reason);
+        // STABILITY FIX: Don't mark as uninitialized for temporary disconnects
+        if (reason === 'transport close' || reason === 'io client disconnect' || reason === 'client namespace disconnect') {
+          console.log('🔧 STABILITY: Ignoring temporary disconnect, maintaining initialized state');
+          // Keep the service marked as initialized so it doesn't get recreated unnecessarily
+        } else {
+          console.log('🔧 STABILITY: Real disconnect, marking as uninitialized');
+          this.isInitialized = false;
         }
       });
 
