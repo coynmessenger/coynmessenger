@@ -52,10 +52,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       const formData = new FormData();
       formData.append('profileImage', file);
       
-      const response = await fetch('/api/user/upload-avatar', {
+      const response = await fetch(`/api/user/upload-avatar?userId=${user?.id}`, {
         method: 'POST',
         body: formData,
-        credentials: 'include', // Include session cookies
       });
       
       if (!response.ok) {

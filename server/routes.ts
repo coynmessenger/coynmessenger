@@ -1083,14 +1083,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload profile picture
-  app.post("/api/user/upload-avatar", requireAuth, upload.single('profileImage'), async (req: any, res) => {
+  app.post("/api/user/upload-avatar", upload.single('profileImage'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      // Get user ID from session (authenticated user)
-      const userId = req.session.userId;
+      // Get user ID from query parameter (frontend manages auth via localStorage)
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
       const profilePicture = `/uploads/avatars/${req.file.filename}`;
       
       
