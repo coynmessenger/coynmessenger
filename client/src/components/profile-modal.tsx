@@ -60,64 +60,74 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
-      console.log('🔧 Starting image upload for user:', user?.id);
-      console.log('🔧 ConnectedUserId from localStorage:', connectedUserId);
+      // Set flag to prevent wallet event handlers from interfering during upload
+      localStorage.setItem('fileUploadInProgress', 'true');
+      
+      // Store authentication state before upload to prevent loss
+      const authBackup = {
+        walletConnected: localStorage.getItem('walletConnected'),
+        connectedUser: localStorage.getItem('connectedUser'),
+        connectedUserId: localStorage.getItem('connectedUserId')
+      };
       
       const formData = new FormData();
       formData.append('profileImage', file);
       
-      const uploadUrl = `/api/user/upload-avatar?userId=${user?.id}`;
-      console.log('🔧 Upload URL:', uploadUrl);
-      
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      console.log('🔧 Upload response status:', response.status);
-      console.log('🔧 Upload response ok:', response.ok);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🔧 Upload failed with error:', errorText);
-        throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      try {
+        const response = await fetch(`/api/user/upload-avatar?userId=${user?.id}`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        // Restore authentication state if it was cleared during upload
+        const currentAuth = {
+          walletConnected: localStorage.getItem('walletConnected'),
+          connectedUser: localStorage.getItem('connectedUser'),
+          connectedUserId: localStorage.getItem('connectedUserId')
+        };
+        
+        if (!currentAuth.walletConnected && authBackup.walletConnected) {
+          localStorage.setItem('walletConnected', authBackup.walletConnected);
+          localStorage.setItem('connectedUser', authBackup.connectedUser!);
+          localStorage.setItem('connectedUserId', authBackup.connectedUserId!);
+        }
+        
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+        
+        return response.json();
+      } catch (error) {
+        // Restore authentication state if it was cleared during upload
+        const currentAuth = {
+          walletConnected: localStorage.getItem('walletConnected'),
+          connectedUser: localStorage.getItem('connectedUser'),
+          connectedUserId: localStorage.getItem('connectedUserId')
+        };
+        
+        if (!currentAuth.walletConnected && authBackup.walletConnected) {
+          localStorage.setItem('walletConnected', authBackup.walletConnected);
+          localStorage.setItem('connectedUser', authBackup.connectedUser!);
+          localStorage.setItem('connectedUserId', authBackup.connectedUserId!);
+        }
+        
+        throw error;
+      } finally {
+        // Clear the upload flag
+        localStorage.removeItem('fileUploadInProgress');
       }
-      
-      const result = await response.json();
-      console.log('🔧 Upload successful, result:', result);
-      return result;
     },
     onSuccess: (data) => {
-      console.log('🔧 Upload mutation success, invalidating queries...');
       setProfilePicture(data.profilePicture);
-      
-      console.log('🔧 Auth state before invalidation:', {
-        walletConnected: localStorage.getItem('walletConnected'),
-        connectedUser: localStorage.getItem('connectedUser'),
-        connectedUserId: localStorage.getItem('connectedUserId')
-      });
-      
       queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
-      
-      console.log('🔧 Auth state after invalidation:', {
-        walletConnected: localStorage.getItem('walletConnected'),
-        connectedUser: localStorage.getItem('connectedUser'),
-        connectedUserId: localStorage.getItem('connectedUserId')
-      });
-      
       toast({
         title: "Profile picture updated!",
         description: "Your new profile picture has been saved.",
       });
     },
     onError: (error: any) => {
-      console.error("🔧 Upload mutation error:", error);
-      console.log('🔧 Auth state during error:', {
-        walletConnected: localStorage.getItem('walletConnected'),
-        connectedUser: localStorage.getItem('connectedUser'),
-        connectedUserId: localStorage.getItem('connectedUserId')
-      });
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
         description: "Failed to upload your profile picture. Please check your connection and try again.",

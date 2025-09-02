@@ -264,6 +264,12 @@ export default function HomePage() {
     const handleVisibilityChange = async () => {
       if (!document.hidden && isMobile() && !isChecking) {
         
+        // Don't interfere if file upload is in progress
+        const fileUploadInProgress = localStorage.getItem('fileUploadInProgress');
+        if (fileUploadInProgress === 'true') {
+          return;
+        }
+        
         // Check if user explicitly signed out - if so, don't auto-reconnect
         const userSignedOut = localStorage.getItem('userSignedOut');
         if (userSignedOut === 'true') {
