@@ -76,38 +76,52 @@ export class EncryptedWebRTCService {
 
   // Enhanced desktop media constraints
   private getDesktopMediaConstraints(type: 'voice' | 'video'): MediaStreamConstraints {
-    const isDesktop = !this.isMobileDevice();
+    const isMobile = this.isMobileDevice();
     
     if (type === 'voice') {
       return {
-        audio: isDesktop ? {
+        audio: isMobile ? {
+          // Mobile-optimized audio constraints
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } : {
+          // Desktop audio constraints  
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
           sampleRate: 48000,
           channelCount: 1
-        } : true,
+        },
         video: false
       };
     }
     
     return {
-      audio: isDesktop ? {
+      audio: isMobile ? {
+        // Mobile audio for video calls
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      } : {
+        // Desktop audio for video calls
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
         sampleRate: 48000,
         channelCount: 1
-      } : true,
-      video: isDesktop ? {
+      },
+      video: isMobile ? {
+        // Mobile-optimized video constraints
+        width: { ideal: 480, max: 640 },
+        height: { ideal: 360, max: 480 },
+        frameRate: { ideal: 15, max: 24 },
+        facingMode: 'user'
+      } : {
+        // Desktop video constraints
         width: { ideal: 1280, max: 1920 },
         height: { ideal: 720, max: 1080 },
         frameRate: { ideal: 30, max: 60 },
-        facingMode: 'user'
-      } : {
-        width: { ideal: 640, max: 1280 },
-        height: { ideal: 480, max: 720 },
-        frameRate: { ideal: 15, max: 30 },
         facingMode: 'user'
       }
     };
