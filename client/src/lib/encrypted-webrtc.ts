@@ -230,7 +230,8 @@ export class EncryptedWebRTCService {
       answer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('📞 CLIENT: Call accepted:', data);
+      console.log('🎯 CALLER: Call accepted by target user:', data);
+      console.log('🎯 CALLER: Setting remote answer and transitioning to connected state...');
       
       // Set remote description with the answer
       const call = this.activeCalls.get(data.callId);
@@ -245,20 +246,33 @@ export class EncryptedWebRTCService {
           }
           
           if (answer) {
-            console.log('📞 CLIENT: Setting remote answer description');
+            console.log('🎯 CALLER: Setting remote answer description...');
             await call.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            console.log('✅ CLIENT: Remote answer set successfully - handshake complete!');
+            console.log('✅ CALLER: Remote answer set successfully - WebRTC handshake complete!');
           }
+          
+          // CRITICAL: Update call status to connected
+          call.status = 'connected';
+          this.activeCalls.set(data.callId, call);
+          console.log('🎯 CALLER: Call status updated to connected');
+          
         } catch (error) {
-          console.error('❌ CLIENT: Failed to set remote answer:', error);
+          console.error('❌ CALLER: Failed to set remote answer:', error);
         }
       }
       
+      // CRITICAL: Trigger call accepted event for UI to show connected state
       if (this.eventHandlers.onCallAccepted) {
+        console.log('🎯 CALLER: Triggering onCallAccepted for UI update...');
         this.eventHandlers.onCallAccepted({
           callId: data.callId,
-          byUserId: data.byUserId,
+          fromUserId: data.byUserId,
+          type: call?.type || 'voice',
+          status: 'connected'
         });
+        console.log('✅ CALLER: UI should now show in-call controls (Hang Up, Speaker, etc.)');
+      } else {
+        console.error('❌ CALLER: No onCallAccepted handler available');
       }
     });
 
@@ -746,6 +760,25 @@ export class EncryptedWebRTCService {
 
       console.log('📞 DEEP TEST: ✅ accept-call event sent to server');
       console.log('📞 DEEP TEST: Waiting for call-accepted-confirmation...');
+      
+      // CRITICAL: Update call status to connected and trigger UI update
+      call.status = 'connected';
+      this.activeCalls.set(callId, call);
+      console.log('🎯 ACCEPT: Call status updated to connected');
+
+      // CRITICAL: Trigger call accepted event for UI to show connected state  
+      if (this.eventHandlers.onCallAccepted) {
+        console.log('🎯 ACCEPT: Triggering onCallAccepted handler for UI...');
+        this.eventHandlers.onCallAccepted({
+          callId: call.callId || callId,
+          fromUserId: call.participants?.[0] || 'unknown',
+          type: call.type,
+          status: 'connected'
+        });
+        console.log('✅ ACCEPT: UI should now show in-call controls (Hang Up, Speaker, etc.)');
+      } else {
+        console.error('❌ ACCEPT: No onCallAccepted handler available for UI update');
+      }
       
     } catch (error) {
       console.error('Failed to accept call:', error);
