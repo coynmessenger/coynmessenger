@@ -60,8 +60,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('📱 Mobile upload starting for user:', user?.id);
+      
       // Set flag to prevent wallet event handlers from interfering during upload
       localStorage.setItem('fileUploadInProgress', 'true');
+      console.log('📱 Upload protection flag set');
       
       // Store authentication state before upload to prevent loss
       const authBackup = {
@@ -69,35 +72,48 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         connectedUser: localStorage.getItem('connectedUser'),
         connectedUserId: localStorage.getItem('connectedUserId')
       };
+      console.log('📱 Auth backup created - connected:', !!authBackup.walletConnected);
       
       const formData = new FormData();
       formData.append('profileImage', file);
+      console.log('📱 Form data prepared, file size:', file.size);
       
       try {
+        console.log('📱 Starting fetch request...');
         const response = await fetch(`/api/user/upload-avatar?userId=${user?.id}`, {
           method: 'POST',
           body: formData,
         });
         
-        // Restore authentication state if it was cleared during upload
+        console.log('📱 Upload response received:', response.status, response.ok);
+        
+        // Check authentication state after upload
         const currentAuth = {
           walletConnected: localStorage.getItem('walletConnected'),
           connectedUser: localStorage.getItem('connectedUser'),
           connectedUserId: localStorage.getItem('connectedUserId')
         };
         
+        console.log('📱 Auth check after upload - connected:', !!currentAuth.walletConnected);
+        
+        // Restore authentication state if it was cleared during upload
         if (!currentAuth.walletConnected && authBackup.walletConnected) {
+          console.log('📱 Restoring cleared authentication...');
           localStorage.setItem('walletConnected', authBackup.walletConnected);
           localStorage.setItem('connectedUser', authBackup.connectedUser!);
           localStorage.setItem('connectedUserId', authBackup.connectedUserId!);
         }
         
         if (!response.ok) {
-          throw new Error('Upload failed');
+          throw new Error(`Upload failed with status: ${response.status}`);
         }
         
-        return response.json();
+        const result = await response.json();
+        console.log('📱 Upload successful, new image URL:', result.profilePicture);
+        return result;
       } catch (error) {
+        console.error('📱 Upload error:', error);
+        
         // Restore authentication state if it was cleared during upload
         const currentAuth = {
           walletConnected: localStorage.getItem('walletConnected'),
@@ -106,6 +122,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         };
         
         if (!currentAuth.walletConnected && authBackup.walletConnected) {
+          console.log('📱 Restoring auth after error...');
           localStorage.setItem('walletConnected', authBackup.walletConnected);
           localStorage.setItem('connectedUser', authBackup.connectedUser!);
           localStorage.setItem('connectedUserId', authBackup.connectedUserId!);
@@ -115,16 +132,26 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       } finally {
         // Clear the upload flag
         localStorage.removeItem('fileUploadInProgress');
+        console.log('📱 Upload protection flag cleared');
       }
     },
     onSuccess: (data) => {
+      console.log('📱 Upload mutation success, updating UI...');
       setProfilePicture(data.profilePicture);
+      
+      // Final auth check before invalidating queries
+      const finalAuth = localStorage.getItem('walletConnected');
+      console.log('📱 Final auth check before queries - connected:', !!finalAuth);
+      
       queryClient.invalidateQueries({ queryKey: ["/api/user", connectedUserId] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
+      
       toast({
         title: "Profile picture updated!",
         description: "Your new profile picture has been saved.",
       });
+      
+      console.log('📱 Mobile upload process completed successfully');
     },
     onError: (error: any) => {
       console.error("Upload error:", error);
