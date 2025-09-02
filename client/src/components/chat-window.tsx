@@ -1826,15 +1826,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     type="text"
                     value={searchQuery || ''}
                     onChange={(e) => {
-                      console.log('Search input changed:', e.target.value);
                       const newQuery = e.target.value;
                       if (onSearchQueryChange) {
                         onSearchQueryChange(newQuery);
                       }
                     }}
-                    className="bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/70 dark:hover:bg-gray-600/70 focus:bg-white dark:focus:bg-gray-600 outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-[80px] max-w-[140px] md:max-w-[180px] cursor-text px-2 py-1 transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-400 dark:focus:border-blue-400 rounded"
-                    placeholder="Search..."
+                    className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500 outline-none text-sm text-gray-900 dark:text-gray-100 font-medium min-w-[100px] max-w-[160px] md:max-w-[200px] cursor-text px-3 py-1.5 transition-all duration-200 rounded-md relative z-50"
+                    placeholder="Type to search..."
                     onKeyDown={(e) => {
+                      e.stopPropagation();
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         if (searchResults.length > 0) {
@@ -1848,21 +1848,34 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       }
                     }}
                     onFocus={(e) => {
-                      console.log('Search input focused');
+                      e.stopPropagation();
                       // Select all text when focused for easy editing
-                      e.target.select();
+                      setTimeout(() => e.target.select(), 10);
                     }}
                     onClick={(e) => {
-                      console.log('Search input clicked');
+                      e.stopPropagation();
+                      e.preventDefault();
+                      e.target.focus();
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchStart={(e) => {
                       e.stopPropagation();
                     }}
                     autoComplete="off"
                     spellCheck="false"
+                    autoFocus={false}
+                    tabIndex={0}
                     style={{
                       WebkitAppearance: 'none',
                       MozAppearance: 'textfield',
                       fontSize: '14px',
-                      touchAction: 'manipulation'
+                      touchAction: 'manipulation',
+                      userSelect: 'text',
+                      pointerEvents: 'auto',
+                      zIndex: 1000,
+                      position: 'relative'
                     }}
                   />
                 </div>
@@ -1879,15 +1892,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     type="text"
                     value={searchQuery || ''}
                     onChange={(e) => {
-                      console.log('Search input changed:', e.target.value);
                       const newQuery = e.target.value;
                       if (onSearchQueryChange) {
                         onSearchQueryChange(newQuery);
                       }
                     }}
-                    className="bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/70 dark:hover:bg-gray-600/70 focus:bg-white dark:focus:bg-gray-600 outline-none text-xs md:text-sm text-gray-800 dark:text-gray-200 font-medium min-w-[80px] max-w-[140px] md:max-w-[180px] cursor-text px-2 py-1 transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-400 dark:focus:border-blue-400 rounded"
-                    placeholder="Search..."
+                    className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500 outline-none text-sm text-gray-900 dark:text-gray-100 font-medium min-w-[100px] max-w-[160px] md:max-w-[200px] cursor-text px-3 py-1.5 transition-all duration-200 rounded-md relative z-50"
+                    placeholder="Type to search..."
                     onKeyDown={(e) => {
+                      e.stopPropagation();
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         if (searchResults.length > 0) {
@@ -1901,21 +1914,34 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       }
                     }}
                     onFocus={(e) => {
-                      console.log('Search input focused');
+                      e.stopPropagation();
                       // Select all text when focused for easy editing
-                      e.target.select();
+                      setTimeout(() => e.target.select(), 10);
                     }}
                     onClick={(e) => {
-                      console.log('Search input clicked');
+                      e.stopPropagation();
+                      e.preventDefault();
+                      e.target.focus();
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchStart={(e) => {
                       e.stopPropagation();
                     }}
                     autoComplete="off"
                     spellCheck="false"
+                    autoFocus={false}
+                    tabIndex={0}
                     style={{
                       WebkitAppearance: 'none',
                       MozAppearance: 'textfield',
                       fontSize: '14px',
-                      touchAction: 'manipulation'
+                      touchAction: 'manipulation',
+                      userSelect: 'text',
+                      pointerEvents: 'auto',
+                      zIndex: 1000,
+                      position: 'relative'
                     }}
                   />
                 </div>
