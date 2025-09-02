@@ -617,6 +617,7 @@ export class EncryptedWebRTCService {
       this.socket.emit('ping-test', { timestamp: Date.now() });
       
       this.socket.emit('initiate-call', {
+        callId,
         targetUserId,
         type,
         offer,

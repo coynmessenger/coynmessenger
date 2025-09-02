@@ -162,6 +162,7 @@ export class EncryptedWebRTCSignaling {
 
       // Initiate encrypted call
       socket.on('initiate-call', async (data: { 
+        callId: string,
         targetUserId: string, 
         type: 'voice' | 'video',
         offer?: RTCSessionDescriptionInit 
@@ -217,7 +218,10 @@ export class EncryptedWebRTCSignaling {
         }
 
         if (targetSocketId && callerEncryption) {
-          const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          // CRITICAL FIX: Use the incoming callId from client to maintain synchronization
+          const callId = data.callId || `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          console.log('📞 SYNC FIX: Using synchronized call ID:', callId);
           
           // CRITICAL FIX: Use instant notification system for reliable call delivery
           console.log('📞 RELIABILITY FIX: Sending call via instant notification system...');
@@ -227,7 +231,7 @@ export class EncryptedWebRTCSignaling {
             body: `Call from user ${callerId}`,
             fromUserId: callerId,
             fromUserName: `User ${callerId}`,
-            conversationId: callId, // Use callId as conversation identifier
+            conversationId: callId, // Use same callId for consistency
           });
           console.log('📞 RELIABILITY FIX: Call notification sent successfully');
           
