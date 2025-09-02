@@ -1478,6 +1478,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const message = searchResults[resultIndex];
     const messageId = message.id;
     
+    // Give time for React to render the highlighted search results
     setTimeout(() => {
       // Find the message container specifically
       const messagesContainer = document.querySelector('.overflow-y-auto');
@@ -1494,7 +1495,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
       
       if (element) {
-        // Scroll to the element with better positioning
+        // Clear any existing focus animations from other messages
+        document.querySelectorAll('.search-result-focus').forEach(el => {
+          el.classList.remove('search-result-focus');
+        });
+        document.querySelectorAll('.search-highlight-pulse').forEach(el => {
+          el.classList.remove('search-highlight-pulse');
+        });
+        
+        // Scroll to the element with better positioning for mobile
         element.scrollIntoView({ 
           behavior: 'smooth', 
           block: 'center',
@@ -1504,28 +1513,59 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         // Add focus animation with better visual feedback
         element.classList.add('search-result-focus');
         
-        // Remove animation after 3 seconds
+        // Wait for scroll to complete, then enhance highlighting
+        setTimeout(() => {
+          // Enhanced highlight animation for search terms - look for mark elements after scroll
+          const highlightElements = element.querySelectorAll('mark.search-result-container');
+          
+          if (highlightElements.length > 0) {
+            // Animate each highlighted term
+            highlightElements.forEach((mark, i) => {
+              setTimeout(() => {
+                mark.classList.add('search-highlight-pulse');
+                
+                // Remove the pulse animation after completion
+                setTimeout(() => {
+                  mark.classList.remove('search-highlight-pulse');
+                }, 2000);
+              }, i * 150); // Staggered animation
+            });
+          } else {
+            // If no mark elements found, try to find and highlight the search terms manually
+            console.log(`🔍 DEBUG: No mark elements found for message ${messageId}, searching for: "${searchQuery}"`);
+            
+            // Force a re-render of highlights by triggering a small state change
+            setTimeout(() => {
+              const searchTerms = searchQuery?.toLowerCase().split(/\s+/).filter(term => term.length > 0) || [];
+              const textElements = element.querySelectorAll('*');
+              
+              textElements.forEach(textEl => {
+                if (textEl.textContent && searchTerms.some(term => 
+                  textEl.textContent?.toLowerCase().includes(term)
+                )) {
+                  textEl.classList.add('search-highlight-pulse');
+                  setTimeout(() => {
+                    textEl.classList.remove('search-highlight-pulse');
+                  }, 2000);
+                }
+              });
+            }, 100);
+          }
+        }, 500); // Wait for scroll animation to complete
+        
+        // Remove focus animation after 3 seconds
         setTimeout(() => {
           element?.classList.remove('search-result-focus');
         }, 3000);
         
-        // Enhanced highlight animation for search terms
-        const highlightElements = element.querySelectorAll('mark');
-        highlightElements.forEach((mark, i) => {
-          setTimeout(() => {
-            mark.classList.add('search-highlight-pulse');
-            setTimeout(() => {
-              mark.classList.remove('search-highlight-pulse');
-            }, 2000);
-          }, i * 100); // Staggered animation
-        });
       } else {
+        console.log(`🔍 DEBUG: Message element not found for ID: ${messageId}`);
         
         // Debug: log all available message IDs
         const allMessages = document.querySelectorAll('[data-message-id]');
-        
+        console.log(`🔍 DEBUG: Available message IDs:`, Array.from(allMessages).map(el => el.getAttribute('data-message-id')));
       }
-    }, 100);
+    }, 300); // Increased timeout to ensure React rendering is complete
   };
 
   const goToNextResult = () => {

@@ -544,7 +544,7 @@ img[alt="COYN Logo"] {
   }
   
   .search-highlight-pulse {
-    animation: searchHighlightPulse 2s ease-in-out;
+    animation: search-highlight-pulse 2s ease-in-out;
   }
 }
 
@@ -559,16 +559,19 @@ img[alt="COYN Logo"] {
   }
 }
 
-@keyframes searchHighlightPulse {
+@keyframes search-highlight-pulse {
   0% {
+    background: rgba(37, 99, 235, 0.4) !important;
     box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.1);
-    transform: scale(1.02);
+    background: rgba(37, 99, 235, 0.6) !important;
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.2);
+    transform: scale(1.05);
   }
   100% {
+    background: rgba(37, 99, 235, 0.2) !important;
     box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
     transform: scale(1);
   }
