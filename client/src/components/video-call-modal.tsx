@@ -791,34 +791,65 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
 
           {/* Incoming Call Actions */}
           {callType === "incoming" && callStatus === "ringing" && (
-            <div className="flex justify-center space-x-8">
+            <div className="flex justify-center space-x-12">
               <Button
                 onClick={() => {
-                  console.log('🔴 VIDEO DECLINE BUTTON CLICKED');
+                  console.log('🔴 DECLINE VIDEO CALL');
                   handleEndCall();
                 }}
-                className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
-                title="Decline"
+                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                title="Decline Call"
               >
-                <PhoneOff className="h-6 w-6" />
+                <PhoneOff className="h-10 w-10" />
               </Button>
               <Button
                 onClick={() => {
-                  console.log('🎯 VIDEO ANSWER BUTTON CLICKED - Enhanced debugging');
-                  console.log('🔧 Video button click event triggered');
-                  console.log('📹 Calling handleAcceptCall function');
+                  console.log('🎯 ANSWER VIDEO CALL');
                   handleAcceptCall();
                 }}
-                className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110"
-                title="Accept video call"
+                className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                title="Answer Video Call"
               >
-                <Video className="h-6 w-6" />
+                <Video className="h-10 w-10" />
               </Button>
             </div>
           )}
-          
-          {/* DEBUG: Show button visibility conditions */}
-          {console.log('📹 BUTTON DEBUG: callType=', callType, 'callStatus=', callStatus, 'shouldShow=', callType === "incoming" && callStatus === "ringing")}
+
+          {/* In-Call Controls */}
+          {callStatus === "connected" && (
+            <div className="flex justify-center space-x-6">
+              <Button
+                onClick={() => {
+                  console.log('🔇 TOGGLE VIDEO MUTE');
+                  // TODO: Implement video mute toggle
+                }}
+                className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                title="Toggle Video"
+              >
+                <Video className="h-6 w-6" />
+              </Button>
+              <Button
+                onClick={() => {
+                  console.log('🔇 TOGGLE SPEAKER');
+                  // TODO: Implement speaker toggle
+                }}
+                className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                title="Speaker"
+              >
+                <Volume2 className="h-6 w-6" />
+              </Button>
+              <Button
+                onClick={() => {
+                  console.log('📞 HANG UP VIDEO CALL');
+                  handleEndCall();
+                }}
+                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                title="Hang Up"
+              >
+                <PhoneOff className="h-8 w-8" />
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
