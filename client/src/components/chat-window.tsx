@@ -1840,9 +1840,8 @@ export default function ChatWindow({
 
       {/* Messages container */}
       <div className="flex-1 relative">
-        <div
-            {searchResultCount > 0 ? (
-              <>
+        {searchResultCount > 0 ? (
+          <>
                 <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2.5 md:py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 shadow-sm whitespace-nowrap shrink-0 font-medium">
                   {isSearching ? (
                     <div className="flex items-center space-x-1.5">
@@ -2879,8 +2878,7 @@ export default function ChatWindow({
         </form>
       </div>
 
-
-
+      {/* All modals should be inside the main container */}
       <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
