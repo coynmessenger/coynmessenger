@@ -790,11 +790,6 @@ export default function HomePage() {
       title: "Secure Chat",
       description: "Encrypted conversations with wallet-verified contacts"
     },
-    {
-      icon: ShoppingBag,
-      title: "Marketplace (Coming Soon)",
-      description: "Pay with digital currency"
-    }
   ];
 
   // Show address selector if active
@@ -926,14 +921,6 @@ export default function HomePage() {
                     >
                       <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
                       Messenger
-                    </Button>
-                    <Button
-                      onClick={() => setLocation("/marketplace")}
-                      variant="outline"
-                      className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
-                    >
-                      <Globe className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                      Marketplace
                     </Button>
 
                     <Button
