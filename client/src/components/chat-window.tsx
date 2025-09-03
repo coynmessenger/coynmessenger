@@ -1726,30 +1726,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
 
 
-        {/* Search, Call and Video Icons */}
+        {/* Call and Video Icons */}
         <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              if (searchQuery) {
-                // If search is active, clear it
-                onSearchQueryChange?.('');
-              } else {
-                // If search is not active, start search with a space to trigger the search bar
-                onSearchQueryChange?.(' ');
-              }
-            }}
-            className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
-              searchQuery 
-                ? "text-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30" 
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            title={searchQuery ? "Close search" : "Search messages"}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-          
           {!conversation.isGroup && (
             <>
               <Button
