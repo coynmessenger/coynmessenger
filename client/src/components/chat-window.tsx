@@ -1803,6 +1803,96 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       </div>
 
+      {/* Search Results Bar with Purple Highlighting */}
+      {searchQuery && (
+        <div className="search-results-bar flex items-center justify-between w-full px-3 py-2.5 md:px-4 md:py-3 bg-purple-100/90 dark:bg-purple-900/90 border-b border-purple-200 dark:border-purple-700 relative z-40 backdrop-blur-sm shrink-0">
+          <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
+            {searchResultCount > 0 ? (
+              <>
+                <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2.5 md:py-1.5 bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-600 shadow-sm whitespace-nowrap shrink-0 font-medium">
+                  {isSearching ? (
+                    <div className="flex items-center space-x-1.5">
+                      <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full"></div>
+                      <span className="hidden sm:inline">Searching...</span>
+                      <span className="sm:hidden">...</span>
+                    </div>
+                  ) : (
+                    <span className="font-medium">{currentSearchIndex + 1}/{searchResultCount}</span>
+                  )}
+                </Badge>
+                <div className="flex items-center space-x-1 min-w-0 flex-1">
+                  <span className="text-xs md:text-sm text-purple-700 dark:text-purple-300 shrink-0 font-medium">for</span>
+                  <div className="text-sm font-medium text-purple-800 dark:text-purple-200 truncate">
+                    "{searchQuery}"
+                  </div>
+                </div>
+              </>
+            ) : !isSearching ? (
+              <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
+                <Badge variant="secondary" className="text-xs px-2 py-1 md:px-2.5 md:py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 whitespace-nowrap font-medium">
+                  <span className="hidden sm:inline">No results</span>
+                  <span className="sm:hidden">0</span>
+                </Badge>
+                <div className="flex items-center space-x-1 min-w-0 flex-1">
+                  <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 shrink-0">for</span>
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                    "{searchQuery}"
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          
+          <div className="flex items-center space-x-1.5 shrink-0 ml-2 md:ml-3">
+            {/* Navigation buttons for multiple results */}
+            {!isSearching && searchResults.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 p-1.5 hover:bg-purple-200 dark:hover:bg-purple-700 text-purple-700 dark:text-purple-300 transition-colors duration-200 rounded-md"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPreviousResult();
+                  }}
+                  title="Previous result (↑)"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 p-1.5 hover:bg-purple-200 dark:hover:bg-purple-700 text-purple-700 dark:text-purple-300 transition-colors duration-200 rounded-md"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToNextResult();
+                  }}
+                  title="Next result (↓)"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+            
+            {/* Close search button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 rounded-md"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSearchQueryChange?.('');
+              }}
+              title="Close search"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Chat Messages */}
       <div 
