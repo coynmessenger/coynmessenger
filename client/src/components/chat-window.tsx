@@ -1667,8 +1667,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   return (
     <div className="flex flex-col h-screen bg-background chat-container">
       {/* Chat Header */}
-      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 pr-6 flex items-center justify-between relative z-50 shrink-0">
-        <div className="flex items-center space-x-3">
+      <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
             <Button
@@ -1700,8 +1700,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </>
               )}
             </Avatar>
-            <div className="text-left">
-              <h2 className="font-semibold text-foreground">
+            <div className="text-left min-w-0 flex-1">
+              <h2 className="font-semibold text-foreground truncate">
                 {conversation.isGroup ? conversation.groupName : (
                   <>
                     {conversation.otherUser?.displayName || "Unknown User"}
@@ -1712,7 +1712,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               {conversation.isGroup ? (
                 <p className="text-xs text-muted-foreground">Group conversation</p>
               ) : (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground truncate">
                   {conversation.otherUser?.walletAddress ? 
                     `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
                     ''
@@ -1727,7 +1727,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
 
         {/* Search, Call and Video Icons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
@@ -1740,7 +1740,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 onSearchQueryChange?.(' ');
               }
             }}
-            className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+            className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
               searchQuery 
                 ? "text-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30" 
                 : "text-muted-foreground hover:text-foreground"
@@ -1764,7 +1764,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }
                 }}
                 disabled={isInitiatingCall}
-                className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVoiceCallActive 
                     ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
                     : "text-muted-foreground hover:text-foreground"
@@ -1785,7 +1785,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }
                 }}
                 disabled={isInitiatingCall}
-                className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVideoCallActive 
                     ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
                     : "text-muted-foreground hover:text-foreground"
@@ -1803,7 +1803,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                  className="p-1.5 sm:p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
                   title="Group options"
                 >
                   <MoreVertical className="h-5 w-5" />
