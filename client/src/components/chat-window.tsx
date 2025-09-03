@@ -27,7 +27,7 @@ import { CryptoSender } from "@/components/crypto-sender";
 import { walletConnector } from "@/lib/wallet-connector";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
@@ -1726,8 +1726,30 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
 
 
-        {/* Call and Video Icons */}
+        {/* Search, Call and Video Icons */}
         <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (searchQuery) {
+                // If search is active, clear it
+                onSearchQueryChange?.('');
+              } else {
+                // If search is not active, start search with a space to trigger the search bar
+                onSearchQueryChange?.(' ');
+              }
+            }}
+            className={`p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+              searchQuery 
+                ? "text-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30" 
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title={searchQuery ? "Close search" : "Search messages"}
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+          
           {!conversation.isGroup && (
             <>
               <Button
@@ -1803,6 +1825,106 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       </div>
 
+      {/* Search Bar with Navigation */}
+      {searchQuery && (
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
+              <div className="flex items-center space-x-2">
+                <Badge variant="secondary" className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 font-medium whitespace-nowrap">
+                  {isSearching ? (
+                    <div className="flex items-center space-x-1.5">
+                      <div className="animate-spin w-3 h-3 border border-blue-500 border-t-transparent rounded-full"></div>
+                      <span>Searching...</span>
+                    </div>
+                  ) : searchResultCount > 0 ? (
+                    <span>{currentSearchIndex + 1}/{searchResultCount}</span>
+                  ) : (
+                    <span>No results</span>
+                  )}
+                </Badge>
+                <span className="text-sm text-gray-600 dark:text-gray-400">for</span>
+              </div>
+              <div className="flex-1 max-w-xs">
+                <input
+                  type="text"
+                  value={searchQuery || ''}
+                  onChange={(e) => {
+                    const newQuery = e.target.value;
+                    if (onSearchQueryChange) {
+                      onSearchQueryChange(newQuery);
+                    }
+                  }}
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none text-sm text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md"
+                  placeholder="Search messages..."
+                  autoComplete="off"
+                  spellCheck="false"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (searchResults.length > 0) {
+                        goToNextResult();
+                      }
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      if (onSearchQueryChange) {
+                        onSearchQueryChange('');
+                      }
+                    }
+                  }}
+                  onFocus={(e) => {
+                    e.target.select();
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-1">
+              {!isSearching && searchResults.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToPreviousResult();
+                    }}
+                    title="Previous result (Shift+Enter)"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToNextResult();
+                    }}
+                    title="Next result (Enter)"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onSearchQueryChange?.('');
+                }}
+                title="Close search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Messages */}
       <div 
