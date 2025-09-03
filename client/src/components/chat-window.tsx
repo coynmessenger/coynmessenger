@@ -1667,7 +1667,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   return (
     <div className="flex flex-col h-screen bg-background chat-container">
       {/* Chat Header */}
-      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between relative z-50 shrink-0">
+      <div className="chat-header bg-white dark:bg-card border-b border-border p-4 pr-6 flex items-center justify-between relative z-50 shrink-0">
         <div className="flex items-center space-x-3">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
