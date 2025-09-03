@@ -107,7 +107,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md">
+      <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md my-8 sm:my-16">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <UserPlus className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
