@@ -39,26 +39,57 @@ class WalletConnector {
   }
 
   // Enhanced mobile provider detection with polling
-  private async waitForWalletProvider(timeout: number = 10000): Promise<WalletProvider | null> {
+  private async waitForWalletProvider(timeout: number = 15000): Promise<WalletProvider | null> {
     if (typeof window === 'undefined') return null;
     
     const startTime = Date.now();
     
+    // Enhanced Trust Wallet environment detection
+    const detectTrustWalletEnvironment = () => {
+      return navigator.userAgent.includes('Trust') || 
+             navigator.userAgent.includes('TrustWallet') ||
+             window.location.href.includes('trustwallet') ||
+             document.referrer.includes('trustwallet') ||
+             window.location.search.includes('trustwallet') ||
+             window.ethereum?.isTrust ||
+             window.ethereum?.isTrustWallet ||
+             window.trustWallet;
+    };
+    
+    const isInTrustWallet = detectTrustWalletEnvironment();
+    console.log('🔍 Trust Wallet environment detection:', {
+      userAgent: navigator.userAgent.includes('Trust'),
+      href: window.location.href.includes('trustwallet'),
+      referrer: document.referrer.includes('trustwallet'),
+      search: window.location.search.includes('trustwallet'),
+      hasEthereumTrust: !!window.ethereum?.isTrust,
+      hasTrustWallet: !!window.trustWallet,
+      isInTrustWallet
+    });
+    
     while (Date.now() - startTime < timeout) {
       // Enhanced Trust Wallet detection (check first to override MetaMask detection)
-      const isInTrustWallet = navigator.userAgent.includes('Trust') || 
-                               window.location.href.includes('trustwallet') ||
-                               document.referrer.includes('trustwallet') ||
-                               window.ethereum?.isTrust ||
-                               window.ethereum?.isTrustWallet;
-      
-      if (isInTrustWallet && window.ethereum) {
-        console.log('💙 Trust Wallet detected via environment');
-        return window.ethereum;
+      if (isInTrustWallet) {
+        // In Trust Wallet environment, prioritize any available provider
+        if (window.ethereum) {
+          console.log('💙 Trust Wallet detected via environment with ethereum provider');
+          return window.ethereum;
+        }
+        if (window.trustWallet) {
+          console.log('💙 Trust Wallet detected via trustWallet object');
+          return window.trustWallet;
+        }
+        
+        // Check for Trust Wallet specific properties
+        if (window.ethereum?.isTrust || window.ethereum?.isTrustWallet) {
+          console.log('💙 Trust Wallet detected via provider flags');
+          return window.ethereum;
+        }
       }
       
+      // Direct Trust Wallet provider detection
       if (window.ethereum?.isTrust || window.trustWallet || window.ethereum?.isTrustWallet) {
-        console.log('💙 Trust Wallet detected via provider flags');
+        console.log('💙 Trust Wallet detected via direct provider flags');
         return window.trustWallet || window.ethereum;
       }
       
@@ -68,10 +99,9 @@ class WalletConnector {
         return window.ethereum;
       }
       
-      // Check for Trust Wallet in different ways
+      // Check for Trust Wallet via constructor
       if (window.ethereum && window.ethereum.request) {
         try {
-          // Try to detect Trust Wallet through provider metadata
           if (window.ethereum.constructor?.name === 'TrustWalletProvider' || 
               window.ethereum.providerType === 'trust') {
             console.log('💙 Trust Wallet detected via constructor');
@@ -83,19 +113,20 @@ class WalletConnector {
       }
       
       // Generic Web3 provider (for Trust Wallet that doesn't set identification flags)
-      if (window.ethereum && this.isMobile()) {
-        console.log('🌐 Mobile Web3 wallet detected (possibly Trust Wallet)');
+      if (window.ethereum && (this.isMobile() || isInTrustWallet)) {
+        console.log('🌐 Mobile/Trust Web3 wallet detected');
         return window.ethereum;
       }
       
       // Desktop generic provider
-      if (window.ethereum) {
-        console.log('🌐 Generic Web3 wallet detected');
+      if (window.ethereum && !this.isMobile()) {
+        console.log('🌐 Desktop Web3 wallet detected');
         return window.ethereum;
       }
       
-      // On mobile, wait longer for provider injection
-      await new Promise(resolve => setTimeout(resolve, this.isMobile() ? 500 : 100));
+      // Longer wait for Trust Wallet provider injection
+      const waitTime = isInTrustWallet ? 1000 : (this.isMobile() ? 500 : 100);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
     return null;

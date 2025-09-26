@@ -223,29 +223,38 @@ export default function HomePage() {
       
       // Enhanced detection for Trust Wallet environment
       const isInTrustWallet = navigator.userAgent.includes('Trust') || 
+                               navigator.userAgent.includes('TrustWallet') ||
                                window.location.href.includes('trustwallet') ||
                                document.referrer.includes('trustwallet') ||
+                               window.location.search.includes('trustwallet') ||
                                window.ethereum?.isTrust ||
-                               window.ethereum?.isTrustWallet;
+                               window.ethereum?.isTrustWallet ||
+                               window.trustWallet;
       
       const hasWalletProvider = window.ethereum || window.trustWallet;
       
-      if ((shouldAutoConnect === 'true' || isInTrustWallet) && hasWalletProvider) {
+      // More aggressive auto-connection for Trust Wallet dapp browser
+      if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true') && hasWalletProvider) {
         console.log('🎯 Attempting auto-connection...');
         console.log('  - Should auto connect:', shouldAutoConnect);
         console.log('  - Is in Trust Wallet:', isInTrustWallet);
+        console.log('  - Wallet pending:', walletConnectionPending);
         console.log('  - Wallet type:', autoConnectWalletType);
         console.log('  - Has provider:', hasWalletProvider);
         
+        // Clear flags to prevent repeated attempts
         sessionStorage.removeItem('shouldAutoConnect');
         sessionStorage.removeItem('autoConnectWalletType');
+        if (isInTrustWallet) {
+          localStorage.removeItem('walletConnectionPending'); // Clear pending flag for Trust Wallet
+        }
         
         try {
           // Import and use the wallet connector for auto-connection
           const { walletConnector } = await import('@/lib/wallet-connector');
           
-          // Determine wallet type for connection
-          const walletType = autoConnectWalletType || (isInTrustWallet ? 'trust' : undefined);
+          // Determine wallet type for connection - always use 'trust' if in Trust Wallet environment
+          const walletType = isInTrustWallet ? 'trust' : (autoConnectWalletType || undefined);
           console.log('🔗 Auto-connecting with wallet type:', walletType);
           
           const connectedWallet = await walletConnector.connectWallet(walletType);
@@ -266,8 +275,8 @@ export default function HomePage() {
       }
     };
 
-    // Small delay to ensure everything is ready
-    const timer = setTimeout(attemptAutoConnection, 500); // Increased delay for provider injection
+    // Small delay to ensure everything is ready, shorter for Trust Wallet
+    const timer = setTimeout(attemptAutoConnection, 200); // Faster response for auto-connection
     return () => clearTimeout(timer);
   }, [connectWalletMutation]);
 
@@ -492,6 +501,34 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     localStorage.removeItem('userClickedHome');
+    
+    // Enhanced detection for Trust Wallet dapp browser environment
+    const isInTrustWallet = navigator.userAgent.includes('Trust') || 
+                             navigator.userAgent.includes('TrustWallet') ||
+                             window.location.href.includes('trustwallet') ||
+                             document.referrer.includes('trustwallet') ||
+                             window.location.search.includes('trustwallet') ||
+                             window.ethereum?.isTrust ||
+                             window.ethereum?.isTrustWallet ||
+                             window.trustWallet;
+    
+    // For Trust Wallet, if we're already in the dapp browser, connect directly
+    if (walletType === 'trust' && isInTrustWallet && (window.ethereum || window.trustWallet)) {
+      console.log('💙 Already in Trust Wallet dapp browser, connecting directly...');
+      try {
+        const { walletConnector } = await import('@/lib/wallet-connector');
+        const connectedWallet = await walletConnector.connectWallet('trust');
+        
+        if (connectedWallet?.address) {
+          console.log('✅ Trust Wallet connected directly:', connectedWallet.address);
+          connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Direct Trust Wallet connection failed:', error);
+        // Fall through to normal flow
+      }
+    }
     
     // For desktop, check if wallet is available and show address selector
     if (!isMobile()) {
