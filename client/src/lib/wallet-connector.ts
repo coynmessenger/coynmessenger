@@ -74,27 +74,88 @@ class WalletConnector {
   private openWalletApp(walletType: 'metamask' | 'trust'): void {
     if (!this.isMobile()) return;
     
-    const currentUrl = encodeURIComponent(window.location.href);
+    // Set up return tracking
+    localStorage.setItem('walletConnectionPending', 'true');
+    localStorage.setItem('walletConnectionType', walletType);
+    localStorage.setItem('walletConnectionTimestamp', Date.now().toString());
+    
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    const fullUrl = window.location.href;
     
     if (walletType === 'trust') {
-      // Trust Wallet deep link
-      const trustLink = `trust://wc?uri=${currentUrl}`;
-      window.location.href = trustLink;
+      // Trust Wallet dapp browser deep link - open our site in Trust Wallet's browser
+      const trustDappUrl = `https://link.trustwallet.com/open_url?coin_id=56&url=${encodeURIComponent(fullUrl)}`;
       
-      // Fallback to Trust Wallet website
+      console.log('🔗 Opening Trust Wallet with URL:', trustDappUrl);
+      
+      // Direct redirect to Trust Wallet dapp browser
+      window.location.href = trustDappUrl;
+      
+      // Alternative fallback using Trust Wallet app scheme
       setTimeout(() => {
-        window.open('https://link.trustwallet.com/open_url?coin_id=56&url=' + currentUrl, '_blank');
-      }, 2000);
+        if (localStorage.getItem('walletConnectionPending') === 'true') {
+          const trustScheme = `trust://open_url?coin_id=56&url=${encodeURIComponent(fullUrl)}`;
+          window.location.href = trustScheme;
+        }
+      }, 3000);
+      
     } else if (walletType === 'metamask') {
-      // MetaMask deep link
-      const metamaskLink = `metamask://dapp/${window.location.host}${window.location.pathname}`;
-      window.location.href = metamaskLink;
+      // MetaMask dapp browser deep link - open our site in MetaMask's browser
+      const metamaskDappUrl = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}${window.location.search}`;
       
-      // Fallback to MetaMask mobile website
+      console.log('🔗 Opening MetaMask with URL:', metamaskDappUrl);
+      
+      // Direct redirect to MetaMask dapp browser
+      window.location.href = metamaskDappUrl;
+      
+      // Alternative fallback using MetaMask app scheme
       setTimeout(() => {
-        window.open('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname, '_blank');
-      }, 2000);
+        if (localStorage.getItem('walletConnectionPending') === 'true') {
+          const metamaskScheme = `metamask://dapp/${window.location.host}${window.location.pathname}${window.location.search}`;
+          window.location.href = metamaskScheme;
+        }
+      }, 3000);
     }
+    
+    // Set up return detection
+    this.setupReturnDetection();
+  }
+  
+  // Set up detection for when user returns from wallet
+  private setupReturnDetection(): void {
+    const checkConnection = async () => {
+      if (localStorage.getItem('walletConnectionPending') !== 'true') return;
+      
+      // Check if we now have a Web3 provider (means we're in wallet browser)
+      const provider = await this.waitForWalletProvider(1000);
+      if (provider) {
+        console.log('🎉 Wallet provider detected after return, attempting auto-connection...');
+        localStorage.removeItem('walletConnectionPending');
+        
+        // Auto-trigger connection
+        try {
+          const wallet = await this.connectWallet();
+          console.log('✅ Auto-connection successful:', wallet.address);
+          
+          // Trigger page refresh or navigation to messenger
+          window.dispatchEvent(new CustomEvent('walletConnected', { detail: wallet }));
+        } catch (error) {
+          console.log('Auto-connection failed, user needs to click connect again');
+        }
+      }
+    };
+    
+    // Check periodically for provider
+    const intervalId = setInterval(checkConnection, 2000);
+    
+    // Clean up after 30 seconds
+    setTimeout(() => {
+      clearInterval(intervalId);
+      if (localStorage.getItem('walletConnectionPending') === 'true') {
+        localStorage.removeItem('walletConnectionPending');
+        console.log('Wallet connection attempt timed out');
+      }
+    }, 30000);
   }
 
   // Enhanced mobile-aware wallet connection

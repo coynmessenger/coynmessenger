@@ -45,7 +45,7 @@ export default function HomePage() {
 
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
-    const handleAuthenticationAndRedirect = () => {
+    const handleAuthenticationAndRedirect = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const fromWallet = urlParams.get('from_wallet') === 'true';
       const walletReturn = urlParams.get('wallet_return') === 'true';
@@ -54,11 +54,20 @@ export default function HomePage() {
       const storedUser = localStorage.getItem('connectedUser');
       const userSignedOut = localStorage.getItem('userSignedOut');
       const userClickedHome = localStorage.getItem('userClickedHome');
+      const walletConnectionPending = localStorage.getItem('walletConnectionPending');
       
       // Clean up URL parameters first
       if (fromWallet || walletReturn) {
         const cleanUrl = `${window.location.origin}${window.location.pathname}`;
         window.history.replaceState({}, document.title, cleanUrl);
+      }
+      
+      // Check if we're in a wallet browser with pending connection
+      if (walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) {
+        console.log('🎯 Detected wallet browser with pending connection, will attempt auto-connection after mutation is ready...');
+        
+        // Mark that we should attempt auto-connection
+        sessionStorage.setItem('shouldAutoConnect', 'true');
       }
       
       // Don't redirect if user explicitly chose to stay on homepage
@@ -91,7 +100,7 @@ export default function HomePage() {
     };
 
     // Single execution with minimal delay
-    const timer = setTimeout(handleAuthenticationAndRedirect, 50);
+    const timer = setTimeout(handleAuthenticationAndRedirect, 100);
     return () => clearTimeout(timer);
   }, []); // Run only once on mount
 
@@ -114,8 +123,27 @@ export default function HomePage() {
       }
     };
 
+    // Handle automatic wallet connection from wallet browser
+    const handleWalletConnected = (event: CustomEvent) => {
+      console.log('🎉 Wallet connected event received:', event.detail);
+      
+      // Clear any pending connection state
+      localStorage.removeItem('walletConnectionPending');
+      localStorage.removeItem('userSignedOut');
+      
+      // The wallet connector should trigger the mutation, so we just need to wait for it
+      setTimeout(() => {
+        const storedUser = localStorage.getItem('connectedUser');
+        if (storedUser) {
+          console.log('✅ Redirecting to messenger after wallet connection...');
+          setLocation("/messenger");
+        }
+      }, 1000);
+    };
+
     // Listen for custom wallet connection events
     window.addEventListener('walletConnected', handleWalletConnectionUpdate);
+    window.addEventListener('walletConnected', handleWalletConnected as EventListener);
     
     // Also listen for storage events (cross-tab sync)
     window.addEventListener('storage', (e) => {
@@ -126,9 +154,10 @@ export default function HomePage() {
 
     return () => {
       window.removeEventListener('walletConnected', handleWalletConnectionUpdate);
+      window.removeEventListener('walletConnected', handleWalletConnected as EventListener);
       window.removeEventListener('storage', handleWalletConnectionUpdate);
     };
-  }, []);
+  }, [setLocation]);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
@@ -172,6 +201,41 @@ export default function HomePage() {
       setLocation("/messenger");
     },
   });
+
+  // Auto-connection effect (after mutation is defined)
+  useEffect(() => {
+    const attemptAutoConnection = async () => {
+      const shouldAutoConnect = sessionStorage.getItem('shouldAutoConnect');
+      const walletConnectionPending = localStorage.getItem('walletConnectionPending');
+      
+      if (shouldAutoConnect === 'true' && walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) {
+        console.log('🎯 Attempting auto-connection...');
+        sessionStorage.removeItem('shouldAutoConnect');
+        
+        try {
+          // Import and use the wallet connector for auto-connection
+          const { walletConnector } = await import('@/lib/wallet-connector');
+          const connectedWallet = await walletConnector.connectWallet();
+          
+          if (connectedWallet?.address) {
+            console.log('✅ Auto-connection successful:', connectedWallet.address);
+            localStorage.removeItem('walletConnectionPending');
+            
+            // Trigger the mutation to create/find user
+            connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
+            return;
+          }
+        } catch (error) {
+          console.log('Auto-connection failed, user will need to manually connect');
+          localStorage.removeItem('walletConnectionPending');
+        }
+      }
+    };
+
+    // Small delay to ensure everything is ready
+    const timer = setTimeout(attemptAutoConnection, 200);
+    return () => clearTimeout(timer);
+  }, [connectWalletMutation]);
 
   // Enhanced state synchronization with Trust Wallet mobile support
   useEffect(() => {
