@@ -6,6 +6,9 @@ interface WalletProvider {
   removeListener?: (event: string, callback: (...args: any[]) => void) => void;
   isMetaMask?: boolean;
   isTrust?: boolean;
+  isTrustWallet?: boolean;
+  constructor?: { name?: string };
+  providerType?: string;
 }
 
 interface ConnectedWallet {
@@ -81,16 +84,16 @@ class WalletConnector {
         }
         
         // Check for Trust Wallet specific properties
-        if (window.ethereum?.isTrust || window.ethereum?.isTrustWallet) {
+        if ((window.ethereum as any)?.isTrust || (window.ethereum as any)?.isTrustWallet) {
           console.log('💙 Trust Wallet detected via provider flags');
           return window.ethereum;
         }
       }
       
       // Direct Trust Wallet provider detection
-      if (window.ethereum?.isTrust || window.trustWallet || window.ethereum?.isTrustWallet) {
+      if ((window.ethereum as any)?.isTrust || window.trustWallet || (window.ethereum as any)?.isTrustWallet) {
         console.log('💙 Trust Wallet detected via direct provider flags');
-        return window.trustWallet || window.ethereum;
+        return (window.trustWallet as WalletProvider) || window.ethereum;
       }
       
       // Check for MetaMask (only if not in Trust Wallet environment)
@@ -100,10 +103,10 @@ class WalletConnector {
       }
       
       // Check for Trust Wallet via constructor
-      if (window.ethereum && window.ethereum.request) {
+      if (window.ethereum && typeof window.ethereum.request === 'function') {
         try {
-          if (window.ethereum.constructor?.name === 'TrustWalletProvider' || 
-              window.ethereum.providerType === 'trust') {
+          if ((window.ethereum as any).constructor?.name === 'TrustWalletProvider' || 
+              (window.ethereum as any).providerType === 'trust') {
             console.log('💙 Trust Wallet detected via constructor');
             return window.ethereum;
           }
@@ -145,38 +148,46 @@ class WalletConnector {
     const fullUrl = window.location.href;
     
     if (walletType === 'trust') {
-      // Trust Wallet dapp browser deep link - try multiple approaches
+      // Create a connection-ready URL with auto-connect parameters
+      const connectionUrl = `${baseUrl}/?wallet_connect=trust&auto_connect=true&source=trust_wallet`;
+      
+      // Trust Wallet universal links optimized for direct connection
       const trustDappUrls = [
-        // Method 1: Trust Wallet universal link with ETH network (coin_id=60)
-        `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(fullUrl)}`,
-        // Method 2: Trust Wallet universal link with BSC network (coin_id=56) 
-        `https://link.trustwallet.com/open_url?coin_id=56&url=${encodeURIComponent(fullUrl)}`,
-        // Method 3: Trust Wallet browser URL format
-        `https://link.trustwallet.com/browser?url=${encodeURIComponent(fullUrl)}`,
-        // Method 4: Trust Wallet WalletConnect format
-        `https://link.trustwallet.com/wc?uri=${encodeURIComponent(fullUrl)}`
+        // Method 1: Trust Wallet dapp browser with BSC network (most reliable)
+        `https://link.trustwallet.com/open_url?coin_id=56&url=${encodeURIComponent(connectionUrl)}`,
+        // Method 2: Trust Wallet with auto-connection flag
+        `https://link.trustwallet.com/browser?url=${encodeURIComponent(connectionUrl)}`,
+        // Method 3: Direct Trust Wallet scheme
+        `trust://open_url?coin_id=56&url=${encodeURIComponent(connectionUrl)}`,
+        // Method 4: Fallback to current URL
+        `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(fullUrl)}`
       ];
       
-      console.log('🔗 Opening Trust Wallet with multiple URLs:', trustDappUrls[0]);
+      console.log('🔗 Opening Trust Wallet with connection URL:', trustDappUrls[0]);
+      console.log('🔗 Connection target:', connectionUrl);
       
-      // Try the primary method first
+      // Set connection flags for immediate auto-connection
+      localStorage.setItem('trustWalletConnectionInitiated', 'true');
+      localStorage.setItem('walletConnectionSource', 'trust_button');
+      
+      // Immediate redirect to Trust Wallet
       window.location.href = trustDappUrls[0];
       
-      // Progressive fallback with different URL formats
+      // Quick fallback system for better reliability
       let fallbackIndex = 1;
       const tryFallback = () => {
         if (localStorage.getItem('walletConnectionPending') === 'true' && fallbackIndex < trustDappUrls.length) {
-          console.log(`🔄 Trying Trust Wallet fallback ${fallbackIndex}:`, trustDappUrls[fallbackIndex]);
+          console.log(`🔄 Trust Wallet fallback ${fallbackIndex}:`, trustDappUrls[fallbackIndex]);
           window.location.href = trustDappUrls[fallbackIndex];
           fallbackIndex++;
           
           if (fallbackIndex < trustDappUrls.length) {
-            setTimeout(tryFallback, 3000);
+            setTimeout(tryFallback, 1500);
           }
         }
       };
       
-      setTimeout(tryFallback, 3000);
+      setTimeout(tryFallback, 1500);
       
     } else if (walletType === 'metamask') {
       // MetaMask dapp browser deep link - open our site in MetaMask's browser

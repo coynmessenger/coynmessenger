@@ -222,6 +222,11 @@ export default function HomePage() {
       const autoConnectWalletType = sessionStorage.getItem('autoConnectWalletType') as 'trust' | 'metamask' | null;
       
       // Enhanced detection for Trust Wallet environment
+      const urlParams = new URLSearchParams(window.location.search);
+      const walletConnect = urlParams.get('wallet_connect');
+      const autoConnect = urlParams.get('auto_connect');
+      const source = urlParams.get('source');
+      
       const isInTrustWallet = navigator.userAgent.includes('Trust') || 
                                navigator.userAgent.includes('TrustWallet') ||
                                window.location.href.includes('trustwallet') ||
@@ -232,29 +237,35 @@ export default function HomePage() {
                                window.trustWallet;
       
       const hasWalletProvider = window.ethereum || window.trustWallet;
+      const trustWalletInitiated = localStorage.getItem('trustWalletConnectionInitiated') === 'true';
+      const isTrustWalletConnection = walletConnect === 'trust' || source === 'trust_wallet' || trustWalletInitiated;
       
       // More aggressive auto-connection for Trust Wallet dapp browser
-      if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true') && hasWalletProvider) {
+      if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true' || 
+           (isTrustWalletConnection && autoConnect === 'true')) && hasWalletProvider) {
         console.log('🎯 Attempting auto-connection...');
         console.log('  - Should auto connect:', shouldAutoConnect);
         console.log('  - Is in Trust Wallet:', isInTrustWallet);
         console.log('  - Wallet pending:', walletConnectionPending);
+        console.log('  - Trust Wallet connection:', isTrustWalletConnection);
+        console.log('  - URL auto connect:', autoConnect);
         console.log('  - Wallet type:', autoConnectWalletType);
         console.log('  - Has provider:', hasWalletProvider);
         
         // Clear flags to prevent repeated attempts
         sessionStorage.removeItem('shouldAutoConnect');
         sessionStorage.removeItem('autoConnectWalletType');
-        if (isInTrustWallet) {
-          localStorage.removeItem('walletConnectionPending'); // Clear pending flag for Trust Wallet
+        if (isInTrustWallet || isTrustWalletConnection) {
+          localStorage.removeItem('walletConnectionPending');
+          localStorage.removeItem('trustWalletConnectionInitiated');
         }
         
         try {
           // Import and use the wallet connector for auto-connection
           const { walletConnector } = await import('@/lib/wallet-connector');
           
-          // Determine wallet type for connection - always use 'trust' if in Trust Wallet environment
-          const walletType = isInTrustWallet ? 'trust' : (autoConnectWalletType || undefined);
+          // Determine wallet type for connection - prioritize Trust Wallet detection
+          const walletType = (isInTrustWallet || isTrustWalletConnection) ? 'trust' : (autoConnectWalletType || undefined);
           console.log('🔗 Auto-connecting with wallet type:', walletType);
           
           const connectedWallet = await walletConnector.connectWallet(walletType);
