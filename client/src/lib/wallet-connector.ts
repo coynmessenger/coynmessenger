@@ -51,13 +51,36 @@ class WalletConnector {
         return window.ethereum;
       }
       
-      // Check for Trust Wallet
-      if (window.ethereum?.isTrust || window.trustWallet) {
+      // Enhanced Trust Wallet detection
+      if (window.ethereum?.isTrust || window.trustWallet || window.ethereum?.isTrustWallet) {
         console.log('💙 Trust Wallet detected');
         return window.trustWallet || window.ethereum;
       }
       
-      // Generic Web3 provider
+      // Check for Trust Wallet in different ways
+      if (window.ethereum && window.ethereum.request) {
+        try {
+          // Try to detect Trust Wallet through provider metadata
+          const isConnected = await window.ethereum.request({ method: 'eth_accounts' });
+          if (window.ethereum.constructor?.name === 'TrustWalletProvider' || 
+              window.ethereum.providerType === 'trust' ||
+              window.location.href.includes('trustwallet') ||
+              navigator.userAgent.includes('Trust')) {
+            console.log('💙 Trust Wallet detected via metadata');
+            return window.ethereum;
+          }
+        } catch (e) {
+          // Ignore detection errors
+        }
+      }
+      
+      // Generic Web3 provider (for Trust Wallet that doesn't set identification flags)
+      if (window.ethereum && this.isMobile()) {
+        console.log('🌐 Mobile Web3 wallet detected (possibly Trust Wallet)');
+        return window.ethereum;
+      }
+      
+      // Desktop generic provider
       if (window.ethereum) {
         console.log('🌐 Generic Web3 wallet detected');
         return window.ethereum;
@@ -83,21 +106,38 @@ class WalletConnector {
     const fullUrl = window.location.href;
     
     if (walletType === 'trust') {
-      // Trust Wallet dapp browser deep link - open our site in Trust Wallet's browser
-      const trustDappUrl = `https://link.trustwallet.com/open_url?coin_id=56&url=${encodeURIComponent(fullUrl)}`;
+      // Trust Wallet dapp browser deep link - try multiple approaches
+      const trustDappUrls = [
+        // Method 1: Trust Wallet universal link with ETH network (coin_id=60)
+        `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(fullUrl)}`,
+        // Method 2: Trust Wallet universal link with BSC network (coin_id=56) 
+        `https://link.trustwallet.com/open_url?coin_id=56&url=${encodeURIComponent(fullUrl)}`,
+        // Method 3: Trust Wallet browser URL format
+        `https://link.trustwallet.com/browser?url=${encodeURIComponent(fullUrl)}`,
+        // Method 4: Trust Wallet WalletConnect format
+        `https://link.trustwallet.com/wc?uri=${encodeURIComponent(fullUrl)}`
+      ];
       
-      console.log('🔗 Opening Trust Wallet with URL:', trustDappUrl);
+      console.log('🔗 Opening Trust Wallet with multiple URLs:', trustDappUrls[0]);
       
-      // Direct redirect to Trust Wallet dapp browser
-      window.location.href = trustDappUrl;
+      // Try the primary method first
+      window.location.href = trustDappUrls[0];
       
-      // Alternative fallback using Trust Wallet app scheme
-      setTimeout(() => {
-        if (localStorage.getItem('walletConnectionPending') === 'true') {
-          const trustScheme = `trust://open_url?coin_id=56&url=${encodeURIComponent(fullUrl)}`;
-          window.location.href = trustScheme;
+      // Progressive fallback with different URL formats
+      let fallbackIndex = 1;
+      const tryFallback = () => {
+        if (localStorage.getItem('walletConnectionPending') === 'true' && fallbackIndex < trustDappUrls.length) {
+          console.log(`🔄 Trying Trust Wallet fallback ${fallbackIndex}:`, trustDappUrls[fallbackIndex]);
+          window.location.href = trustDappUrls[fallbackIndex];
+          fallbackIndex++;
+          
+          if (fallbackIndex < trustDappUrls.length) {
+            setTimeout(tryFallback, 3000);
+          }
         }
-      }, 3000);
+      };
+      
+      setTimeout(tryFallback, 3000);
       
     } else if (walletType === 'metamask') {
       // MetaMask dapp browser deep link - open our site in MetaMask's browser
@@ -567,6 +607,9 @@ declare global {
       removeListener?: (event: string, callback: (...args: any[]) => void) => void;
       isMetaMask?: boolean;
       isTrust?: boolean;
+      isTrustWallet?: boolean;
+      providerType?: string;
+      constructor?: { name?: string };
     };
     trustWallet?: {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
