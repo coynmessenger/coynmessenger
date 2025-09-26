@@ -348,7 +348,7 @@ export default function HomePage() {
     // Small delay to ensure everything is ready, shorter for Trust Wallet
     const timer = setTimeout(attemptAutoConnection, 200); // Faster response for auto-connection
     return () => clearTimeout(timer);
-  }, [connectWalletMutation]);
+  }, []); // ✅ Fixed: Remove dependency to prevent infinite loops
 
   // Enhanced state synchronization with Trust Wallet mobile support
   useEffect(() => {
