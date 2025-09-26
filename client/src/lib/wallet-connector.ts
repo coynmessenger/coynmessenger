@@ -111,21 +111,37 @@ class WalletConnector {
     while (Date.now() - startTime < timeout) {
       // Enhanced Trust Wallet detection (check first to override MetaMask detection)
       if (isInTrustWallet) {
+        console.log('🔄 Trust Wallet environment detected - waiting for provider injection...');
+        console.log(`  ⏱️ Time elapsed: ${Date.now() - startTime}ms / ${timeout}ms`);
+        console.log(`  🌐 window.ethereum available: ${!!window.ethereum}`);
+        console.log(`  🌐 window.trustWallet available: ${!!window.trustWallet}`);
+        
         // In Trust Wallet environment, prioritize any available provider
         if (window.ethereum) {
-          console.log('💙 Trust Wallet detected via environment with ethereum provider');
+          console.log('💙 ✅ Trust Wallet ethereum provider found!');
+          console.log('  🔗 Provider details:', {
+            isMetaMask: window.ethereum.isMetaMask,
+            isTrust: (window.ethereum as any).isTrust,
+            isTrustWallet: (window.ethereum as any).isTrustWallet,
+            constructor: (window.ethereum as any).constructor?.name
+          });
           return window.ethereum;
         }
         if (window.trustWallet) {
-          console.log('💙 Trust Wallet detected via trustWallet object');
+          console.log('💙 ✅ Trust Wallet trustWallet object found!');
           return window.trustWallet;
         }
         
         // Check for Trust Wallet specific properties
         if ((window.ethereum as any)?.isTrust || (window.ethereum as any)?.isTrustWallet) {
-          console.log('💙 Trust Wallet detected via provider flags');
+          console.log('💙 ✅ Trust Wallet detected via provider flags');
           return window.ethereum || null;
         }
+        
+        // Trust Wallet specific: Wait longer and be more patient
+        console.log('⏳ Trust Wallet detected but provider not ready yet, waiting...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms before next check
+        continue;
       }
       
       // Direct Trust Wallet provider detection
@@ -325,9 +341,10 @@ class WalletConnector {
     if (this.isMobile() && walletType) {
       console.log('📱 MOBILE DEVICE DETECTED - Starting mobile-specific connection flow');
       
-      // Quick provider check first
-      console.log('🔍 QUICK PROVIDER CHECK (2 second timeout)...');
-      const provider = await this.waitForWalletProvider(2000);
+      // Quick provider check first - Trust Wallet needs more time than MetaMask
+      const quickTimeout = walletType === 'trust' ? 8000 : 2000; // Trust Wallet needs 8 seconds
+      console.log(`🔍 QUICK PROVIDER CHECK (${quickTimeout}ms timeout for ${walletType})...`);
+      const provider = await this.waitForWalletProvider(quickTimeout);
       
       console.log('🔍 QUICK CHECK RESULTS:');
       console.log('  🔍 Provider found:', !!provider);
@@ -347,8 +364,17 @@ class WalletConnector {
       }
     }
     
-    // Wait for wallet provider (longer timeout on mobile)
-    const walletProvider = await this.waitForWalletProvider(this.isMobile() ? 15000 : 5000);
+    // Wait for wallet provider with Trust Wallet specific timing
+    console.log('🔍 WAITING FOR WALLET PROVIDER...');
+    const isTrustWalletFlow = walletType === 'trust' || localStorage.getItem('trustWalletConnectionInitiated') === 'true';
+    let timeout = 5000; // Default timeout
+    
+    if (this.isMobile()) {
+      timeout = isTrustWalletFlow ? 25000 : 15000; // Trust Wallet needs more time on mobile
+    }
+    
+    console.log(`⏱️ Provider timeout: ${timeout}ms (Trust Wallet flow: ${isTrustWalletFlow})`);
+    const walletProvider = await this.waitForWalletProvider(timeout);
     
     if (!walletProvider) {
       const isMobile = this.isMobile();

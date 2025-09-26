@@ -274,7 +274,9 @@ export default function HomePage() {
       
       // More aggressive auto-connection for Trust Wallet dapp browser
       if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true' || 
-           (isTrustWalletConnection && autoConnect === 'true')) && hasWalletProvider) {
+           (isTrustWalletConnection && autoConnect === 'true') || 
+           (isInTrustWallet && isTrustWalletConnection)) && 
+          (hasWalletProvider || isInTrustWallet || isTrustWalletConnection)) {
         console.log('🎯 Attempting auto-connection...');
         console.log('  - Should auto connect:', shouldAutoConnect);
         console.log('  - Is in Trust Wallet:', isInTrustWallet);
