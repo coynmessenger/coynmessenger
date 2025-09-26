@@ -163,12 +163,17 @@ class WalletConnector {
         `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(fullUrl)}`
       ];
       
+      console.log('🔗 TRUST WALLET BUTTON CLICKED - Starting deep link process');
       console.log('🔗 Opening Trust Wallet with connection URL:', trustDappUrls[0]);
       console.log('🔗 Connection target:', connectionUrl);
+      console.log('🔗 All available URLs:', trustDappUrls);
       
       // Set connection flags for immediate auto-connection
       localStorage.setItem('trustWalletConnectionInitiated', 'true');
       localStorage.setItem('walletConnectionSource', 'trust_button');
+      localStorage.setItem('walletConnectionPending', 'true');
+      
+      console.log('🔗 Connection flags set - trustWalletConnectionInitiated, walletConnectionSource, walletConnectionPending');
       
       // Immediate redirect to Trust Wallet
       window.location.href = trustDappUrls[0];

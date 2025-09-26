@@ -89,6 +89,18 @@ export default function HomePage() {
         return;
       }
       
+      // Check for Trust Wallet connection parameters - prevent redirect during wallet connection
+      const urlParamsCheck = new URLSearchParams(window.location.search);
+      const walletConnect = urlParamsCheck.get('wallet_connect');
+      const autoConnect = urlParamsCheck.get('auto_connect');
+      const source = urlParamsCheck.get('source');
+      const isTrustWalletFlow = walletConnect === 'trust' || source === 'trust_wallet' || autoConnect === 'true';
+      
+      if (isTrustWalletFlow) {
+        console.log('🔍 Trust Wallet connection flow detected - preventing automatic redirect to allow wallet connection');
+        return;
+      }
+      
       // Redirect authenticated users to messenger
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
         try {
@@ -227,6 +239,20 @@ export default function HomePage() {
       const autoConnect = urlParams.get('auto_connect');
       const source = urlParams.get('source');
       
+      // DEBUG: Log all URL parameters and detection
+      console.log('🔍 TRUST WALLET DEBUG: URL Analysis');
+      console.log('  - Full URL:', window.location.href);
+      console.log('  - Search params:', window.location.search);
+      console.log('  - wallet_connect param:', walletConnect);
+      console.log('  - auto_connect param:', autoConnect);
+      console.log('  - source param:', source);
+      console.log('  - User agent:', navigator.userAgent);
+      console.log('  - Referrer:', document.referrer);
+      console.log('  - Has window.ethereum:', !!window.ethereum);
+      console.log('  - Has window.trustWallet:', !!window.trustWallet);
+      console.log('  - window.ethereum?.isTrust:', window.ethereum?.isTrust);
+      console.log('  - window.ethereum?.isTrustWallet:', window.ethereum?.isTrustWallet);
+      
       const isInTrustWallet = navigator.userAgent.includes('Trust') || 
                                navigator.userAgent.includes('TrustWallet') ||
                                window.location.href.includes('trustwallet') ||
@@ -239,6 +265,12 @@ export default function HomePage() {
       const hasWalletProvider = window.ethereum || window.trustWallet;
       const trustWalletInitiated = localStorage.getItem('trustWalletConnectionInitiated') === 'true';
       const isTrustWalletConnection = walletConnect === 'trust' || source === 'trust_wallet' || trustWalletInitiated;
+      
+      console.log('🔍 TRUST WALLET DEBUG: Detection Results');
+      console.log('  - isInTrustWallet:', isInTrustWallet);
+      console.log('  - hasWalletProvider:', hasWalletProvider);
+      console.log('  - trustWalletInitiated:', trustWalletInitiated);
+      console.log('  - isTrustWalletConnection:', isTrustWalletConnection);
       
       // More aggressive auto-connection for Trust Wallet dapp browser
       if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true' || 
