@@ -33,47 +33,107 @@ class WalletConnector {
     blockExplorerUrls: ['https://bscscan.com/'],
   };
 
-  // Check if wallet is available
-  private getWalletProvider(): WalletProvider | null {
+  // Mobile device detection
+  private isMobile(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Enhanced mobile provider detection with polling
+  private async waitForWalletProvider(timeout: number = 10000): Promise<WalletProvider | null> {
     if (typeof window === 'undefined') return null;
     
-    // Check for MetaMask
-    if (window.ethereum?.isMetaMask) {
-      console.log('🦊 MetaMask detected');
-      return window.ethereum;
-    }
+    const startTime = Date.now();
     
-    // Check for Trust Wallet
-    if (window.ethereum?.isTrust) {
-      console.log('💙 Trust Wallet detected');
-      return window.ethereum;
-    }
-    
-    // Generic Web3 provider
-    if (window.ethereum) {
-      console.log('🌐 Generic Web3 wallet detected');
-      return window.ethereum;
+    while (Date.now() - startTime < timeout) {
+      // Check for MetaMask
+      if (window.ethereum?.isMetaMask) {
+        console.log('🦊 MetaMask detected');
+        return window.ethereum;
+      }
+      
+      // Check for Trust Wallet
+      if (window.ethereum?.isTrust || window.trustWallet) {
+        console.log('💙 Trust Wallet detected');
+        return window.trustWallet || window.ethereum;
+      }
+      
+      // Generic Web3 provider
+      if (window.ethereum) {
+        console.log('🌐 Generic Web3 wallet detected');
+        return window.ethereum;
+      }
+      
+      // On mobile, wait longer for provider injection
+      await new Promise(resolve => setTimeout(resolve, this.isMobile() ? 500 : 100));
     }
     
     return null;
   }
 
-  // Connect to wallet with retry logic
-  async connectWallet(): Promise<ConnectedWallet> {
-    const walletProvider = this.getWalletProvider();
+  // Deep linking for mobile wallets
+  private openWalletApp(walletType: 'metamask' | 'trust'): void {
+    if (!this.isMobile()) return;
+    
+    const currentUrl = encodeURIComponent(window.location.href);
+    
+    if (walletType === 'trust') {
+      // Trust Wallet deep link
+      const trustLink = `trust://wc?uri=${currentUrl}`;
+      window.location.href = trustLink;
+      
+      // Fallback to Trust Wallet website
+      setTimeout(() => {
+        window.open('https://link.trustwallet.com/open_url?coin_id=56&url=' + currentUrl, '_blank');
+      }, 2000);
+    } else if (walletType === 'metamask') {
+      // MetaMask deep link
+      const metamaskLink = `metamask://dapp/${window.location.host}${window.location.pathname}`;
+      window.location.href = metamaskLink;
+      
+      // Fallback to MetaMask mobile website
+      setTimeout(() => {
+        window.open('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname, '_blank');
+      }, 2000);
+    }
+  }
+
+  // Enhanced mobile-aware wallet connection
+  async connectWallet(walletType?: 'metamask' | 'trust'): Promise<ConnectedWallet> {
+    console.log('🔗 Starting wallet connection...', { isMobile: this.isMobile(), walletType });
+    
+    // On mobile, try deep linking first if no provider is available
+    if (this.isMobile() && walletType) {
+      const provider = await this.waitForWalletProvider(2000); // Quick check first
+      if (!provider) {
+        console.log('📱 No provider found on mobile, attempting deep link...');
+        this.openWalletApp(walletType);
+        throw new Error(`Opening ${walletType === 'trust' ? 'Trust Wallet' : 'MetaMask'} app...`);
+      }
+    }
+    
+    // Wait for wallet provider (longer timeout on mobile)
+    const walletProvider = await this.waitForWalletProvider(this.isMobile() ? 15000 : 5000);
     
     if (!walletProvider) {
-      throw new Error('No Web3 wallet detected. Please install MetaMask or Trust Wallet.');
+      const isMobile = this.isMobile();
+      if (isMobile) {
+        throw new Error('Please open this page in Trust Wallet or MetaMask mobile browser, or connect your wallet first.');
+      } else {
+        throw new Error('No Web3 wallet detected. Please install MetaMask or Trust Wallet extension.');
+      }
     }
 
     try {
       console.log('🔗 Requesting wallet connection...');
       
-      // Request account access with timeout
+      // Mobile-aware timeout (longer for mobile due to app switching)
+      const connectionTimeout = this.isMobile() ? 60000 : 30000;
+      
+      // Request account access with mobile-friendly timeout
       const accounts = await Promise.race([
         walletProvider.request({ method: 'eth_requestAccounts' }),
         new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Wallet connection timeout')), 30000)
+          setTimeout(() => reject(new Error('Wallet connection timeout - please try again')), connectionTimeout)
         )
       ]);
 
