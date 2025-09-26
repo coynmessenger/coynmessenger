@@ -257,10 +257,14 @@ export default function HomePage() {
                                navigator.userAgent.includes('TrustWallet') ||
                                window.location.href.includes('trustwallet') ||
                                document.referrer.includes('trustwallet') ||
+                               document.referrer.includes('link.trustwallet.com') ||
                                window.location.search.includes('trustwallet') ||
                                window.ethereum?.isTrust ||
                                window.ethereum?.isTrustWallet ||
-                               window.trustWallet;
+                               window.trustWallet ||
+                               // Check if we recently initiated Trust Wallet connection
+                               localStorage.getItem('trustWalletConnectionInitiated') === 'true' ||
+                               localStorage.getItem('walletConnectionSource') === 'trust_button';
       
       const hasWalletProvider = window.ethereum || window.trustWallet;
       const trustWalletInitiated = localStorage.getItem('trustWalletConnectionInitiated') === 'true';
@@ -271,6 +275,25 @@ export default function HomePage() {
       console.log('  - hasWalletProvider:', hasWalletProvider);
       console.log('  - trustWalletInitiated:', trustWalletInitiated);
       console.log('  - isTrustWalletConnection:', isTrustWalletConnection);
+      
+      // Check if user is already connected first
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      if (storedConnected === 'true' && storedUser) {
+        console.log('🎯 User already connected, redirecting to messenger...');
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser?.id && parsedUser?.walletAddress) {
+            setLocation("/messenger");
+            return;
+          }
+        } catch (error) {
+          console.log('Invalid stored user data, clearing...');
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+        }
+      }
       
       // More aggressive auto-connection for Trust Wallet dapp browser
       if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true' || 

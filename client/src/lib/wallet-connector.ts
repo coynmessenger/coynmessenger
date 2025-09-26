@@ -342,7 +342,7 @@ class WalletConnector {
       console.log('📱 MOBILE DEVICE DETECTED - Starting mobile-specific connection flow');
       
       // Quick provider check first - Trust Wallet needs more time than MetaMask
-      const quickTimeout = walletType === 'trust' ? 8000 : 2000; // Trust Wallet needs 8 seconds
+      const quickTimeout = walletType === 'trust' ? 12000 : 2000; // Trust Wallet needs 12 seconds
       console.log(`🔍 QUICK PROVIDER CHECK (${quickTimeout}ms timeout for ${walletType})...`);
       const provider = await this.waitForWalletProvider(quickTimeout);
       
@@ -370,7 +370,7 @@ class WalletConnector {
     let timeout = 5000; // Default timeout
     
     if (this.isMobile()) {
-      timeout = isTrustWalletFlow ? 25000 : 15000; // Trust Wallet needs more time on mobile
+      timeout = isTrustWalletFlow ? 30000 : 15000; // Trust Wallet needs 30 seconds on mobile
     }
     
     console.log(`⏱️ Provider timeout: ${timeout}ms (Trust Wallet flow: ${isTrustWalletFlow})`);
