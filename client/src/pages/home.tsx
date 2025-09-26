@@ -86,6 +86,8 @@ export default function HomePage() {
       if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
         console.log('User explicitly navigated to homepage, staying on homepage');
         sessionStorage.setItem('userOnHomepage', 'true');
+        // Clear the flag so future visits work normally
+        localStorage.removeItem('userClickedHome');
         return;
       }
       
@@ -702,6 +704,14 @@ export default function HomePage() {
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
     localStorage.removeItem('connectedUserId');
+    
+    // Clear Trust Wallet specific items
+    localStorage.removeItem('trustWalletConnectionInitiated');
+    localStorage.removeItem('walletConnectionSource');
+    localStorage.removeItem('walletConnectionType');
+    localStorage.removeItem('walletConnectionTimestamp');
+    localStorage.removeItem('walletConnectionPending');
+    localStorage.removeItem('userClickedHome');
     
     // Clear any session storage
     sessionStorage.clear();
