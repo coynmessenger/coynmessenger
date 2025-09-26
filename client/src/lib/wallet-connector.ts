@@ -45,28 +45,36 @@ class WalletConnector {
     const startTime = Date.now();
     
     while (Date.now() - startTime < timeout) {
-      // Check for MetaMask
-      if (window.ethereum?.isMetaMask) {
-        console.log('🦊 MetaMask detected');
+      // Enhanced Trust Wallet detection (check first to override MetaMask detection)
+      const isInTrustWallet = navigator.userAgent.includes('Trust') || 
+                               window.location.href.includes('trustwallet') ||
+                               document.referrer.includes('trustwallet') ||
+                               window.ethereum?.isTrust ||
+                               window.ethereum?.isTrustWallet;
+      
+      if (isInTrustWallet && window.ethereum) {
+        console.log('💙 Trust Wallet detected via environment');
         return window.ethereum;
       }
       
-      // Enhanced Trust Wallet detection
       if (window.ethereum?.isTrust || window.trustWallet || window.ethereum?.isTrustWallet) {
-        console.log('💙 Trust Wallet detected');
+        console.log('💙 Trust Wallet detected via provider flags');
         return window.trustWallet || window.ethereum;
+      }
+      
+      // Check for MetaMask (only if not in Trust Wallet environment)
+      if (!isInTrustWallet && window.ethereum?.isMetaMask) {
+        console.log('🦊 MetaMask detected');
+        return window.ethereum;
       }
       
       // Check for Trust Wallet in different ways
       if (window.ethereum && window.ethereum.request) {
         try {
           // Try to detect Trust Wallet through provider metadata
-          const isConnected = await window.ethereum.request({ method: 'eth_accounts' });
           if (window.ethereum.constructor?.name === 'TrustWalletProvider' || 
-              window.ethereum.providerType === 'trust' ||
-              window.location.href.includes('trustwallet') ||
-              navigator.userAgent.includes('Trust')) {
-            console.log('💙 Trust Wallet detected via metadata');
+              window.ethereum.providerType === 'trust') {
+            console.log('💙 Trust Wallet detected via constructor');
             return window.ethereum;
           }
         } catch (e) {

@@ -62,12 +62,24 @@ export default function HomePage() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      // Check if we're in a wallet browser with pending connection
-      if (walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) {
-        console.log('🎯 Detected wallet browser with pending connection, will attempt auto-connection after mutation is ready...');
+      // Check if we're in a wallet browser with pending connection OR detect Trust Wallet environment
+      const isInTrustWallet = navigator.userAgent.includes('Trust') || 
+                               window.location.href.includes('trustwallet') ||
+                               document.referrer.includes('trustwallet') ||
+                               window.ethereum?.isTrust ||
+                               window.ethereum?.isTrustWallet;
+      
+      if ((walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) || 
+          (isInTrustWallet && (window.ethereum || window.trustWallet))) {
+        console.log('🎯 Detected wallet browser environment, will attempt auto-connection after mutation is ready...');
+        console.log('  - Pending connection:', walletConnectionPending);
+        console.log('  - Is Trust Wallet:', isInTrustWallet);
+        console.log('  - Has ethereum:', !!window.ethereum);
+        console.log('  - Has trustWallet:', !!window.trustWallet);
         
         // Mark that we should attempt auto-connection
         sessionStorage.setItem('shouldAutoConnect', 'true');
+        sessionStorage.setItem('autoConnectWalletType', isInTrustWallet ? 'trust' : 'metamask');
       }
       
       // Don't redirect if user explicitly chose to stay on homepage
@@ -207,15 +219,36 @@ export default function HomePage() {
     const attemptAutoConnection = async () => {
       const shouldAutoConnect = sessionStorage.getItem('shouldAutoConnect');
       const walletConnectionPending = localStorage.getItem('walletConnectionPending');
+      const autoConnectWalletType = sessionStorage.getItem('autoConnectWalletType') as 'trust' | 'metamask' | null;
       
-      if (shouldAutoConnect === 'true' && walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) {
+      // Enhanced detection for Trust Wallet environment
+      const isInTrustWallet = navigator.userAgent.includes('Trust') || 
+                               window.location.href.includes('trustwallet') ||
+                               document.referrer.includes('trustwallet') ||
+                               window.ethereum?.isTrust ||
+                               window.ethereum?.isTrustWallet;
+      
+      const hasWalletProvider = window.ethereum || window.trustWallet;
+      
+      if ((shouldAutoConnect === 'true' || isInTrustWallet) && hasWalletProvider) {
         console.log('🎯 Attempting auto-connection...');
+        console.log('  - Should auto connect:', shouldAutoConnect);
+        console.log('  - Is in Trust Wallet:', isInTrustWallet);
+        console.log('  - Wallet type:', autoConnectWalletType);
+        console.log('  - Has provider:', hasWalletProvider);
+        
         sessionStorage.removeItem('shouldAutoConnect');
+        sessionStorage.removeItem('autoConnectWalletType');
         
         try {
           // Import and use the wallet connector for auto-connection
           const { walletConnector } = await import('@/lib/wallet-connector');
-          const connectedWallet = await walletConnector.connectWallet();
+          
+          // Determine wallet type for connection
+          const walletType = autoConnectWalletType || (isInTrustWallet ? 'trust' : undefined);
+          console.log('🔗 Auto-connecting with wallet type:', walletType);
+          
+          const connectedWallet = await walletConnector.connectWallet(walletType);
           
           if (connectedWallet?.address) {
             console.log('✅ Auto-connection successful:', connectedWallet.address);
@@ -226,14 +259,15 @@ export default function HomePage() {
             return;
           }
         } catch (error) {
-          console.log('Auto-connection failed, user will need to manually connect');
+          console.log('Auto-connection failed:', error);
+          console.log('User will need to manually connect');
           localStorage.removeItem('walletConnectionPending');
         }
       }
     };
 
     // Small delay to ensure everything is ready
-    const timer = setTimeout(attemptAutoConnection, 200);
+    const timer = setTimeout(attemptAutoConnection, 500); // Increased delay for provider injection
     return () => clearTimeout(timer);
   }, [connectWalletMutation]);
 
