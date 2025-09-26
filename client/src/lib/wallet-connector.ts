@@ -41,34 +41,72 @@ class WalletConnector {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
-  // Enhanced mobile provider detection with polling
+  // Enhanced mobile provider detection with comprehensive debugging
   private async waitForWalletProvider(timeout: number = 15000): Promise<WalletProvider | null> {
     if (typeof window === 'undefined') return null;
     
     const startTime = Date.now();
     
+    // 📱 COMPREHENSIVE MOBILE DEBUGGING SYSTEM 📱
+    console.log('🔍 ====== TRUST WALLET MOBILE DEBUG START ======');
+    console.log('📱 DEVICE INFO:');
+    console.log('  📱 User Agent:', navigator.userAgent);
+    console.log('  📱 Is Mobile:', this.isMobile());
+    console.log('  📱 Platform:', navigator.platform);
+    console.log('  📱 Screen:', `${screen.width}x${screen.height}`);
+    console.log('  📱 Window size:', `${window.innerWidth}x${window.innerHeight}`);
+    
+    console.log('🔗 URL INFO:');
+    console.log('  🔗 Full URL:', window.location.href);
+    console.log('  🔗 Origin:', window.location.origin);
+    console.log('  🔗 Pathname:', window.location.pathname);
+    console.log('  🔗 Search params:', window.location.search);
+    console.log('  🔗 Hash:', window.location.hash);
+    console.log('  🔗 Referrer:', document.referrer);
+    
+    console.log('💙 TRUST WALLET DETECTION:');
+    const userAgentHasTrust = navigator.userAgent.includes('Trust') || navigator.userAgent.includes('TrustWallet');
+    const urlHasTrust = window.location.href.includes('trustwallet');
+    const referrerHasTrust = document.referrer.includes('trustwallet');
+    const searchHasTrust = window.location.search.includes('trustwallet');
+    
+    console.log('  💙 UserAgent has Trust:', userAgentHasTrust);
+    console.log('  💙 URL has trustwallet:', urlHasTrust);
+    console.log('  💙 Referrer has trustwallet:', referrerHasTrust);
+    console.log('  💙 Search params has trustwallet:', searchHasTrust);
+    
+    console.log('🌐 WALLET PROVIDERS:');
+    console.log('  🌐 window.ethereum exists:', !!window.ethereum);
+    console.log('  🌐 window.trustWallet exists:', !!window.trustWallet);
+    console.log('  🌐 window.ethereum.isMetaMask:', !!window.ethereum?.isMetaMask);
+    console.log('  🌐 window.ethereum.isTrust:', !!window.ethereum?.isTrust);
+    console.log('  🌐 window.ethereum.isTrustWallet:', !!window.ethereum?.isTrustWallet);
+    
+    if (window.ethereum) {
+      console.log('  🌐 ethereum provider details:', {
+        isMetaMask: window.ethereum.isMetaMask,
+        isTrust: (window.ethereum as any).isTrust,
+        isTrustWallet: (window.ethereum as any).isTrustWallet,
+        constructor: (window.ethereum as any).constructor?.name,
+        providerType: (window.ethereum as any).providerType
+      });
+    }
+    
+    console.log('💾 LOCAL STORAGE:');
+    console.log('  💾 trustWalletConnectionInitiated:', localStorage.getItem('trustWalletConnectionInitiated'));
+    console.log('  💾 walletConnectionPending:', localStorage.getItem('walletConnectionPending'));
+    console.log('  💾 walletConnectionSource:', localStorage.getItem('walletConnectionSource'));
+    console.log('  💾 authenticated_user exists:', !!localStorage.getItem('authenticated_user'));
+    
     // Enhanced Trust Wallet environment detection
     const detectTrustWalletEnvironment = () => {
-      return navigator.userAgent.includes('Trust') || 
-             navigator.userAgent.includes('TrustWallet') ||
-             window.location.href.includes('trustwallet') ||
-             document.referrer.includes('trustwallet') ||
-             window.location.search.includes('trustwallet') ||
-             window.ethereum?.isTrust ||
-             window.ethereum?.isTrustWallet ||
-             window.trustWallet;
+      return userAgentHasTrust || urlHasTrust || referrerHasTrust || searchHasTrust ||
+             window.ethereum?.isTrust || window.ethereum?.isTrustWallet || window.trustWallet;
     };
     
     const isInTrustWallet = detectTrustWalletEnvironment();
-    console.log('🔍 Trust Wallet environment detection:', {
-      userAgent: navigator.userAgent.includes('Trust'),
-      href: window.location.href.includes('trustwallet'),
-      referrer: document.referrer.includes('trustwallet'),
-      search: window.location.search.includes('trustwallet'),
-      hasEthereumTrust: !!window.ethereum?.isTrust,
-      hasTrustWallet: !!window.trustWallet,
-      isInTrustWallet
-    });
+    console.log('💙 FINAL TRUST WALLET DETECTION:', isInTrustWallet);
+    console.log('🔍 ====== TRUST WALLET MOBILE DEBUG END ======');
     
     while (Date.now() - startTime < timeout) {
       // Enhanced Trust Wallet detection (check first to override MetaMask detection)
@@ -86,7 +124,7 @@ class WalletConnector {
         // Check for Trust Wallet specific properties
         if ((window.ethereum as any)?.isTrust || (window.ethereum as any)?.isTrustWallet) {
           console.log('💙 Trust Wallet detected via provider flags');
-          return window.ethereum;
+          return window.ethereum || null;
         }
       }
       
@@ -163,17 +201,36 @@ class WalletConnector {
         `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(fullUrl)}`
       ];
       
-      console.log('🔗 TRUST WALLET BUTTON CLICKED - Starting deep link process');
-      console.log('🔗 Opening Trust Wallet with connection URL:', trustDappUrls[0]);
-      console.log('🔗 Connection target:', connectionUrl);
-      console.log('🔗 All available URLs:', trustDappUrls);
+      console.log('🔗 ====== TRUST WALLET MOBILE BUTTON DEBUG ======');
+      console.log('📱 MOBILE DEVICE DETECTION:');
+      console.log('  📱 Is Mobile:', this.isMobile());
+      console.log('  📱 User Agent:', navigator.userAgent);
+      console.log('  📱 Platform:', navigator.platform);
+      console.log('  📱 Screen:', `${screen.width}x${screen.height}`);
+      
+      console.log('🌐 CURRENT WALLET STATE:');
+      console.log('  🌐 window.ethereum:', !!window.ethereum);
+      console.log('  🌐 window.trustWallet:', !!window.trustWallet);
+      console.log('  🌐 Any provider available:', !!(window.ethereum || window.trustWallet));
+      
+      console.log('🔗 DEEP LINK SETUP:');
+      console.log('  🔗 Base URL:', baseUrl);
+      console.log('  🔗 Connection URL:', connectionUrl);
+      console.log('  🔗 Primary deep link:', trustDappUrls[0]);
+      console.log('  🔗 All deep link options:');
+      trustDappUrls.forEach((url, index) => {
+        console.log(`    ${index + 1}. ${url}`);
+      });
       
       // Set connection flags for immediate auto-connection
       localStorage.setItem('trustWalletConnectionInitiated', 'true');
       localStorage.setItem('walletConnectionSource', 'trust_button');
       localStorage.setItem('walletConnectionPending', 'true');
       
-      console.log('🔗 Connection flags set - trustWalletConnectionInitiated, walletConnectionSource, walletConnectionPending');
+      console.log('💾 CONNECTION FLAGS SET:');
+      console.log('  💾 trustWalletConnectionInitiated: true');
+      console.log('  💾 walletConnectionSource: trust_button');
+      console.log('  💾 walletConnectionPending: true');
       
       // Immediate redirect to Trust Wallet
       window.location.href = trustDappUrls[0];
@@ -255,15 +312,38 @@ class WalletConnector {
 
   // Enhanced mobile-aware wallet connection
   async connectWallet(walletType?: 'metamask' | 'trust'): Promise<ConnectedWallet> {
-    console.log('🔗 Starting wallet connection...', { isMobile: this.isMobile(), walletType });
+    console.log('🔗 ====== STARTING MOBILE WALLET CONNECTION ======');
+    console.log('📱 MOBILE CONNECTION DEBUG:');
+    console.log('  📱 Is Mobile Device:', this.isMobile());
+    console.log('  📱 Requested Wallet Type:', walletType);
+    console.log('  📱 User Agent:', navigator.userAgent);
+    console.log('  📱 Current URL:', window.location.href);
+    console.log('  📱 Screen Size:', `${screen.width}x${screen.height}`);
+    console.log('  📱 Platform:', navigator.platform);
     
-    // On mobile, try deep linking first if no provider is available
+    // On mobile, enhanced connection flow with comprehensive debugging
     if (this.isMobile() && walletType) {
-      const provider = await this.waitForWalletProvider(2000); // Quick check first
+      console.log('📱 MOBILE DEVICE DETECTED - Starting mobile-specific connection flow');
+      
+      // Quick provider check first
+      console.log('🔍 QUICK PROVIDER CHECK (2 second timeout)...');
+      const provider = await this.waitForWalletProvider(2000);
+      
+      console.log('🔍 QUICK CHECK RESULTS:');
+      console.log('  🔍 Provider found:', !!provider);
+      console.log('  🔍 Provider type:', provider ? 'Available' : 'None');
+      
       if (!provider) {
-        console.log('📱 No provider found on mobile, attempting deep link...');
+        console.log('❌ NO PROVIDER FOUND ON MOBILE - Attempting deep link');
+        console.log('📱 MOBILE DEEP LINK DETAILS:');
+        console.log('  📱 Target wallet:', walletType);
+        console.log('  📱 Will open wallet app and wait for return...');
+        console.log('  📱 User should see wallet app opening now...');
+        
         this.openWalletApp(walletType);
         throw new Error(`Opening ${walletType === 'trust' ? 'Trust Wallet' : 'MetaMask'} app...`);
+      } else {
+        console.log('✅ PROVIDER FOUND ON MOBILE - Proceeding with direct connection');
       }
     }
     
