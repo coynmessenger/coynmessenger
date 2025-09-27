@@ -103,52 +103,79 @@ class BlockchainService {
   }
 
   private async getCOYNPrice(): Promise<{usd: number, usd_24h_change: number}> {
-    try {
-      // Try to fetch COYN price from coinbrain.com
-      const response = await axios.get('https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        },
-        timeout: 10000
-      });
+    // Try multiple sources for COYN price data
+    const sources = [
+      {
+        name: 'CoinBrain',
+        fetch: async () => {
+          const response = await axios.get('https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            timeout: 10000
+          });
 
-      const html = response.data;
-      
-      // Extract price using more precise regex pattern from the HTML
-      const priceMatch = html.match(/\$([0-9]+\.?[0-9]*(?:e-?[0-9]+)?)/i);
-      const changeMatch = html.match(/\(24h:([+-]?[0-9]+\.?[0-9]*)%\)/i);
-      
-      let price = 0.000000050925; // Default from coinbrain page
-      let change = -89.77; // Default from coinbrain page
-      
-      if (priceMatch) {
-        const priceStr = priceMatch[1];
-        price = parseFloat(priceStr);
-        // Handle scientific notation if present
-        if (priceStr.includes('e')) {
-          price = parseFloat(priceStr);
+          const html = response.data;
+          
+          // Extract price using more precise regex pattern from the HTML
+          const priceMatch = html.match(/\$([0-9]+\.?[0-9]*(?:e-?[0-9]+)?)/i);
+          const changeMatch = html.match(/\(24h:([+-]?[0-9]+\.?[0-9]*)%\)/i);
+          
+          let price = 0.000000050925;
+          let change = -89.77;
+          
+          if (priceMatch) {
+            const priceStr = priceMatch[1];
+            price = parseFloat(priceStr);
+          }
+          
+          if (changeMatch) {
+            change = parseFloat(changeMatch[1]);
+          }
+          
+          return { usd: price, usd_24h_change: change };
+        }
+      },
+      {
+        name: 'DEXScreener',
+        fetch: async () => {
+          const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1`, {
+            timeout: 8000
+          });
+          
+          const data = response.data;
+          if (data.pairs && data.pairs.length > 0) {
+            const pair = data.pairs[0];
+            return {
+              usd: parseFloat(pair.priceUsd || '0'),
+              usd_24h_change: parseFloat(pair.priceChange24h || '0')
+            };
+          }
+          throw new Error('No pairs data found');
         }
       }
-      
-      if (changeMatch) {
-        change = parseFloat(changeMatch[1]);
+    ];
+
+    // Try each source in order
+    for (const source of sources) {
+      try {
+        const result = await source.fetch();
+        if (result.usd > 0) {
+          console.log(`✅ COYN Price fetched from ${source.name}: $${result.usd} (${result.usd_24h_change}%)`);
+          return result;
+        }
+      } catch (error) {
+        console.log(`⚠️ Failed to fetch COYN price from ${source.name}`);
       }
-      
-      console.log(`✅ COYN Price fetched from CoinBrain: $${price} (${change}%)`);
-      
-      return {
-        usd: price,
-        usd_24h_change: change
-      };
-    } catch (error) {
-      console.log(`⚠️ Failed to fetch COYN price from CoinBrain, using fallback`);
-      
-      // Fallback price based on the current coinbrain.com data
-      return {
-        usd: 0.000000050925,
-        usd_24h_change: -89.77
-      };
     }
+    
+    console.log(`⚠️ All COYN price sources failed, using fallback price`);
+    
+    // Final fallback price based on coinbrain.com data
+    return {
+      usd: 0.000000050925,
+      usd_24h_change: -89.77
+    };
   }
 
   private async getCryptoPrices(): Promise<CryptoPrice> {
