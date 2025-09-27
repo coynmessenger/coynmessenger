@@ -556,21 +556,9 @@ export class EncryptedWebRTCService {
 
     // Test 2: Call Existence Check
     const call = this.activeCalls.get(callId);
-    console.log('🧪 TEST: Call object found:', !!call);
-    console.log('🧪 TEST: Call details:', call ? {
-      callId: call.callId,
-      participants: call.participants,
-      type: call.type,
-      encrypted: call.encrypted,
-      hasRemoteOffer: !!call.remoteOffer
-    } : 'N/A');
-    
     if (!call) {
-      console.error('❌ TEST FAILED: Call Lookup');
-      console.error('❌ ERROR DETAILS: Available calls:', Array.from(this.activeCalls.keys()));
       throw new Error('Call not found');
     }
-    console.log('✅ TEST PASSED: Call Lookup Check');
 
     try {
       // Get user media with enhanced desktop constraints
@@ -634,42 +622,25 @@ export class EncryptedWebRTCService {
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
 
-      // Send encrypted acceptance
-      console.log('📞 DEEP TEST: ===============================');
-      console.log('📞 DEEP TEST: SENDING CALL ACCEPTANCE TO SERVER');
-      console.log('📞 DEEP TEST: ===============================');
-      console.log('📞 DEEP TEST: Call ID:', callId);
-      console.log('📞 DEEP TEST: Answer created:', !!answer);
-      console.log('📞 DEEP TEST: Answer SDP type:', answer?.type);
-      console.log('📞 DEEP TEST: Socket ID:', this.socket?.id);
-      console.log('📞 DEEP TEST: Socket connected:', this.socket?.connected);
-      console.log('📞 DEEP TEST: About to emit accept-call event...');
+      // Send call acceptance to server
       
       this.socket.emit('accept-call', {
         callId,
         answer,
       });
 
-      console.log('📞 DEEP TEST: ✅ accept-call event sent to server');
-      console.log('📞 DEEP TEST: Waiting for call-accepted-confirmation...');
-      
-      // CRITICAL: Update call status to connected and trigger UI update
+      // Update call status to connected and trigger UI update
       call.status = 'connected';
       this.activeCalls.set(callId, call);
-      console.log('🎯 ACCEPT: Call status updated to connected');
 
-      // CRITICAL: Trigger call accepted event for UI to show connected state  
+      // Trigger call accepted event for UI to show connected state  
       if (this.eventHandlers.onCallAccepted) {
-        console.log('🎯 ACCEPT: Triggering onCallAccepted handler for UI...');
         this.eventHandlers.onCallAccepted({
           callId: call.callId || callId,
           fromUserId: call.participants?.[0] || 'unknown',
           type: call.type,
           status: 'connected'
         });
-        console.log('✅ ACCEPT: UI should now show in-call controls (Hang Up, Speaker, etc.)');
-      } else {
-        console.error('❌ ACCEPT: No onCallAccepted handler available for UI update');
       }
       
     } catch (error) {
