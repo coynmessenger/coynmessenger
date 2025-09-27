@@ -10,6 +10,7 @@ import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signatur
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import { globalNotificationService } from "@/lib/global-notification-service";
+import { WalletConnector } from "@/lib/wallet-connector";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -424,7 +425,7 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
-    // Check if wallet is available first
+    // Check if wallet is available first and show address selector if injected
     if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
       // Show address selector for MetaMask
       setSelectedWalletType('metamask');
@@ -439,6 +440,25 @@ export default function HomePage() {
         setShowAddressSelector(true);
         return;
       }
+    }
+
+    // Use WalletConnector for mobile deep linking and unified connection logic
+    try {
+      const walletConnector = new WalletConnector();
+      const connectedWallet = await walletConnector.connectWallet(walletType);
+      
+      if (connectedWallet && connectedWallet.address) {
+        connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
+      }
+    } catch (error: any) {
+      console.error(`Failed to connect to ${walletType}:`, error);
+      
+      // If mobile deep linking triggered, don't show error
+      if (error.message?.includes('Opening MetaMask app')) {
+        return;
+      }
+      
+      // For other errors, fall back to existing logic
     }
     
     // Fallback to original connection flow if wallet selector not available
