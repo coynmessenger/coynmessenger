@@ -613,12 +613,14 @@ export default function MessengerPage() {
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => {
-                console.log('Desktop home button clicked - navigating to homepage');
-                // Set multiple flags to ensure proper handling and prevent race conditions
+                console.log('🏠 DESKTOP: Home button clicked - navigating to homepage');
+                // Clear any existing session flags that might interfere
+                sessionStorage.removeItem('userOnHomepage');
+                // Set immediate flags for home navigation
                 localStorage.setItem('userClickedHome', 'true');
-                sessionStorage.setItem('userOnHomepage', 'true');
                 sessionStorage.setItem('userExplicitHomeNavigation', 'true');
-                console.log('🏠 HOME BUTTON DEBUG: Flags set for explicit home navigation');
+                console.log('🏠 DESKTOP: Flags set, navigating to homepage');
+                // Navigate immediately
                 setLocation("/");
               }}
               variant="ghost"
@@ -862,12 +864,14 @@ export default function MessengerPage() {
             <div className="flex items-center space-x-3">
               <Button
                 onClick={() => {
-                  console.log('Mobile home button clicked - navigating to homepage');
-                  // Set multiple flags to ensure proper handling and prevent race conditions
+                  console.log('🏠 MOBILE: Home button clicked - navigating to homepage');
+                  // Clear any existing session flags that might interfere
+                  sessionStorage.removeItem('userOnHomepage');
+                  // Set immediate flags for home navigation
                   localStorage.setItem('userClickedHome', 'true');
-                  sessionStorage.setItem('userOnHomepage', 'true');
                   sessionStorage.setItem('userExplicitHomeNavigation', 'true');
-                  console.log('🏠 HOME BUTTON DEBUG: Flags set for explicit home navigation');
+                  console.log('🏠 MOBILE: Flags set, navigating to homepage');
+                  // Navigate immediately
                   setLocation("/");
                 }}
                 variant="ghost"

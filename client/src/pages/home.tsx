@@ -136,10 +136,31 @@ export default function HomePage() {
       }
     };
 
-    // Single execution with minimal delay
+    // Check for immediate home navigation flags first
+    const userClickedHome = localStorage.getItem('userClickedHome');
+    const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation');
+    
+    if (userClickedHome === 'true' || userExplicitNavigation === 'true') {
+      console.log('🏠 IMMEDIATE: User clicked Home button, preventing redirect');
+      // Clear the flags and prevent redirect immediately
+      localStorage.removeItem('userClickedHome');
+      sessionStorage.setItem('userOnHomepage', 'true');
+      return; // Don't set any timer, just exit immediately
+    }
+    
+    // Single execution with minimal delay for other cases
     const timer = setTimeout(handleAuthenticationAndRedirect, 100);
     return () => clearTimeout(timer);
   }, []); // Run only once on mount
+
+  // Cleanup flags when component unmounts (user navigates away from homepage)
+  useEffect(() => {
+    return () => {
+      // Clear session flags when leaving the homepage so future navigation works properly
+      console.log('🏠 CLEANUP: Clearing session flags on homepage unmount');
+      sessionStorage.removeItem('userExplicitHomeNavigation');
+    };
+  }, []);
 
   // Removed automatic user data fetching to prevent conflicts with localStorage updates
 
