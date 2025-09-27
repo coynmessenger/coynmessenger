@@ -197,6 +197,36 @@ export default function HomePage() {
         return;
       }
       
+      // Check for pending MetaMask connection from mobile deep link
+      const pendingWalletConnection = localStorage.getItem('pendingWalletConnection');
+      if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
+        isChecking = true;
+        try {
+          console.log('📱 Completing MetaMask pending connection...');
+          
+          // Request accounts from MetaMask
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          
+          if (accounts && accounts.length > 0) {
+            console.log('✅ MetaMask mobile connection successful');
+            
+            // Clear pending flags
+            localStorage.removeItem('pendingWalletConnection');
+            localStorage.removeItem('pendingWalletType');
+            localStorage.removeItem('walletConnectionAttempt');
+            
+            // Connect the wallet and navigate to messenger immediately
+            connectWalletMutation.mutate({ walletAddress: accounts[0] });
+          }
+        } catch (error) {
+          console.error('❌ MetaMask pending connection failed:', error);
+          localStorage.removeItem('pendingWalletConnection');
+        } finally {
+          isChecking = false;
+        }
+        return; // Exit early after handling MetaMask
+      }
+
       // Enhanced Trust Wallet detection for mobile returns
       if (!isConnected && typeof window.ethereum !== 'undefined') {
         isChecking = true;
