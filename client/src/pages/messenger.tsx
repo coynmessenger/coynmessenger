@@ -63,7 +63,7 @@ export default function MessengerPage() {
   // Clear homepage session flag when user is in messenger
   useEffect(() => {
     sessionStorage.removeItem('userOnHomepage');
-    localStorage.removeItem('userClickedHome');
+    // Don't remove userClickedHome here - let home page handle it
   }, []);
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   
