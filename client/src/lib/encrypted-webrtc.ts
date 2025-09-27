@@ -357,7 +357,7 @@ export class EncryptedWebRTCService {
   // Initialize the service with user authentication
   async initialize(userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // STABILITY FIX: Check if already properly initialized for this user with a more strict check
+      // Check if already properly initialized for this user
       if (this.isInitialized && 
           this.localUserId === userId && 
           this.socket?.connected && 
@@ -366,15 +366,8 @@ export class EncryptedWebRTCService {
         return;
       }
       
-      // STABILITY FIX: Only cleanup if we really need to (different user or truly disconnected)
-      if (this.localUserId !== userId || !this.socket?.connected) {
-        this.cleanup();
-      } else {
-        this.isInitialized = true;
-        this.localUserId = userId;
-        resolve();
-        return;
-      }
+      // Cleanup any existing connection before creating new one
+      this.cleanup();
       
       // Create fresh socket connection only when necessary
       this.initializeSocket();
@@ -397,12 +390,9 @@ export class EncryptedWebRTCService {
       });
 
       this.socket!.on('disconnect', (reason) => {
-        // STABILITY FIX: Don't mark as uninitialized for temporary disconnects
-        if (reason === 'transport close' || reason === 'io client disconnect' || reason === 'ping timeout') {
-          // Keep the service marked as initialized so it doesn't get recreated unnecessarily
-        } else {
-          this.isInitialized = false;
-        }
+        console.log(`Disconnected from encrypted WebRTC signaling server, reason:`, reason);
+        // Don't auto-reinitialize on disconnect to prevent loops
+        this.isInitialized = false;
       });
 
       this.socket!.emit('authenticate', { userId });

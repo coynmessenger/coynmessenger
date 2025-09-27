@@ -33,35 +33,34 @@ function Router() {
 function App() {
   // GLOBAL WebRTC INITIALIZATION: Initialize WebRTC for any authenticated user
   useEffect(() => {
-    const initGlobalWebRTC = () => {
+    let isInitializing = false;
+    
+    const initGlobalWebRTC = async () => {
+      if (isInitializing) return; // Prevent multiple simultaneous initializations
+      
       try {
+        isInitializing = true;
         const storedUser = localStorage.getItem('connectedUser');
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           const userId = parsedUser.id;
           
           if (userId) {
-            initializeGlobalWebRTC(userId.toString(), 3).then(() => {
-            }).catch((error) => {
-            });
+            await initializeGlobalWebRTC(userId.toString(), 1); // Reduce retries to 1
           }
         }
       } catch (error) {
+        console.log('WebRTC initialization failed:', error);
+      } finally {
+        isInitializing = false;
       }
     };
     
-    // Initialize on app load
+    // Initialize on app load only once
     initGlobalWebRTC();
     
-    // Also listen for localStorage changes (when user logs in/out)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'connectedUser') {
-        setTimeout(initGlobalWebRTC, 500); // Small delay to ensure storage is updated
-      }
-    };
+    // Remove storage listener to prevent reinitializations that cause loops
     
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   return (
