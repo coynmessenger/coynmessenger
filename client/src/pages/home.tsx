@@ -43,41 +43,50 @@ export default function HomePage() {
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
 
+  // FIRST: Immediately check if user explicitly navigated to homepage - this overrides everything else
+  const userClickedHome = localStorage.getItem('userClickedHome');
+  const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation');
+  
+  // If user explicitly wants to be on homepage, handle it immediately before any other logic
+  if (userClickedHome === 'true' || userExplicitNavigation === 'true') {
+    console.log('🏠 IMMEDIATE: User clicked Home button, staying on homepage');
+    // Clear the navigation flags immediately
+    localStorage.removeItem('userClickedHome');
+    sessionStorage.setItem('userOnHomepage', 'true');
+    
+    // Set authenticated user state if they're logged in, but keep them on homepage
+    const storedConnected = localStorage.getItem('walletConnected');
+    const storedUser = localStorage.getItem('connectedUser');
+    
+    if (storedConnected === 'true' && storedUser && !isConnected && !connectedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser?.id && parsedUser?.walletAddress) {
+          console.log('🏠 IMMEDIATE: Setting user state but staying on homepage');
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+          // Initialize global notification service but stay on homepage
+          globalNotificationService.initialize(parsedUser.id.toString());
+        }
+      } catch (error) {
+        // Invalid stored user data, clear it
+        localStorage.removeItem('walletConnected');
+        localStorage.removeItem('connectedUser');
+        localStorage.removeItem('connectedUserId');
+      }
+    }
+    
+    // DO NOT run any other authentication/redirect logic
+    return;
+  }
+
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
-    // FIRST: Check for explicit home navigation flags immediately - this takes priority
-    const userClickedHome = localStorage.getItem('userClickedHome');
-    const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation');
-    
-    if (userClickedHome === 'true' || userExplicitNavigation === 'true') {
-      console.log('🏠 IMMEDIATE: User clicked Home button, staying on homepage');
-      // Clear the flags and set state to stay on homepage
-      localStorage.removeItem('userClickedHome');
-      sessionStorage.setItem('userOnHomepage', 'true');
-      
-      // Set the user state if they're authenticated but allow them to stay on homepage
-      const storedConnected = localStorage.getItem('walletConnected');
-      const storedUser = localStorage.getItem('connectedUser');
-      
-      if (storedConnected === 'true' && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          if (parsedUser?.id && parsedUser?.walletAddress) {
-            console.log('🏠 IMMEDIATE: Setting user state but staying on homepage');
-            setConnectedUser(parsedUser);
-            setIsConnected(true);
-            // Initialize global notification service but stay on homepage
-            globalNotificationService.initialize(parsedUser.id.toString());
-          }
-        } catch (error) {
-          // Invalid stored user data, clear it
-          localStorage.removeItem('walletConnected');
-          localStorage.removeItem('connectedUser');
-          localStorage.removeItem('connectedUserId');
-        }
-      }
-      
-      return; // Exit immediately - no redirect
+    // If user is already flagged to stay on homepage, don't redirect
+    const userOnHomepage = sessionStorage.getItem('userOnHomepage');
+    if (userOnHomepage === 'true') {
+      console.log('🏠 SESSION: User session indicates staying on homepage');
+      return;
     }
 
     const handleAuthenticationAndRedirect = async () => {
