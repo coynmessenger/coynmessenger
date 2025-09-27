@@ -88,21 +88,38 @@ class WalletConnector {
   private openMetaMaskDeepLink(): void {
     console.log('📱 Opening MetaMask app via deep link...');
     
-    // Store pending connection state
+    // Store pending connection state and timestamp for tracking
     localStorage.setItem('pendingWalletConnection', 'metamask');
+    localStorage.setItem('metamaskLinkAttempt', Date.now().toString());
     
-    // Create deep link URL with current origin
-    const currentUrl = window.location.origin;
-    const encodedUrl = encodeURIComponent(currentUrl);
+    // Extract just the hostname (without protocol) for MetaMask deep links
+    const hostname = window.location.hostname;
     
-    // Try primary MetaMask deep link format
-    const deepLinkUrl = `https://metamask.app.link/dapp/${encodedUrl}/?wallet_return=true`;
+    // Try multiple MetaMask deep link formats for maximum compatibility
+    const deepLinkFormats = [
+      `https://metamask.app.link/dapp/${hostname}`,    // Standard format (most compatible)
+      `https://link.metamask.io/dapp/${hostname}`,     // New 2024 format
+      `metamask://dapp/${hostname}`,                   // Custom scheme fallback
+    ];
     
-    console.log('🔗 MetaMask deep link URL:', deepLinkUrl);
-    console.log('📱 Redirecting to MetaMask app...');
+    console.log('🔗 Available MetaMask deep link formats:', deepLinkFormats);
+    
+    // Use the primary format that should show the dapp in MetaMask browser
+    const primaryDeepLink = deepLinkFormats[0];
+    console.log('📱 Opening MetaMask browser with dapp:', primaryDeepLink);
+    console.log('🔧 Fixed format - using hostname only (no protocol, no query params)');
+    
+    // Add fallback mechanism - try newer format if user returns without connection
+    setTimeout(() => {
+      const stillPending = localStorage.getItem('pendingWalletConnection');
+      if (stillPending === 'metamask') {
+        console.log('🔄 Primary deep link may have failed, will try newer format if needed');
+        localStorage.setItem('metamaskFallbackNeeded', 'true');
+      }
+    }, 3000);
     
     // Navigate to MetaMask app
-    window.location.href = deepLinkUrl;
+    window.location.href = primaryDeepLink;
   }
 
   // Connect to wallet with retry logic and wallet type support

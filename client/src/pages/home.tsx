@@ -205,8 +205,22 @@ export default function HomePage() {
         hasEthereum: typeof window.ethereum !== 'undefined',
         isMetaMask: window.ethereum?.isMetaMask,
         isConnected,
-        userSignedOut
+        userSignedOut,
+        metamaskFallbackNeeded: localStorage.getItem('metamaskFallbackNeeded'),
+        linkAttemptTime: localStorage.getItem('metamaskLinkAttempt')
       });
+      
+      // Check for fallback scenario - if primary deep link failed, try newer format
+      const fallbackNeeded = localStorage.getItem('metamaskFallbackNeeded');
+      if (fallbackNeeded === 'true' && pendingWalletConnection === 'metamask' && !window.ethereum?.isMetaMask) {
+        console.log('🔄 Trying MetaMask fallback deep link format...');
+        localStorage.removeItem('metamaskFallbackNeeded');
+        const hostname = window.location.hostname;
+        const fallbackLink = `https://link.metamask.io/dapp/${hostname}`;
+        console.log('📱 Fallback MetaMask link:', fallbackLink);
+        window.location.href = fallbackLink;
+        return;
+      }
       
       if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
         isChecking = true;
