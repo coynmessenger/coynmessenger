@@ -451,12 +451,22 @@ export default function HomePage() {
         connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
       }
     } catch (error: any) {
-      console.error(`Failed to connect to ${walletType}:`, error);
+      console.log(`🔧 DEBUG: MetaMask connection attempt result:`, {
+        walletType,
+        errorMessage: error.message,
+        errorCode: error.code,
+        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        hasEthereum: typeof window.ethereum !== 'undefined'
+      });
       
-      // If mobile deep linking triggered, don't show error
+      // If mobile deep linking triggered, this is expected behavior
       if (error.message?.includes('Opening MetaMask app')) {
+        console.log('✅ MetaMask mobile deep link triggered successfully');
         return;
       }
+      
+      // Log actual connection errors for debugging
+      console.error(`❌ Actual MetaMask connection error for ${walletType}:`, error);
       
       // For other errors, fall back to existing logic
     }

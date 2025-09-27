@@ -82,6 +82,7 @@ class WalletConnector {
     const deepLinkUrl = `https://metamask.app.link/dapp/${encodedUrl}/?wallet_return=true`;
     
     console.log('🔗 MetaMask deep link URL:', deepLinkUrl);
+    console.log('📱 Redirecting to MetaMask app...');
     
     // Navigate to MetaMask app
     window.location.href = deepLinkUrl;
