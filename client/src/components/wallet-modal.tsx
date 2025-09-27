@@ -322,7 +322,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     return {
       BNB: 600,      // $600 per BNB  
       USDT: 1.00,    // $1.00 per USDT (stable)
-      COYN: 0.85     // $0.85 per COYN
+      COYN: 0.000000050925     // Real COYN price from CoinBrain
     };
   };
 
@@ -385,7 +385,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     const changes: { [key: string]: number } = {
       BNB: -1.2,
       USDT: 0.0,
-      COYN: 5.8
+      COYN: -89.77
     };
     return changes[currency] || 0;
   };

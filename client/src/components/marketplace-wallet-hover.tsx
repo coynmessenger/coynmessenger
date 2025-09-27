@@ -216,7 +216,7 @@ export default function MarketplaceWalletHover({
     return {
       BNB: 600,      // $600 per BNB  
       USDT: 1.00,    // $1.00 per USDT (stable)
-      COYN: 0.85     // $0.85 per COYN
+      COYN: 0.000000050925     // Real COYN price from CoinBrain
     };
   };
 
