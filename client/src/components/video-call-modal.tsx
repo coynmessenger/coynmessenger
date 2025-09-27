@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move, SwitchCamera } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Move, SwitchCamera, Volume2 } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
@@ -35,9 +35,21 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   
   // WebRTC service instance
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
   // Prevent multiple call initiations
   const callInitiatedRef = useRef(false);
+  
+  // Stable callback refs to prevent infinite loops
+  const onCallStartRef = useRef(onCallStart);
+  const onCallEndRef = useRef(onCallEnd);
+  
+  // Stream management
+  const incomingStreamRef = useRef<MediaStream | null>(null);
+  
+  // Prevent multiple end operations
+  const isEndingRef = useRef(false);
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -67,6 +79,38 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       x: Math.max(0, centerX),
       y: Math.max(0, centerY)
     });
+  };
+
+  // Update callback refs to prevent infinite loops
+  useEffect(() => {
+    onCallStartRef.current = onCallStart;
+    onCallEndRef.current = onCallEnd;
+  }, [onCallStart, onCallEnd]);
+
+  // Centralized state reset function
+  const resetLocalState = () => {
+    if (isEndingRef.current) return; // Prevent double reset
+    
+    setCallStatus("connecting");
+    setCallDuration(0);
+    setIsMuted(false);
+    setIsVideoOff(false);
+    setEncryptedCallId(null);
+    callInitiatedRef.current = false;
+    
+    // Clean up incoming stream
+    if (incomingStreamRef.current) {
+      incomingStreamRef.current.getTracks().forEach(track => track.stop());
+      incomingStreamRef.current = null;
+    }
+    
+    // Clean up current stream
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+      setCurrentStream(null);
+    }
+    
+    console.log('📹 RESET: Local state reset complete');
   };
 
   // Center modal when it opens and trigger entrance animation

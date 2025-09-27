@@ -70,6 +70,16 @@ export default function VoiceCallModal({
   // Prevent multiple call initiations
   const callInitiatedRef = useRef(false);
   
+  // Stable callback refs to prevent infinite loops
+  const onCallStartRef = useRef(onCallStart);
+  const onCallEndRef = useRef(onCallEnd);
+  
+  // Stream management
+  const incomingStreamRef = useRef<MediaStream | null>(null);
+  
+  // Prevent multiple end operations
+  const isEndingRef = useRef(false);
+  
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -98,6 +108,38 @@ export default function VoiceCallModal({
       x: Math.max(0, centerX),
       y: Math.max(0, centerY)
     });
+  };
+
+  // Update callback refs to prevent infinite loops
+  useEffect(() => {
+    onCallStartRef.current = onCallStart;
+    onCallEndRef.current = onCallEnd;
+  }, [onCallStart, onCallEnd]);
+
+  // Centralized state reset function
+  const resetLocalState = () => {
+    if (isEndingRef.current) return; // Prevent double reset
+    
+    setCallStatus("connecting");
+    setCallDuration(0);
+    setIsMuted(false);
+    setIsSpeakerOn(false);
+    setEncryptedCallId(null);
+    callInitiatedRef.current = false;
+    
+    // Clean up incoming stream
+    if (incomingStreamRef.current) {
+      incomingStreamRef.current.getTracks().forEach(track => track.stop());
+      incomingStreamRef.current = null;
+    }
+    
+    // Clean up current stream
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+      setCurrentStream(null);
+    }
+    
+    console.log('📞 RESET: Local state reset complete');
   };
 
   // Center modal when it opens and trigger entrance animation
@@ -137,7 +179,7 @@ export default function VoiceCallModal({
       webrtcService.current = getGlobalWebRTC();
       
       if (webrtcService.current) {
-        // Set event handlers for encrypted WebRTC
+        // Set event handlers for encrypted WebRTC using stable refs
         webrtcService.current.setEventHandlers({
           onIncomingCall: (call) => {
             if (call.type === 'voice') {
@@ -147,20 +189,28 @@ export default function VoiceCallModal({
           },
           onCallAccepted: (call) => {
             setCallStatus("connected");
-            if (onCallStart) onCallStart();
+            if (onCallStartRef.current) onCallStartRef.current();
           },
           onCallEnded: (call) => {
             console.log('📞 CALL ENDED: Received call ended event for call:', call.callId);
-            setCallStatus("ended");
-            ringtoneService.stopRingtone(); // Stop any ringtone
             
-            // Automatically close modal after short delay to show ended state
-            setTimeout(() => {
-              console.log('📞 CALL ENDED: Auto-closing modal after call ended');
-              onClose();
-            }, 1500);
-            
-            if (onCallEnd) onCallEnd();
+            if (!isEndingRef.current) {
+              isEndingRef.current = true;
+              resetLocalState();
+              ringtoneService.stopRingtone();
+              setCallStatus("ended");
+              
+              // Auto-close modal after delay if not already closing
+              setTimeout(() => {
+                if (isEndingRef.current) {
+                  console.log('📞 CALL ENDED: Auto-closing modal after call ended');
+                  onClose();
+                  isEndingRef.current = false;
+                }
+              }, 1500);
+              
+              if (onCallEndRef.current) onCallEndRef.current();
+            }
           },
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
@@ -183,23 +233,19 @@ export default function VoiceCallModal({
     }
     
     return () => {
+      // Reset ending flag and cleanup on unmount
+      isEndingRef.current = false;
       // Don't cleanup global service, just clear reference
       webrtcService.current = null;
     };
-  }, [isOpen, user, onCallStart, onCallEnd]);
+  }, [isOpen, user]);
 
   useEffect(() => {
-    
     if (!isOpen) {
-      // Only reset if call is not active (completely ending the call)
-      if (!isCallActive) {
-        setCallStatus("connecting");
-        setCallDuration(0);
-        setIsMuted(false);
-        setIsSpeakerOn(false);
-        setEncryptedCallId(null);
-        callInitiatedRef.current = false; // Reset call initiation flag
-        console.log('📞 DEEP TEST: ✅ Call initiation flag reset on modal close');
+      // Always reset state when closing modal (remove isCallActive condition)
+      if (!isEndingRef.current) {
+        resetLocalState();
+        console.log('📞 RESET: Modal closed, state reset complete');
       }
       return;
     }
@@ -238,7 +284,7 @@ export default function VoiceCallModal({
             if (result.success && result.stream) {
               console.log('✅ INCOMING CALL: Microphone permissions granted');
               // Store the stream temporarily - we'll use it when user accepts
-              (window as any).tempIncomingCallStream = result.stream;
+              incomingStreamRef.current = result.stream;
               setCallStatus("ringing"); // Now we can show ringing state
             } else {
               throw new Error(result.error?.message || 'Failed to get microphone access');
@@ -406,11 +452,11 @@ export default function VoiceCallModal({
         ringtoneService.stopRingtone();
         
         // Check if we already have the media stream from the incoming call preparation
-        const tempStream = (window as any).tempIncomingCallStream;
+        const tempStream = incomingStreamRef.current;
         if (tempStream) {
           console.log('✅ ACCEPT: Using pre-authorized microphone stream');
           // Clean up the temporary reference
-          delete (window as any).tempIncomingCallStream;
+          incomingStreamRef.current = null;
         }
         
         console.log('📞 ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
