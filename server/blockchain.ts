@@ -18,7 +18,6 @@ interface CryptoPrice {
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
   private coingeckoApiUrl = 'https://api.coingecko.com/api/v3/simple/price';
-  private coinbrainApiUrl = 'https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1';
   
   // Token contract addresses on BSC
   private tokenContracts = {
@@ -103,167 +102,25 @@ class BlockchainService {
     }
   }
 
-  private async getCOYNPrice(): Promise<{ usd: number; usd_24h_change: number }> {
-    // Try multiple approaches to get COYN price data
-    const methods = [
-      () => this.getCOYNFromCoinBrainAPI(),
-      () => this.getCOYNFromDEXScreener(),
-      () => this.getCOYNFromDexGuru()
-    ];
-    
-    for (const method of methods) {
-      try {
-        const result = await method();
-        if (result.usd > 0) {
-          return result;
-        }
-      } catch (error) {
-        // Continue to next method
-      }
-    }
-    
-    console.warn('⚠️ All COYN price sources failed, using fallback price');
-    return { usd: 0.90, usd_24h_change: 4.70 };
-  }
-  
-  private async getCOYNFromCoinBrainAPI(): Promise<{ usd: number; usd_24h_change: number }> {
-    console.log('🪙 Attempting COYN price from CoinBrain with enhanced headers...');
-    
-    // Try with browser-like headers to bypass basic Cloudflare protection
-    const response = await axios.get(this.coinbrainApiUrl, {
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Cache-Control': 'no-cache'
-      }
-    });
-    
-    // Try to extract price from HTML if JSON API is blocked
-    let price = 0.90;
-    let change = 4.70;
-    
-    if (typeof response.data === 'string') {
-      // Parse HTML for price data
-      const priceMatch = response.data.match(/"price"\s*:\s*([0-9.]+)/i) || 
-                        response.data.match(/\$([0-9.]+)/i) ||
-                        response.data.match(/USD\s*([0-9.]+)/i);
-      if (priceMatch) {
-        price = parseFloat(priceMatch[1]) || price;
-      }
-      
-      const changeMatch = response.data.match(/"change.*?"\s*:\s*([+-]?[0-9.]+)/i) ||
-                         response.data.match(/([+-]?[0-9.]+)%/i);
-      if (changeMatch) {
-        change = parseFloat(changeMatch[1]) || change;
-      }
-    } else if (response.data && typeof response.data === 'object') {
-      // Handle JSON response
-      if (response.data.price) price = parseFloat(response.data.price) || price;
-      if (response.data.priceUsd) price = parseFloat(response.data.priceUsd) || price;
-      if (response.data.current_price) price = parseFloat(response.data.current_price) || price;
-      
-      if (response.data.price_change_24h) change = parseFloat(response.data.price_change_24h) || change;
-      if (response.data.priceChange24h) change = parseFloat(response.data.priceChange24h) || change;
-    }
-    
-    console.log(`✅ COYN price from CoinBrain: $${price} (${change > 0 ? '+' : ''}${change}%)`);
-    return { usd: price, usd_24h_change: change };
-  }
-  
-  private async getCOYNFromDEXScreener(): Promise<{ usd: number; usd_24h_change: number }> {
-    console.log('💰 Trying COYN price from DEXScreener...');
-    
-    const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1`, {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'COYN-Messenger/1.0.0',
-        'Accept': 'application/json'
-      }
-    });
-    
-    let price = 0;
-    let change = 0;
-    
-    if (response.data && response.data.pairs && response.data.pairs.length > 0) {
-      const pair = response.data.pairs[0];
-      if (pair.priceUsd) {
-        price = parseFloat(pair.priceUsd);
-      }
-      if (pair.priceChange && pair.priceChange.h24) {
-        change = parseFloat(pair.priceChange.h24);
-      }
-    }
-    
-    if (price > 0) {
-      console.log(`✅ COYN price from DEXScreener: $${price} (${change > 0 ? '+' : ''}${change}%)`);
-      return { usd: price, usd_24h_change: change };
-    }
-    
-    throw new Error('No COYN data from DEXScreener');
-  }
-  
-  private async getCOYNFromDexGuru(): Promise<{ usd: number; usd_24h_change: number }> {
-    console.log('🧙 Trying COYN price from DexGuru...');
-    
-    const response = await axios.get(`https://api.dex.guru/v1/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1-bsc`, {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'COYN-Messenger/1.0.0',
-        'Accept': 'application/json'
-      }
-    });
-    
-    let price = 0;
-    let change = 0;
-    
-    if (response.data) {
-      if (response.data.price_usd) {
-        price = parseFloat(response.data.price_usd);
-      }
-      if (response.data.price_change_24h) {
-        change = parseFloat(response.data.price_change_24h);
-      }
-    }
-    
-    if (price > 0) {
-      console.log(`✅ COYN price from DexGuru: $${price} (${change > 0 ? '+' : ''}${change}%)`);
-      return { usd: price, usd_24h_change: change };
-    }
-    
-    throw new Error('No COYN data from DexGuru');
-  }
-  
   private async getCryptoPrices(): Promise<CryptoPrice> {
     try {
-      // Fetch both CoinGecko and CoinBrain data concurrently
-      const [coingeckoResponse, coynPrice] = await Promise.all([
-        axios.get(this.coingeckoApiUrl, {
-          params: {
-            ids: 'binancecoin,tether',
-            vs_currencies: 'usd',
-            include_24hr_change: true
-          }
-        }),
-        this.getCOYNPrice()
-      ]);
+      const response = await axios.get(this.coingeckoApiUrl, {
+        params: {
+          ids: 'binancecoin,tether',
+          vs_currencies: 'usd',
+          include_24hr_change: true
+        }
+      });
       
-      // Combine prices with real COYN data from CoinBrain
+      // Add COYN price data (fixed price for demo)
       const prices = {
-        ...coingeckoResponse.data,
-        coyn: coynPrice
+        ...response.data,
+        coyn: { usd: 0.90, usd_24h_change: 4.70 }
       };
       
       return prices;
-    } catch (error: any) {
-      console.warn('⚠️ Failed to fetch crypto prices, using fallbacks:', error?.message || 'Unknown error');
+    } catch (error) {
+      
       // Return fallback prices including COYN
       return {
         binancecoin: { usd: 600, usd_24h_change: 0 },

@@ -12,10 +12,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera, Smartphone } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera } from "lucide-react";
 import type { User } from "@shared/schema";
 import { NotificationService } from "@/lib/notification-service";
-import MobileWalletTest from "@/components/mobile-wallet-test";
 
 // Utility function to get effective display name (mirrors backend logic)
 function getEffectiveDisplayName(user: User): string {
@@ -1010,22 +1009,6 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   Sign Out
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Mobile Wallet Testing */}
-          <Card className="bg-slate-600/30 border-slate-500">
-            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
-              <CardTitle className="text-black dark:text-slate-100 flex items-center">
-                <Smartphone className="h-4 w-4 mr-2" />
-                Mobile Wallet Testing
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-slate-400">
-                Test mobile wallet functionality and Web3 integration
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <MobileWalletTest />
             </CardContent>
           </Card>
 

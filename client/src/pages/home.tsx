@@ -62,48 +62,22 @@ export default function HomePage() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      // HIGHEST PRIORITY: Don't redirect if user explicitly chose to stay on homepage
-      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-        console.log('🏠 User explicitly navigated to homepage, staying on homepage');
-        sessionStorage.setItem('userOnHomepage', 'true');
-        // Clear the flag so future visits work normally
-        localStorage.removeItem('userClickedHome');
-        return;
-      }
-      
-      // Check for Trust Wallet connection parameters - prevent redirect during wallet connection
-      const urlParamsCheck = new URLSearchParams(window.location.search);
-      const walletConnect = urlParamsCheck.get('wallet_connect');
-      const autoConnect = urlParamsCheck.get('auto_connect');
-      const source = urlParamsCheck.get('source');
-      const isTrustWalletFlow = walletConnect === 'trust' || source === 'trust_wallet' || autoConnect === 'true';
-      
-      if (isTrustWalletFlow) {
-        console.log('🔍 Trust Wallet connection flow detected - preventing automatic redirect to allow wallet connection');
-        return;
-      }
-      
-      // Check if we're in a wallet browser with pending connection OR detect Trust Wallet environment
-      const isInTrustWallet = navigator.userAgent.includes('Trust') || 
-                               window.location.href.includes('trustwallet') ||
-                               document.referrer.includes('trustwallet') ||
-                               window.ethereum?.isTrust ||
-                               window.ethereum?.isTrustWallet;
-      
-      if ((walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) || 
-          (isInTrustWallet && (window.ethereum || window.trustWallet))) {
-        console.log('🎯 Detected wallet browser environment, will attempt auto-connection after mutation is ready...');
-        console.log('  - Pending connection:', walletConnectionPending);
-        console.log('  - Is Trust Wallet:', isInTrustWallet);
-        console.log('  - Has ethereum:', !!window.ethereum);
-        console.log('  - Has trustWallet:', !!window.trustWallet);
+      // Check if we're in a wallet browser with pending connection
+      if (walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) {
+        console.log('🎯 Detected wallet browser with pending connection, will attempt auto-connection after mutation is ready...');
         
         // Mark that we should attempt auto-connection
         sessionStorage.setItem('shouldAutoConnect', 'true');
-        sessionStorage.setItem('autoConnectWalletType', isInTrustWallet ? 'trust' : 'metamask');
       }
       
-      // Redirect authenticated users to messenger (only if they didn't explicitly click Home)
+      // Don't redirect if user explicitly chose to stay on homepage
+      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
+        console.log('User explicitly navigated to homepage, staying on homepage');
+        sessionStorage.setItem('userOnHomepage', 'true');
+        return;
+      }
+      
+      // Redirect authenticated users to messenger
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
         try {
           const parsedUser = JSON.parse(storedUser);
@@ -233,101 +207,15 @@ export default function HomePage() {
     const attemptAutoConnection = async () => {
       const shouldAutoConnect = sessionStorage.getItem('shouldAutoConnect');
       const walletConnectionPending = localStorage.getItem('walletConnectionPending');
-      const autoConnectWalletType = sessionStorage.getItem('autoConnectWalletType') as 'trust' | 'metamask' | null;
       
-      // Enhanced detection for Trust Wallet environment
-      const urlParams = new URLSearchParams(window.location.search);
-      const walletConnect = urlParams.get('wallet_connect');
-      const autoConnect = urlParams.get('auto_connect');
-      const source = urlParams.get('source');
-      
-      // DEBUG: Log all URL parameters and detection
-      console.log('🔍 TRUST WALLET DEBUG: URL Analysis');
-      console.log('  - Full URL:', window.location.href);
-      console.log('  - Search params:', window.location.search);
-      console.log('  - wallet_connect param:', walletConnect);
-      console.log('  - auto_connect param:', autoConnect);
-      console.log('  - source param:', source);
-      console.log('  - User agent:', navigator.userAgent);
-      console.log('  - Referrer:', document.referrer);
-      console.log('  - Has window.ethereum:', !!window.ethereum);
-      console.log('  - Has window.trustWallet:', !!window.trustWallet);
-      console.log('  - window.ethereum?.isTrust:', window.ethereum?.isTrust);
-      console.log('  - window.ethereum?.isTrustWallet:', window.ethereum?.isTrustWallet);
-      
-      const isInTrustWallet = navigator.userAgent.includes('Trust') || 
-                               navigator.userAgent.includes('TrustWallet') ||
-                               window.location.href.includes('trustwallet') ||
-                               document.referrer.includes('trustwallet') ||
-                               document.referrer.includes('link.trustwallet.com') ||
-                               window.location.search.includes('trustwallet') ||
-                               window.ethereum?.isTrust ||
-                               window.ethereum?.isTrustWallet ||
-                               window.trustWallet ||
-                               // Check if we recently initiated Trust Wallet connection
-                               localStorage.getItem('trustWalletConnectionInitiated') === 'true' ||
-                               localStorage.getItem('walletConnectionSource') === 'trust_button';
-      
-      const hasWalletProvider = window.ethereum || window.trustWallet;
-      const trustWalletInitiated = localStorage.getItem('trustWalletConnectionInitiated') === 'true';
-      const isTrustWalletConnection = walletConnect === 'trust' || source === 'trust_wallet' || trustWalletInitiated;
-      
-      console.log('🔍 TRUST WALLET DEBUG: Detection Results');
-      console.log('  - isInTrustWallet:', isInTrustWallet);
-      console.log('  - hasWalletProvider:', hasWalletProvider);
-      console.log('  - trustWalletInitiated:', trustWalletInitiated);
-      console.log('  - isTrustWalletConnection:', isTrustWalletConnection);
-      
-      // Check if user is already connected first
-      const storedConnected = localStorage.getItem('walletConnected');
-      const storedUser = localStorage.getItem('connectedUser');
-      
-      if (storedConnected === 'true' && storedUser) {
-        console.log('🎯 User already connected, redirecting to messenger...');
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          if (parsedUser?.id && parsedUser?.walletAddress) {
-            setLocation("/messenger");
-            return;
-          }
-        } catch (error) {
-          console.log('Invalid stored user data, clearing...');
-          localStorage.removeItem('walletConnected');
-          localStorage.removeItem('connectedUser');
-        }
-      }
-      
-      // More aggressive auto-connection for Trust Wallet dapp browser
-      if ((shouldAutoConnect === 'true' || isInTrustWallet || walletConnectionPending === 'true' || 
-           (isTrustWalletConnection && autoConnect === 'true') || 
-           (isInTrustWallet && isTrustWalletConnection)) && 
-          (hasWalletProvider || isInTrustWallet || isTrustWalletConnection)) {
+      if (shouldAutoConnect === 'true' && walletConnectionPending === 'true' && (window.ethereum || window.trustWallet)) {
         console.log('🎯 Attempting auto-connection...');
-        console.log('  - Should auto connect:', shouldAutoConnect);
-        console.log('  - Is in Trust Wallet:', isInTrustWallet);
-        console.log('  - Wallet pending:', walletConnectionPending);
-        console.log('  - Trust Wallet connection:', isTrustWalletConnection);
-        console.log('  - URL auto connect:', autoConnect);
-        console.log('  - Wallet type:', autoConnectWalletType);
-        console.log('  - Has provider:', hasWalletProvider);
-        
-        // Clear flags to prevent repeated attempts
         sessionStorage.removeItem('shouldAutoConnect');
-        sessionStorage.removeItem('autoConnectWalletType');
-        if (isInTrustWallet || isTrustWalletConnection) {
-          localStorage.removeItem('walletConnectionPending');
-          localStorage.removeItem('trustWalletConnectionInitiated');
-        }
         
         try {
           // Import and use the wallet connector for auto-connection
           const { walletConnector } = await import('@/lib/wallet-connector');
-          
-          // Determine wallet type for connection - prioritize Trust Wallet detection
-          const walletType = (isInTrustWallet || isTrustWalletConnection) ? 'trust' : (autoConnectWalletType || undefined);
-          console.log('🔗 Auto-connecting with wallet type:', walletType);
-          
-          const connectedWallet = await walletConnector.connectWallet(walletType);
+          const connectedWallet = await walletConnector.connectWallet();
           
           if (connectedWallet?.address) {
             console.log('✅ Auto-connection successful:', connectedWallet.address);
@@ -338,15 +226,14 @@ export default function HomePage() {
             return;
           }
         } catch (error) {
-          console.log('Auto-connection failed:', error);
-          console.log('User will need to manually connect');
+          console.log('Auto-connection failed, user will need to manually connect');
           localStorage.removeItem('walletConnectionPending');
         }
       }
     };
 
-    // Small delay to ensure everything is ready, shorter for Trust Wallet
-    const timer = setTimeout(attemptAutoConnection, 200); // Faster response for auto-connection
+    // Small delay to ensure everything is ready
+    const timer = setTimeout(attemptAutoConnection, 200);
     return () => clearTimeout(timer);
   }, [connectWalletMutation]);
 
@@ -572,34 +459,6 @@ export default function HomePage() {
     localStorage.removeItem('userSignedOut');
     localStorage.removeItem('userClickedHome');
     
-    // Enhanced detection for Trust Wallet dapp browser environment
-    const isInTrustWallet = navigator.userAgent.includes('Trust') || 
-                             navigator.userAgent.includes('TrustWallet') ||
-                             window.location.href.includes('trustwallet') ||
-                             document.referrer.includes('trustwallet') ||
-                             window.location.search.includes('trustwallet') ||
-                             window.ethereum?.isTrust ||
-                             window.ethereum?.isTrustWallet ||
-                             window.trustWallet;
-    
-    // For Trust Wallet, if we're already in the dapp browser, connect directly
-    if (walletType === 'trust' && isInTrustWallet && (window.ethereum || window.trustWallet)) {
-      console.log('💙 Already in Trust Wallet dapp browser, connecting directly...');
-      try {
-        const { walletConnector } = await import('@/lib/wallet-connector');
-        const connectedWallet = await walletConnector.connectWallet('trust');
-        
-        if (connectedWallet?.address) {
-          console.log('✅ Trust Wallet connected directly:', connectedWallet.address);
-          connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
-          return;
-        }
-      } catch (error) {
-        console.error('❌ Direct Trust Wallet connection failed:', error);
-        // Fall through to normal flow
-      }
-    }
-    
     // For desktop, check if wallet is available and show address selector
     if (!isMobile()) {
       if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
@@ -704,14 +563,6 @@ export default function HomePage() {
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
     localStorage.removeItem('connectedUserId');
-    
-    // Clear Trust Wallet specific items
-    localStorage.removeItem('trustWalletConnectionInitiated');
-    localStorage.removeItem('walletConnectionSource');
-    localStorage.removeItem('walletConnectionType');
-    localStorage.removeItem('walletConnectionTimestamp');
-    localStorage.removeItem('walletConnectionPending');
-    localStorage.removeItem('userClickedHome');
     
     // Clear any session storage
     sessionStorage.clear();

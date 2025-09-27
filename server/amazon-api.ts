@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 interface Product {
   ASIN: string;
   title: string;
@@ -726,118 +724,12 @@ class MarketplaceAPI {
     return allProducts.find(product => product.ASIN === asin) || null;
   }
 
-  private async getCOYNPriceFromMultipleSources(): Promise<number> {
-    const methods = [
-      () => this.getCOYNFromDEXScreener(),
-      () => this.getCOYNFromDexGuru(),
-      () => this.getCOYNFromCoinBrain()
-    ];
-    
-    for (const method of methods) {
-      try {
-        const price = await method();
-        if (price > 0) {
-          return price;
-        }
-      } catch (error) {
-        // Continue to next method
-      }
-    }
-    
-    console.warn('⚠️ All COYN price sources failed for marketplace, using fallback');
-    return 0.85;
-  }
-  
-  private async getCOYNFromCoinBrain(): Promise<number> {
-    console.log('💰 Trying marketplace COYN price from CoinBrain...');
-    
-    const response = await axios.get('https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', {
-      timeout: 12000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Cache-Control': 'no-cache'
-      }
-    });
-    
-    let price = 0;
-    
-    if (typeof response.data === 'string') {
-      const priceMatch = response.data.match(/"price"\s*:\s*([0-9.]+)/i) || 
-                        response.data.match(/\$([0-9.]+)/i);
-      if (priceMatch) {
-        price = parseFloat(priceMatch[1]);
-      }
-    } else if (response.data && typeof response.data === 'object') {
-      if (response.data.price) price = parseFloat(response.data.price);
-      if (response.data.priceUsd) price = parseFloat(response.data.priceUsd);
-      if (response.data.current_price) price = parseFloat(response.data.current_price);
-    }
-    
-    if (price > 0) {
-      console.log(`✅ Marketplace COYN price from CoinBrain: $${price}`);
-      return price;
-    }
-    
-    throw new Error('No valid COYN price from CoinBrain');
-  }
-  
-  private async getCOYNFromDEXScreener(): Promise<number> {
-    console.log('💰 Trying marketplace COYN price from DEXScreener...');
-    
-    const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1`, {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'COYN-Marketplace/1.0.0',
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (response.data && response.data.pairs && response.data.pairs.length > 0) {
-      const pair = response.data.pairs[0];
-      if (pair.priceUsd) {
-        const price = parseFloat(pair.priceUsd);
-        if (price > 0) {
-          console.log(`✅ Marketplace COYN price from DEXScreener: $${price}`);
-          return price;
-        }
-      }
-    }
-    
-    throw new Error('No valid COYN price from DEXScreener');
-  }
-  
-  private async getCOYNFromDexGuru(): Promise<number> {
-    console.log('🧙 Trying marketplace COYN price from DexGuru...');
-    
-    const response = await axios.get(`https://api.dex.guru/v1/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1-bsc`, {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'COYN-Marketplace/1.0.0',
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (response.data && response.data.price_usd) {
-      const price = parseFloat(response.data.price_usd);
-      if (price > 0) {
-        console.log(`✅ Marketplace COYN price from DexGuru: $${price}`);
-        return price;
-      }
-    }
-    
-    throw new Error('No valid COYN price from DexGuru');
-  }
-
-  async getCryptoRates(): Promise<CryptoRates> {
-    const coynPrice = await this.getCOYNPriceFromMultipleSources();
-    
+  getCryptoRates(): CryptoRates {
     return {
       BTC: 100000,
       BNB: 600,
       USDT: 1.00,
-      COYN: coynPrice
+      COYN: 0.85
     };
   }
 }
