@@ -41,16 +41,12 @@ function App() {
           const userId = parsedUser.id;
           
           if (userId) {
-            console.log('🌍 GLOBAL: Initializing WebRTC globally for user:', userId);
             initializeGlobalWebRTC(userId.toString(), 3).then(() => {
-              console.log('🌍 GLOBAL: WebRTC globally initialized for user:', userId);
             }).catch((error) => {
-              console.error('🌍 GLOBAL: Global WebRTC initialization failed:', error);
             });
           }
         }
       } catch (error) {
-        console.error('🌍 GLOBAL: Error checking for authenticated user:', error);
       }
     };
     

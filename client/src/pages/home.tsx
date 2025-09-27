@@ -142,7 +142,6 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
-      console.log('✅ Wallet connection successful, consolidating authentication flow');
       
       // Clean up any competing states first
       localStorage.removeItem('pendingWalletConnection');
@@ -202,20 +201,10 @@ export default function HomePage() {
       
       // Check for pending MetaMask connection from mobile deep link
       const pendingWalletConnection = localStorage.getItem('pendingWalletConnection');
-      console.log('🔧 DEBUG: Checking pending connection state:', {
-        pendingWalletConnection,
-        hasEthereum: typeof window.ethereum !== 'undefined',
-        isMetaMask: window.ethereum?.isMetaMask,
-        isConnected,
-        userSignedOut,
-        metamaskFallbackNeeded: localStorage.getItem('metamaskFallbackNeeded'),
-        linkAttemptTime: localStorage.getItem('metamaskLinkAttempt')
-      });
       
       // Check for QR fallback scenario - if deep link failed, show QR code
       const qrFallbackNeeded = localStorage.getItem('metamaskQRFallback');
       if (qrFallbackNeeded === 'true' && pendingWalletConnection === 'metamask') {
-        console.log('🔄 MetaMask deep link failed, showing QR code fallback...');
         setShowMetaMaskQR(true);
         return;
       }
@@ -223,13 +212,11 @@ export default function HomePage() {
       if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
         isChecking = true;
         try {
-          console.log('📱 Completing MetaMask pending connection...');
           
           // Request accounts from MetaMask
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           
           if (accounts && accounts.length > 0) {
-            console.log('✅ MetaMask mobile connection successful');
             
             // Clear pending flags
             localStorage.removeItem('pendingWalletConnection');

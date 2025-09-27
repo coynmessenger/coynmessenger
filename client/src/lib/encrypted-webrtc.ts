@@ -131,10 +131,6 @@ export class EncryptedWebRTCService {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}`;
     
-    console.log('🔧 DEEP TEST: WebRTC initializing socket connection to:', socketUrl);
-    console.log('🔧 DEEP TEST: Window location:', window.location.href);
-    console.log('🔧 DEEP TEST: Protocol:', protocol);
-    console.log('🔧 DEEP TEST: Host:', window.location.host);
     
     this.socket = io(socketUrl, {
       transports: ['websocket'],
@@ -142,7 +138,6 @@ export class EncryptedWebRTCService {
       path: '/socket.io/',
     });
     
-    console.log('🔧 DEEP TEST: Socket instance created, setting up listeners...');
 
     this.setupSocketListeners();
   }
@@ -151,19 +146,12 @@ export class EncryptedWebRTCService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('🔧 DEEP TEST: Connected to encrypted WebRTC signaling server');
-      console.log('🔧 DEEP TEST: Socket ID:', this.socket?.id);
-      console.log('🔧 DEEP TEST: Socket connected:', this.socket?.connected);
-      console.log('🔧 DEEP TEST: Socket transport:', this.socket?.io?.engine?.transport?.name);
     });
 
     this.socket.on('authenticated', (data: { userId: string; publicKey: string; encryptionEnabled: boolean }) => {
       this.localUserId = data.userId;
       this.publicKey = data.publicKey;
       this.isInitialized = true;
-      console.log('WebRTC authentication successful, encryption enabled:', data.encryptionEnabled);
-      console.log('🔧 CRITICAL: Authenticated user:', data.userId, 'on socket:', this.socket?.id);
-      console.log('🔧 CRITICAL: WebRTC socket ready to receive calls on socket:', this.socket?.id);
       
       if (this.eventHandlers.onEncryptionStatusChanged) {
         this.eventHandlers.onEncryptionStatusChanged(data.encryptionEnabled);
@@ -171,7 +159,6 @@ export class EncryptedWebRTCService {
     });
 
     this.socket.on('keys-exchanged', (data: { fromUserId: string; publicKey: string }) => {
-      console.log('Encryption keys exchanged with user:', data.fromUserId);
       // Keys are automatically handled on the server side
     });
 
@@ -183,26 +170,7 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('🧪 COMPREHENSIVE TEST: ==================== INCOMING CALL TEST ====================');
-      console.log('🧪 TEST: Function: incoming-call event handler');
-      console.log('🧪 TEST: Client socket ID:', this.socket?.id);
-      console.log('🧪 TEST: Call ID:', data.callId);
-      console.log('🧪 TEST: From user:', data.fromUserId);
-      console.log('🧪 TEST: Call type:', data.type);
-      console.log('🧪 TEST: Encrypted:', data.encrypted);
-      console.log('🧪 TEST: Has encrypted offer:', !!data.encryptedOffer);
-      console.log('🧪 TEST: Has regular offer:', !!data.offer);
-      console.log('🧪 TEST: Timestamp:', new Date().toISOString());
       
-      console.log('📞 DEEP TEST: ===============================');
-      console.log('📞 DEEP TEST: INCOMING CALL RECEIVED ON CLIENT');
-      console.log('📞 DEEP TEST: ===============================');
-      console.log('📞 DEEP TEST: Call type:', data.type);
-      console.log('📞 DEEP TEST: Is encrypted:', data.encrypted);
-      console.log('📞 DEEP TEST: Has offer:', !!data.offer);
-      console.log('📞 DEEP TEST: Has encrypted offer:', !!data.encryptedOffer);
-      console.log('📞 DEEP TEST: Full data object:', data);
-      console.log('📞 DEEP TEST: About to trigger UI notification...');
       
       try {
         // Store call information
@@ -222,20 +190,16 @@ export class EncryptedWebRTCService {
             fromUserId: data.fromUserId,
             type: data.type,
           });
-          console.log('✅ Incoming call handler triggered for call:', data.callId);
         } else {
-          console.error('❌ No incoming call handler available');
         }
 
         // If there's an offer, prepare for potential acceptance
         if (data.offer || data.encryptedOffer) {
-          console.log('Call contains offer data, ready for acceptance');
           // Store offer data for when user accepts
           call.remoteOffer = data.offer;
         }
         
       } catch (error) {
-        console.error('Failed to handle incoming call:', error);
       }
     });
 
@@ -246,8 +210,6 @@ export class EncryptedWebRTCService {
       answer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      console.log('🎯 CALLER: Call accepted by target user:', data);
-      console.log('🎯 CALLER: Setting remote answer and transitioning to connected state...');
       
       // Set remote description with the answer
       const call = this.activeCalls.get(data.callId);
@@ -257,20 +219,16 @@ export class EncryptedWebRTCService {
           
           // Handle encrypted answer if available
           if (data.encrypted && data.encryptedAnswer) {
-            console.log('📞 CLIENT: Processing encrypted answer');
             // For now, use plain answer which comes as fallback
           }
           
           if (answer) {
-            console.log('🎯 CALLER: Setting remote answer description...');
             await call.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            console.log('✅ CALLER: Remote answer set successfully - WebRTC handshake complete!');
           }
           
           // CRITICAL: Update call status to connected
           call.status = 'connected';
           this.activeCalls.set(data.callId, call);
-          console.log('🎯 CALLER: Call status updated to connected');
           
         } catch (error) {
           console.error('❌ CALLER: Failed to set remote answer:', error);
@@ -279,7 +237,6 @@ export class EncryptedWebRTCService {
       
       // CRITICAL: Trigger call accepted event for UI to show connected state
       if (this.eventHandlers.onCallAccepted) {
-        console.log('🎯 CALLER: Triggering onCallAccepted for UI update...');
         this.eventHandlers.onCallAccepted({
           callId: data.callId,
           fromUserId: data.byUserId,
@@ -405,18 +362,14 @@ export class EncryptedWebRTCService {
           this.localUserId === userId && 
           this.socket?.connected && 
           this.socket?.id) {
-        console.log(`✅ STABILITY: Already initialized for user ${userId} with stable socket ${this.socket?.id}`);
-        console.log(`✅ STABILITY: Skipping reinitialization to prevent socket churn`);
         resolve();
         return;
       }
       
       // STABILITY FIX: Only cleanup if we really need to (different user or truly disconnected)
       if (this.localUserId !== userId || !this.socket?.connected) {
-        console.log('🔧 STABILITY: Cleaning up previous connection for user switch or disconnection');
         this.cleanup();
       } else {
-        console.log('🔧 STABILITY: Keeping existing connection, just marking as initialized');
         this.isInitialized = true;
         this.localUserId = userId;
         resolve();
@@ -424,7 +377,6 @@ export class EncryptedWebRTCService {
       }
       
       // Create fresh socket connection only when necessary
-      console.log('🔧 STABILITY: Creating new WebRTC socket connection for user:', userId);
       this.initializeSocket();
 
       console.log(`Authenticating user ${userId} with WebRTC signaling server`);
@@ -435,30 +387,24 @@ export class EncryptedWebRTCService {
       }, 30000); // Increased to 30 seconds for better stability
 
       this.socket!.once('authenticated', (data) => {
-        console.log(`🔧 DEEP TEST: Authentication successful for user ${userId}`, data);
         clearTimeout(timeout);
         resolve();
       });
 
       this.socket!.on('connect_error', (error) => {
-        console.error('🔧 DEEP TEST: Socket connection error:', error);
         clearTimeout(timeout);
         reject(new Error(`Socket connection failed: ${error.message}`));
       });
 
       this.socket!.on('disconnect', (reason) => {
-        console.error('🔧 STABILITY: Socket disconnected during init:', reason);
         // STABILITY FIX: Don't mark as uninitialized for temporary disconnects
         if (reason === 'transport close' || reason === 'io client disconnect' || reason === 'ping timeout') {
-          console.log('🔧 STABILITY: Ignoring temporary disconnect, maintaining initialized state');
           // Keep the service marked as initialized so it doesn't get recreated unnecessarily
         } else {
-          console.log('🔧 STABILITY: Real disconnect, marking as uninitialized');
           this.isInitialized = false;
         }
       });
 
-      console.log('🔧 DEEP TEST: Emitting authenticate event for user:', userId);
       this.socket!.emit('authenticate', { userId });
     });
   }
@@ -471,7 +417,6 @@ export class EncryptedWebRTCService {
   // Clean up existing connection
   private cleanup(): void {
     if (this.socket) {
-      console.log('🧹 CRITICAL: Cleaning up WebRTC socket connection:', this.socket.id);
       if (this.socket.connected) {
         this.socket.disconnect();
       }
@@ -485,32 +430,17 @@ export class EncryptedWebRTCService {
 
   // Public cleanup method for logout/state changes
   public disconnect(): void {
-    console.log('🔌 CRITICAL: Public disconnect called - cleaning up WebRTC');
     this.cleanup();
   }
 
   // Initiate an encrypted call
   async initiateCall(targetUserId: string, type: 'voice' | 'video'): Promise<string> {
-    console.log('🧪 COMPREHENSIVE TEST: ==================== CALL FUNCTION TEST ====================');
-    console.log('🧪 TEST: Function: initiateCall');
-    console.log('🧪 TEST: Target User ID:', targetUserId);
-    console.log('🧪 TEST: Call Type:', type);
-    console.log('🧪 TEST: Socket Status:', this.socket?.connected);
-    console.log('🧪 TEST: Socket ID:', this.socket?.id);
-    console.log('🧪 TEST: Service Initialized:', this.isInitialized);
-    console.log('🧪 TEST: Local User ID:', this.localUserId);
-    console.log('🧪 TEST: Public Key Available:', !!this.publicKey);
-    console.log('🧪 TEST: Active Calls Count:', this.activeCalls.size);
-    console.log('🧪 TEST: Timestamp:', new Date().toISOString());
     
     // Test 1: Service Initialization Check
     if (!this.socket || !this.isInitialized) {
       const error = 'Service not initialized';
-      console.error('❌ TEST FAILED: Service Initialization -', error);
-      console.error('❌ ERROR DETAILS: Socket:', !!this.socket, 'Initialized:', this.isInitialized);
       throw new Error(error);
     }
-    console.log('✅ TEST PASSED: Service Initialization Check');
 
     try {
       // Get user media with enhanced desktop constraints
@@ -518,35 +448,11 @@ export class EncryptedWebRTCService {
 
       let localStream: MediaStream;
       try {
-        console.log('🧪 TEST: Starting Media Access Test...');
-        console.log('🧪 TEST: Constraints:', JSON.stringify(constraints));
-        console.log('🎤 Requesting microphone permissions...');
         
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
         
-        console.log('✅ TEST PASSED: Media Access Granted');
-        console.log('🧪 TEST: Audio tracks:', localStream.getAudioTracks().length);
-        console.log('🧪 TEST: Video tracks:', localStream.getVideoTracks().length);
-        console.log('🧪 TEST: Stream active:', localStream.active);
-        
-        // Test audio track details
-        localStream.getAudioTracks().forEach((track, index) => {
-          console.log(`🧪 TEST: Audio Track ${index}:`, {
-            enabled: track.enabled,
-            kind: track.kind,
-            label: track.label,
-            readyState: track.readyState
-          });
-        });
         
       } catch (error: any) {
-        console.error('❌ TEST FAILED: Media Access -', error);
-        console.error('❌ ERROR DETAILS:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          constraint: error.constraint
-        });
         
         // Provide specific error messages
         if (error.name === 'NotAllowedError') {
@@ -560,36 +466,18 @@ export class EncryptedWebRTCService {
         }
       }
       
-      // Test 2: Peer Connection Creation
-      console.log('🧪 TEST: Creating RTCPeerConnection...');
-      console.log('🧪 TEST: RTC Configuration:', JSON.stringify(this.rtcConfiguration, null, 2));
+      // Create peer connection
       
       const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
       
-      console.log('✅ TEST PASSED: RTCPeerConnection Created');
-      console.log('🧪 TEST: Connection State:', peerConnection.connectionState);
-      console.log('🧪 TEST: ICE Connection State:', peerConnection.iceConnectionState);
-      console.log('🧪 TEST: ICE Gathering State:', peerConnection.iceGatheringState);
-      console.log('🧪 TEST: Signaling State:', peerConnection.signalingState);
       
-      // Test 3: Adding Local Stream
-      console.log('🧪 TEST: Adding local stream tracks to peer connection...');
-      let trackCount = 0;
+      // Add local stream tracks to peer connection
       localStream.getTracks().forEach(track => {
-        console.log(`🧪 TEST: Adding track ${trackCount++}:`, {
-          kind: track.kind,
-          label: track.label,
-          enabled: track.enabled,
-          readyState: track.readyState
-        });
         peerConnection.addTrack(track, localStream);
       });
-      console.log('✅ TEST PASSED: All tracks added to peer connection');
 
-      // Test 4: Call ID Generation
+      // Generate call ID
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log('🧪 TEST: Generated Call ID:', callId);
-      console.log('🧪 TEST: Call ID Format Valid:', /^call_\d+_[a-z0-9]+$/.test(callId));
       
       // Store call information
       const call: EncryptedCall = {
@@ -611,26 +499,6 @@ export class EncryptedWebRTCService {
       await peerConnection.setLocalDescription(offer);
 
       // Send encrypted call invitation
-      console.log(`📞 DEEP TEST: ===================`);
-      console.log(`📞 DEEP TEST: CALL INITIATION PHASE`);
-      console.log(`📞 DEEP TEST: ===================`);
-      console.log(`📞 DEEP TEST: Call ID: ${callId}`);
-      console.log(`📞 DEEP TEST: From user: ${this.localUserId}`);
-      console.log(`📞 DEEP TEST: To user: ${targetUserId}`);
-      console.log(`📞 DEEP TEST: Call type: ${type}`);
-      console.log(`📞 DEEP TEST: Socket connected: ${this.socket?.connected}`);
-      console.log(`📞 DEEP TEST: Socket ID: ${this.socket?.id}`);
-      console.log(`📞 DEEP TEST: Offer created: ${!!offer}`);
-      console.log(`📞 DEEP TEST: About to emit 'initiate-call' event...`);
-      console.log(`🚨 CRITICAL DEBUG: Socket status check before emit:`);
-      console.log(`🚨 CRITICAL DEBUG: - Socket exists: ${!!this.socket}`);
-      console.log(`🚨 CRITICAL DEBUG: - Socket connected: ${this.socket?.connected}`);
-      console.log(`🚨 CRITICAL DEBUG: - Socket ID: ${this.socket?.id}`);
-      console.log(`🚨 CRITICAL DEBUG: - Socket transport: ${this.socket?.io?.engine?.transport?.name}`);
-      console.log(`🚨 CRITICAL DEBUG: - Socket rooms: Connected`);
-      
-      // Test socket connection with a ping
-      this.socket.emit('ping-test', { timestamp: Date.now() });
       
       this.socket.emit('initiate-call', {
         callId,
@@ -639,27 +507,17 @@ export class EncryptedWebRTCService {
         offer,
       });
 
-      console.log(`📞 DEEP TEST: ✅ 'initiate-call' event emitted to server`);
-      console.log(`📞 DEEP TEST: Now waiting for server responses...`);
-      
-      // Add timeout to detect if server never responds
-      setTimeout(() => {
-        console.error('🚨 CRITICAL DEBUG: ❌ TIMEOUT - No response from server after 5 seconds');
-        console.error('🚨 CRITICAL DEBUG: This indicates server is not receiving our initiate-call event');
-      }, 5000);
-      
       // Listen for call initiated confirmation
       this.socket.once('call-initiated', (data: { callId: string, targetUserId: string }) => {
-        console.log('📞 DEEP TEST: ✅ SERVER CONFIRMED call initiated:', data);
+        // Call initiated successfully
       });
       
       this.socket.once('call-error', (data: { error: string }) => {
-        console.error('📞 DEEP TEST: ❌ SERVER ERROR:', data.error);
+        console.error('Call error:', data.error);
       });
       
       // Listen for call accepted confirmation
       this.socket.once('call-accepted-confirmation', (data: { callId: string, fromUserId: string }) => {
-        console.log('📞 DEEP TEST: ✅ SERVER CONFIRMED call accepted by:', data.fromUserId);
       });
       
       return callId;

@@ -23,10 +23,6 @@ class WalletConnector {
   // Mobile detection utilities
   private isMobile(): boolean {
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log('🔧 Mobile detection result:', { 
-      userAgent: navigator.userAgent, 
-      isMobile: isMobileDevice 
-    });
     return isMobileDevice;
   }
 
@@ -34,17 +30,6 @@ class WalletConnector {
     return !!(window.ethereum?.isMetaMask || window.ethereum?.isTrust);
   }
 
-  // Debug function to test connection logic
-  public debugConnectionState(): void {
-    console.log('🔧 DEBUG: Connection state analysis:', {
-      isMobile: this.isMobile(),
-      hasEthereum: typeof window.ethereum !== 'undefined',
-      isMetaMask: window.ethereum?.isMetaMask || false,
-      isTrust: window.ethereum?.isTrust || false,
-      pendingConnection: localStorage.getItem('pendingWalletConnection'),
-      userAgent: navigator.userAgent
-    });
-  }
 
   // BSC Network Configuration
   private readonly BSC_CONFIG = {
@@ -65,19 +50,16 @@ class WalletConnector {
     
     // Check for MetaMask
     if (window.ethereum?.isMetaMask) {
-      console.log('🦊 MetaMask detected');
       return window.ethereum;
     }
     
     // Check for Trust Wallet
     if (window.ethereum?.isTrust) {
-      console.log('💙 Trust Wallet detected');
       return window.ethereum;
     }
     
     // Generic Web3 provider
     if (window.ethereum) {
-      console.log('🌐 Generic Web3 wallet detected');
       return window.ethereum;
     }
     
@@ -86,7 +68,6 @@ class WalletConnector {
 
   // MetaMask deep linking for mobile
   private openMetaMaskDeepLink(): void {
-    console.log('📱 Opening MetaMask app via deep link...');
     
     // Store pending connection state and timestamp for tracking
     localStorage.setItem('pendingWalletConnection', 'metamask');
@@ -102,12 +83,10 @@ class WalletConnector {
       `metamask://dapp/${hostname}`,                   // Custom scheme fallback
     ];
     
-    console.log('🔗 Available MetaMask deep link formats:', deepLinkFormats);
     console.log('⚠️ MetaMask mobile deep links have known reliability issues');
     
     // Use the primary format that should show the dapp in MetaMask browser
     const primaryDeepLink = deepLinkFormats[0];
-    console.log('📱 Attempting MetaMask deep link:', primaryDeepLink);
     
     // Set a flag for fallback QR code if deep link fails
     setTimeout(() => {
@@ -130,13 +109,6 @@ class WalletConnector {
     
     // Handle mobile deep linking for MetaMask
     if (!walletProvider && walletType === 'metamask' && this.isMobile()) {
-      console.log('📱 Mobile device detected with no injected provider, using MetaMask deep link');
-      console.log('🔧 DEBUG: Deep link conditions met:', {
-        hasWalletProvider: !!walletProvider,
-        walletType,
-        isMobile: this.isMobile(),
-        currentUrl: window.location.origin
-      });
       this.openMetaMaskDeepLink();
       // Return a resolved state - the handshake continues after redirect
       throw new Error('Opening MetaMask app...');
@@ -147,7 +119,6 @@ class WalletConnector {
     }
 
     try {
-      console.log('🔗 Requesting wallet connection...');
       
       // Request account access with timeout
       const accounts = await Promise.race([
@@ -162,11 +133,9 @@ class WalletConnector {
       }
 
       const address = accounts[0];
-      console.log('✅ Connected to wallet:', address);
 
       // Get current chain ID
       const chainId = await walletProvider.request({ method: 'eth_chainId' });
-      console.log('🔗 Current chain ID:', chainId);
 
       // Switch to BSC if needed
       await this.ensureBSCNetwork(walletProvider);
@@ -215,7 +184,6 @@ class WalletConnector {
       const currentChainId = await provider.request({ method: 'eth_chainId' });
       
       if (currentChainId === this.BSC_CONFIG.chainId) {
-        console.log('✅ Already on BSC network');
         return;
       }
 
@@ -227,7 +195,6 @@ class WalletConnector {
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: this.BSC_CONFIG.chainId }],
         });
-        console.log('✅ Switched to BSC network');
       } catch (switchError: any) {
         // If BSC network doesn't exist, add it
         if (switchError.code === 4902) {
@@ -236,7 +203,6 @@ class WalletConnector {
             method: 'wallet_addEthereumChain',
             params: [this.BSC_CONFIG],
           });
-          console.log('✅ BSC network added');
         } else {
           throw switchError;
         }
@@ -287,12 +253,10 @@ class WalletConnector {
         gasLimit: BigInt(21000), // Standard gas limit for BNB transfer
       };
 
-      console.log('📝 Signing transaction...');
       
       // Send transaction
       const transaction = await this.signer.sendTransaction(tx);
       
-      console.log('✅ Transaction sent:', transaction.hash);
       console.log('⏳ Waiting for confirmation...');
       
       // Wait for confirmation
@@ -302,7 +266,6 @@ class WalletConnector {
         throw new Error('Transaction failed');
       }
 
-      console.log('🎉 Transaction confirmed!');
       
       return {
         hash: transaction.hash,

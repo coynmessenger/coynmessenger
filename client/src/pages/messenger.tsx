@@ -67,10 +67,6 @@ export default function MessengerPage() {
   }, []);
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   
-  // Debug: Track selectedConversation changes
-  useEffect(() => {
-    console.log('🎯 SELECTED CONVERSATION CHANGED:', selectedConversation);
-  }, [selectedConversation]);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isWalletSidebarOpen, setIsWalletSidebarOpen] = useState(false);
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
