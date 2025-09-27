@@ -20,6 +20,15 @@ class WalletConnector {
   private provider: ethers.BrowserProvider | null = null;
   private signer: ethers.JsonRpcSigner | null = null;
 
+  // Mobile detection utilities
+  private isMobile(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  private isInAppWallet(): boolean {
+    return !!(window.ethereum?.isMetaMask || window.ethereum?.isTrust);
+  }
+
   // BSC Network Configuration
   private readonly BSC_CONFIG = {
     chainId: '0x38', // 56 in decimal
@@ -58,9 +67,37 @@ class WalletConnector {
     return null;
   }
 
-  // Connect to wallet with retry logic
-  async connectWallet(): Promise<ConnectedWallet> {
+  // MetaMask deep linking for mobile
+  private openMetaMaskDeepLink(): void {
+    console.log('📱 Opening MetaMask app via deep link...');
+    
+    // Store pending connection state
+    localStorage.setItem('pendingWalletConnection', 'metamask');
+    
+    // Create deep link URL with current origin
+    const currentUrl = window.location.origin;
+    const encodedUrl = encodeURIComponent(currentUrl);
+    
+    // Try primary MetaMask deep link format
+    const deepLinkUrl = `https://metamask.app.link/dapp/${encodedUrl}/?wallet_return=true`;
+    
+    console.log('🔗 MetaMask deep link URL:', deepLinkUrl);
+    
+    // Navigate to MetaMask app
+    window.location.href = deepLinkUrl;
+  }
+
+  // Connect to wallet with retry logic and wallet type support
+  async connectWallet(walletType?: 'metamask' | 'trust'): Promise<ConnectedWallet> {
     const walletProvider = this.getWalletProvider();
+    
+    // Handle mobile deep linking for MetaMask
+    if (!walletProvider && walletType === 'metamask' && this.isMobile()) {
+      console.log('📱 Mobile device detected with no injected provider, using MetaMask deep link');
+      this.openMetaMaskDeepLink();
+      // Return a resolved state - the handshake continues after redirect
+      throw new Error('Opening MetaMask app...');
+    }
     
     if (!walletProvider) {
       throw new Error('No Web3 wallet detected. Please install MetaMask or Trust Wallet.');
