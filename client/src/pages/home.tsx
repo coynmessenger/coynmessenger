@@ -82,15 +82,6 @@ export default function HomePage() {
         sessionStorage.setItem('autoConnectWalletType', isInTrustWallet ? 'trust' : 'metamask');
       }
       
-      // Don't redirect if user explicitly chose to stay on homepage
-      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-        console.log('User explicitly navigated to homepage, staying on homepage');
-        sessionStorage.setItem('userOnHomepage', 'true');
-        // Clear the flag so future visits work normally
-        localStorage.removeItem('userClickedHome');
-        return;
-      }
-      
       // Check for Trust Wallet connection parameters - prevent redirect during wallet connection
       const urlParamsCheck = new URLSearchParams(window.location.search);
       const walletConnect = urlParamsCheck.get('wallet_connect');
@@ -103,7 +94,16 @@ export default function HomePage() {
         return;
       }
       
-      // Redirect authenticated users to messenger
+      // Don't redirect if user explicitly chose to stay on homepage
+      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
+        console.log('🏠 User explicitly navigated to homepage, staying on homepage');
+        sessionStorage.setItem('userOnHomepage', 'true');
+        // Clear the flag so future visits work normally
+        localStorage.removeItem('userClickedHome');
+        return;
+      }
+      
+      // Redirect authenticated users to messenger (only if they didn't explicitly click Home)
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
         try {
           const parsedUser = JSON.parse(storedUser);
