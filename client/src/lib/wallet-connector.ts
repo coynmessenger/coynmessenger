@@ -471,8 +471,9 @@ class WalletConnector {
   }
 }
 
-// Export singleton instance
+// Export singleton instance and class
 export const walletConnector = new WalletConnector();
+export { WalletConnector };
 
 // Type definitions for window.ethereum and trustWallet
 declare global {
