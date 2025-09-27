@@ -62,6 +62,27 @@ export default function HomePage() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
+      // HIGHEST PRIORITY: Don't redirect if user explicitly chose to stay on homepage
+      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
+        console.log('🏠 User explicitly navigated to homepage, staying on homepage');
+        sessionStorage.setItem('userOnHomepage', 'true');
+        // Clear the flag so future visits work normally
+        localStorage.removeItem('userClickedHome');
+        return;
+      }
+      
+      // Check for Trust Wallet connection parameters - prevent redirect during wallet connection
+      const urlParamsCheck = new URLSearchParams(window.location.search);
+      const walletConnect = urlParamsCheck.get('wallet_connect');
+      const autoConnect = urlParamsCheck.get('auto_connect');
+      const source = urlParamsCheck.get('source');
+      const isTrustWalletFlow = walletConnect === 'trust' || source === 'trust_wallet' || autoConnect === 'true';
+      
+      if (isTrustWalletFlow) {
+        console.log('🔍 Trust Wallet connection flow detected - preventing automatic redirect to allow wallet connection');
+        return;
+      }
+      
       // Check if we're in a wallet browser with pending connection OR detect Trust Wallet environment
       const isInTrustWallet = navigator.userAgent.includes('Trust') || 
                                window.location.href.includes('trustwallet') ||
@@ -80,27 +101,6 @@ export default function HomePage() {
         // Mark that we should attempt auto-connection
         sessionStorage.setItem('shouldAutoConnect', 'true');
         sessionStorage.setItem('autoConnectWalletType', isInTrustWallet ? 'trust' : 'metamask');
-      }
-      
-      // Check for Trust Wallet connection parameters - prevent redirect during wallet connection
-      const urlParamsCheck = new URLSearchParams(window.location.search);
-      const walletConnect = urlParamsCheck.get('wallet_connect');
-      const autoConnect = urlParamsCheck.get('auto_connect');
-      const source = urlParamsCheck.get('source');
-      const isTrustWalletFlow = walletConnect === 'trust' || source === 'trust_wallet' || autoConnect === 'true';
-      
-      if (isTrustWalletFlow) {
-        console.log('🔍 Trust Wallet connection flow detected - preventing automatic redirect to allow wallet connection');
-        return;
-      }
-      
-      // Don't redirect if user explicitly chose to stay on homepage
-      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-        console.log('🏠 User explicitly navigated to homepage, staying on homepage');
-        sessionStorage.setItem('userOnHomepage', 'true');
-        // Clear the flag so future visits work normally
-        localStorage.removeItem('userClickedHome');
-        return;
       }
       
       // Redirect authenticated users to messenger (only if they didn't explicitly click Home)
