@@ -22,11 +22,28 @@ class WalletConnector {
 
   // Mobile detection utilities
   private isMobile(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('🔧 Mobile detection result:', { 
+      userAgent: navigator.userAgent, 
+      isMobile: isMobileDevice 
+    });
+    return isMobileDevice;
   }
 
   private isInAppWallet(): boolean {
     return !!(window.ethereum?.isMetaMask || window.ethereum?.isTrust);
+  }
+
+  // Debug function to test connection logic
+  public debugConnectionState(): void {
+    console.log('🔧 DEBUG: Connection state analysis:', {
+      isMobile: this.isMobile(),
+      hasEthereum: typeof window.ethereum !== 'undefined',
+      isMetaMask: window.ethereum?.isMetaMask || false,
+      isTrust: window.ethereum?.isTrust || false,
+      pendingConnection: localStorage.getItem('pendingWalletConnection'),
+      userAgent: navigator.userAgent
+    });
   }
 
   // BSC Network Configuration

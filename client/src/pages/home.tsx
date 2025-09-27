@@ -425,6 +425,15 @@ export default function HomePage() {
     // Clear sign out flag since user is manually connecting
     localStorage.removeItem('userSignedOut');
     
+    // Debug connection state
+    console.log('🔧 DEBUG: Starting wallet connection', {
+      walletType,
+      hasEthereum: typeof window.ethereum !== 'undefined',
+      isMetaMask: window.ethereum?.isMetaMask,
+      isTrust: window.ethereum?.isTrust,
+      userAgent: navigator.userAgent
+    });
+    
     // Check if wallet is available first and show address selector if injected
     if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
       // Show address selector for MetaMask
