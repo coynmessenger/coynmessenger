@@ -200,6 +200,14 @@ export default function HomePage() {
       
       // Check for pending MetaMask connection from mobile deep link
       const pendingWalletConnection = localStorage.getItem('pendingWalletConnection');
+      console.log('🔧 DEBUG: Checking pending connection state:', {
+        pendingWalletConnection,
+        hasEthereum: typeof window.ethereum !== 'undefined',
+        isMetaMask: window.ethereum?.isMetaMask,
+        isConnected,
+        userSignedOut
+      });
+      
       if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
         isChecking = true;
         try {

@@ -112,6 +112,12 @@ class WalletConnector {
     // Handle mobile deep linking for MetaMask
     if (!walletProvider && walletType === 'metamask' && this.isMobile()) {
       console.log('📱 Mobile device detected with no injected provider, using MetaMask deep link');
+      console.log('🔧 DEBUG: Deep link conditions met:', {
+        hasWalletProvider: !!walletProvider,
+        walletType,
+        isMobile: this.isMobile(),
+        currentUrl: window.location.origin
+      });
       this.openMetaMaskDeepLink();
       // Return a resolved state - the handshake continues after redirect
       throw new Error('Opening MetaMask app...');
