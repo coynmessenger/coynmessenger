@@ -91,15 +91,23 @@ export default function HomePage() {
         return;
       }
       
-      // Check for Trust Wallet connection parameters - prevent redirect during wallet connection
+      // Check for any active wallet connection flow - prevent redirect during wallet connection
       const urlParamsCheck = new URLSearchParams(window.location.search);
       const walletConnect = urlParamsCheck.get('wallet_connect');
       const autoConnect = urlParamsCheck.get('auto_connect');
       const source = urlParamsCheck.get('source');
       const isTrustWalletFlow = walletConnect === 'trust' || source === 'trust_wallet' || autoConnect === 'true';
       
-      if (isTrustWalletFlow) {
-        console.log('🔍 Trust Wallet connection flow detected - preventing automatic redirect to allow wallet connection');
+      // Also check for active connection session flags
+      const shouldAutoConnect = sessionStorage.getItem('shouldAutoConnect');
+      const isWalletConnectionActive = shouldAutoConnect === 'true' || walletConnectionPending === 'true';
+      
+      if (isTrustWalletFlow || isWalletConnectionActive) {
+        console.log('🔍 Wallet connection flow detected - preventing automatic redirect to allow wallet connection');
+        console.log('  - Trust Wallet flow:', isTrustWalletFlow);
+        console.log('  - Active connection:', isWalletConnectionActive);
+        console.log('  - Should auto connect:', shouldAutoConnect);
+        console.log('  - Wallet pending:', walletConnectionPending);
         return;
       }
       
