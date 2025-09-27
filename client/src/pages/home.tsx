@@ -45,6 +45,41 @@ export default function HomePage() {
 
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
+    // FIRST: Check for explicit home navigation flags immediately - this takes priority
+    const userClickedHome = localStorage.getItem('userClickedHome');
+    const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation');
+    
+    if (userClickedHome === 'true' || userExplicitNavigation === 'true') {
+      console.log('🏠 IMMEDIATE: User clicked Home button, staying on homepage');
+      // Clear the flags and set state to stay on homepage
+      localStorage.removeItem('userClickedHome');
+      sessionStorage.setItem('userOnHomepage', 'true');
+      
+      // Set the user state if they're authenticated but allow them to stay on homepage
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      if (storedConnected === 'true' && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser?.id && parsedUser?.walletAddress) {
+            console.log('🏠 IMMEDIATE: Setting user state but staying on homepage');
+            setConnectedUser(parsedUser);
+            setIsConnected(true);
+            // Initialize global notification service but stay on homepage
+            globalNotificationService.initialize(parsedUser.id.toString());
+          }
+        } catch (error) {
+          // Invalid stored user data, clear it
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+          localStorage.removeItem('connectedUserId');
+        }
+      }
+      
+      return; // Exit immediately - no redirect
+    }
+
     const handleAuthenticationAndRedirect = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const fromWallet = urlParams.get('from_wallet') === 'true';
@@ -53,7 +88,6 @@ export default function HomePage() {
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       const userSignedOut = localStorage.getItem('userSignedOut');
-      const userClickedHome = localStorage.getItem('userClickedHome');
       const walletConnectionPending = localStorage.getItem('walletConnectionPending');
       
       // Clean up URL parameters first
@@ -82,23 +116,11 @@ export default function HomePage() {
         sessionStorage.setItem('autoConnectWalletType', isInTrustWallet ? 'trust' : 'metamask');
       }
       
-      // Enhanced check for explicit homepage navigation with multiple flag support
+      // Check if user wants to stay on homepage (session flag)
       const userOnHomepage = sessionStorage.getItem('userOnHomepage') === 'true';
-      const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation') === 'true';
       
-      if (userClickedHome === 'true' || userOnHomepage || userExplicitNavigation) {
-        console.log('🏠 HOME DEBUG: User explicitly navigated to homepage, staying on homepage');
-        console.log('  - userClickedHome:', userClickedHome);
-        console.log('  - userOnHomepage:', userOnHomepage);
-        console.log('  - userExplicitNavigation:', userExplicitNavigation);
-        
-        // Set persistent session flag to prevent future redirects during this session
-        sessionStorage.setItem('userOnHomepage', 'true');
-        
-        // Clear localStorage flag but keep sessionStorage flags for this session
-        localStorage.removeItem('userClickedHome');
-        
-        console.log('🏠 HOME DEBUG: Staying on homepage, preventing redirect to messenger');
+      if (userOnHomepage) {
+        console.log('🏠 HOME DEBUG: User session indicates staying on homepage');
         return;
       }
       
@@ -135,42 +157,8 @@ export default function HomePage() {
         }
       }
     };
-
-    // Check for immediate home navigation flags first
-    const userClickedHome = localStorage.getItem('userClickedHome');
-    const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation');
     
-    if (userClickedHome === 'true' || userExplicitNavigation === 'true') {
-      console.log('🏠 IMMEDIATE: User clicked Home button, staying on homepage');
-      // Clear the flags and set state to stay on homepage
-      localStorage.removeItem('userClickedHome');
-      sessionStorage.setItem('userOnHomepage', 'true');
-      
-      // Set the user state if they're authenticated but allow them to stay on homepage
-      const storedConnected = localStorage.getItem('walletConnected');
-      const storedUser = localStorage.getItem('connectedUser');
-      
-      if (storedConnected === 'true' && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          if (parsedUser?.id && parsedUser?.walletAddress) {
-            setConnectedUser(parsedUser);
-            setIsConnected(true);
-            // Initialize global notification service but stay on homepage
-            globalNotificationService.initialize(parsedUser.id.toString());
-          }
-        } catch (error) {
-          // Invalid stored user data, clear it
-          localStorage.removeItem('walletConnected');
-          localStorage.removeItem('connectedUser');
-          localStorage.removeItem('connectedUserId');
-        }
-      }
-      
-      return; // Exit without setting the redirect timer
-    }
-    
-    // Single execution with minimal delay for other cases
+    // Only run the redirect logic after a short delay if no explicit home navigation was requested
     const timer = setTimeout(handleAuthenticationAndRedirect, 100);
     return () => clearTimeout(timer);
   }, []); // Run only once on mount
