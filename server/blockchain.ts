@@ -102,9 +102,59 @@ class BlockchainService {
     }
   }
 
+  private async getCOYNPrice(): Promise<{usd: number, usd_24h_change: number}> {
+    try {
+      // Try to fetch COYN price from coinbrain.com
+      const response = await axios.get('https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        timeout: 10000
+      });
+
+      const html = response.data;
+      
+      // Extract price using more precise regex pattern from the HTML
+      const priceMatch = html.match(/\$([0-9]+\.?[0-9]*(?:e-?[0-9]+)?)/i);
+      const changeMatch = html.match(/\(24h:([+-]?[0-9]+\.?[0-9]*)%\)/i);
+      
+      let price = 0.000000050925; // Default from coinbrain page
+      let change = -89.77; // Default from coinbrain page
+      
+      if (priceMatch) {
+        const priceStr = priceMatch[1];
+        price = parseFloat(priceStr);
+        // Handle scientific notation if present
+        if (priceStr.includes('e')) {
+          price = parseFloat(priceStr);
+        }
+      }
+      
+      if (changeMatch) {
+        change = parseFloat(changeMatch[1]);
+      }
+      
+      console.log(`✅ COYN Price fetched from CoinBrain: $${price} (${change}%)`);
+      
+      return {
+        usd: price,
+        usd_24h_change: change
+      };
+    } catch (error) {
+      console.log(`⚠️ Failed to fetch COYN price from CoinBrain, using fallback`);
+      
+      // Fallback price based on the current coinbrain.com data
+      return {
+        usd: 0.000000050925,
+        usd_24h_change: -89.77
+      };
+    }
+  }
+
   private async getCryptoPrices(): Promise<CryptoPrice> {
     try {
-      const response = await axios.get(this.coingeckoApiUrl, {
+      // Fetch BNB and USDT prices from CoinGecko
+      const coingeckoResponse = await axios.get(this.coingeckoApiUrl, {
         params: {
           ids: 'binancecoin,tether',
           vs_currencies: 'usd',
@@ -112,20 +162,23 @@ class BlockchainService {
         }
       });
       
-      // Add COYN price data (fixed price for demo)
+      // Fetch COYN price from CoinBrain
+      const coynPrice = await this.getCOYNPrice();
+      
       const prices = {
-        ...response.data,
-        coyn: { usd: 0.90, usd_24h_change: 4.70 }
+        ...coingeckoResponse.data,
+        coyn: coynPrice
       };
       
       return prices;
     } catch (error) {
+      console.log(`⚠️ Failed to fetch crypto prices, using fallback values`);
       
       // Return fallback prices including COYN
       return {
         binancecoin: { usd: 600, usd_24h_change: 0 },
         tether: { usd: 1, usd_24h_change: 0 },
-        coyn: { usd: 0.90, usd_24h_change: 4.70 }
+        coyn: { usd: 0.000000050925, usd_24h_change: -89.77 }
       };
     }
   }
