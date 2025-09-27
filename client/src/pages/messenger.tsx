@@ -408,15 +408,15 @@ export default function MessengerPage() {
         }
       };
       
-      // Secondary WebRTC initialization (backup)
-      setTimeout(() => {
-        if (!globalWebRTCInitialized) {
-          console.log('🔄 BACKUP: Running secondary WebRTC initialization...');
-          initializeWebRTC().catch((error) => {
-            console.error('❌ BACKUP: Secondary WebRTC initialization failed for user:', connectedUserId, error);
-          });
-        }
-      }, 3000);
+      // DISABLED: Secondary WebRTC initialization (backup) - was causing infinite loops
+      // setTimeout(() => {
+      //   if (!globalWebRTCInitialized) {
+      //     console.log('🔄 BACKUP: Running secondary WebRTC initialization...');
+      //     initializeWebRTC().catch((error) => {
+      //       console.error('❌ BACKUP: Secondary WebRTC initialization failed for user:', connectedUserId, error);
+      //     });
+      //   }
+      // }, 3000);
 
     // Listen for new messages
     socketConnection.on('new_message', (data) => {
