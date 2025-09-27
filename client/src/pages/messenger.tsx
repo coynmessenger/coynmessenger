@@ -614,7 +614,11 @@ export default function MessengerPage() {
             <Button
               onClick={() => {
                 console.log('Desktop home button clicked - navigating to homepage');
+                // Set multiple flags to ensure proper handling and prevent race conditions
                 localStorage.setItem('userClickedHome', 'true');
+                sessionStorage.setItem('userOnHomepage', 'true');
+                sessionStorage.setItem('userExplicitHomeNavigation', 'true');
+                console.log('🏠 HOME BUTTON DEBUG: Flags set for explicit home navigation');
                 setLocation("/");
               }}
               variant="ghost"
@@ -858,8 +862,12 @@ export default function MessengerPage() {
             <div className="flex items-center space-x-3">
               <Button
                 onClick={() => {
-                  console.log('Home button clicked - navigating to homepage');
+                  console.log('Mobile home button clicked - navigating to homepage');
+                  // Set multiple flags to ensure proper handling and prevent race conditions
                   localStorage.setItem('userClickedHome', 'true');
+                  sessionStorage.setItem('userOnHomepage', 'true');
+                  sessionStorage.setItem('userExplicitHomeNavigation', 'true');
+                  console.log('🏠 HOME BUTTON DEBUG: Flags set for explicit home navigation');
                   setLocation("/");
                 }}
                 variant="ghost"

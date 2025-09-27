@@ -82,12 +82,23 @@ export default function HomePage() {
         sessionStorage.setItem('autoConnectWalletType', isInTrustWallet ? 'trust' : 'metamask');
       }
       
-      // Don't redirect if user explicitly chose to stay on homepage
-      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-        console.log('User explicitly navigated to homepage, staying on homepage');
+      // Enhanced check for explicit homepage navigation with multiple flag support
+      const userOnHomepage = sessionStorage.getItem('userOnHomepage') === 'true';
+      const userExplicitNavigation = sessionStorage.getItem('userExplicitHomeNavigation') === 'true';
+      
+      if (userClickedHome === 'true' || userOnHomepage || userExplicitNavigation) {
+        console.log('🏠 HOME DEBUG: User explicitly navigated to homepage, staying on homepage');
+        console.log('  - userClickedHome:', userClickedHome);
+        console.log('  - userOnHomepage:', userOnHomepage);
+        console.log('  - userExplicitNavigation:', userExplicitNavigation);
+        
+        // Set persistent session flag to prevent future redirects during this session
         sessionStorage.setItem('userOnHomepage', 'true');
-        // Clear the flag so future visits work normally
+        
+        // Clear localStorage flag but keep sessionStorage flags for this session
         localStorage.removeItem('userClickedHome');
+        
+        console.log('🏠 HOME DEBUG: Staying on homepage, preventing redirect to messenger');
         return;
       }
       
