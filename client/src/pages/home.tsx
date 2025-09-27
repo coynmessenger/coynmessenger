@@ -78,8 +78,7 @@ export default function HomePage() {
           if (parsedUser?.id && parsedUser?.walletAddress) {
             console.log('Authenticated user detected, redirecting to messenger...');
             
-            // Initialize global notification service for authenticated users on Home page
-            globalNotificationService.initialize(parsedUser.id.toString());
+            // Remove notification service initialization to prevent loading loops
             
             setLocation("/messenger");
             return;
@@ -101,37 +100,7 @@ export default function HomePage() {
   // Removed automatic user data fetching to prevent conflicts with localStorage updates
 
 
-  // Add window event listener for wallet connection updates
-  useEffect(() => {
-    const handleWalletConnectionUpdate = () => {
-      const storedConnected = localStorage.getItem('walletConnected');
-      const storedUser = localStorage.getItem('connectedUser');
-      
-      if (storedConnected === 'true' && storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setConnectedUser(parsedUser);
-        setIsConnected(true);
-        
-        // Initialize global notification service for authenticated users staying on Home page
-        globalNotificationService.initialize(parsedUser.id.toString());
-      }
-    };
-
-    // Listen for custom wallet connection events
-    window.addEventListener('walletConnected', handleWalletConnectionUpdate);
-    
-    // Also listen for storage events (cross-tab sync)
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'walletConnected' && e.newValue === 'true') {
-        handleWalletConnectionUpdate();
-      }
-    });
-
-    return () => {
-      window.removeEventListener('walletConnected', handleWalletConnectionUpdate);
-      window.removeEventListener('storage', handleWalletConnectionUpdate);
-    };
-  }, []);
+  // Simplified wallet connection listener - remove to prevent conflicts
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
@@ -175,14 +144,13 @@ export default function HomePage() {
     },
   });
 
-  // Enhanced state synchronization with Trust Wallet mobile support
+  // Simplified state sync to prevent loading loops
   useEffect(() => {
-    let isChecking = false; // Guard against multiple simultaneous checks
-
+    let isChecking = false;
+    
     const syncConnectionState = async () => {
-      if (isChecking) return; // Prevent duplicate execution
+      if (isChecking) return;
       
-      // Check if user explicitly signed out - if so, don't auto-reconnect
       const userSignedOut = localStorage.getItem('userSignedOut');
       if (userSignedOut === 'true') {
         return;
@@ -191,12 +159,17 @@ export default function HomePage() {
       const storedConnected = localStorage.getItem('walletConnected');
       const storedUser = localStorage.getItem('connectedUser');
       
-      // First, sync any stored connection state - Always update UI immediately
       if (storedConnected === 'true' && storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setConnectedUser(parsedUser);
-        setIsConnected(true);
-        return;
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+          return; // Exit early if already connected
+        } catch (error) {
+          // Clear invalid data
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+        }
       }
       
       // Check for pending MetaMask connection from mobile deep link
