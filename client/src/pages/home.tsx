@@ -20,6 +20,7 @@ import PrivacyModal from "@/components/privacy-modal";
 import WalletAddressSelector from "@/components/wallet-address-selector";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import LazyImage from "@/components/lazy-image";
+import MetaMaskQRFallback from "@/components/metamask-qr-fallback";
 import type { User } from "@shared/schema";
 
 
@@ -43,6 +44,7 @@ export default function HomePage() {
   const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
+  const [showMetaMaskQR, setShowMetaMaskQR] = useState(false);
 
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
@@ -210,15 +212,11 @@ export default function HomePage() {
         linkAttemptTime: localStorage.getItem('metamaskLinkAttempt')
       });
       
-      // Check for fallback scenario - if primary deep link failed, try newer format
-      const fallbackNeeded = localStorage.getItem('metamaskFallbackNeeded');
-      if (fallbackNeeded === 'true' && pendingWalletConnection === 'metamask' && !window.ethereum?.isMetaMask) {
-        console.log('🔄 Trying MetaMask fallback deep link format...');
-        localStorage.removeItem('metamaskFallbackNeeded');
-        const hostname = window.location.hostname;
-        const fallbackLink = `https://link.metamask.io/dapp/${hostname}`;
-        console.log('📱 Fallback MetaMask link:', fallbackLink);
-        window.location.href = fallbackLink;
+      // Check for QR fallback scenario - if deep link failed, show QR code
+      const qrFallbackNeeded = localStorage.getItem('metamaskQRFallback');
+      if (qrFallbackNeeded === 'true' && pendingWalletConnection === 'metamask') {
+        console.log('🔄 MetaMask deep link failed, showing QR code fallback...');
+        setShowMetaMaskQR(true);
         return;
       }
       
@@ -825,6 +823,24 @@ export default function HomePage() {
     setSelectedWalletType(null);
   };
 
+  const handleWalletConnectionSuccess = (wallet: { address: string }) => {
+    try {
+      // Clear pending states
+      localStorage.removeItem('pendingWalletConnection');
+      localStorage.removeItem('metamaskQRFallback');
+      localStorage.removeItem('metamaskLinkAttempt');
+      
+      // Trigger the wallet connection mutation
+      if (wallet && wallet.address) {
+        connectWalletMutation.mutate({ walletAddress: wallet.address });
+      }
+      
+      console.log('✅ Wallet connection successful via QR fallback:', wallet.address);
+    } catch (error) {
+      console.error('❌ Failed to handle wallet connection success:', error);
+    }
+  };
+
   const handleSignOut = () => {
     
     // Set explicit sign out flag to prevent automatic reconnection
@@ -1140,6 +1156,20 @@ export default function HomePage() {
       
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
+      
+      {/* MetaMask QR Fallback Modal */}
+      <MetaMaskQRFallback
+        isOpen={showMetaMaskQR}
+        onClose={() => {
+          setShowMetaMaskQR(false);
+          localStorage.removeItem('metamaskQRFallback');
+          localStorage.removeItem('pendingWalletConnection');
+        }}
+        onSuccess={(wallet) => {
+          setShowMetaMaskQR(false);
+          handleWalletConnectionSuccess(wallet);
+        }}
+      />
     </div>
   );
 }

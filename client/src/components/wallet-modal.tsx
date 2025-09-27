@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Eye, EyeOff, AlertTriangle, RefreshCw } from "lucide-react";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import QRCode from "qrcode";
+import { generateMetaMaskQRCode } from "@/lib/qr-generator";
 import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
 import { apiRequest } from "@/lib/queryClient";
 

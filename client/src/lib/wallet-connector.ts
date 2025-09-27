@@ -8,7 +8,7 @@ interface WalletProvider {
   isTrust?: boolean;
 }
 
-interface ConnectedWallet {
+export interface ConnectedWallet {
   address: string;
   provider: WalletProvider;
   chainId: string;
@@ -103,20 +103,22 @@ class WalletConnector {
     ];
     
     console.log('🔗 Available MetaMask deep link formats:', deepLinkFormats);
+    console.log('⚠️ MetaMask mobile deep links have known reliability issues');
     
     // Use the primary format that should show the dapp in MetaMask browser
     const primaryDeepLink = deepLinkFormats[0];
-    console.log('📱 Opening MetaMask browser with dapp:', primaryDeepLink);
-    console.log('🔧 Fixed format - using hostname only (no protocol, no query params)');
+    console.log('📱 Attempting MetaMask deep link:', primaryDeepLink);
     
-    // Add fallback mechanism - try newer format if user returns without connection
+    // Set a flag for fallback QR code if deep link fails
     setTimeout(() => {
       const stillPending = localStorage.getItem('pendingWalletConnection');
       if (stillPending === 'metamask') {
-        console.log('🔄 Primary deep link may have failed, will try newer format if needed');
-        localStorage.setItem('metamaskFallbackNeeded', 'true');
+        console.log('🔄 Deep link may have failed, enabling QR code fallback');
+        localStorage.setItem('metamaskQRFallback', 'true');
+        // Trigger a page reload to show QR code option
+        window.location.reload();
       }
-    }, 3000);
+    }, 5000); // Give deep link 5 seconds to work
     
     // Navigate to MetaMask app
     window.location.href = primaryDeepLink;
