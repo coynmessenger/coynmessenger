@@ -62,13 +62,13 @@ export default function ThirdwebWalletConnector({
       }}
       connectButton={{
         label: (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-8">
             <img 
               src={coynLogoPath} 
               alt="COYN" 
-              className="w-[35px] h-[35px]"
+              className="w-[70px] h-[70px]"
             />
-            <span className="text-lg font-semibold">Connect Wallet</span>
+            <span className="text-3xl font-semibold">Connect Wallet</span>
           </div>
         ),
         className: className || `
