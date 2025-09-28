@@ -241,8 +241,8 @@ export default function HomePage() {
           alt="Coynful" 
           className="object-contain mx-auto"
           style={{
-            height: '120px',
-            width: '120px'
+            height: '480px',
+            width: '480px'
           }}
         />
       </div>
