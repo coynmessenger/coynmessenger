@@ -1,10 +1,14 @@
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
+import { bsc } from "thirdweb/chains";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
 });
+
+// Configure supported chains - BSC for BNB, USDT, and COYN tokens
+const supportedChains = [bsc];
 
 // Enhanced wallet configuration for optimal mobile experience
 const wallets = [
@@ -34,11 +38,16 @@ export default function ThirdwebWalletConnector({
     <ConnectButton
       client={client}
       autoConnect={!userSignedOut}
+      chains={supportedChains}
       connectModal={{ 
         size: "wide",
         title: "Connect to COYN Messenger",
         titleIcon: "",
         showThirdwebBranding: false,
+        welcomeScreen: {
+          title: "Connect to COYN Messenger",
+          subtitle: "Secure crypto messaging on BSC network"
+        },
       }}
       theme="dark"
       wallets={wallets}
@@ -71,8 +80,28 @@ export default function ThirdwebWalletConnector({
         try {
           console.log('🎯 WALLET: Connection approved in wallet, processing...');
           const account = wallet.getAccount();
+          const chain = wallet.getChain();
+          
+          console.log('🔗 WALLET: Connected to chain:', { 
+            chainId: chain?.id, 
+            chainName: chain?.name || 'BSC',
+            address: account?.address 
+          });
+          
+          // Ensure we're on BSC network (chain ID 56)
+          if (chain?.id !== 56) {
+            console.log('⚠️ WALLET: Not on BSC, attempting to switch to BSC network...');
+            try {
+              await wallet.switchChain(bsc);
+              console.log('✅ WALLET: Successfully switched to BSC network');
+            } catch (switchError) {
+              console.log('ℹ️ WALLET: Chain switch not needed or handled by wallet app');
+            }
+          }
+          
           if (account?.address && onConnect) {
             console.log('✅ WALLET: Got address from wallet, initiating COYN connection...', account.address);
+            console.log('📱 MOBILE: Wallet approved, redirecting to messenger...');
             onConnect(account.address);
           } else {
             console.error('❌ WALLET: No address found in wallet account');
