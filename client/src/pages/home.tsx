@@ -10,7 +10,6 @@ import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signatur
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import { globalNotificationService } from "@/lib/global-notification-service";
-import { WalletConnector } from "@/lib/wallet-connector";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
 import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
@@ -207,34 +206,8 @@ export default function HomePage() {
       }
     }
 
-    // Use WalletConnector for mobile deep linking and unified connection logic
-    try {
-      const walletConnector = new WalletConnector();
-      const connectedWallet = await walletConnector.connectWallet(walletType);
-      
-      if (connectedWallet && connectedWallet.address) {
-        connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
-      }
-    } catch (error: any) {
-      console.log(`🔧 DEBUG: MetaMask connection attempt result:`, {
-        walletType,
-        errorMessage: error.message,
-        errorCode: error.code,
-        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-        hasEthereum: typeof window.ethereum !== 'undefined'
-      });
-      
-      // If mobile deep linking triggered, this is expected behavior
-      if (error.message?.includes('Opening MetaMask app')) {
-        console.log('✅ MetaMask mobile deep link triggered successfully');
-        return;
-      }
-      
-      // Log actual connection errors for debugging
-      console.error(`❌ Actual MetaMask connection error for ${walletType}:`, error);
-      
-      // For other errors, fall back to existing logic
-    }
+    // Thirdweb handles all wallet connections now
+    console.log('🔧 Use ThirdwebConnectButton for wallet connections');
     
     // Fallback to original connection flow if wallet selector not available
     try {
