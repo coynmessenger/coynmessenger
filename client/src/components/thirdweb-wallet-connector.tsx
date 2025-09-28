@@ -25,9 +25,13 @@ export default function ThirdwebWalletConnector({
   onDisconnect, 
   className 
 }: ThirdwebWalletConnectorProps) {
+  // Check if user has explicitly signed out to prevent autoconnect
+  const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
+  
   return (
     <ConnectButton
       client={client}
+      autoConnect={!userSignedOut}
       connectModal={{ 
         size: "wide",
         title: "Connect to COYN Messenger",

@@ -27,8 +27,14 @@ export default function HomePage() {
   });
   
   const [connectedUser, setConnectedUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('connectedUser');
-    return stored ? JSON.parse(stored) : null;
+    try {
+      const stored = localStorage.getItem('connectedUser');
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to parse connectedUser from localStorage:', error);
+      localStorage.removeItem('connectedUser');
+      return null;
+    }
   });
   
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -38,6 +44,7 @@ export default function HomePage() {
   useEffect(() => {
     const userSignedOut = localStorage.getItem('userSignedOut');
     if (userSignedOut === 'true') {
+      console.log('🚫 User signed out, staying on homepage');
       return;
     }
     
@@ -45,9 +52,16 @@ export default function HomePage() {
     const storedUser = localStorage.getItem('connectedUser');
     const userClickedHome = localStorage.getItem('userClickedHome');
     
+    console.log('🔍 Checking authentication state:', {
+      storedConnected,
+      hasStoredUser: !!storedUser,
+      userClickedHome,
+      userOnHomepage: sessionStorage.getItem('userOnHomepage')
+    });
+    
     // Don't redirect if user explicitly chose to stay on homepage
     if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-      console.log('User explicitly navigated to homepage, staying on homepage');
+      console.log('👤 User explicitly navigated to homepage, staying on homepage');
       sessionStorage.setItem('userOnHomepage', 'true');
       return;
     }
@@ -56,12 +70,20 @@ export default function HomePage() {
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        if (parsedUser?.id && parsedUser?.walletAddress) {
-          console.log('Authenticated user detected, redirecting to messenger...');
+        console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
+        
+        if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
+          console.log('✅ Authenticated user detected, redirecting to messenger...');
           setLocation("/messenger");
           return;
+        } else {
+          console.log('❌ User data incomplete, clearing storage');
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+          localStorage.removeItem('connectedUserId');
         }
       } catch (error) {
+        console.log('❌ Error parsing user data:', error);
         localStorage.removeItem('walletConnected');
         localStorage.removeItem('connectedUser');
         localStorage.removeItem('connectedUserId');
@@ -82,7 +104,7 @@ export default function HomePage() {
       localStorage.removeItem('pendingWalletConnection');
       localStorage.removeItem('walletConnectionAttempt');
       localStorage.removeItem('walletRedirectState');
-      localStorage.removeItem('userSignedOut');
+      // DON'T remove userSignedOut - only clear it when user explicitly connects, not on autoconnect
       
       // Store connection state
       localStorage.setItem('walletConnected', 'true');
@@ -146,6 +168,12 @@ export default function HomePage() {
 
   const handleThirdwebConnect = (address: string) => {
     console.log('🔗 Thirdweb wallet connected:', address);
+    
+    // Clear flags that might prevent redirect since user is explicitly connecting
+    localStorage.removeItem('userSignedOut');
+    localStorage.removeItem('userClickedHome');
+    sessionStorage.removeItem('userOnHomepage');
+    
     connectWalletMutation.mutate({ walletAddress: address });
   };
 

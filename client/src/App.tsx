@@ -44,6 +44,13 @@ function App() {
     const initGlobalWebRTC = async () => {
       if (isInitializing) return; // Prevent multiple simultaneous initializations
       
+      // Don't initialize WebRTC if user has explicitly signed out
+      const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
+      if (userSignedOut) {
+        console.log('🚫 Skipping WebRTC initialization - user signed out');
+        return;
+      }
+      
       try {
         isInitializing = true;
         const storedUser = localStorage.getItem('connectedUser');
@@ -52,6 +59,7 @@ function App() {
           const userId = parsedUser.id;
           
           if (userId) {
+            console.log('🎯 Initializing WebRTC for authenticated user:', userId);
             await initializeGlobalWebRTC(userId.toString(), 1); // Reduce retries to 1
           }
         }
