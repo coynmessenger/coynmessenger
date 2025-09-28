@@ -40,8 +40,6 @@ export default function ThirdwebConnectButton({
 
   // Supported wallets
   const wallets = [
-    createWallet("io.metamask"),
-    createWallet("com.trustwallet.app"),
     createWallet("io.rabby"),
     createWallet("app.phantom"),
     createWallet("inApp"), // In-app wallet for email/social login
