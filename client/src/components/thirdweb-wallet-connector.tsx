@@ -2,6 +2,7 @@ import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
+import coynLogoPath from "@assets/COYN symbol square_1759097239476.png";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -60,7 +61,16 @@ export default function ThirdwebWalletConnector({
         logoUrl: `${window.location.origin}/favicon.ico`,
       }}
       connectButton={{
-        label: "Connect Wallet",
+        label: (
+          <div className="flex flex-col items-center gap-2">
+            <img 
+              src={coynLogoPath} 
+              alt="COYN" 
+              className="w-5 h-5"
+            />
+            <span>Connect Wallet</span>
+          </div>
+        ),
         className: className || `
           w-full bg-gradient-to-r from-orange-500 to-orange-600 
           hover:from-orange-600 hover:to-orange-700 
