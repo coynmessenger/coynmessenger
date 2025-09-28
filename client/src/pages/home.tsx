@@ -275,7 +275,7 @@ export default function HomePage() {
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}
-                        className="w-72 h-24 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-orange-400/20"
+                        className="w-80 h-32 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-orange-400/20"
                       />
                     </div>
                     
