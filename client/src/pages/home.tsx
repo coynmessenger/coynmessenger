@@ -235,11 +235,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
 
       {/* Centered Logo */}
-      <div className="w-full text-center py-8 sm:py-12">
+      <div className="w-full text-center py-2 sm:py-3">
         <img 
           src={coynfulLogoPath} 
           alt="Coynful" 
-          className="h-24 w-24 sm:h-32 sm:w-32 lg:h-40 lg:w-40 object-contain mx-auto"
+          className="object-contain mx-auto"
+          style={{
+            height: '480px',
+            width: '480px'
+          }}
         />
       </div>
 
