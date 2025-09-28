@@ -1,8 +1,11 @@
+import React, { useState, useEffect } from "react";
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import SignatureConfirmationModal from "./signature-confirmation-modal";
+import { inAppSignatureService, type SignatureRequest } from "@/lib/in-app-signature-service";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -11,16 +14,31 @@ const client = createThirdwebClient({
 // Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-// Enhanced wallet configuration for optimal mobile experience
+// Enhanced wallet configuration for in-app signing experience
 const wallets = [
-  createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
+  createWallet("io.metamask", {
+    preferredConnectionMethod: "injected" // Use injected provider when available
+  }),
+  createWallet("com.coinbase.wallet", {
+    preferredConnectionMethod: "injected"
+  }),
   createWallet("me.rainbow"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
-  createWallet("com.trustwallet.app"),
+  createWallet("com.trustwallet.app", {
+    preferredConnectionMethod: "injected"
+  }),
   createWallet("com.bestwallet"),
-  createWallet("walletConnect"),
+  createWallet("walletConnect", {
+    // Configure WalletConnect for in-app browser mode
+    projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "default",
+    metadata: {
+      name: "COYN Messenger",
+      description: "Secure crypto messaging and wallet integration",
+      url: window.location.origin,
+      icons: [`${window.location.origin}/favicon.ico`]
+    }
+  }),
 ];
 
 interface ThirdwebWalletConnectorProps {
@@ -37,7 +55,73 @@ export default function ThirdwebWalletConnector({
   // Check if user has explicitly signed out to prevent autoconnect
   const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
   
+  // In-app signature state management
+  const [currentSignatureRequest, setCurrentSignatureRequest] = useState<SignatureRequest | null>(null);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [isProcessingSignature, setIsProcessingSignature] = useState(false);
+
+  // Set up signature handler for in-app signatures
+  useEffect(() => {
+    const handleSignatureRequest = async (request: SignatureRequest): Promise<boolean> => {
+      return new Promise((resolve) => {
+        setCurrentSignatureRequest(request);
+        setIsSignatureModalOpen(true);
+
+        // Store resolve function to be called by modal actions
+        const handleConfirm = async () => {
+          setIsProcessingSignature(true);
+          try {
+            // Here we would normally interact with the wallet
+            // For now, we'll simulate the signature approval
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            resolve(true);
+          } finally {
+            setIsProcessingSignature(false);
+            setIsSignatureModalOpen(false);
+            setCurrentSignatureRequest(null);
+          }
+        };
+
+        const handleReject = () => {
+          resolve(false);
+          setIsSignatureModalOpen(false);
+          setCurrentSignatureRequest(null);
+        };
+
+        // Store handlers in the request for modal to use
+        (request as any).handleConfirm = handleConfirm;
+        (request as any).handleReject = handleReject;
+      });
+    };
+
+    inAppSignatureService.setSignatureHandler(handleSignatureRequest);
+  }, []);
+
+  const handleSignatureConfirm = async () => {
+    if (currentSignatureRequest && (currentSignatureRequest as any).handleConfirm) {
+      await (currentSignatureRequest as any).handleConfirm();
+    }
+  };
+
+  const handleSignatureReject = () => {
+    if (currentSignatureRequest && (currentSignatureRequest as any).handleReject) {
+      (currentSignatureRequest as any).handleReject();
+    }
+  };
+
   return (
+    <>
+      {/* Signature Confirmation Modal */}
+      <SignatureConfirmationModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        signatureRequest={currentSignatureRequest}
+        onConfirm={handleSignatureConfirm}
+        onReject={handleSignatureReject}
+        isLoading={isProcessingSignature}
+      />
+
+      {/* Thirdweb Connect Button */}
     <ConnectButton
       client={client}
       autoConnect={!userSignedOut}
@@ -141,5 +225,6 @@ export default function ThirdwebWalletConnector({
         }
       }}
     />
+    </>
   );
 }
