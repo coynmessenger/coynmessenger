@@ -239,7 +239,7 @@ export default function HomePage() {
         <img 
           src={coynfulLogoPath} 
           alt="Coynful" 
-          className="object-contain mx-auto"
+          className="object-contain mx-auto -my-8"
           style={{
             height: '480px',
             width: '480px'
