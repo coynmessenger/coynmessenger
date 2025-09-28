@@ -564,7 +564,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 if (!config) return null;
 
                 return (
-                  <Card key={balance.currency} className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-200">
+                  <Card key={balance.id} className="bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-200">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between min-h-[52px]">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
