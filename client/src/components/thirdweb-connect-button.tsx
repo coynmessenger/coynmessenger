@@ -29,10 +29,19 @@ export default function ThirdwebConnectButton({
     }
   };
 
-  // Handle wallet connection/disconnection events
+  // Handle wallet connection/disconnection events with intelligent connection detection
   useEffect(() => {
     if (account?.address && onWalletConnected) {
-      onWalletConnected(account.address);
+      // Prevent autoconnect infinite loop - only connect if not already connected
+      const alreadyConnected = localStorage.getItem('walletConnected') === 'true';
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      if (!alreadyConnected || !storedUser) {
+        console.log('🔗 New wallet connection detected:', account.address);
+        onWalletConnected(account.address);
+      } else {
+        console.log('🔗 Wallet already connected, skipping mutation');
+      }
     } else if (!account?.address && onWalletDisconnected) {
       onWalletDisconnected();
     }
@@ -121,32 +130,7 @@ export default function ThirdwebConnectButton({
         />
       </div>
       
-      {/* Custom Wallet Options */}
-      <div className="grid gap-3 mt-6">
-        <p className="text-sm text-gray-400 text-center">Or choose a specific wallet:</p>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <ConnectButton
-            client={thirdwebClient}
-            wallets={[createWallet("io.metamask")]}
-            chain={defaultChain}
-            connectButton={{
-              label: "MetaMask",
-              className: "w-full p-3 border border-gray-600 rounded-lg hover:border-orange-500 transition-colors flex items-center gap-2",
-            }}
-          />
-          
-          <ConnectButton
-            client={thirdwebClient}
-            wallets={[createWallet("com.trustwallet.app")]}
-            chain={defaultChain}
-            connectButton={{
-              label: "Trust Wallet",
-              className: "w-full p-3 border border-gray-600 rounded-lg hover:border-orange-500 transition-colors flex items-center gap-2",
-            }}
-          />
-        </div>
-      </div>
+      {/* MetaMask and Trust Wallet options removed */}
     </div>
   );
 }
