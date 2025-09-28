@@ -29,23 +29,13 @@ export default function ThirdwebConnectButton({
     }
   };
 
-  // Handle wallet connection/disconnection events with intelligent connection detection
+  // Handle wallet connection/disconnection events - AUTOCONNECT DISABLED to prevent infinite loops
   useEffect(() => {
-    if (account?.address && onWalletConnected) {
-      // Prevent autoconnect infinite loop - only connect if not already connected
-      const alreadyConnected = localStorage.getItem('walletConnected') === 'true';
-      const storedUser = localStorage.getItem('connectedUser');
-      
-      if (!alreadyConnected || !storedUser) {
-        console.log('🔗 New wallet connection detected:', account.address);
-        onWalletConnected(account.address);
-      } else {
-        console.log('🔗 Wallet already connected, skipping mutation');
-      }
-    } else if (!account?.address && onWalletDisconnected) {
+    if (!account?.address && onWalletDisconnected) {
       onWalletDisconnected();
     }
-  }, [account?.address, onWalletConnected, onWalletDisconnected]);
+    // Note: Autoconnect disabled - user must manually click connect button to trigger onWalletConnected
+  }, [account?.address, onWalletDisconnected]);
 
   // Supported wallets
   const wallets = [
