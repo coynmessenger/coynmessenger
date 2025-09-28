@@ -304,11 +304,13 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        console.log('🔧 SETTINGS: Found connected user in localStorage:', { id: parsedUser.id, walletAddress: parsedUser.walletAddress });
         return parsedUser.id;
       } catch (e) {
-
+        console.log('❌ SETTINGS: Error parsing connected user from localStorage:', e);
       }
     }
+    console.log('❌ SETTINGS: No connected user found in localStorage');
     return null;
   }, [isOpen]); // Only re-evaluate when modal opens
 
@@ -330,9 +332,14 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Track if we've initialized to prevent overriding user changes
   const [hasInitialized, setHasInitialized] = React.useState(false);
 
-  // Update local state when user data changes
+  // Update local state when user data changes OR when localStorage changes
   React.useEffect(() => {
     if (user && isOpen && !hasInitialized) {
+      console.log('🔧 SETTINGS: Initializing form with user data:', { 
+        userId: user.id, 
+        walletAddress: user.walletAddress,
+        displayName: getEffectiveDisplayName(user) 
+      });
       
       setDisplayName(getEffectiveDisplayName(user) || "");
       setWalletAddress(user.walletAddress || "");
@@ -348,6 +355,34 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       setHasInitialized(true);
     }
   }, [user, isOpen, hasInitialized]);
+
+  // Also listen for localStorage changes to update wallet address immediately
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleStorageChange = () => {
+      const storedUser = localStorage.getItem('connectedUser');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('🔧 SETTINGS: Storage change detected, updating wallet address:', parsedUser.walletAddress);
+          setWalletAddress(parsedUser.walletAddress || "");
+        } catch (e) {
+          console.log('❌ SETTINGS: Error parsing storage change:', e);
+        }
+      }
+    };
+
+    // Listen for storage events (mobile wallet returns)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check immediately when modal opens
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isOpen]);
 
   // Reset initialization flag when modal closes
   React.useEffect(() => {
