@@ -9,6 +9,7 @@ import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-rea
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
+import coynCoinPath from "@assets/image_1759095831947.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
@@ -397,7 +398,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>© 2025 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors">COYN</a></p>
+          <p className="flex items-center justify-center gap-1">© 2025 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1"><img src={coynCoinPath} alt="COYN" className="w-4 h-4" />COYN</a></p>
         </div>
       </footer>
 
