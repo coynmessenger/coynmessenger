@@ -101,7 +101,15 @@ export default function ThirdwebWalletConnector({
           
           if (account?.address && onConnect) {
             console.log('✅ WALLET: Got address from wallet, initiating COYN connection...', account.address);
-            console.log('📱 MOBILE: Wallet approved, redirecting to messenger...');
+            console.log('📱 MOBILE: Wallet approved, processing connection for automatic redirect...');
+            
+            // Trigger a storage event to ensure homepage detects the connection
+            window.dispatchEvent(new StorageEvent('storage', {
+              key: 'walletConnected',
+              newValue: 'pending',
+              oldValue: null
+            }));
+            
             onConnect(account.address);
           } else {
             console.error('❌ WALLET: No address found in wallet account');

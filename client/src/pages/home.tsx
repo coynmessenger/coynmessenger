@@ -40,55 +40,82 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount
+  // Check for existing authentication on mount and when wallet state changes
   useEffect(() => {
-    const userSignedOut = localStorage.getItem('userSignedOut');
-    if (userSignedOut === 'true') {
-      console.log('🚫 User signed out, staying on homepage');
-      return;
-    }
-    
-    const storedConnected = localStorage.getItem('walletConnected');
-    const storedUser = localStorage.getItem('connectedUser');
-    const userClickedHome = localStorage.getItem('userClickedHome');
-    
-    console.log('🔍 Checking authentication state:', {
-      storedConnected,
-      hasStoredUser: !!storedUser,
-      userClickedHome,
-      userOnHomepage: sessionStorage.getItem('userOnHomepage')
-    });
-    
-    // Don't redirect if user explicitly chose to stay on homepage
-    if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-      console.log('👤 User explicitly navigated to homepage, staying on homepage');
-      sessionStorage.setItem('userOnHomepage', 'true');
-      return;
-    }
-    
-    // Redirect authenticated users to messenger
-    if (storedConnected === 'true' && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
-        
-        if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
-          console.log('✅ Authenticated user detected, redirecting to messenger...');
-          setLocation("/messenger");
-          return;
-        } else {
-          console.log('❌ User data incomplete, clearing storage');
+    const checkAuthAndRedirect = () => {
+      const userSignedOut = localStorage.getItem('userSignedOut');
+      if (userSignedOut === 'true') {
+        console.log('🚫 User signed out, staying on homepage');
+        return;
+      }
+      
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      const userClickedHome = localStorage.getItem('userClickedHome');
+      
+      console.log('🔍 Checking authentication state:', {
+        storedConnected,
+        hasStoredUser: !!storedUser,
+        userClickedHome,
+        userOnHomepage: sessionStorage.getItem('userOnHomepage')
+      });
+      
+      // Don't redirect if user explicitly chose to stay on homepage
+      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
+        console.log('👤 User explicitly navigated to homepage, staying on homepage');
+        sessionStorage.setItem('userOnHomepage', 'true');
+        return;
+      }
+      
+      // Redirect authenticated users to messenger
+      if (storedConnected === 'true' && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
+          
+          if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
+            console.log('✅ Authenticated user detected, redirecting to messenger...');
+            setLocation("/messenger");
+            return;
+          } else {
+            console.log('❌ User data incomplete, clearing storage');
+            localStorage.removeItem('walletConnected');
+            localStorage.removeItem('connectedUser');
+            localStorage.removeItem('connectedUserId');
+          }
+        } catch (error) {
+          console.log('❌ Error parsing user data:', error);
           localStorage.removeItem('walletConnected');
           localStorage.removeItem('connectedUser');
           localStorage.removeItem('connectedUserId');
         }
-      } catch (error) {
-        console.log('❌ Error parsing user data:', error);
-        localStorage.removeItem('walletConnected');
-        localStorage.removeItem('connectedUser');
-        localStorage.removeItem('connectedUserId');
       }
-    }
+    };
+
+    // Initial check
+    checkAuthAndRedirect();
+
+    // Listen for wallet connection events (when user returns from wallet app)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
+        console.log('📱 MOBILE: Storage change detected, checking for wallet return...', e.key);
+        setTimeout(checkAuthAndRedirect, 100); // Small delay to ensure all related storage updates are complete
+      }
+    };
+
+    // Listen for focus events (when user returns from wallet app)
+    const handleFocus = () => {
+      console.log('👁️ MOBILE: Window focus detected, checking for wallet return...');
+      setTimeout(checkAuthAndRedirect, 100);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [setLocation]);
 
   const connectWalletMutation = useMutation({
