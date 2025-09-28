@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDisconnect } from "thirdweb/react";
+import { useDisconnect, useActiveWallet } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ export default function HomePage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { disconnect } = useDisconnect();
+  const activeWallet = useActiveWallet();
   
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
@@ -112,7 +113,9 @@ export default function HomePage() {
     try {
       // First disconnect the thirdweb wallet
       console.log('🔌 Disconnecting thirdweb wallet...');
-      await disconnect();
+      if (activeWallet) {
+        await disconnect(activeWallet);
+      }
     } catch (error) {
       console.error('Error disconnecting thirdweb wallet:', error);
     }

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDisconnect, useActiveWallet } from "thirdweb/react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,6 +192,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { disconnect } = useDisconnect();
+  const activeWallet = useActiveWallet();
   const [activeTab, setActiveTab] = useState("profile");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -549,16 +552,30 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     }
   });
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      // First disconnect the thirdweb wallet
+      console.log('🔌 Disconnecting thirdweb wallet from settings...');
+      if (activeWallet) {
+        await disconnect(activeWallet);
+      }
+    } catch (error) {
+      console.error('Error disconnecting thirdweb wallet:', error);
+    }
+    
+    // Set explicit sign out flag to prevent auto-reconnection
+    localStorage.setItem('userSignedOut', 'true');
     
     // Clear ALL localStorage items related to the application
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
+    localStorage.removeItem('connectedUserId');
     localStorage.removeItem('pendingWalletConnection');
     localStorage.removeItem('shopping-cart');
     localStorage.removeItem('theme');
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
+    localStorage.removeItem('userClickedHome');
     
     // Clear any session storage
     sessionStorage.clear();
@@ -569,9 +586,8 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     // Close the settings modal
     onClose();
     
-    
-    // Redirect to homepage
-    window.location.href = '/';
+    // Force page refresh to ensure complete cleanup
+    window.location.reload();
   };
 
   const handleClearAllData = () => {
