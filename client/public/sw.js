@@ -2,15 +2,13 @@
 const CACHE_NAME = 'coyn-messenger-v1';
 const STATIC_CACHE_NAME = 'coyn-static-v1';
 
-// Assets to cache for offline functionality
+// Assets to cache for offline functionality  
 const STATIC_ASSETS = [
   '/',
   '/messenger',
-  '/marketplace',
-  '/src/assets/COYN-symbol-square_1750808237977.png',
-  '/src/assets/Coynful-logo-fin-copy_1751239116310.png',
-  '/src/assets/MetaMask_Fox.svg_1751312780982.png',
-  '/src/assets/Trust-Wallet_1751312780982.jpg'
+  '/marketplace'
+  // Note: Asset caching disabled to prevent cache failures from dynamic asset names
+  // Assets are served directly via Vite with proper cache headers
 ];
 
 // Network-first strategy for API calls
