@@ -397,7 +397,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>© 2024 COYN Messenger. Secure. Private. Decentralized.</p>
+          <p>© 2025 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors">COYN</a></p>
         </div>
       </footer>
 
