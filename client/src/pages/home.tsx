@@ -234,19 +234,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
 
-      {/* Centered Logo */}
-      <div className="flex justify-center items-center">
-        <img 
-          src={coynfulLogoPath} 
-          alt="Coynful" 
-          className="object-contain mx-auto -my-8"
-          style={{
-            height: '480px',
-            width: '480px'
-          }}
-        />
-      </div>
-
       {/* Main Content - Centered Layout */}
       <main className="flex-1 flex flex-col items-center justify-start px-4">
         {/* Connection Card - Positioned directly under logo */}
