@@ -69,9 +69,8 @@ class WalletConnector {
   // MetaMask deep linking for mobile
   private openMetaMaskDeepLink(): void {
     
-    // Store pending connection state and timestamp for tracking
+    // Store pending connection state
     localStorage.setItem('pendingWalletConnection', 'metamask');
-    localStorage.setItem('metamaskLinkAttempt', Date.now().toString());
     
     // Extract just the hostname (without protocol) for MetaMask deep links
     const hostname = window.location.hostname;
@@ -88,16 +87,10 @@ class WalletConnector {
     // Use the primary format that should show the dapp in MetaMask browser
     const primaryDeepLink = deepLinkFormats[0];
     
-    // Set a flag for fallback QR code if deep link fails
+    // Clear pending state after 10 seconds to prevent perpetual pending state
     setTimeout(() => {
-      const stillPending = localStorage.getItem('pendingWalletConnection');
-      if (stillPending === 'metamask') {
-        console.log('🔄 Deep link may have failed, enabling QR code fallback');
-        localStorage.setItem('metamaskQRFallback', 'true');
-        // Trigger a page reload to show QR code option
-        window.location.reload();
-      }
-    }, 5000); // Give deep link 5 seconds to work
+      localStorage.removeItem('pendingWalletConnection');
+    }, 10000);
     
     // Navigate to MetaMask app
     window.location.href = primaryDeepLink;

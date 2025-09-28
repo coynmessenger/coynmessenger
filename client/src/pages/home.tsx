@@ -20,7 +20,6 @@ import PrivacyModal from "@/components/privacy-modal";
 import WalletAddressSelector from "@/components/wallet-address-selector";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import LazyImage from "@/components/lazy-image";
-import MetaMaskQRFallback from "@/components/metamask-qr-fallback";
 import type { User } from "@shared/schema";
 
 
@@ -44,7 +43,6 @@ export default function HomePage() {
   const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
-  const [showMetaMaskQR, setShowMetaMaskQR] = useState(false);
 
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
@@ -175,12 +173,6 @@ export default function HomePage() {
       // Check for pending MetaMask connection from mobile deep link
       const pendingWalletConnection = localStorage.getItem('pendingWalletConnection');
       
-      // Check for QR fallback scenario - if deep link failed, show QR code
-      const qrFallbackNeeded = localStorage.getItem('metamaskQRFallback');
-      if (qrFallbackNeeded === 'true' && pendingWalletConnection === 'metamask') {
-        setShowMetaMaskQR(true);
-        return;
-      }
       
       if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
         isChecking = true;
@@ -787,8 +779,6 @@ export default function HomePage() {
     try {
       // Clear pending states
       localStorage.removeItem('pendingWalletConnection');
-      localStorage.removeItem('metamaskQRFallback');
-      localStorage.removeItem('metamaskLinkAttempt');
       
       // Trigger the wallet connection mutation
       if (wallet && wallet.address) {
@@ -1117,19 +1107,6 @@ export default function HomePage() {
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
       
-      {/* MetaMask QR Fallback Modal */}
-      <MetaMaskQRFallback
-        isOpen={showMetaMaskQR}
-        onClose={() => {
-          setShowMetaMaskQR(false);
-          localStorage.removeItem('metamaskQRFallback');
-          localStorage.removeItem('pendingWalletConnection');
-        }}
-        onSuccess={(wallet) => {
-          setShowMetaMaskQR(false);
-          handleWalletConnectionSuccess(wallet);
-        }}
-      />
     </div>
   );
 }
