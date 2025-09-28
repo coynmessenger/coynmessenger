@@ -233,36 +233,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
-      {/* Header */}
-      <header className="w-full p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img 
-              src={coynfulLogoPath} 
-              alt="Coynful" 
-              className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
-            />
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              COYN Messenger
-            </h1>
-          </div>
-          
-          <div className="flex items-center space-x-4 text-sm">
-            <button
-              onClick={() => setShowTermsModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Terms
-            </button>
-            <button
-              onClick={() => setShowPrivacyModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Privacy
-            </button>
-          </div>
-        </div>
-      </header>
+
+      {/* Centered Logo */}
+      <div className="w-full text-center py-8 sm:py-12">
+        <img 
+          src={coynfulLogoPath} 
+          alt="Coynful" 
+          className="h-24 w-24 sm:h-32 sm:w-32 lg:h-40 lg:w-40 object-contain mx-auto"
+        />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
@@ -397,7 +376,24 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400">
+        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400 space-y-4">
+          {/* Terms and Privacy Links */}
+          <div className="flex items-center justify-center space-x-6">
+            <button
+              onClick={() => setShowTermsModal(true)}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Terms
+            </button>
+            <button
+              onClick={() => setShowPrivacyModal(true)}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Privacy
+            </button>
+          </div>
+          
+          {/* Copyright */}
           <p className="flex items-center justify-center gap-1">© 2025 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1"><img src={coynCoinPath} alt="COYN" className="w-4 h-4" />COYN</a></p>
         </div>
       </footer>
