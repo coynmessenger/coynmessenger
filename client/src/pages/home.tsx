@@ -678,7 +678,24 @@ export default function HomePage() {
                 
                 <ThirdwebConnectButton 
                   onWalletConnected={(address) => {
-                    connectWalletMutation.mutate({ walletAddress: address });
+                    // Prevent autoconnect infinite loop - only connect if not already connected
+                    const alreadyConnected = localStorage.getItem('walletConnected') === 'true';
+                    const storedUser = localStorage.getItem('connectedUser');
+                    
+                    if (!alreadyConnected || !storedUser) {
+                      console.log('🔗 New wallet connection detected:', address);
+                      connectWalletMutation.mutate({ walletAddress: address });
+                    } else {
+                      console.log('🔗 Wallet already connected, skipping mutation');
+                      // Just set the UI state without mutation
+                      try {
+                        const parsedUser = JSON.parse(storedUser);
+                        setConnectedUser(parsedUser);
+                        setIsConnected(true);
+                      } catch (error) {
+                        console.error('Error parsing stored user:', error);
+                      }
+                    }
                   }}
                   onWalletDisconnected={() => {
                     setIsConnected(false);
