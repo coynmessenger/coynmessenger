@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-react";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
-import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096466858.png";
+import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
@@ -233,6 +233,17 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
+
+      {/* Header with Logo */}
+      <header className="w-full p-4 sm:p-6">
+        <div className="flex justify-center">
+          <img 
+            src={coynfulLogoPath} 
+            alt="Coynful" 
+            className="h-16 w-auto object-contain"
+          />
+        </div>
+      </header>
 
       {/* Main Content - Centered Layout */}
       <main className="flex-1 flex flex-col items-center justify-start px-4">
