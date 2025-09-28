@@ -51,6 +51,7 @@ export interface IStorage {
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
   getUserCurrencyBalance(userId: number, currency: string): Promise<WalletBalance | undefined>;
   createWalletBalance(balance: InsertWalletBalance): Promise<WalletBalance>;
+  createOrUpdateWalletBalance(balance: InsertWalletBalance): Promise<WalletBalance>;
   updateWalletBalance(userId: number, currency: string, updateData: { balance?: string; usdValue?: string; changePercent?: string }): Promise<void>;
   transferCurrency(fromUserId: number, toUserId: number, currency: string, amount: number): Promise<boolean>;
 
@@ -542,6 +543,30 @@ export class DatabaseStorage implements IStorage {
     return balance;
   }
 
+  async createOrUpdateWalletBalance(insertBalance: InsertWalletBalance): Promise<WalletBalance> {
+    try {
+      // Try to create new record
+      const [balance] = await db
+        .insert(walletBalances)
+        .values(insertBalance)
+        .returning();
+      return balance;
+    } catch (error: any) {
+      // If unique constraint violation, update existing record
+      if (error.code === '23505') { // PostgreSQL unique constraint violation
+        await this.updateWalletBalance(insertBalance.userId!, insertBalance.currency!, {
+          balance: insertBalance.balance,
+          usdValue: insertBalance.usdValue || undefined,
+          changePercent: insertBalance.changePercent || undefined
+        });
+        // Return the updated record
+        const updatedBalance = await this.getUserCurrencyBalance(insertBalance.userId!, insertBalance.currency!);
+        return updatedBalance!;
+      }
+      throw error;
+    }
+  }
+
   async updateWalletBalance(userId: number, currency: string, updateData: { balance?: string; usdValue?: string; changePercent?: string }): Promise<void> {
     await db
       .update(walletBalances)
@@ -550,21 +575,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializeWalletBalances(userId: number): Promise<void> {
-    // Check if user already has wallet balances
-    const existingBalances = await this.getUserWalletBalances(userId);
-    if (existingBalances.length > 0) {
-      return; // Already initialized
-    }
-
-    // Initialize with default cryptocurrency balances
+    // Initialize with default cryptocurrency balances using UPSERT pattern
+    // This prevents race conditions and is idempotent
     const defaultBalances = [
       { userId, currency: "BNB", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
       { userId, currency: "USDT", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
       { userId, currency: "COYN", balance: "0.00000000", usdValue: "0.00", changePercent: "0.00" },
     ];
 
+    // Use UPSERT to safely create or update balances - prevents duplicates
     for (const balance of defaultBalances) {
-      await this.createWalletBalance(balance);
+      await this.createOrUpdateWalletBalance(balance);
     }
   }
 
@@ -576,14 +597,19 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
 
-      // Get or create receiver balance
-      let receiverBalance = await this.getUserCurrencyBalance(toUserId, currency);
+      // Ensure receiver balance exists using UPSERT pattern
+      await this.createOrUpdateWalletBalance({
+        userId: toUserId,
+        currency,
+        balance: "0.00000000",
+        usdValue: "0.00",
+        changePercent: "0.00"
+      });
+      
+      // Get receiver balance (guaranteed to exist now)
+      const receiverBalance = await this.getUserCurrencyBalance(toUserId, currency);
       if (!receiverBalance) {
-        receiverBalance = await this.createWalletBalance({
-          userId: toUserId,
-          currency,
-          balance: "0"
-        });
+        throw new Error('Failed to create receiver balance');
       }
 
       // Update balances

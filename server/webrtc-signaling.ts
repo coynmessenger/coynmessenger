@@ -41,8 +41,8 @@ export class EncryptedWebRTCSignaling {
       
 
       // User authentication and encryption setup
-      socket.on('authenticate', async (data: { userId: string }) => {
-        const { userId } = data;
+      socket.on('authenticate', async (data: { userId: string | number }) => {
+        const userId = String(data.userId); // Ensure consistent string format
         
         console.log('🔐 SERVER: User authentication request');
         console.log('- User ID:', userId);
