@@ -251,9 +251,6 @@ export default function HomePage() {
         <div className="w-full max-w-md mx-auto mb-8">
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto">
-                  <MessageCircle className="h-8 w-8 text-white" />
-                </div>
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Get Started
