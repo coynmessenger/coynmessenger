@@ -69,16 +69,13 @@ export default function HomePage() {
         return;
       }
       
-      // Redirect authenticated users to messenger
+      // Set connected state for authenticated users (no auto-redirect)
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
         try {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser?.id && parsedUser?.walletAddress) {
-            console.log('Authenticated user detected, redirecting to messenger...');
-            
-            // Remove notification service initialization to prevent loading loops
-            
-            setLocation("/messenger");
+            console.log('Authenticated user detected, setting connected state');
+            // Only set state, don't auto-redirect - let user choose
             return;
           }
         } catch (error) {
