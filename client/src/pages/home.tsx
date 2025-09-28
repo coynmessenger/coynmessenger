@@ -247,43 +247,10 @@ export default function HomePage() {
         />
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          
-          {/* Left Column - Hero Content */}
-          <div className="text-center lg:text-left space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                Secure Crypto
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">
-                  {" "}Messaging
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
-                Connect your wallet and join the future of secure, crypto-enabled messaging. 
-                Send messages, share crypto, and build communities—all in one place.
-              </p>
-            </div>
-
-            {/* Features Grid */}
-            <div className="grid grid-cols-2 gap-4 lg:gap-6 max-w-2xl">
-              {features.map((feature, index) => (
-                <div key={index} className="text-center lg:text-left space-y-2">
-                  <feature.icon className="h-8 w-8 text-orange-500 mx-auto lg:mx-0" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                    {feature.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Column - Connection Card */}
-          <div className="w-full max-w-md mx-auto">
+      {/* Main Content - Centered Layout */}
+      <main className="flex-1 flex flex-col items-center justify-start p-4 sm:p-6">
+        {/* Connection Card - Positioned directly under logo */}
+        <div className="w-full max-w-md mx-auto mb-12">
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto">
@@ -374,6 +341,24 @@ export default function HomePage() {
                 </div>
               </CardContent>
             </Card>
+        </div>
+        
+        {/* Features Section - Moved to bottom */}
+        <div className="w-full max-w-6xl mx-auto mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="text-center space-y-3 p-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
+                  <feature.icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+                  {feature.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </main>
