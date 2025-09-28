@@ -29,13 +29,22 @@ export default function ThirdwebConnectButton({
     }
   };
 
-  // Handle wallet connection/disconnection events - AUTOCONNECT DISABLED to prevent infinite loops
+  // Handle wallet connection/disconnection events - AUTOCONNECT CONTROLLED to prevent infinite loops
   useEffect(() => {
-    if (!account?.address && onWalletDisconnected) {
+    if (account?.address && onWalletConnected) {
+      // Only trigger if this is actually a new connection
+      const lastAddress = localStorage.getItem('lastConnectedAddress');
+      if (lastAddress !== account.address) {
+        console.log('🔗 New wallet connection detected:', account.address);
+        localStorage.setItem('lastConnectedAddress', account.address);
+        onWalletConnected(account.address);
+      }
+    } else if (!account?.address && onWalletDisconnected) {
+      // Clear the last connected address when disconnecting
+      localStorage.removeItem('lastConnectedAddress');
       onWalletDisconnected();
     }
-    // Note: Autoconnect disabled - user must manually click connect button to trigger onWalletConnected
-  }, [account?.address, onWalletDisconnected]);
+  }, [account?.address, onWalletConnected, onWalletDisconnected]);
 
   // Supported wallets
   const wallets = [

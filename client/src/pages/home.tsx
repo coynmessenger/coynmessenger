@@ -299,9 +299,26 @@ export default function HomePage() {
                 
                 <ThirdwebConnectButton 
                   onWalletConnected={(address) => {
-                    // Simple callback - ThirdwebConnectButton handles the intelligent detection
-                    console.log('🔗 Wallet connection callback triggered for:', address);
-                    connectWalletMutation.mutate({ walletAddress: address });
+                    // Check if already processed to prevent loops
+                    const alreadyConnected = localStorage.getItem('walletConnected') === 'true';
+                    const storedUser = localStorage.getItem('connectedUser');
+                    
+                    if (alreadyConnected && storedUser) {
+                      // Already connected, just update UI state
+                      try {
+                        const parsedUser = JSON.parse(storedUser);
+                        setConnectedUser(parsedUser);
+                        setIsConnected(true);
+                        console.log('🔗 Restoring existing wallet connection UI');
+                      } catch (error) {
+                        console.error('Error parsing stored user:', error);
+                        connectWalletMutation.mutate({ walletAddress: address });
+                      }
+                    } else {
+                      // New connection, trigger mutation
+                      console.log('🔗 New wallet connection - triggering mutation for:', address);
+                      connectWalletMutation.mutate({ walletAddress: address });
+                    }
                   }}
                   onWalletDisconnected={() => {
                     setIsConnected(false);
