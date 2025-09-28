@@ -199,11 +199,12 @@ export default function HomePage() {
     console.log('🔗 COYN: Wallet approved! Address received:', address);
     console.log('🚀 COYN: Starting user authentication and page transition...');
     
-    // Clear flags that might prevent redirect since user is explicitly connecting
-    localStorage.removeItem('userSignedOut');
+    // Clear navigation flags that might prevent redirect since user is explicitly connecting
+    // Note: userSignedOut is already cleared in thirdweb connector when wallet approves
     localStorage.removeItem('userClickedHome');
     sessionStorage.removeItem('userOnHomepage');
     
+    console.log('🎯 COYN: User flags cleared, proceeding with authentication...');
     connectWalletMutation.mutate({ walletAddress: address });
   };
 

@@ -103,7 +103,17 @@ export default function ThirdwebWalletConnector({
             console.log('✅ WALLET: Got address from wallet, initiating COYN connection...', account.address);
             console.log('📱 MOBILE: Wallet approved, processing connection for automatic redirect...');
             
+            // CRITICAL: Clear userSignedOut flag IMMEDIATELY when wallet approves
+            console.log('🔓 WALLET: Clearing sign-out flag for wallet approval...');
+            localStorage.removeItem('userSignedOut');
+            
             // Trigger a storage event to ensure homepage detects the connection
+            window.dispatchEvent(new StorageEvent('storage', {
+              key: 'userSignedOut',
+              newValue: null,
+              oldValue: 'true'
+            }));
+            
             window.dispatchEvent(new StorageEvent('storage', {
               key: 'walletConnected',
               newValue: 'pending',
