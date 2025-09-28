@@ -235,7 +235,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
 
       {/* Centered Logo */}
-      <div className="w-full text-center">
+      <div className="flex justify-center items-center">
         <img 
           src={coynfulLogoPath} 
           alt="Coynful" 
