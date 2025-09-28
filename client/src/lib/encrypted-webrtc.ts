@@ -29,37 +29,44 @@ export class EncryptedWebRTCService {
   private eventHandlers: CallEventHandlers = {};
   private isInitialized = false;
 
-  // Enhanced WebRTC configuration optimized for desktop P2P connections
+  // Enhanced WebRTC configuration optimized for reliable P2P connections
   private rtcConfiguration: RTCConfiguration = {
     iceServers: [
-      // Primary STUN servers - Google
+      // Primary STUN servers - Google (reliable and global)
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
       
       // Cloudflare STUN servers for better global reach
       { urls: 'stun:stun.cloudflare.com:3478' },
       
-      // Primary TURN servers - OpenRelay
+      // Additional STUN servers for redundancy
+      { urls: 'stun:stun.nextcloud.com:443' },
+      
+      // Primary TURN servers - OpenRelay (reliable public service)
       {
-        urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        urls: [
+          'turn:openrelay.metered.ca:80',
+          'turn:openrelay.metered.ca:443',
+          'turn:openrelay.metered.ca:443?transport=tcp'
+        ],
         username: 'openrelayproject',
         credential: 'openrelayproject'
       },
       
-      // Additional TURN servers for redundancy
+      // Additional reliable TURN service
       {
-        urls: ['turn:numb.viagenie.ca:3478', 'turn:numb.viagenie.ca:3479'],
-        username: 'webrtc@live.com',
-        credential: 'muazkh'
+        urls: [
+          'turn:relay.metered.ca:80',
+          'turn:relay.metered.ca:443',
+          'turn:relay.metered.ca:443?transport=tcp'
+        ],
+        username: 'e8dd65b92c62d3e36c0c5abd',
+        credential: 'DVMv35H9V9TcsGwa'
       }
     ],
-    iceCandidatePoolSize: 15, // Increased for better connectivity
+    iceCandidatePoolSize: 10, // Optimized for performance vs resource usage
     iceTransportPolicy: 'all',
     bundlePolicy: 'max-bundle',
     rtcpMuxPolicy: 'require'
@@ -86,12 +93,10 @@ export class EncryptedWebRTCService {
           noiseSuppression: true,
           autoGainControl: true
         } : {
-          // Desktop audio constraints  
+          // Desktop audio constraints (Safari-compatible)
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 48000,
-          channelCount: 1
+          autoGainControl: true
         },
         video: false
       };
@@ -104,12 +109,10 @@ export class EncryptedWebRTCService {
         noiseSuppression: true,
         autoGainControl: true
       } : {
-        // Desktop audio for video calls
+        // Desktop audio for video calls (Safari-compatible)
         echoCancellation: true,
         noiseSuppression: true,
-        autoGainControl: true,
-        sampleRate: 48000,
-        channelCount: 1
+        autoGainControl: true
       },
       video: isMobile ? {
         // Mobile-optimized video constraints
@@ -194,8 +197,8 @@ export class EncryptedWebRTCService {
         }
 
         // If there's an offer, prepare for potential acceptance
-        if (data.offer || data.encryptedOffer) {
-          // Store offer data for when user accepts
+        if (data.offer) {
+          // Store offer data for when user accepts (use standard offer, not encrypted)
           call.remoteOffer = data.offer;
         }
         
@@ -213,18 +216,10 @@ export class EncryptedWebRTCService {
       
       // Set remote description with the answer
       const call = this.activeCalls.get(data.callId);
-      if (call?.peerConnection && (data.answer || data.encryptedAnswer)) {
+      if (call?.peerConnection && data.answer) {
         try {
-          let answer = data.answer;
-          
-          // Handle encrypted answer if available
-          if (data.encrypted && data.encryptedAnswer) {
-            // For now, use plain answer which comes as fallback
-          }
-          
-          if (answer) {
-            await call.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-          }
+          // Use standard answer (WebRTC provides DTLS-SRTP encryption)
+          await call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
           
           // CRITICAL: Update call status to connected
           call.status = 'connected';
@@ -469,7 +464,7 @@ export class EncryptedWebRTCService {
       // Generate call ID
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Store call information
+      // Store call information with proper initial status
       const call: EncryptedCall = {
         callId,
         participants: [this.localUserId!, targetUserId],
@@ -477,6 +472,7 @@ export class EncryptedWebRTCService {
         encrypted: true,
         localStream,
         peerConnection,
+        status: 'ringing', // Set proper initial status for outgoing calls
       };
       
       this.activeCalls.set(callId, call);
