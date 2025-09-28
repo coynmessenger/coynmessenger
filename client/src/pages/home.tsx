@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
 import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
+import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
@@ -256,7 +257,12 @@ export default function HomePage() {
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-3">
+                    <img 
+                      src={coynSymbolPath} 
+                      alt="COYN" 
+                      className="w-[35px] h-[35px]"
+                    />
                     COYN Messenger
                   </h3>
                 </div>
