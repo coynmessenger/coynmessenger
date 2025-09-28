@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-react";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
-import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
+import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096466858.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
