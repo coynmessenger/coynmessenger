@@ -252,7 +252,7 @@ export default function HomePage() {
         style={{ backgroundImage: `url(${backgroundImagePath})` }}
       >
         {/* Connection Card - Positioned directly under logo */}
-        <div className="w-full max-w-4xl mx-auto mb-8 px-4">
+        <div className="w-full max-w-md mx-auto mb-8">
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
@@ -272,11 +272,11 @@ export default function HomePage() {
                     </div>
 
                     {/* Thirdweb Wallet Connection */}
-                    <div className="w-full">
+                    <div className="flex justify-center">
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}
-                        className="w-full min-h-[320px] sm:min-h-[380px] md:min-h-[460px] bg-orange-50/40 dark:bg-orange-900/20 hover:bg-orange-100/60 dark:hover:bg-orange-800/30 text-black dark:text-white font-medium rounded-2xl transition-all duration-200 shadow-2xl hover:shadow-3xl border-6 border-orange-500 outline outline-8 outline-orange-300"
+                        className="w-[640px] h-[370px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600"
                       />
                     </div>
                     

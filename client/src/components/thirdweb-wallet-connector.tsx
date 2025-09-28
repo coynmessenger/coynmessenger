@@ -71,13 +71,13 @@ export default function ThirdwebWalletConnector({
             <span className="text-lg font-semibold">Connect Wallet</span>
           </div>
         ),
-        className: `${className || `
-          bg-transparent
-          hover:bg-orange-50 dark:hover:bg-orange-900/20 
-          text-black dark:text-white font-medium py-16 px-20 rounded-xl
-          transition-all duration-200 shadow-xl hover:shadow-2xl
-          border-4 border-orange-500 outline outline-4 outline-orange-300
-        `} w-full h-full flex items-center justify-center`
+        className: className || `
+          w-full h-full bg-white dark:bg-slate-800
+          hover:bg-gray-50 dark:hover:bg-slate-700 
+          text-gray-900 dark:text-white font-medium py-8 px-10 rounded-lg
+          transition-all duration-200 shadow-md hover:shadow-lg
+          border border-gray-200 dark:border-slate-600 flex items-center justify-center
+        `
       }}
       detailsButton={{
         className: `
