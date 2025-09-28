@@ -143,246 +143,29 @@ export default function HomePage() {
     },
   });
 
-  // Simplified state sync to prevent loading loops
+  // Simplified initial state check - no automatic connections
   useEffect(() => {
-    let isChecking = false;
+    const userSignedOut = localStorage.getItem('userSignedOut');
+    if (userSignedOut === 'true') {
+      return;
+    }
     
-    const syncConnectionState = async () => {
-      if (isChecking) return;
-      
-      const userSignedOut = localStorage.getItem('userSignedOut');
-      if (userSignedOut === 'true') {
-        return;
+    const storedConnected = localStorage.getItem('walletConnected');
+    const storedUser = localStorage.getItem('connectedUser');
+    
+    if (storedConnected === 'true' && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setConnectedUser(parsedUser);
+        setIsConnected(true);
+      } catch (error) {
+        // Clear invalid data
+        localStorage.removeItem('walletConnected');
+        localStorage.removeItem('connectedUser');
       }
-      
-      const storedConnected = localStorage.getItem('walletConnected');
-      const storedUser = localStorage.getItem('connectedUser');
-      
-      if (storedConnected === 'true' && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setConnectedUser(parsedUser);
-          setIsConnected(true);
-          return; // Exit early if already connected
-        } catch (error) {
-          // Clear invalid data
-          localStorage.removeItem('walletConnected');
-          localStorage.removeItem('connectedUser');
-        }
-      }
-      
-      // Check for pending MetaMask connection from mobile deep link
-      const pendingWalletConnection = localStorage.getItem('pendingWalletConnection');
-      
-      
-      if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
-        isChecking = true;
-        try {
-          
-          // Request accounts from MetaMask
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          
-          if (accounts && accounts.length > 0) {
-            
-            // Clear pending flags
-            localStorage.removeItem('pendingWalletConnection');
-            localStorage.removeItem('pendingWalletType');
-            localStorage.removeItem('walletConnectionAttempt');
-            
-            // Connect the wallet and navigate to messenger immediately
-            connectWalletMutation.mutate({ walletAddress: accounts[0] });
-          }
-        } catch (error) {
-          console.error('❌ MetaMask pending connection failed:', error);
-          localStorage.removeItem('pendingWalletConnection');
-        } finally {
-          isChecking = false;
-        }
-        return; // Exit early after handling MetaMask
-      }
-
-      // Enhanced Trust Wallet detection for mobile returns
-      if (!isConnected && typeof window.ethereum !== 'undefined') {
-        isChecking = true;
-        try {
-          let accounts = [];
-          
-          // Try Trust Wallet specific detection first
-          if (window.ethereum.isTrust || window.trustWallet) {
-            const provider = window.trustWallet || window.ethereum;
-            accounts = await provider.request({ method: 'eth_accounts' });
-          } else {
-            accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          }
-          
-          if (accounts && accounts.length > 0) {
-            // Clear any pending flags
-            localStorage.removeItem('pendingWalletConnection');
-            localStorage.removeItem('pendingWalletType');
-            localStorage.removeItem('walletConnectionAttempt');
-            
-            // Connect the wallet and navigate to messenger immediately
-            connectWalletMutation.mutate({ walletAddress: accounts[0] });
-          }
-        } catch (error) {
-          // Silently handle errors
-        } finally {
-          isChecking = false;
-        }
-      }
-    };
-    
-    // Run sync immediately on mount
-    syncConnectionState();
-    
-    // Add multiple event listeners for Trust Wallet mobile detection
-    const handlePageShow = () => {
-      setTimeout(syncConnectionState, 100);
-    };
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'walletConnected' && e.newValue === 'true') {
-        const storedUser = localStorage.getItem('connectedUser');
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setConnectedUser(parsedUser);
-          setIsConnected(true);
-        }
-      }
-    };
-    
-    // Listen for page show events (when returning from Trust Wallet)
-    window.addEventListener('pageshow', handlePageShow);
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('pageshow', handlePageShow);
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    }
   }, []);
 
-  // Handle mobile wallet returns (optimized - no duplicate checks)
-  useEffect(() => {
-    let isChecking = false;
-
-    const handleVisibilityChange = async () => {
-      if (!document.hidden && isMobile() && !isChecking) {
-        
-        // Don't interfere if file upload is in progress
-        const fileUploadInProgress = localStorage.getItem('fileUploadInProgress');
-        if (fileUploadInProgress === 'true') {
-          return;
-        }
-        
-        // Check if user explicitly signed out - if so, don't auto-reconnect
-        const userSignedOut = localStorage.getItem('userSignedOut');
-        if (userSignedOut === 'true') {
-          return;
-        }
-        
-        // First, check if we're already connected but the state isn't updated
-        const storedConnected = localStorage.getItem('walletConnected');
-        const storedUser = localStorage.getItem('connectedUser');
-        
-        if (storedConnected === 'true' && storedUser && !isConnected) {
-          const parsedUser = JSON.parse(storedUser);
-          setConnectedUser(parsedUser);
-          setIsConnected(true);
-          return;
-        }
-        
-        // Enhanced pending wallet connection detection for Trust Wallet
-        const pendingConnection = localStorage.getItem('pendingWalletConnection');
-        const pendingWalletType = localStorage.getItem('pendingWalletType');
-        const connectionAttempt = localStorage.getItem('walletConnectionAttempt');
-        
-        if (pendingConnection === 'true') {
-          isChecking = true;
-          
-          // Check if connection attempt is too old (older than 5 minutes)
-          if (connectionAttempt) {
-            const attemptTime = parseInt(connectionAttempt);
-            const currentTime = Date.now();
-            if (currentTime - attemptTime > 300000) { // 5 minutes
-              localStorage.removeItem('pendingWalletConnection');
-              localStorage.removeItem('pendingWalletType');
-              localStorage.removeItem('walletConnectionAttempt');
-              isChecking = false;
-              return;
-            }
-          }
-          
-          // Try to detect if a wallet connection was successful
-          try {
-            if (typeof window.ethereum !== 'undefined') {
-              const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-              
-              if (accounts && accounts.length > 0 && !isConnected) {
-                // Remove pending flags
-                localStorage.removeItem('pendingWalletConnection');
-                localStorage.removeItem('pendingWalletType');
-                localStorage.removeItem('walletConnectionAttempt');
-                
-                // Connect the wallet and navigate to messenger immediately
-                connectWalletMutation.mutate({ walletAddress: accounts[0] });
-              } else if (accounts && accounts.length > 0 && isConnected) {
-                localStorage.removeItem('pendingWalletConnection');
-                localStorage.removeItem('pendingWalletType');
-                localStorage.removeItem('walletConnectionAttempt');
-              } else {
-                // For Trust Wallet, try more aggressive account detection
-                if (pendingWalletType === 'trustwallet') {
-                  try {
-                    // Try multiple providers for Trust Wallet
-                    let provider = window.ethereum;
-                    if (window.trustWallet) {
-                      provider = window.trustWallet;
-                    }
-                    
-                    const requestedAccounts = await provider.request({ method: 'eth_requestAccounts' });
-                    
-                    if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
-                      // Remove pending flags
-                      localStorage.removeItem('pendingWalletConnection');
-                      localStorage.removeItem('pendingWalletType');
-                      localStorage.removeItem('walletConnectionAttempt');
-                      
-                      // Connect the wallet and navigate to messenger immediately  
-                      connectWalletMutation.mutate({ walletAddress: requestedAccounts[0] });
-                    }
-                  } catch (requestError) {
-                    // Trust Wallet specific error handling
-                  }
-                }
-              }
-            }
-          } catch (error) {
-            // Remove pending flags after error
-            setTimeout(() => {
-              localStorage.removeItem('pendingWalletConnection');
-              localStorage.removeItem('pendingWalletType');
-              localStorage.removeItem('walletConnectionAttempt');
-            }, 10000);
-          } finally {
-            isChecking = false;
-          }
-        }
-      }
-    };
-
-    // Also listen for focus events as another way to detect return from wallet app
-    const handleFocus = () => {
-      handleVisibilityChange();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [isConnected, connectWalletMutation]);
 
 
   const isMobile = () => {
