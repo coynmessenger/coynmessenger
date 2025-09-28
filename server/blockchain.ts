@@ -102,26 +102,121 @@ class BlockchainService {
     }
   }
 
+  private coynPriceCache: {usd: number, usd_24h_change: number, timestamp: number} | null = null;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
+
   private async getCOYNPrice(): Promise<{usd: number, usd_24h_change: number}> {
-    // Note: Current COYN token address (0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1) 
-    // appears to be invalid or has no trading pairs available.
-    // Using demo values for development purposes.
+    // Check cache first
+    if (this.coynPriceCache && (Date.now() - this.coynPriceCache.timestamp) < this.CACHE_TTL) {
+      console.log(`💰 COYN Price (cached): $${this.coynPriceCache.usd.toFixed(10)} (${this.coynPriceCache.usd_24h_change}%)`);
+      return { usd: this.coynPriceCache.usd, usd_24h_change: this.coynPriceCache.usd_24h_change };
+    }
+
+    // Try CoinBrain first with improved error handling
+    try {
+      console.log('🔍 Attempting to fetch COYN price from CoinBrain...');
+      const response = await axios.get('https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Cache-Control': 'no-cache'
+        },
+        timeout: 8000,
+        maxRedirects: 3
+      });
+
+      if (response.status === 200 && response.data) {
+        const html = response.data;
+        
+        // Multiple regex patterns to extract price data
+        const pricePatterns = [
+          /\$([0-9]+\.?[0-9]*(?:e-?[0-9]+)?)/i,
+          /"price":([0-9]+\.?[0-9]*(?:e-?[0-9]+)?)/i,
+          /price.*?([0-9]+\.?[0-9]*(?:e-?[0-9]+)?)/i
+        ];
+        
+        const changePatterns = [
+          /\(24h:([+-]?[0-9]+\.?[0-9]*)%\)/i,
+          /"change24h":([+-]?[0-9]+\.?[0-9]*)/i,
+          /24h.*?([+-]?[0-9]+\.?[0-9]*)%/i
+        ];
+        
+        let price = null;
+        let change = null;
+        
+        // Try price patterns
+        for (const pattern of pricePatterns) {
+          const match = html.match(pattern);
+          if (match && match[1]) {
+            price = parseFloat(match[1]);
+            if (price > 0) break;
+          }
+        }
+        
+        // Try change patterns
+        for (const pattern of changePatterns) {
+          const match = html.match(pattern);
+          if (match && match[1]) {
+            change = parseFloat(match[1]);
+            break;
+          }
+        }
+        
+        if (price && price > 0) {
+          const result = {
+            usd: price,
+            usd_24h_change: change || 0
+          };
+          
+          // Cache the successful result
+          this.coynPriceCache = { ...result, timestamp: Date.now() };
+          console.log(`✅ COYN Price fetched from CoinBrain: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
+          return result;
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ CoinBrain fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // Fallback to DEXScreener
+    try {
+      console.log('🔍 Trying DEXScreener as fallback...');
+      const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1`, {
+        timeout: 5000
+      });
+      
+      if (response.data?.pairs?.length > 0) {
+        const pair = response.data.pairs[0];
+        const result = {
+          usd: parseFloat(pair.priceUsd || '0'),
+          usd_24h_change: parseFloat(pair.priceChange24h || '0')
+        };
+        
+        if (result.usd > 0) {
+          this.coynPriceCache = { ...result, timestamp: Date.now() };
+          console.log(`✅ COYN Price fetched from DEXScreener: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
+          return result;
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ DEXScreener fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
     
-    console.log(`🔍 COYN Price: Using demo values (token address may be invalid or unlisted)`);
-    
-    // Provide realistic demo pricing that changes over time for development
-    const basePrice = 0.000000125;  // Slightly higher base price
-    const timeVariation = Math.sin(Date.now() / 1000000) * 0.000000025; // Small time-based variation
-    const currentPrice = basePrice + timeVariation;
-    
-    // Realistic 24h change between -15% and +15%
+    // Final fallback with realistic demo values and cache
+    console.log(`🔄 Using demo values with cache (token address may be invalid)`);
+    const basePrice = 0.000000125;
+    const timeVariation = Math.sin(Date.now() / 1000000) * 0.000000025;
     const changeVariation = (Math.sin(Date.now() / 500000) * 15);
     
     const result = {
-      usd: Math.max(currentPrice, 0.0000001), // Ensure positive price
+      usd: Math.max(basePrice + timeVariation, 0.0000001),
       usd_24h_change: Number(changeVariation.toFixed(2))
     };
     
+    // Cache demo values for shorter time
+    this.coynPriceCache = { ...result, timestamp: Date.now() - (this.CACHE_TTL - 60000) }; // Cache for 1 minute only
     console.log(`💰 COYN Demo Price: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
     return result;
   }
