@@ -17,6 +17,7 @@ const wallets = [
   createWallet("me.rainbow"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
+  createWallet("com.trustwallet.app"),
   createWallet("walletConnect"),
 ];
 
