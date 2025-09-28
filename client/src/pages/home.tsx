@@ -253,7 +253,7 @@ export default function HomePage() {
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Get Started
+                    Connect Wallet
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
                     Connect your wallet to join COYN Messenger
