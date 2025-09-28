@@ -240,7 +240,7 @@ export default function HomePage() {
           <img 
             src={coynfulLogoPath} 
             alt="Coynful" 
-            className="h-16 w-auto object-contain"
+            className="h-32 w-auto object-contain"
           />
         </div>
       </header>
