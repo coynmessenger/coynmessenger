@@ -20,6 +20,7 @@ import PrivacyModal from "@/components/privacy-modal";
 import WalletAddressSelector from "@/components/wallet-address-selector";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import LazyImage from "@/components/lazy-image";
+import ThirdwebConnectButton from "@/components/thirdweb-connect-button";
 import type { User } from "@shared/schema";
 
 
@@ -905,63 +906,34 @@ export default function HomePage() {
           <CardContent className="space-y-6">
             {!isConnected || !connectedUser ? (
               <div className="space-y-6">
-                {/* Web3 Wallet Options */}
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {isMobile() ? (
-                        <>
-                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
-                            📱 Mobile Detected
-                          </span>
-                          <br />
-                          Tap to open in your wallet app
-                        </>
-                      ) : (
-                        "Choose your preferred wallet to connect"
-                      )}
-                    </p>
-                  </div>
-
-                  {/* 2x1 Grid of Wallet Options */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* MetaMask */}
-                    <Button 
-                      onClick={() => handleWeb3Connect('metamask')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
-                      disabled={connectWalletMutation.isPending}
-                      variant="outline"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <LazyImage 
-                          src={metamaskLogo} 
-                          alt="MetaMask" 
-                          className="w-8 h-8 object-contain"
-                        />
-                      </div>
-                      <span className="text-sm font-semibold">MetaMask</span>
-                    </Button>
-
-                    {/* Trust Wallet */}
-                    <Button 
-                      onClick={() => handleWeb3Connect('trust')}
-                      className="h-26 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium flex flex-col items-center justify-center group transition-all duration-300 space-y-3 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
-                      disabled={connectWalletMutation.isPending}
-                      variant="outline"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <LazyImage 
-                          src={trustWalletLogo} 
-                          alt="Trust Wallet" 
-                          className="w-8 h-8 object-contain"
-                        />
-                      </div>
-                      <span className="text-sm font-semibold">Trust Wallet</span>
-                    </Button>
-                  </div>
-
+                {/* Thirdweb Wallet Connection */}
+                <div className="text-center mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    {isMobile() ? (
+                      <>
+                        <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium mb-2">
+                          📱 Mobile Detected
+                        </span>
+                        <br />
+                        Connect your wallet to access COYN Messenger
+                      </>
+                    ) : (
+                      "Connect your wallet to access COYN Messenger"
+                    )}
+                  </p>
                 </div>
-
+                
+                <ThirdwebConnectButton 
+                  onWalletConnected={(address) => {
+                    connectWalletMutation.mutate({ walletAddress: address });
+                  }}
+                  onWalletDisconnected={() => {
+                    setIsConnected(false);
+                    setConnectedUser(null);
+                    localStorage.removeItem('walletConnected');
+                    localStorage.removeItem('connectedUser');
+                  }}
+                />
               </div>
             ) : (
               <div className="text-center space-y-6">
