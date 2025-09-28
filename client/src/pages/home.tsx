@@ -100,6 +100,8 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
+      console.log('✅ COYN: User authenticated successfully!', { userId: user.id, walletAddress: user.walletAddress });
+      
       // Clean up any competing states first
       localStorage.removeItem('pendingWalletConnection');
       localStorage.removeItem('walletConnectionAttempt');
@@ -126,7 +128,7 @@ export default function HomePage() {
       window.history.replaceState({}, document.title, cleanUrl);
       
       // Redirect to messenger
-      console.log('🔄 Redirecting to messenger...');
+      console.log('🎯 COYN: SUCCESS! Redirecting to signed-in page (messenger)...');
       setLocation("/messenger");
     },
   });
@@ -167,7 +169,8 @@ export default function HomePage() {
   };
 
   const handleThirdwebConnect = (address: string) => {
-    console.log('🔗 Thirdweb wallet connected:', address);
+    console.log('🔗 COYN: Wallet approved! Address received:', address);
+    console.log('🚀 COYN: Starting user authentication and page transition...');
     
     // Clear flags that might prevent redirect since user is explicitly connecting
     localStorage.removeItem('userSignedOut');

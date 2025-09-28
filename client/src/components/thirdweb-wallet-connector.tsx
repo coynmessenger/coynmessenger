@@ -69,12 +69,16 @@ export default function ThirdwebWalletConnector({
       }}
       onConnect={async (wallet) => {
         try {
+          console.log('🎯 WALLET: Connection approved in wallet, processing...');
           const account = wallet.getAccount();
           if (account?.address && onConnect) {
+            console.log('✅ WALLET: Got address from wallet, initiating COYN connection...', account.address);
             onConnect(account.address);
+          } else {
+            console.error('❌ WALLET: No address found in wallet account');
           }
         } catch (error) {
-          console.error('Error getting wallet account:', error);
+          console.error('❌ WALLET: Error getting wallet account:', error);
         }
       }}
       onDisconnect={() => {
