@@ -81,7 +81,9 @@ export const walletBalances = pgTable("wallet_balances", {
   balance: decimal("balance", { precision: 18, scale: 8 }).notNull(),
   usdValue: decimal("usd_value", { precision: 15, scale: 2 }),
   changePercent: decimal("change_percent", { precision: 5, scale: 2 }),
-});
+}, (table) => ({
+  unique: unique().on(table.userId, table.currency),
+}));
 
 
 
