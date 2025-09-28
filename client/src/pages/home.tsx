@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDisconnect } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ export default function HomePage() {
   useScrollToTop();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { disconnect } = useDisconnect();
   
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
@@ -106,7 +108,15 @@ export default function HomePage() {
     },
   });
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      // First disconnect the thirdweb wallet
+      console.log('🔌 Disconnecting thirdweb wallet...');
+      await disconnect();
+    } catch (error) {
+      console.error('Error disconnecting thirdweb wallet:', error);
+    }
+    
     // Set explicit sign out flag
     localStorage.setItem('userSignedOut', 'true');
     
@@ -134,6 +144,21 @@ export default function HomePage() {
   const handleThirdwebConnect = (address: string) => {
     console.log('🔗 Thirdweb wallet connected:', address);
     connectWalletMutation.mutate({ walletAddress: address });
+  };
+
+  const handleThirdwebDisconnect = () => {
+    console.log('🔌 Thirdweb wallet disconnected');
+    // Clear wallet connection state
+    localStorage.removeItem('walletConnected');
+    localStorage.removeItem('connectedUser');
+    localStorage.removeItem('connectedUserId');
+    
+    // Reset component state
+    setIsConnected(false);
+    setConnectedUser(null);
+    
+    // Clear query cache
+    queryClient.clear();
   };
 
   const features = [
@@ -241,7 +266,7 @@ export default function HomePage() {
                     <div className="w-full">
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
-                        onDisconnect={handleSignOut}
+                        onDisconnect={handleThirdwebDisconnect}
                         className="w-full h-14 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-orange-400/20"
                       />
                     </div>
