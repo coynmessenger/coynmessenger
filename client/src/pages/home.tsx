@@ -10,7 +10,7 @@ import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
 import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
-import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
+import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759099881053.jpg";
 import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
