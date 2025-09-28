@@ -26,7 +26,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { signatureCollector } from "@/lib/signature-collector";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 
 // Web3 types extension for ethereum provider
 interface EthereumProvider {

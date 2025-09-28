@@ -2,7 +2,7 @@ import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
-import coynLogoPath from "@assets/COYN symbol square_1759097239476.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,

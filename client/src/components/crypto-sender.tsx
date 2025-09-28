@@ -11,7 +11,7 @@ import { signatureCollector } from "@/lib/signature-collector";
 import WalletAccessValidator from "@/lib/wallet-access-validator";
 import { Coins, Plus } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
-import coynLogoPath from "@assets/COYN-symbol-square_1750891892214.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import type { WalletBalance } from "@shared/schema";
 
 const getCryptoIcon = (crypto: string) => {

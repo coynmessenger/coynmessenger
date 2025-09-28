@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Wallet, Copy, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SiBitcoin, SiBinance } from "react-icons/si";
-import coynLogo from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogo from "@assets/COYN symbol square_1759099649514.png";
 import type { WalletBalance, User } from "@shared/schema";
 
 interface WalletHoverProps {

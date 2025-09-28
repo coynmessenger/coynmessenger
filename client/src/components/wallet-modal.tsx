@@ -13,7 +13,7 @@ import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Eye,
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import QRCode from "qrcode";
 import { generateMetaMaskQRCode } from "@/lib/qr-generator";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import { apiRequest } from "@/lib/queryClient";
 
 interface WalletModalProps {

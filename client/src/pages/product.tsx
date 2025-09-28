@@ -39,7 +39,7 @@ import {
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import { ProductShareModal } from "@/components/product-share-modal";
-import coynLogoPath from "@assets/COYN-symbol-square_1750892698348.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
 
 // Utility function to format prices with commas
