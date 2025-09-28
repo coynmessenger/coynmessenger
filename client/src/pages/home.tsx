@@ -231,173 +231,182 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       {/* Header */}
       <header className="w-full p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-4xl mx-auto flex items-center justify-center">
           <div className="flex items-center space-x-3">
             <img 
               src={coynfulLogoPath} 
-              alt="Coynful" 
-              className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
+              alt="Coynful Logo" 
+              className="h-12 w-12 object-contain"
             />
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              COYN Messenger
-            </h1>
-          </div>
-          
-          <div className="flex items-center space-x-4 text-sm">
-            <button
-              onClick={() => setShowTermsModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Terms
-            </button>
-            <button
-              onClick={() => setShowPrivacyModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Privacy
-            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="max-w-md mx-auto w-full text-center space-y-8">
           
-          {/* Left Column - Hero Content */}
-          <div className="text-center lg:text-left space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                Secure Crypto
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">
-                  {" "}Messaging
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
-                Connect your wallet and join the future of secure, crypto-enabled messaging. 
-                Send messages, share crypto, and build communities—all in one place.
-              </p>
-            </div>
+          {/* Main Connection Card */}
+          <Card className="border shadow-lg bg-white dark:bg-slate-800">
+            <CardHeader className="text-center space-y-4 pb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  Connect Wallet
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Connect your Web3 wallet to access Coynful Messenger
+                </p>
+              </div>
+            </CardHeader>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-2 gap-4 lg:gap-6 max-w-2xl">
-              {features.map((feature, index) => (
-                <div key={index} className="text-center lg:text-left space-y-2">
-                  <feature.icon className="h-8 w-8 text-orange-500 mx-auto lg:mx-0" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                    {feature.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Column - Connection Card */}
-          <div className="w-full max-w-md mx-auto">
-            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
-              <CardHeader className="text-center space-y-4 pb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto">
-                  <MessageCircle className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Get Started
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Connect your wallet to join COYN Messenger
-                  </p>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {!isConnected || !connectedUser ? (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Choose your preferred wallet to connect
-                      </p>
-                    </div>
-
-                    {/* Thirdweb Wallet Connection */}
-                    <div className="w-full">
-                      <ThirdwebWalletConnector
-                        onConnect={handleThirdwebConnect}
-                        onDisconnect={handleThirdwebDisconnect}
-                        className="w-full h-14 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-orange-400/20"
-                      />
-                    </div>
-                    
-                    {connectWalletMutation.isPending && (
-                      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                        ✅ Wallet connected successfully - user can now click to enter messenger
-                      </div>
-                    )}
+            <CardContent className="space-y-6">
+              {!isConnected || !connectedUser ? (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                      Choose your preferred wallet to connect
+                    </p>
                   </div>
-                ) : (
-                  <div className="text-center space-y-6">
-                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                      <Check className="h-8 w-8 text-green-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
-                        Connected to COYN Network
-                      </h3>
-                      <p className="text-black dark:text-foreground mb-2">
-                        Welcome to COYN, {connectedUser?.displayName}!
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
-                        {connectedUser?.walletAddress}
-                      </p>
 
-                      <div className="space-y-3 mt-6">
-                        <Button
-                          onClick={() => setLocation("/messenger")}
-                          className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
-                        >
-                          <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                          Open Messenger
-                        </Button>
-                        <Button
-                          onClick={handleSignOut}
-                          variant="outline"
-                          className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
-                        >
-                          Sign Out
-                        </Button>
-                      </div>
+                  {/* Thirdweb Wallet Connection - EXACT SAME AS BEFORE */}
+                  <div className="w-full">
+                    <ThirdwebWalletConnector
+                      onConnect={handleThirdwebConnect}
+                      onDisconnect={handleThirdwebDisconnect}
+                      className="w-full h-14 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-orange-400/20"
+                    />
+                  </div>
+                  
+                  {connectWalletMutation.isPending && (
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                      ✅ Wallet connected successfully - user can now click to enter messenger
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center space-y-6">
+                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                    <Check className="h-8 w-8 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
+                      Connected to COYN Network
+                    </h3>
+                    <p className="text-black dark:text-foreground mb-2">
+                      Welcome to COYN, {connectedUser?.displayName}!
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
+                      {connectedUser?.walletAddress}
+                    </p>
+
+                    <div className="space-y-3 mt-6">
+                      <Button
+                        onClick={() => setLocation("/messenger")}
+                        className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                      >
+                        <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
+                        Open Messenger
+                      </Button>
+                      <Button
+                        onClick={handleSignOut}
+                        variant="outline"
+                        className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
+                      >
+                        Sign Out
+                      </Button>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Supported Currencies */}
-                <div className="border-t border-border pt-4">
-                  <p className="text-center text-muted-foreground mb-3 text-sm">
-                    Supported Currencies
-                  </p>
-                  <div className="flex justify-center space-x-3 flex-wrap gap-2">
-                    {['BNB', 'USDT', 'COYN'].map((currency) => (
-                      <Badge key={currency} variant="secondary" className="text-xs">
+              {/* Supported Currencies */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Supported Currencies
+                </h3>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {['BNB', 'USDT', 'COYN'].map((currency) => (
+                    <div key={currency} className="text-center">
+                      <Badge variant="outline" className="w-full py-2 text-sm font-medium">
                         {currency}
                       </Badge>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Features Section */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="p-4 text-center">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  Instant Crypto
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Send BNB, USDT, and COYN directly in your chats
+                </p>
+              </div>
+              
+              <div className="p-4 text-center">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  Smart Escrow <Badge variant="secondary" className="ml-2 text-xs">Coming Soon</Badge>
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Safe peer-to-peer trades with automated escrow protection
+                </p>
+              </div>
+              
+              <div className="p-4 text-center">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  Secure Chat
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Encrypted conversations with wallet-verified contacts
+                </p>
+              </div>
+              
+              <div className="p-4 text-center">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  Marketplace <Badge variant="secondary" className="ml-2 text-xs">Coming Soon</Badge>
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Pay with digital currency
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>© 2024 COYN Messenger. Secure. Private. Decentralized.</p>
+      <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div className="max-w-4xl mx-auto text-center space-y-4">
+          <div className="text-sm font-medium text-gray-900 dark:text-white">
+            Secure • Decentralized • Private
+          </div>
+          <div className="flex items-center justify-center space-x-6 text-sm">
+            <button
+              onClick={() => setShowTermsModal(true)}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Terms & Conditions
+            </button>
+            <span className="text-gray-400 dark:text-gray-600">•</span>
+            <button
+              onClick={() => setShowPrivacyModal(true)}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </button>
+          </div>
+          <div className="text-xs text-gray-600 dark:text-gray-400">
+            Powered by COYN
+          </div>
         </div>
       </footer>
 
