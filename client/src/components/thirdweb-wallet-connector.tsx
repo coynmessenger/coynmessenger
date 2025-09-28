@@ -6,12 +6,14 @@ const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
 });
 
+// Enhanced wallet configuration for optimal mobile experience
 const wallets = [
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("me.rainbow"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
+  createWallet("walletConnect"),
 ];
 
 interface ThirdwebWalletConnectorProps {
@@ -40,6 +42,12 @@ export default function ThirdwebWalletConnector({
       }}
       theme="dark"
       wallets={wallets}
+      appMetadata={{
+        name: "COYN Messenger",
+        description: "Secure crypto messaging and wallet integration",
+        url: window.location.origin,
+        logoUrl: `${window.location.origin}/favicon.ico`,
+      }}
       connectButton={{
         label: "Connect Wallet",
         className: className || `
