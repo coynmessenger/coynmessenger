@@ -235,22 +235,22 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
 
       {/* Centered Logo */}
-      <div className="w-full text-center pt-4 pb-2">
+      <div className="w-full text-center pt-8 pb-4">
         <img 
           src={coynfulLogoPath} 
           alt="Coynful" 
           className="object-contain mx-auto"
           style={{
-            height: '480px',
-            width: '480px'
+            height: '120px',
+            width: '120px'
           }}
         />
       </div>
 
       {/* Main Content - Centered Layout */}
-      <main className="flex-1 flex flex-col items-center justify-start px-4 pt-2">
+      <main className="flex-1 flex flex-col items-center justify-start px-4">
         {/* Connection Card - Positioned directly under logo */}
-        <div className="w-full max-w-md mx-auto mb-6">
+        <div className="w-full max-w-md mx-auto mb-8">
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto">
