@@ -129,9 +129,8 @@ export default function HomePage() {
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
       
-      // Single event-driven redirect - no timeouts or delays
-      console.log('🔄 Redirecting to messenger...');
-      setLocation("/messenger");
+      // NO AUTOMATIC REDIRECT - Let user manually click to messenger
+      console.log('✅ Wallet connected successfully - user can now click to enter messenger');
     },
   });
 
