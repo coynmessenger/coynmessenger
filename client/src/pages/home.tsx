@@ -248,8 +248,8 @@ export default function HomePage() {
       {/* Main Content - Centered Layout */}
       <main className="flex-1 flex flex-col items-center justify-start px-4">
         {/* Connection Card - Positioned directly under logo */}
-        <div className="w-full max-w-4xl mx-auto mb-8">
-            <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl">
+        <div className="w-full max-w-md mx-auto mb-8">
+            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -258,11 +258,11 @@ export default function HomePage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-8 p-8">
+              <CardContent className="space-y-6">
                 {!isConnected || !connectedUser ? (
                   <div className="space-y-6">
                     <div className="text-center">
-                      <p className="text-base text-muted-foreground mb-6 font-medium">
+                      <p className="text-sm text-muted-foreground mb-4">
                         Choose your preferred wallet to connect
                       </p>
                     </div>
@@ -272,7 +272,7 @@ export default function HomePage() {
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}
-                        className="w-96 h-32 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200 dark:border-slate-600"
+                        className="w-[640px] h-80 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600"
                       />
                     </div>
                     
