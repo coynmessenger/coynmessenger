@@ -43,27 +43,12 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Track authentication check to prevent infinite loops
-  const [authCheckInProgress, setAuthCheckInProgress] = useState(false);
-  const [lastAuthCheck, setLastAuthCheck] = useState(0);
-
   // Check for existing authentication on mount and when wallet state changes
   useEffect(() => {
     const checkAuthAndRedirect = () => {
-      // Prevent rapid successive auth checks
-      const now = Date.now();
-      if (authCheckInProgress || (now - lastAuthCheck) < 1000) {
-        console.log('🔄 Skipping auth check - too soon or already in progress');
-        return;
-      }
-      
-      setAuthCheckInProgress(true);
-      setLastAuthCheck(now);
-      
       const userSignedOut = localStorage.getItem('userSignedOut');
       if (userSignedOut === 'true') {
         console.log('🚫 User signed out, staying on homepage');
-        setAuthCheckInProgress(false);
         return;
       }
       
@@ -82,7 +67,6 @@ export default function HomePage() {
       if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
         console.log('👤 User explicitly navigated to homepage, staying on homepage');
         sessionStorage.setItem('userOnHomepage', 'true');
-        setAuthCheckInProgress(false);
         return;
       }
       
@@ -95,7 +79,6 @@ export default function HomePage() {
           if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
             console.log('✅ Authenticated user detected, redirecting to messenger...');
             setLocation("/messenger");
-            setAuthCheckInProgress(false);
             return;
           } else {
             console.log('❌ User data incomplete, clearing storage');
@@ -110,47 +93,23 @@ export default function HomePage() {
           localStorage.removeItem('connectedUserId');
         }
       }
-      
-      setAuthCheckInProgress(false);
     };
 
     // Initial check
     checkAuthAndRedirect();
 
-    // Debounce storage change events to prevent loops
-    let storageTimeout: NodeJS.Timeout;
+    // Listen for wallet connection events (when user returns from wallet app)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
         console.log('📱 MOBILE: Storage change detected, checking for wallet return...', e.key);
-        
-        // Clear existing timeout and set new one
-        if (storageTimeout) {
-          clearTimeout(storageTimeout);
-        }
-        
-        storageTimeout = setTimeout(() => {
-          if (!authCheckInProgress) {
-            checkAuthAndRedirect();
-          }
-        }, 500); // Longer delay to prevent rapid firing
+        setTimeout(checkAuthAndRedirect, 100); // Small delay to ensure all related storage updates are complete
       }
     };
 
-    // Debounce focus events
-    let focusTimeout: NodeJS.Timeout;
+    // Listen for focus events (when user returns from wallet app)
     const handleFocus = () => {
       console.log('👁️ MOBILE: Window focus detected, checking for wallet return...');
-      
-      // Clear existing timeout and set new one
-      if (focusTimeout) {
-        clearTimeout(focusTimeout);
-      }
-      
-      focusTimeout = setTimeout(() => {
-        if (!authCheckInProgress) {
-          checkAuthAndRedirect();
-        }
-      }, 500);
+      setTimeout(checkAuthAndRedirect, 100);
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -159,14 +118,8 @@ export default function HomePage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
-      if (storageTimeout) {
-        clearTimeout(storageTimeout);
-      }
-      if (focusTimeout) {
-        clearTimeout(focusTimeout);
-      }
     };
-  }, [setLocation, authCheckInProgress, lastAuthCheck]);
+  }, [setLocation]);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
@@ -338,30 +291,6 @@ export default function HomePage() {
                         ✅ Wallet connected successfully - user can now click to enter messenger
                       </div>
                     )}
-
-                    {/* Add Messenger and Sign Out buttons */}
-                    <div className="flex space-x-3 mt-4">
-                      <Button
-                        onClick={() => {
-                          localStorage.removeItem('userClickedHome');
-                          sessionStorage.removeItem('userOnHomepage');
-                          setLocation("/messenger");
-                        }}
-                        className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg h-12 touch-manipulation transition-all duration-200"
-                        data-testid="button-messenger"
-                      >
-                        <MessageCircle className="mr-2 h-5 w-5" />
-                        Messenger
-                      </Button>
-                      <Button
-                        onClick={handleSignOut}
-                        variant="outline"
-                        className="flex-1 border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-12 touch-manipulation transition-all duration-200"
-                        data-testid="button-sign-out"
-                      >
-                        Sign Out
-                      </Button>
-                    </div>
                   </div>
                 ) : (
                   <div className="text-center space-y-6">
