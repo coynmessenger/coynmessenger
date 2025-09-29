@@ -338,6 +338,30 @@ export default function HomePage() {
                         ✅ Wallet connected successfully - user can now click to enter messenger
                       </div>
                     )}
+
+                    {/* Add Messenger and Sign Out buttons */}
+                    <div className="flex space-x-3 mt-4">
+                      <Button
+                        onClick={() => {
+                          localStorage.removeItem('userClickedHome');
+                          sessionStorage.removeItem('userOnHomepage');
+                          setLocation("/messenger");
+                        }}
+                        className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg h-12 touch-manipulation transition-all duration-200"
+                        data-testid="button-messenger"
+                      >
+                        <MessageCircle className="mr-2 h-5 w-5" />
+                        Messenger
+                      </Button>
+                      <Button
+                        onClick={handleSignOut}
+                        variant="outline"
+                        className="flex-1 border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-12 touch-manipulation transition-all duration-200"
+                        data-testid="button-sign-out"
+                      >
+                        Sign Out
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center space-y-6">
