@@ -38,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 - Real-time text messaging.
 - Cryptocurrency sending within messages.
 - Wallet management for BNB, USDT, and COYN with real blockchain balances and live market prices.
-- Multi-address wallet support with user-selectable wallet addresses from MetaMask and Trust Wallet.
+- Universal wallet support with wallet-specific transaction routing (Bitget → Bitget, MetaMask → MetaMask, etc.) ensuring transactions go through the specific connected wallet.
 - Encrypted wallet-to-wallet voice and video calling (WebRTC with Signal Protocol-inspired encryption).
 - Comprehensive marketplace for crypto purchases with Amazon-style checkout.
 - Favorites/wishlist system.
@@ -72,7 +72,7 @@ Preferred communication style: Simple, everyday language.
 ### System Design
 - Database schema includes `users`, `conversations`, `messages`, and `wallet_balances`.
 - API routes for user, conversations, messages, and marketplace interactions.
-- Web3 wallet authentication system (MetaMask, Trust Wallet) with real blockchain balance synchronization.
+- Universal Web3 wallet authentication system with wallet-specific transaction routing (MetaMask, Trust Wallet, Bitget, Coinbase, Rabby, Zerion, WalletConnect) ensuring transactions execute through the connected wallet.
 - Transaction processing uses real BNB chain for BNB, USDT, and COYN.
 - Comprehensive signature data collection for token transactions.
 - Automated scroll-to-top functionality on page navigation.
