@@ -183,9 +183,30 @@ export default function HomePage() {
       
       // IMMEDIATE REDIRECT to messenger - this is the primary path for auto-navigation
       console.log('🎯 COYN: SUCCESS! Auto-navigating to messenger...');
+      console.log('🖥️ DESKTOP/📱 MOBILE: Universal auto-navigation starting...');
+      
+      // Use multiple strategies to ensure navigation works on both desktop and mobile
+      // Strategy 1: Immediate navigation
+      setLocation("/messenger");
+      
+      // Strategy 2: Backup navigation after short delay (for any platform-specific timing issues)
       setTimeout(() => {
-        setLocation("/messenger");
-      }, 100); // Small delay to ensure state updates complete
+        console.log('🔄 BACKUP: Ensuring navigation to messenger...');
+        if (window.location.pathname !== '/messenger') {
+          console.log('⚡ BACKUP: Navigation needed, redirecting to messenger...');
+          setLocation("/messenger");
+        } else {
+          console.log('✅ BACKUP: Already on messenger, navigation successful');
+        }
+      }, 150);
+      
+      // Strategy 3: Force navigation if still not on messenger (last resort)
+      setTimeout(() => {
+        if (window.location.pathname !== '/messenger') {
+          console.log('🚨 FORCE: Force navigation to messenger for desktop compatibility...');
+          window.location.href = '/messenger';
+        }
+      }, 300);
     },
   });
 
@@ -298,13 +319,6 @@ export default function HomePage() {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {/* Debug info */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                    Debug: isConnected={String(isConnected)}, hasUser={String(!!connectedUser)}, userAddress={connectedUser?.walletAddress?.slice(0,6)}...
-                  </div>
-                )}
-                
                 {!isConnected || !connectedUser ? (
                   <div className="space-y-6">
                     <div className="text-center">
