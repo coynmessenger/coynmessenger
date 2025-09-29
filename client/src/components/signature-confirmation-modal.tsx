@@ -76,8 +76,13 @@ export default function SignatureConfirmationModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[calc(100vw-2rem)] mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50 shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent 
+        className="max-w-md w-[calc(100vw-2rem)] mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50 shadow-2xl"
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center">
             <div className="relative">

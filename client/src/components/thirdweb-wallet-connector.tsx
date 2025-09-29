@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
-import { createWallet } from "thirdweb/wallets";
+import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import SignatureConfirmationModal from "./signature-confirmation-modal";
@@ -16,6 +16,15 @@ const supportedChains = [bsc];
 
 // Enhanced wallet configuration for in-app signing experience
 const wallets = [
+  // Prioritize embedded wallet for in-app signatures on mobile
+  inAppWallet({
+    auth: {
+      options: ["email", "google", "apple", "phone"],
+    },
+    smartAccount: {
+      sponsorGas: false,
+    },
+  }),
   createWallet("io.metamask", {
     preferredConnectionMethod: "injected" // Use injected provider when available
   }),
@@ -52,8 +61,34 @@ export default function ThirdwebWalletConnector({
   onDisconnect, 
   className 
 }: ThirdwebWalletConnectorProps) {
+  // Use thirdweb hooks for proper state management
+  const activeAccount = useActiveAccount();
+  const activeWallet = useActiveWallet();
+  
   // Check if user has explicitly signed out to prevent autoconnect
   const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
+  
+  // Monitor wallet connection state changes
+  useEffect(() => {
+    if (activeAccount?.address && !userSignedOut) {
+      console.log('🔗 WALLET: Active account detected:', activeAccount.address);
+      
+      // Clear sign-out flag when account becomes active
+      localStorage.removeItem('userSignedOut');
+      
+      if (onConnect) {
+        onConnect(activeAccount.address);
+      }
+    }
+  }, [activeAccount, userSignedOut, onConnect]);
+  
+  // Monitor wallet disconnection
+  useEffect(() => {
+    if (!activeAccount && !userSignedOut && onDisconnect) {
+      console.log('📱 WALLET: Active account disconnected');
+      onDisconnect();
+    }
+  }, [activeAccount, userSignedOut, onDisconnect]);
   
   // In-app signature state management
   const [currentSignatureRequest, setCurrentSignatureRequest] = useState<SignatureRequest | null>(null);
@@ -71,9 +106,7 @@ export default function ThirdwebWalletConnector({
         const handleConfirm = async () => {
           setIsProcessingSignature(true);
           try {
-            // Here we would normally interact with the wallet
-            // For now, we'll simulate the signature approval
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Actually approve the signature request
             resolve(true);
           } finally {
             setIsProcessingSignature(false);
@@ -194,22 +227,9 @@ export default function ThirdwebWalletConnector({
             console.log('✅ WALLET: Got address from wallet, initiating COYN connection...', account.address);
             console.log('📱 MOBILE: Wallet approved, processing connection for automatic redirect...');
             
-            // CRITICAL: Clear userSignedOut flag IMMEDIATELY when wallet approves
+            // Clear userSignedOut flag when wallet connects
             console.log('🔓 WALLET: Clearing sign-out flag for wallet approval...');
             localStorage.removeItem('userSignedOut');
-            
-            // Trigger a storage event to ensure homepage detects the connection
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'userSignedOut',
-              newValue: null,
-              oldValue: 'true'
-            }));
-            
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'walletConnected',
-              newValue: 'pending',
-              oldValue: null
-            }));
             
             onConnect(account.address);
           } else {

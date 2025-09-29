@@ -1,4 +1,5 @@
 import { type Wallet } from "thirdweb/wallets";
+import { type Account } from "thirdweb/wallets";
 
 export interface SignatureRequest {
   id: string;
@@ -149,6 +150,63 @@ class InAppSignatureService {
     // Return appropriate wallet icon based on wallet ID
     // For now, we'll rely on the wallet's built-in icon handling
     return undefined;
+  }
+
+  // Wrap wallet signing methods to intercept and show confirmation modal
+  async wrapSignMessage(wallet: Wallet, message: string): Promise<string> {
+    const request = this.createMessageRequest(wallet, message);
+    const approved = await this.requestSignature(request);
+    
+    if (!approved) {
+      throw new Error('User rejected message signing');
+    }
+
+    // Call the actual signing method from the wallet
+    const account = wallet.getAccount();
+    if (!account) {
+      throw new Error('No account connected');
+    }
+
+    // Use thirdweb's signing method
+    return account.signMessage({ message });
+  }
+
+  async wrapSignTypedData(wallet: Wallet, typedData: any): Promise<string> {
+    const request = this.createMessageRequest(wallet, 'Sign typed data');
+    const approved = await this.requestSignature(request);
+    
+    if (!approved) {
+      throw new Error('User rejected typed data signing');
+    }
+
+    const account = wallet.getAccount();
+    if (!account) {
+      throw new Error('No account connected');
+    }
+
+    // Use thirdweb's typed data signing method
+    return account.signTypedData(typedData);
+  }
+
+  async wrapSendTransaction(
+    wallet: Wallet, 
+    transaction: any,
+    details: { amount: string; token: string; recipient: string }
+  ): Promise<string> {
+    const request = this.createTransactionRequest(wallet, details);
+    const approved = await this.requestSignature(request);
+    
+    if (!approved) {
+      throw new Error('User rejected transaction');
+    }
+
+    const account = wallet.getAccount();
+    if (!account) {
+      throw new Error('No account connected');
+    }
+
+    // Use thirdweb's transaction sending method
+    return account.sendTransaction(transaction);
   }
 }
 
