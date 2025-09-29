@@ -82,6 +82,7 @@ export default function MessengerPage() {
   
   // Socket.IO connection for real-time updates
   const [socket, setSocket] = useState<any>(null);
+  const [socketConnected, setSocketConnected] = useState(false);
   
   // Track active toast notifications by conversation ID (store toast IDs)
   const [activeToasts, setActiveToasts] = useState<Map<string, string>>(new Map());
@@ -108,14 +109,13 @@ export default function MessengerPage() {
 
   // UNIVERSAL WebRTC INITIALIZATION: Runs immediately when user is authenticated
   useEffect(() => {
-    if (connectedUserId) {
+    if (connectedUserId && !globalWebRTCInitialized && webRTCInitializationAttempts === 0) {
       console.log('🚀 UNIVERSAL: Immediate WebRTC initialization for user:', connectedUserId);
       
       const initializeWebRTCUniversal = async () => {
         try {
-          // Reset state and force fresh initialization
-          setGlobalWebRTCInitialized(false);
-          setWebRTCInitializationAttempts(0);
+          // Set attempts to prevent multiple initializations
+          setWebRTCInitializationAttempts(1);
           
           console.log('🚀 UNIVERSAL: Starting guaranteed WebRTC initialization...');
           await initializeGlobalWebRTC(connectedUserId.toString(), 3);
@@ -147,9 +147,9 @@ export default function MessengerPage() {
         } catch (error) {
           console.error('❌ UNIVERSAL: WebRTC initialization failed for user:', connectedUserId, error);
           // Retry once more if it failed
-          if (webRTCInitializationAttempts < 1) {
+          if (webRTCInitializationAttempts < 2) {
             console.log('🔄 UNIVERSAL: Retrying WebRTC initialization...');
-            setWebRTCInitializationAttempts(1);
+            setWebRTCInitializationAttempts(webRTCInitializationAttempts + 1);
             setTimeout(() => initializeWebRTCUniversal(), 2000);
           }
         }
@@ -158,7 +158,7 @@ export default function MessengerPage() {
       // Initialize immediately, no delays
       initializeWebRTCUniversal();
     }
-  }, [connectedUserId]); // Only depend on connectedUserId to trigger once per user
+  }, [connectedUserId, globalWebRTCInitialized, webRTCInitializationAttempts]); // Proper dependencies to prevent loops
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", connectedUserId],
@@ -305,14 +305,23 @@ export default function MessengerPage() {
 
   // Socket.IO connection for real-time updates
   useEffect(() => {
-    if (!connectedUserId) return;
+    if (!connectedUserId || socket || socketConnected) {
+      console.log('⏸️ Skipping socket connection - already exists or no user:', { 
+        hasUserId: !!connectedUserId, 
+        hasSocket: !!socket, 
+        socketConnected 
+      });
+      return;
+    }
 
+    console.log('🔌 Creating new socket connection for user:', connectedUserId);
     const socketConnection = io();
     setSocket(socketConnection);
 
     // Handle connection event
     socketConnection.on('connect', () => {
       console.log('Connected to Socket.IO server for conversations');
+      setSocketConnected(true);
       
       // Authenticate with server
       socketConnection.emit('authenticate', { userId: connectedUserId });
@@ -550,15 +559,24 @@ export default function MessengerPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
     });
 
+    // Handle disconnect event
+    socketConnection.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setSocketConnected(false);
+    });
+
     // Cleanup on unmount
     return () => {
+      console.log('🧹 Cleaning up socket connection');
       socketConnection.disconnect();
+      setSocket(null);
+      setSocketConnected(false);
       if (globalWebRTCInitialized) {
         cleanupGlobalWebRTC();
         setGlobalWebRTCInitialized(false);
       }
     };
-  }, [connectedUserId]); // Simplified dependencies to prevent loops
+  }, [connectedUserId, socket, socketConnected]); // Include socket state to prevent duplicates
 
   // Separate effect to join conversation rooms when conversations are loaded
   useEffect(() => {

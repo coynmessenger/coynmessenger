@@ -43,12 +43,27 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
+  // Track authentication check to prevent infinite loops
+  const [authCheckInProgress, setAuthCheckInProgress] = useState(false);
+  const [lastAuthCheck, setLastAuthCheck] = useState(0);
+
   // Check for existing authentication on mount and when wallet state changes
   useEffect(() => {
     const checkAuthAndRedirect = () => {
+      // Prevent rapid successive auth checks
+      const now = Date.now();
+      if (authCheckInProgress || (now - lastAuthCheck) < 1000) {
+        console.log('🔄 Skipping auth check - too soon or already in progress');
+        return;
+      }
+      
+      setAuthCheckInProgress(true);
+      setLastAuthCheck(now);
+      
       const userSignedOut = localStorage.getItem('userSignedOut');
       if (userSignedOut === 'true') {
         console.log('🚫 User signed out, staying on homepage');
+        setAuthCheckInProgress(false);
         return;
       }
       
@@ -67,6 +82,7 @@ export default function HomePage() {
       if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
         console.log('👤 User explicitly navigated to homepage, staying on homepage');
         sessionStorage.setItem('userOnHomepage', 'true');
+        setAuthCheckInProgress(false);
         return;
       }
       
@@ -79,6 +95,7 @@ export default function HomePage() {
           if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
             console.log('✅ Authenticated user detected, redirecting to messenger...');
             setLocation("/messenger");
+            setAuthCheckInProgress(false);
             return;
           } else {
             console.log('❌ User data incomplete, clearing storage');
@@ -93,23 +110,47 @@ export default function HomePage() {
           localStorage.removeItem('connectedUserId');
         }
       }
+      
+      setAuthCheckInProgress(false);
     };
 
     // Initial check
     checkAuthAndRedirect();
 
-    // Listen for wallet connection events (when user returns from wallet app)
+    // Debounce storage change events to prevent loops
+    let storageTimeout: NodeJS.Timeout;
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
         console.log('📱 MOBILE: Storage change detected, checking for wallet return...', e.key);
-        setTimeout(checkAuthAndRedirect, 100); // Small delay to ensure all related storage updates are complete
+        
+        // Clear existing timeout and set new one
+        if (storageTimeout) {
+          clearTimeout(storageTimeout);
+        }
+        
+        storageTimeout = setTimeout(() => {
+          if (!authCheckInProgress) {
+            checkAuthAndRedirect();
+          }
+        }, 500); // Longer delay to prevent rapid firing
       }
     };
 
-    // Listen for focus events (when user returns from wallet app)
+    // Debounce focus events
+    let focusTimeout: NodeJS.Timeout;
     const handleFocus = () => {
       console.log('👁️ MOBILE: Window focus detected, checking for wallet return...');
-      setTimeout(checkAuthAndRedirect, 100);
+      
+      // Clear existing timeout and set new one
+      if (focusTimeout) {
+        clearTimeout(focusTimeout);
+      }
+      
+      focusTimeout = setTimeout(() => {
+        if (!authCheckInProgress) {
+          checkAuthAndRedirect();
+        }
+      }, 500);
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -118,8 +159,14 @@ export default function HomePage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
+      if (storageTimeout) {
+        clearTimeout(storageTimeout);
+      }
+      if (focusTimeout) {
+        clearTimeout(focusTimeout);
+      }
     };
-  }, [setLocation]);
+  }, [setLocation, authCheckInProgress, lastAuthCheck]);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
