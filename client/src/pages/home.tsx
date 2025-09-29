@@ -157,7 +157,10 @@ export default function HomePage() {
       localStorage.removeItem('pendingWalletConnection');
       localStorage.removeItem('walletConnectionAttempt');
       localStorage.removeItem('walletRedirectState');
-      // DON'T remove userSignedOut - only clear it when user explicitly connects, not on autoconnect
+      localStorage.removeItem('explicitWalletConnection'); // Clean up the connection flag
+      localStorage.removeItem('userSignedOut'); // Clear sign out flag on successful connection
+      localStorage.removeItem('userClickedHome'); // Clear any homepage preference
+      sessionStorage.removeItem('userOnHomepage'); // Clear any homepage session flag
       
       // Store connection state
       localStorage.setItem('walletConnected', 'true');
@@ -178,9 +181,11 @@ export default function HomePage() {
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
       
-      // Redirect to messenger
-      console.log('🎯 COYN: SUCCESS! Redirecting to signed-in page (messenger)...');
-      setLocation("/messenger");
+      // IMMEDIATE REDIRECT to messenger - this is the primary path for auto-navigation
+      console.log('🎯 COYN: SUCCESS! Auto-navigating to messenger...');
+      setTimeout(() => {
+        setLocation("/messenger");
+      }, 100); // Small delay to ensure state updates complete
     },
   });
 
@@ -221,14 +226,17 @@ export default function HomePage() {
 
   const handleThirdwebConnect = (address: string) => {
     console.log('🔗 COYN: Wallet approved! Address received:', address);
-    console.log('🚀 COYN: Starting user authentication and page transition...');
+    console.log('🚀 COYN: Starting user authentication and AUTO-NAVIGATION to messenger...');
     
-    // Clear navigation flags that might prevent redirect since user is explicitly connecting
-    // Note: userSignedOut is already cleared in thirdweb connector when wallet approves
+    // Clear ALL navigation flags that might prevent redirect since user is explicitly connecting
+    localStorage.removeItem('userSignedOut');
     localStorage.removeItem('userClickedHome');
     sessionStorage.removeItem('userOnHomepage');
     
-    console.log('🎯 COYN: User flags cleared, proceeding with authentication...');
+    // Mark that this is an explicit wallet connection for immediate redirect
+    localStorage.setItem('explicitWalletConnection', 'true');
+    
+    console.log('🎯 COYN: User flags cleared, proceeding with authentication and auto-navigation...');
     connectWalletMutation.mutate({ walletAddress: address });
   };
 
