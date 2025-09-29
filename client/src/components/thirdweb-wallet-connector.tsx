@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
-import { createWallet, inAppWallet } from "thirdweb/wallets";
+import { createWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
-import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import SignatureConfirmationModal from "./signature-confirmation-modal";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -13,37 +13,15 @@ const client = createThirdwebClient({
 // Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-// In-app wallet configuration for embedded signing (no external redirects)
-const inAppWalletConfig = inAppWallet({
-  auth: {
-    options: [
-      "email",
-      "google",
-      "apple", 
-      "facebook",
-      "passkey",
-      "guest" // Allow quick guest access
-    ]
-  },
-  metadata: {
-    name: "COYN Messenger Wallet",
-    icon: `${window.location.origin}/favicon.ico`,
-    image: {
-      src: coynLogoPath,
-      width: 120,
-      height: 120,
-      alt: "COYN Logo"
-    }
-  }
-});
-
-// Enhanced wallet configuration with in-app wallet first, external wallets as backup
+// Enhanced wallet configuration for optimal mobile experience with in-app signing
 const wallets = [
-  inAppWalletConfig,
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("me.rainbow"),
+  createWallet("io.rabby"),
+  createWallet("io.zerion.wallet"),
   createWallet("com.trustwallet.app"),
+  createWallet("com.bestwallet"),
   createWallet("walletConnect"),
 ];
 
@@ -61,59 +39,65 @@ export default function ThirdwebWalletConnector({
   // Check if user has explicitly signed out to prevent autoconnect
   const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
   
-  // In-app signature confirmation state
-  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  // Signature confirmation modal state
+  const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [pendingSignature, setPendingSignature] = useState<any>(null);
-  const [signatureLoading, setSignatureLoading] = useState(false);
-  
-  const activeAccount = useActiveAccount();
-  
-  // Handle signature confirmation modal
-  const handleSignatureConfirm = async () => {
-    if (pendingSignature?.resolve) {
-      setSignatureLoading(true);
-      try {
-        await pendingSignature.resolve();
-      } catch (error) {
-        console.error('Signature confirmation failed:', error);
-      } finally {
-        setSignatureLoading(false);
-        setShowSignatureModal(false);
-        setPendingSignature(null);
+  const [connectedWalletInfo, setConnectedWalletInfo] = useState<{
+    name: string;
+    address: string;
+  } | null>(null);
+
+  // Handle in-app signature confirmation
+  const handleSignatureRequest = async (request: any) => {
+    console.log('📝 SIGNATURE: In-app signature request received:', request);
+    setPendingSignature(request);
+    setSignatureModalOpen(true);
+    
+    return new Promise((resolve, reject) => {
+      // Store resolve/reject for later use
+      (window as any).pendingSignatureResolve = resolve;
+      (window as any).pendingSignatureReject = reject;
+    });
+  };
+
+  const handleApproveSignature = async (requestId: string) => {
+    console.log('✅ SIGNATURE: User approved signature:', requestId);
+    try {
+      // Process the signature with the original wallet
+      if ((window as any).pendingSignatureResolve) {
+        (window as any).pendingSignatureResolve(true);
       }
+      setSignatureModalOpen(false);
+      setPendingSignature(null);
+    } catch (error) {
+      console.error('❌ SIGNATURE: Error processing signature:', error);
+      throw error;
     }
   };
-  
-  const handleSignatureReject = () => {
-    if (pendingSignature?.reject) {
-      pendingSignature.reject(new Error('User rejected signature'));
+
+  const handleRejectSignature = (requestId: string) => {
+    console.log('❌ SIGNATURE: User rejected signature:', requestId);
+    if ((window as any).pendingSignatureReject) {
+      (window as any).pendingSignatureReject(new Error('User rejected signature'));
     }
-    setShowSignatureModal(false);
+    setSignatureModalOpen(false);
     setPendingSignature(null);
   };
   
   return (
-    <>
-      <ConnectButton
+    <ConnectButton
       client={client}
       autoConnect={!userSignedOut}
       chains={supportedChains}
       connectModal={{ 
         size: "wide",
         title: "Connect to COYN Messenger",
-        titleIcon: coynLogoPath,
+        titleIcon: "",
         showThirdwebBranding: false,
         welcomeScreen: {
           title: "Connect to COYN Messenger",
-          subtitle: "Secure crypto messaging and wallet integration on BSC network",
-          img: {
-            src: coynLogoPath,
-            width: 120,
-            height: 120
-          }
+          subtitle: "Secure crypto messaging on BSC network"
         },
-        termsOfServiceUrl: "#",
-        privacyPolicyUrl: "#"
       }}
       theme="dark"
       wallets={wallets}
@@ -194,16 +178,5 @@ export default function ThirdwebWalletConnector({
         }
       }}
     />
-    
-    {/* In-App Signature Confirmation Modal */}
-    <SignatureConfirmationModal
-      isOpen={showSignatureModal}
-      onClose={() => setShowSignatureModal(false)}
-      onConfirm={handleSignatureConfirm}
-      onReject={handleSignatureReject}
-      signatureRequest={pendingSignature?.request || null}
-      isLoading={signatureLoading}
-    />
-    </>
   );
 }
