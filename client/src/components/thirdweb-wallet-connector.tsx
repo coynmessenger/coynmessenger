@@ -13,12 +13,12 @@ const supportedChains = [bsc];
 
 // Enhanced wallet configuration for optimal mobile experience
 const wallets = [
+  createWallet("walletConnect"),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
   createWallet("com.trustwallet.app"),
-  createWallet("walletConnect"),
 ];
 
 interface ThirdwebWalletConnectorProps {
