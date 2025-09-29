@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { inAppSignatureService } from './in-app-signature-service';
 
 interface WalletProvider {
   request: (args: { method: string; params?: any[] }) => Promise<any>;
