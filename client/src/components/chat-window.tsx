@@ -845,8 +845,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         // Ensure wallet is connected via Thirdweb
         if (!activeWallet) {
-          throw new Error('No wallet connected. Please connect your wallet first.');
+          throw new Error('No wallet connected. Please connect your wallet first via the wallet connection interface.');
         }
+
+        console.log('🔍 WALLET CHECK: Active wallet detected');
+        console.log('🔍 Wallet ID:', activeWallet.id);
+        console.log('🔍 Wallet Chain:', activeWallet.getChain()?.id);
 
         // Get current user's wallet address
         const storedUser = localStorage.getItem('connectedUser');
@@ -856,32 +860,52 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           throw new Error('No wallet address found. Please connect your wallet.');
         }
 
+        console.log('🔍 User wallet address:', currentUser.walletAddress);
+
         // Verify wallet connection and account
         const account = activeWallet.getAccount();
         if (!account?.address) {
           throw new Error('Unable to access wallet account. Please reconnect your wallet.');
         }
 
+        console.log('🔍 Active wallet account:', account.address);
+        console.log('✅ WALLET ROUTING: Transaction will be signed by', activeWallet.id);
+
         // Verify connected account matches user's wallet
         const connectedAccount = account.address.toLowerCase();
         const userWallet = currentUser.walletAddress.toLowerCase();
         if (connectedAccount !== userWallet) {
-          throw new Error('Connected wallet does not match your account.');
+          console.error('❌ WALLET MISMATCH!');
+          console.error('   Connected wallet:', connectedAccount);
+          console.error('   User wallet:', userWallet);
+          throw new Error('Connected wallet does not match your account. Please reconnect with the correct wallet.');
         }
+
+        console.log('✅ Wallet addresses match');
 
         // Ensure we're on BSC network
         const chain = activeWallet.getChain();
+        console.log('🔍 Current chain:', chain?.id, chain?.name);
         if (chain?.id !== 56) {
           console.log('⚠️ Switching to BSC network...');
           try {
             await activeWallet.switchChain(bsc);
+            console.log('✅ Switched to BSC network');
           } catch (switchError) {
+            console.error('❌ Failed to switch network:', switchError);
             throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
           }
         }
 
         console.log('💸 UNIVERSAL WALLET: Preparing transaction with Thirdweb SDK...');
         console.log('🔗 Using wallet:', activeWallet.id, 'on BSC network');
+        console.log('🔗 This transaction WILL be signed by:', activeWallet.id === "walletConnect" ? "WalletConnect (your mobile wallet)" :
+          activeWallet.id === "io.metamask" ? "MetaMask" :
+          activeWallet.id === "com.coinbase.wallet" ? "Coinbase Wallet" :
+          activeWallet.id === "com.bitget.web3" ? "Bitget Wallet" :
+          activeWallet.id === "io.rabby" ? "Rabby" :
+          activeWallet.id === "io.zerion.wallet" ? "Zerion" :
+          activeWallet.id === "com.trustwallet.app" ? "Trust Wallet" : activeWallet.id);
 
         let transaction;
         
