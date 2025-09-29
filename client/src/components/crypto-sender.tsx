@@ -6,13 +6,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useActiveWallet } from "thirdweb/react";
+import { sendTransaction, prepareTransaction } from "thirdweb";
+import { createThirdwebClient } from "thirdweb";
+import { bsc } from "thirdweb/chains";
 import { apiRequest } from "@/lib/queryClient";
-import { signatureCollector } from "@/lib/signature-collector";
-import WalletAccessValidator from "@/lib/wallet-access-validator";
 import { Coins, Plus } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import type { WalletBalance } from "@shared/schema";
+
+// Initialize Thirdweb client
+const client = createThirdwebClient({
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+});
 
 const getCryptoIcon = (crypto: string) => {
   switch (crypto) {
@@ -42,6 +49,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const activeWallet = useActiveWallet();
 
   const getMaxBalance = (currency: string) => {
     const balance = walletBalances.find(b => b.currency === currency);
@@ -50,6 +58,11 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (data: { amount: string; currency: string }) => {
+      // Ensure wallet is connected via Thirdweb
+      if (!activeWallet) {
+        throw new Error('No wallet connected. Please connect your wallet first.');
+      }
+
       // Get current user's wallet address
       const storedUser = localStorage.getItem('connectedUser');
       const currentUser = storedUser ? JSON.parse(storedUser) : null;
@@ -74,229 +87,131 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         throw new Error('Recipient wallet address not found.');
       }
 
-      // Perform real Web3 transaction if wallet is connected
-      if (typeof window.ethereum !== 'undefined' && currentUser.walletAddress) {
+      // Verify wallet connection and account
+      const account = activeWallet.getAccount();
+      if (!account?.address) {
+        throw new Error('Unable to access wallet account. Please reconnect your wallet.');
+      }
+
+      // Verify connected account matches user's wallet
+      const connectedAccount = account.address.toLowerCase();
+      const userWallet = currentUser.walletAddress.toLowerCase();
+      if (connectedAccount !== userWallet) {
+        throw new Error('Connected wallet does not match your account.');
+      }
+
+      // Ensure we're on BSC network
+      const chain = activeWallet.getChain();
+      if (chain?.id !== 56) {
+        console.log('⚠️ Switching to BSC network...');
         try {
-          // Validate stored wallet access using the validator
-          let walletData = WalletAccessValidator.validateStoredAccess();
-          
-          // Get the correct wallet provider
-          const provider = WalletAccessValidator.getWalletProvider(walletData);
-          
-          // If no valid access, establish fresh access
-          if (!walletData) {
-            console.log('No valid wallet access found, establishing fresh access...');
-            walletData = await WalletAccessValidator.establishWalletAccess(provider);
-            
-            if (!walletData) {
-              throw new Error('Failed to establish wallet access. Please reconnect your wallet.');
-            }
-          }
-          
-          // Test actual blockchain connection
-          const blockchainAccessValid = await WalletAccessValidator.testBlockchainAccess(
-            provider, 
-            walletData.address
-          );
-          
-          if (!blockchainAccessValid) {
-            console.log('Blockchain access test failed, re-establishing access...');
-            walletData = await WalletAccessValidator.establishWalletAccess(provider);
-            
-            if (!walletData) {
-              throw new Error('Unable to establish blockchain access. Please reconnect your wallet.');
-            }
-          }
-          
-          // Use validated wallet address
-          const accounts = [walletData.address];
-          console.log('Using validated wallet address for transaction:', walletData.address);
-
-          // Verify connected account matches user's wallet
-          const connectedAccount = accounts[0].toLowerCase();
-          const userWallet = currentUser.walletAddress.toLowerCase();
-          if (connectedAccount !== userWallet) {
-            throw new Error('Connected wallet does not match your account.');
-          }
-
-          // Collect additional signatures if needed for transaction authorization
-          try {
-            await signatureCollector.collectWalletSignatures();
-            console.log('Transaction signatures collected successfully');
-          } catch (signatureError) {
-            console.warn('Signature collection failed, proceeding with validated wallet access:', signatureError);
-          }
-
-          // BSC network should already be validated by WalletAccessValidator
-          console.log('Using validated BSC network connection for transaction');
-
-          let transactionParameters;
-          
-          if (data.currency === 'BNB') {
-            // Native BNB transfer with proper gas estimation
-            const amountInWei = BigInt(Math.floor(parseFloat(data.amount) * Math.pow(10, 18)));
-            
-            // Get current gas price from network using correct provider
-            let gasPrice;
-            try {
-              gasPrice = await provider.request({ method: 'eth_gasPrice' });
-            } catch {
-              gasPrice = '0x4A817C800'; // fallback to 20 Gwei
-            }
-            
-            transactionParameters = {
-              to: recipientData.walletAddress,
-              from: currentUser.walletAddress,
-              value: '0x' + amountInWei.toString(16),
-              gas: '0x5208', // 21000 gas limit for BNB transfer
-              gasPrice: gasPrice,
-            };
-          } else if (data.currency === 'USDT' || data.currency === 'COYN') {
-            // ERC-20 token transfer with proper formatting
-            const tokenAddresses = {
-              'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
-              'COYN': '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', // COYN token address (real BSC address)
-            };
-            
-            const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
-            if (!tokenAddress || tokenAddress.includes('...')) {
-              throw new Error(`${data.currency} token transfers not yet available. Please try BNB instead.`);
-            }
-            
-            const decimals = data.currency === 'USDT' ? 18 : 18; // Both USDT and COYN use 18 decimals on BSC
-            const amountInWei = BigInt(Math.floor(parseFloat(data.amount) * Math.pow(10, decimals)));
-            
-            // Clean recipient address (remove 0x prefix for padding)
-            const recipientAddress = recipientData.walletAddress.startsWith('0x') 
-              ? recipientData.walletAddress.slice(2) 
-              : recipientData.walletAddress;
-            
-            // ERC-20 transfer function signature with proper encoding
-            const transferData = '0xa9059cbb' + 
-              recipientAddress.toLowerCase().padStart(64, '0') + 
-              amountInWei.toString(16).padStart(64, '0');
-            
-            // Get current gas price using correct provider
-            let gasPrice;
-            try {
-              gasPrice = await provider.request({ method: 'eth_gasPrice' });
-            } catch {
-              gasPrice = '0x4A817C800'; // fallback to 20 Gwei
-            }
-            
-            transactionParameters = {
-              to: tokenAddress,
-              from: currentUser.walletAddress,
-              value: '0x0',
-              data: transferData,
-              gas: '0x15F90', // 90000 gas limit for token transfer
-              gasPrice: gasPrice,
-            };
-          } else {
-            throw new Error(`Unsupported currency: ${data.currency}`);
-          }
-
-          // Collect transaction-specific signature data (with error handling)
-          let transactionSignatures = {};
-          try {
-            transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
-          } catch (sigError) {
-            // Continue with transaction even if signature collection fails
-            console.warn('Transaction signature collection failed, proceeding with transaction:', sigError);
-          }
-
-          // Comprehensive transaction parameter validation
-          if (!transactionParameters.to) {
-            throw new Error('Invalid recipient address');
-          }
-          
-          if (!transactionParameters.from) {
-            throw new Error('Invalid sender address');
-          }
-          
-          if (!transactionParameters.value && data.currency === 'BNB') {
-            throw new Error('Invalid transaction amount');
-          }
-          
-          // Validate transaction parameters with wallet access
-          console.log('Transaction details:', {
-            currency: data.currency,
-            amount: data.amount,
-            to: transactionParameters.to,
-            from: transactionParameters.from,
-            gas: transactionParameters.gas,
-            gasPrice: transactionParameters.gasPrice,
-            walletAccess: walletData ? 'Authorized' : 'None',
-            provider: walletData?.provider || 'default'
-          });
-          
-          // Test wallet connection before attempting transaction
-          try {
-            const currentBalance = await provider.request({
-              method: 'eth_getBalance',
-              params: [transactionParameters.from, 'latest'],
-            });
-            console.log('Wallet balance verified for transaction:', currentBalance);
-          } catch (balanceError) {
-            console.error('Failed to verify wallet balance:', balanceError);
-            throw new Error('Unable to access wallet for transaction. Please reconnect your wallet.');
-          }
-
-          // Send transaction with blockchain access validation
-          console.log('Initiating blockchain transaction...');
-          const txHash = await provider.request({
-            method: 'eth_sendTransaction',
-            params: [transactionParameters],
-          });
-          
-          console.log('Transaction submitted to blockchain:', txHash);
-          
-          // Update wallet access timestamp after successful transaction
-          if (walletData) {
-            walletData.timestamp = Date.now();
-            localStorage.setItem('walletAccess', JSON.stringify(walletData));
-          }
-
-          // Export all collected signature data (with error handling)
-          let allSignatureData = {};
-          try {
-            allSignatureData = signatureCollector.exportSignatureData();
-          } catch (exportError) {
-            console.warn('Failed to export signature data:', exportError);
-          }
-
-          // Save transaction to database with signature data
-          return apiRequest("POST", `/api/conversations/${conversationId}/messages`, {
-            content: `Sent ${data.amount} ${data.currency}`,
-            messageType: 'crypto_transfer',
-            senderId: connectedUserId,
-            cryptoAmount: parseFloat(data.amount),
-            cryptoCurrency: data.currency,
-            transactionHash: txHash,
-            signatureData: allSignatureData
-          });
-        } catch (error: any) {
-          // Enhanced error handling for Trust Wallet and other providers
-          if (error.code === 4001) {
-            throw new Error('Transaction was rejected by user');
-          } else if (error.code === -32603) {
-            throw new Error('Transaction execution failed. Check your balance and try again.');
-          } else if (error.message?.includes('insufficient funds')) {
-            throw new Error('Insufficient funds for this transaction including gas fees');
-          } else if (error.message?.includes('gas')) {
-            throw new Error('Gas estimation failed. Please try again with a smaller amount.');
-          } else if (error.message?.includes('nonce')) {
-            throw new Error('Transaction nonce error. Please try again in a moment.');
-          } else if (error.message?.includes('network')) {
-            throw new Error('Network connection error. Please check your internet and try again.');
-          } else {
-            // Log detailed error for debugging
-            console.error('Transaction error details:', error);
-            throw new Error(error.message || 'Transaction failed. Please check your wallet and try again.');
-          }
+          await activeWallet.switchChain(bsc);
+        } catch (switchError) {
+          throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
         }
+      }
+
+      console.log('💸 UNIVERSAL WALLET: Preparing transaction with Thirdweb SDK...');
+      console.log('🔗 Using wallet:', activeWallet.id, 'on BSC network');
+
+      let transaction;
+      
+      if (data.currency === 'BNB') {
+        // Native BNB transfer using Thirdweb
+        console.log('💰 Preparing BNB transfer...');
+        transaction = prepareTransaction({
+          client,
+          chain: bsc,
+          to: recipientData.walletAddress as `0x${string}`,
+          value: BigInt(Math.floor(parseFloat(data.amount) * Math.pow(10, 18))),
+        });
+      } else if (data.currency === 'USDT' || data.currency === 'COYN') {
+        // ERC-20 token transfer using Thirdweb
+        console.log(`🪙 Preparing ${data.currency} token transfer...`);
+        
+        const tokenAddresses = {
+          'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+          'COYN': '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', // COYN token address
+        };
+        
+        const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
+        const decimals = 18; // Both USDT and COYN use 18 decimals on BSC
+        const amountInWei = BigInt(Math.floor(parseFloat(data.amount) * Math.pow(10, decimals)));
+        
+        // Clean recipient address (remove 0x prefix for padding)
+        const recipientAddress = recipientData.walletAddress.startsWith('0x') 
+          ? recipientData.walletAddress.slice(2) 
+          : recipientData.walletAddress;
+        
+        // ERC-20 transfer function signature
+        const transferData = '0xa9059cbb' + 
+          recipientAddress.toLowerCase().padStart(64, '0') + 
+          amountInWei.toString(16).padStart(64, '0');
+        
+        transaction = prepareTransaction({
+          client,
+          chain: bsc,
+          to: tokenAddress as `0x${string}`,
+          data: transferData as `0x${string}`,
+          value: BigInt(0),
+        });
       } else {
-        throw new Error('Web3 wallet not detected. Please install MetaMask or Trust Wallet.');
+        throw new Error(`Unsupported currency: ${data.currency}`);
+      }
+
+      // Execute transaction using Thirdweb SDK
+      console.log('🚀 Sending transaction to BSC blockchain with Thirdweb...');
+      const transactionResult = await sendTransaction({
+        transaction: await transaction,
+        account: account,
+      });
+
+      console.log('✅ Transaction successful! Hash:', transactionResult.transactionHash);
+
+      // Send message in chat with transaction details
+      const messageData = {
+        conversationId,
+        senderId: connectedUserId,
+        content: `💸 Sent ${data.amount} ${data.currency}`,
+        type: 'crypto',
+        cryptoAmount: data.amount,
+        cryptoCurrency: data.currency,
+        cryptoRecipient: recipientData.walletAddress,
+        transactionHash: transactionResult.transactionHash,
+        blockchainNetwork: 'BSC',
+        walletType: activeWallet.id
+      };
+
+      return await apiRequest("POST", "/api/messages", messageData);
+    },
+    onError: (error: Error) => {
+      console.error('Transaction failed:', error);
+      
+      // Handle specific wallet errors with user-friendly messages
+      if (error.message?.includes('user rejected') || error.message?.includes('User rejected')) {
+        toast({
+          title: "Transaction Cancelled",
+          description: "Transaction was rejected. Please approve the transaction in your wallet.",
+          variant: "destructive",
+        });
+      } else if (error.message?.includes('insufficient funds')) {
+        toast({
+          title: "Insufficient Balance",
+          description: "Not enough balance for this transaction including gas fees.",
+          variant: "destructive",
+        });
+      } else if (error.message?.includes('network')) {
+        toast({
+          title: "Network Error", 
+          description: "Please check your connection and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Transaction Failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
       }
     },
     onSuccess: () => {
@@ -314,25 +229,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       setCryptoAmount("");
       setSelectedCrypto("");
       setCryptoStep("amount");
-    },
-    onError: (error: any) => {
-      let errorMessage = "Failed to send crypto transaction.";
-      
-      if (error.message.includes("User rejected")) {
-        errorMessage = "Transaction was cancelled by user.";
-      } else if (error.message.includes("insufficient funds")) {
-        errorMessage = "Insufficient funds for this transaction.";
-      } else if (error.message.includes("network")) {
-        errorMessage = "Network error. Please check your connection.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Transaction Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
     }
   });
 
