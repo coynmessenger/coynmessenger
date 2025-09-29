@@ -45,10 +45,14 @@ export default function HomePage() {
 
   // Check for existing authentication on mount and when wallet state changes
   useEffect(() => {
+    let authCheckTimeout: NodeJS.Timeout;
+    
     const checkAuthAndRedirect = () => {
       const userSignedOut = localStorage.getItem('userSignedOut');
       if (userSignedOut === 'true') {
         console.log('🚫 User signed out, staying on homepage');
+        setIsConnected(false);
+        setConnectedUser(null);
         return;
       }
       
@@ -63,20 +67,24 @@ export default function HomePage() {
         userOnHomepage: sessionStorage.getItem('userOnHomepage')
       });
       
-      // Don't redirect if user explicitly chose to stay on homepage
-      if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-        console.log('👤 User explicitly navigated to homepage, staying on homepage');
-        sessionStorage.setItem('userOnHomepage', 'true');
-        return;
-      }
-      
-      // Redirect authenticated users to messenger
+      // Update component state based on localStorage
       if (storedConnected === 'true' && storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
           
           if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
+            // Update component state immediately
+            setIsConnected(true);
+            setConnectedUser(parsedUser);
+            
+            // Don't redirect if user explicitly chose to stay on homepage  
+            if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
+              console.log('👤 User explicitly navigated to homepage, staying on homepage');
+              sessionStorage.setItem('userOnHomepage', 'true');
+              return;
+            }
+            
             console.log('✅ Authenticated user detected, redirecting to messenger...');
             setLocation("/messenger");
             return;
@@ -85,37 +93,50 @@ export default function HomePage() {
             localStorage.removeItem('walletConnected');
             localStorage.removeItem('connectedUser');
             localStorage.removeItem('connectedUserId');
+            setIsConnected(false);
+            setConnectedUser(null);
           }
         } catch (error) {
           console.log('❌ Error parsing user data:', error);
           localStorage.removeItem('walletConnected');
           localStorage.removeItem('connectedUser');
           localStorage.removeItem('connectedUserId');
+          setIsConnected(false);
+          setConnectedUser(null);
         }
+      } else {
+        // No valid connection found
+        setIsConnected(false);
+        setConnectedUser(null);
       }
     };
 
-    // Initial check
+    // Initial check immediately
     checkAuthAndRedirect();
 
     // Listen for wallet connection events (when user returns from wallet app)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
         console.log('📱 MOBILE: Storage change detected, checking for wallet return...', e.key);
-        setTimeout(checkAuthAndRedirect, 100); // Small delay to ensure all related storage updates are complete
+        // Clear any pending timeout and schedule new check
+        clearTimeout(authCheckTimeout);
+        authCheckTimeout = setTimeout(checkAuthAndRedirect, 150);
       }
     };
 
     // Listen for focus events (when user returns from wallet app)
     const handleFocus = () => {
       console.log('👁️ MOBILE: Window focus detected, checking for wallet return...');
-      setTimeout(checkAuthAndRedirect, 100);
+      // Clear any pending timeout and schedule new check
+      clearTimeout(authCheckTimeout);
+      authCheckTimeout = setTimeout(checkAuthAndRedirect, 150);
     };
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('focus', handleFocus);
 
     return () => {
+      clearTimeout(authCheckTimeout);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
     };
@@ -269,6 +290,13 @@ export default function HomePage() {
               </CardHeader>
 
               <CardContent className="space-y-6">
+                {/* Debug info */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                    Debug: isConnected={String(isConnected)}, hasUser={String(!!connectedUser)}, userAddress={connectedUser?.walletAddress?.slice(0,6)}...
+                  </div>
+                )}
+                
                 {!isConnected || !connectedUser ? (
                   <div className="space-y-6">
                     <div className="text-center">
