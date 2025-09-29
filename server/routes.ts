@@ -170,7 +170,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.body;
       
-      
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
       }
@@ -187,6 +186,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { currentUserId } = req.body;
       if (!currentUserId) {
         return res.status(400).json({ message: "Current user ID is required" });
+      }
+
+      // Parse and validate current user ID as integer
+      const parsedCurrentUserId = parseInt(currentUserId);
+      if (isNaN(parsedCurrentUserId)) {
+        return res.status(400).json({ message: "Invalid current user ID" });
       }
 
       // Check if user already exists
@@ -228,11 +233,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if conversation already exists between current user and contact
-      const existingConversation = await storage.getConversationBetweenUsers(currentUserId, contactUser.id);
+      const existingConversation = await storage.getConversationBetweenUsers(parsedCurrentUserId, contactUser.id);
       
       if (!existingConversation) {
         // Create conversation between current user and new contact
-        const newConversation = await storage.createConversation(currentUserId, contactUser.id);
+        const newConversation = await storage.createConversation(parsedCurrentUserId, contactUser.id);
         
         
         // Don't create automatic welcome message to prevent unwanted highlighted conversations

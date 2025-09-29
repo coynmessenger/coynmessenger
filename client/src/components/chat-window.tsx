@@ -24,7 +24,10 @@ import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
-import { walletConnector } from "@/lib/wallet-connector";
+import { useActiveWallet } from "thirdweb/react";
+import { sendTransaction, prepareTransaction } from "thirdweb";
+import { createThirdwebClient } from "thirdweb";
+import { bsc } from "thirdweb/chains";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search } from "lucide-react";
@@ -58,6 +61,11 @@ interface ChatWindowProps {
   onSearchQueryChange?: (query: string) => void;
 }
 
+// Initialize Thirdweb client
+const client = createThirdwebClient({
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+});
+
 export default function ChatWindow({ conversation, onToggleSidebar, onBack, searchQuery, onSearchQueryChange }: ChatWindowProps) {
   const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
@@ -72,6 +80,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Get queryClient instance
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const activeWallet = useActiveWallet();
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -821,7 +830,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      // For BNB, USDT, and COYN, perform real blockchain transactions
+      // For BNB, USDT, and COYN, perform blockchain transactions using Thirdweb SDK
       if (cryptoData.currency === 'BNB' || cryptoData.currency === 'USDT' || cryptoData.currency === 'COYN') {
         // Get recipient user wallet address from conversation data
         const recipientAddress = conversation.otherUser.walletAddress;
@@ -834,66 +843,114 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           throw new Error(`Invalid recipient ${cryptoData.currency} address format`);
         }
         
-        try {
-          console.log(`🔴 Initiating ${cryptoData.currency} blockchain transaction`);
-          console.log(`To: ${recipientAddress}`);
-          console.log(`Amount: ${cryptoData.amount} ${cryptoData.currency}`);
-          
-          // Connect wallet if not already connected
-          if (!walletConnector.isConnected()) {
-            console.log('🔗 Connecting to wallet...');
-            await walletConnector.connectWallet();
-          }
-          
-          // Send transaction based on currency type
-          let txResult;
-          if (cryptoData.currency === 'BNB') {
-            txResult = await walletConnector.sendBNB(recipientAddress, cryptoData.amount);
-          } else if (cryptoData.currency === 'USDT') {
-            txResult = await walletConnector.sendUSDT(recipientAddress, cryptoData.amount);
-          } else if (cryptoData.currency === 'COYN') {
-            txResult = await walletConnector.sendCOYN(recipientAddress, cryptoData.amount);
-          } else {
-            throw new Error(`Unsupported currency: ${cryptoData.currency}`);
-          }
-          
-          console.log(`✅ ${cryptoData.currency} transaction successful!`);
-          console.log(`Transaction hash: ${txResult.hash}`);
-          console.log(`From: ${txResult.from}`);
-          console.log(`To: ${txResult.to}`);
-          console.log(`Amount: ${txResult.value} ${cryptoData.currency}`);
-          
-          // Update backend with successful blockchain transaction
-          return apiRequest("POST", "/api/wallet/send", {
-            ...cryptoData,
-            fromUserId: connectedUserId,
-            transactionHash: txResult.hash,
-            senderAddress: txResult.from,
-            recipientAddress: txResult.to,
-            isBlockchainTransaction: true
-          });
-          
-        } catch (txError: any) {
-          console.error(`❌ ${cryptoData.currency} transaction failed:`, txError);
-          
-          // If user rejected or specific wallet issues, provide clear feedback
-          if (txError.message.includes('rejected') || txError.message.includes('cancelled')) {
-            throw new Error(`${cryptoData.currency} transaction was cancelled by user`);
-          } else if (txError.message.includes('Insufficient')) {
-            throw new Error(`Insufficient ${cryptoData.currency} balance for transaction and gas fees`);
-          } else if (txError.message.includes('No Web3 wallet')) {
-            throw new Error(`Please install MetaMask or Trust Wallet to send ${cryptoData.currency}`);
-          } else {
-            throw new Error(`${cryptoData.currency} transaction failed: ${txError.message}`);
+        // Ensure wallet is connected via Thirdweb
+        if (!activeWallet) {
+          throw new Error('No wallet connected. Please connect your wallet first.');
+        }
+
+        // Get current user's wallet address
+        const storedUser = localStorage.getItem('connectedUser');
+        const currentUser = storedUser ? JSON.parse(storedUser) : null;
+        
+        if (!currentUser?.walletAddress) {
+          throw new Error('No wallet address found. Please connect your wallet.');
+        }
+
+        // Verify wallet connection and account
+        const account = activeWallet.getAccount();
+        if (!account?.address) {
+          throw new Error('Unable to access wallet account. Please reconnect your wallet.');
+        }
+
+        // Verify connected account matches user's wallet
+        const connectedAccount = account.address.toLowerCase();
+        const userWallet = currentUser.walletAddress.toLowerCase();
+        if (connectedAccount !== userWallet) {
+          throw new Error('Connected wallet does not match your account.');
+        }
+
+        // Ensure we're on BSC network
+        const chain = activeWallet.getChain();
+        if (chain?.id !== 56) {
+          console.log('⚠️ Switching to BSC network...');
+          try {
+            await activeWallet.switchChain(bsc);
+          } catch (switchError) {
+            throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
           }
         }
-      } else {
-        // For other currencies, use internal transfer
+
+        console.log('💸 UNIVERSAL WALLET: Preparing transaction with Thirdweb SDK...');
+        console.log('🔗 Using wallet:', activeWallet.id, 'on BSC network');
+
+        let transaction;
+        
+        if (cryptoData.currency === 'BNB') {
+          // Native BNB transfer using Thirdweb
+          console.log('💰 Preparing BNB transfer...');
+          transaction = prepareTransaction({
+            client,
+            chain: bsc,
+            to: recipientAddress as `0x${string}`,
+            value: BigInt(Math.floor(parseFloat(cryptoData.amount) * Math.pow(10, 18))),
+          });
+        } else if (cryptoData.currency === 'USDT' || cryptoData.currency === 'COYN') {
+          // ERC-20 token transfer using Thirdweb
+          console.log(`🪙 Preparing ${cryptoData.currency} token transfer...`);
+          
+          const tokenAddresses = {
+            'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+            'COYN': '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', // COYN token address
+          };
+          
+          const tokenAddress = tokenAddresses[cryptoData.currency as keyof typeof tokenAddresses];
+          const decimals = 18; // Both USDT and COYN use 18 decimals on BSC
+          const amountInWei = BigInt(Math.floor(parseFloat(cryptoData.amount) * Math.pow(10, decimals)));
+          
+          // Clean recipient address (remove 0x prefix for padding)
+          const cleanRecipientAddress = recipientAddress.startsWith('0x') 
+            ? recipientAddress.slice(2) 
+            : recipientAddress;
+          
+          // ERC-20 transfer function signature
+          const transferData = '0xa9059cbb' + 
+            cleanRecipientAddress.toLowerCase().padStart(64, '0') + 
+            amountInWei.toString(16).padStart(64, '0');
+          
+          transaction = prepareTransaction({
+            client,
+            chain: bsc,
+            to: tokenAddress as `0x${string}`,
+            data: transferData as `0x${string}`,
+            value: BigInt(0),
+          });
+        } else {
+          throw new Error(`Unsupported currency: ${cryptoData.currency}`);
+        }
+
+        // Execute transaction using Thirdweb SDK
+        console.log('🚀 Sending transaction to BSC blockchain with Thirdweb...');
+        const transactionResult = await sendTransaction({
+          transaction: await transaction,
+          account: account,
+        });
+
+        console.log('✅ Transaction successful! Hash:', transactionResult.transactionHash);
+
+        // Update backend with successful blockchain transaction
         return apiRequest("POST", "/api/wallet/send", {
           ...cryptoData,
-          fromUserId: connectedUserId
+          fromUserId: connectedUserId,
+          transactionHash: transactionResult.transactionHash,
+          isBlockchainTransaction: true
         });
       }
+      
+      // For other currencies, use internal transfer
+      return apiRequest("POST", "/api/wallet/send", {
+        ...cryptoData,
+        fromUserId: connectedUserId
+      });
     },
     onSuccess: async (data, variables) => {
       // Use startTransition to prevent blocking video call modal renders
