@@ -1,8 +1,10 @@
-import { ConnectButton } from "thirdweb/react";
+import { useState } from "react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
-import { createWallet } from "thirdweb/wallets";
+import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import SignatureConfirmationModal from "./signature-confirmation-modal";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -11,15 +13,37 @@ const client = createThirdwebClient({
 // Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-// Enhanced wallet configuration for optimal mobile experience
+// In-app wallet configuration for embedded signing (no external redirects)
+const inAppWalletConfig = inAppWallet({
+  auth: {
+    options: [
+      "email",
+      "google",
+      "apple", 
+      "facebook",
+      "passkey",
+      "guest" // Allow quick guest access
+    ]
+  },
+  metadata: {
+    name: "COYN Messenger Wallet",
+    icon: `${window.location.origin}/favicon.ico`,
+    image: {
+      src: coynLogoPath,
+      width: 120,
+      height: 120,
+      alt: "COYN Logo"
+    }
+  }
+});
+
+// Enhanced wallet configuration with in-app wallet first, external wallets as backup
 const wallets = [
+  inAppWalletConfig,
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("me.rainbow"),
-  createWallet("io.rabby"),
-  createWallet("io.zerion.wallet"),
   createWallet("com.trustwallet.app"),
-  createWallet("com.bestwallet"),
   createWallet("walletConnect"),
 ];
 
@@ -37,20 +61,59 @@ export default function ThirdwebWalletConnector({
   // Check if user has explicitly signed out to prevent autoconnect
   const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
   
+  // In-app signature confirmation state
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [pendingSignature, setPendingSignature] = useState<any>(null);
+  const [signatureLoading, setSignatureLoading] = useState(false);
+  
+  const activeAccount = useActiveAccount();
+  
+  // Handle signature confirmation modal
+  const handleSignatureConfirm = async () => {
+    if (pendingSignature?.resolve) {
+      setSignatureLoading(true);
+      try {
+        await pendingSignature.resolve();
+      } catch (error) {
+        console.error('Signature confirmation failed:', error);
+      } finally {
+        setSignatureLoading(false);
+        setShowSignatureModal(false);
+        setPendingSignature(null);
+      }
+    }
+  };
+  
+  const handleSignatureReject = () => {
+    if (pendingSignature?.reject) {
+      pendingSignature.reject(new Error('User rejected signature'));
+    }
+    setShowSignatureModal(false);
+    setPendingSignature(null);
+  };
+  
   return (
-    <ConnectButton
+    <>
+      <ConnectButton
       client={client}
       autoConnect={!userSignedOut}
       chains={supportedChains}
       connectModal={{ 
         size: "wide",
         title: "Connect to COYN Messenger",
-        titleIcon: "",
+        titleIcon: coynLogoPath,
         showThirdwebBranding: false,
         welcomeScreen: {
           title: "Connect to COYN Messenger",
-          subtitle: "Secure crypto messaging on BSC network"
+          subtitle: "Secure crypto messaging and wallet integration on BSC network",
+          img: {
+            src: coynLogoPath,
+            width: 120,
+            height: 120
+          }
         },
+        termsOfServiceUrl: "#",
+        privacyPolicyUrl: "#"
       }}
       theme="dark"
       wallets={wallets}
@@ -131,5 +194,16 @@ export default function ThirdwebWalletConnector({
         }
       }}
     />
+    
+    {/* In-App Signature Confirmation Modal */}
+    <SignatureConfirmationModal
+      isOpen={showSignatureModal}
+      onClose={() => setShowSignatureModal(false)}
+      onConfirm={handleSignatureConfirm}
+      onReject={handleSignatureReject}
+      signatureRequest={pendingSignature?.request || null}
+      isLoading={signatureLoading}
+    />
+    </>
   );
 }
