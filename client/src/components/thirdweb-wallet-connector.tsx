@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "thirdweb/chains";
+import SignatureConfirmationModal from "./signature-confirmation-modal";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 
 const client = createThirdwebClient({
@@ -11,7 +13,7 @@ const client = createThirdwebClient({
 // Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-// Enhanced wallet configuration for optimal mobile experience
+// Enhanced wallet configuration for optimal mobile experience with in-app signing
 const wallets = [
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
@@ -36,6 +38,51 @@ export default function ThirdwebWalletConnector({
 }: ThirdwebWalletConnectorProps) {
   // Check if user has explicitly signed out to prevent autoconnect
   const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
+  
+  // Signature confirmation modal state
+  const [signatureModalOpen, setSignatureModalOpen] = useState(false);
+  const [pendingSignature, setPendingSignature] = useState<any>(null);
+  const [connectedWalletInfo, setConnectedWalletInfo] = useState<{
+    name: string;
+    address: string;
+  } | null>(null);
+
+  // Handle in-app signature confirmation
+  const handleSignatureRequest = async (request: any) => {
+    console.log('📝 SIGNATURE: In-app signature request received:', request);
+    setPendingSignature(request);
+    setSignatureModalOpen(true);
+    
+    return new Promise((resolve, reject) => {
+      // Store resolve/reject for later use
+      (window as any).pendingSignatureResolve = resolve;
+      (window as any).pendingSignatureReject = reject;
+    });
+  };
+
+  const handleApproveSignature = async (requestId: string) => {
+    console.log('✅ SIGNATURE: User approved signature:', requestId);
+    try {
+      // Process the signature with the original wallet
+      if ((window as any).pendingSignatureResolve) {
+        (window as any).pendingSignatureResolve(true);
+      }
+      setSignatureModalOpen(false);
+      setPendingSignature(null);
+    } catch (error) {
+      console.error('❌ SIGNATURE: Error processing signature:', error);
+      throw error;
+    }
+  };
+
+  const handleRejectSignature = (requestId: string) => {
+    console.log('❌ SIGNATURE: User rejected signature:', requestId);
+    if ((window as any).pendingSignatureReject) {
+      (window as any).pendingSignatureReject(new Error('User rejected signature'));
+    }
+    setSignatureModalOpen(false);
+    setPendingSignature(null);
+  };
   
   return (
     <ConnectButton
