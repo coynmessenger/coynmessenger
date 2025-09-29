@@ -21,33 +21,15 @@ const wallets = [
     auth: {
       options: ["email", "google", "apple", "phone"],
     },
-    smartAccount: {
-      sponsorGas: false,
-    },
   }),
-  createWallet("io.metamask", {
-    preferredConnectionMethod: "injected" // Use injected provider when available
-  }),
-  createWallet("com.coinbase.wallet", {
-    preferredConnectionMethod: "injected"
-  }),
+  createWallet("io.metamask"),
+  createWallet("com.coinbase.wallet"),
   createWallet("me.rainbow"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
-  createWallet("com.trustwallet.app", {
-    preferredConnectionMethod: "injected"
-  }),
+  createWallet("com.trustwallet.app"),
   createWallet("com.bestwallet"),
-  createWallet("walletConnect", {
-    // Configure WalletConnect for in-app browser mode
-    projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "default",
-    metadata: {
-      name: "COYN Messenger",
-      description: "Secure crypto messaging and wallet integration",
-      url: window.location.origin,
-      icons: [`${window.location.origin}/favicon.ico`]
-    }
-  }),
+  createWallet("walletConnect"),
 ];
 
 interface ThirdwebWalletConnectorProps {
