@@ -16,6 +16,7 @@ const wallets = [
   createWallet("walletConnect"),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
+  createWallet("com.bitget.web3"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
   createWallet("com.trustwallet.app"),

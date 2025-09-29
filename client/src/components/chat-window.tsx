@@ -2936,6 +2936,27 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Signing Wallet:</span>
+                    <span className="text-sm font-medium text-blue-500 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-900/30 px-3 py-1 rounded-lg shadow-sm capitalize">
+                      {activeWallet ? (
+                        activeWallet.id === "walletConnect" ? "WalletConnect" :
+                        activeWallet.id === "io.metamask" ? "MetaMask" :
+                        activeWallet.id === "com.coinbase.wallet" ? "Coinbase Wallet" :
+                        activeWallet.id === "com.bitget.web3" ? "Bitget Wallet" :
+                        activeWallet.id === "io.rabby" ? "Rabby" :
+                        activeWallet.id === "io.zerion.wallet" ? "Zerion" :
+                        activeWallet.id === "com.trustwallet.app" ? "Trust Wallet" :
+                        activeWallet.id
+                      ) : "No wallet connected"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Network:</span>
+                    <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/70 dark:bg-yellow-900/30 px-3 py-1 rounded-lg shadow-sm">
+                      BSC (Binance Smart Chain)
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Recipient:</span>
                     <span className="text-sm font-semibold text-black dark:text-white bg-white/70 dark:bg-slate-900/70 px-3 py-2 rounded-lg shadow-sm">
                       {conversation.otherUser?.displayName || "Unknown User"}
