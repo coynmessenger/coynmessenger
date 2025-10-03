@@ -550,14 +550,6 @@ export default function HomePage() {
                                   <div className="font-semibold text-gray-900 dark:text-white text-sm">
                                     {balance.currency}
                                   </div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    {formatBalance(balance.balance)}
-                                  </div>
-                                  {balance.usdValue && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-500">
-                                      ${parseFloat(balance.usdValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                               <Button
