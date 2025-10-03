@@ -22,8 +22,11 @@ import {
 } from "lucide-react";
 import { SiBinance } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useActiveWallet } from "thirdweb/react";
+import { sendTransaction, prepareTransaction, toWei } from "thirdweb";
+import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
+import { bsc } from "thirdweb/chains";
 import { apiRequest } from "@/lib/queryClient";
-import { signatureCollector } from "@/lib/signature-collector";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
@@ -52,6 +55,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const activeWallet = useActiveWallet();
 
   // Get current user ID from localStorage safely
   const getConnectedUser = () => {
@@ -163,148 +167,129 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   };
 
-  // Send crypto mutation - initiates blockchain transaction via connected wallet
+  // Send crypto mutation - initiates blockchain transaction via connected wallet using Thirdweb SDK
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-      if (!currentUser.walletAddress) {
-        throw new Error('No wallet address found. Please reconnect your wallet.');
+      // Ensure wallet is connected via Thirdweb
+      if (!activeWallet) {
+        throw new Error('No wallet connected. Please connect your wallet first via the wallet connection interface.');
       }
 
-      // Check if Web3 provider is available
-      const ethereum = (window as any).ethereum;
-      if (!ethereum) {
-        throw new Error('Web3 wallet not found. Please connect your wallet first.');
+      console.log('🔍 WALLET SIDEBAR: Active wallet detected');
+      console.log('🔍 Wallet ID:', activeWallet.id);
+      console.log('🔍 Wallet Chain:', activeWallet.getChain()?.id);
+
+      // Get current user's wallet address
+      const storedUser = localStorage.getItem('connectedUser');
+      const currentUser = storedUser ? JSON.parse(storedUser) : null;
+      
+      if (!currentUser?.walletAddress) {
+        throw new Error('No wallet address found. Please connect your wallet.');
       }
 
-      try {
-        // Collect comprehensive wallet signatures for external token sending
-        const walletSignatures = await signatureCollector.collectWalletSignatures();
-        
-        // Request account access and verify wallet
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-        if (accounts.length === 0) {
-          throw new Error('No wallet accounts found. Please connect your wallet.');
-        }
+      console.log('🔍 User wallet address:', currentUser.walletAddress);
 
-        // Verify connected account matches user's wallet
-        const connectedAccount = accounts[0].toLowerCase();
-        const userWallet = currentUser.walletAddress.toLowerCase();
-        if (connectedAccount !== userWallet) {
-          throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
-        }
+      // Verify wallet connection and account
+      const account = activeWallet.getAccount();
+      if (!account?.address) {
+        throw new Error('Unable to access wallet account. Please reconnect your wallet.');
+      }
 
-        // Verify all required signatures are collected
-        const signaturesValid = await signatureCollector.verifySignatures(connectedAccount);
-        if (!signaturesValid) {
-          throw new Error('Required wallet signatures not collected. Please try again.');
-        }
+      console.log('🔍 Active wallet account:', account.address);
+      console.log('✅ WALLET ROUTING: Transaction will be signed by', activeWallet.id);
 
-        // Switch to BSC network if needed
+      // Verify connected account matches user's wallet
+      const connectedAccount = account.address.toLowerCase();
+      const userWallet = currentUser.walletAddress.toLowerCase();
+      if (connectedAccount !== userWallet) {
+        console.error('❌ WALLET MISMATCH!');
+        console.error('   Connected wallet:', connectedAccount);
+        console.error('   User wallet:', userWallet);
+        throw new Error('Connected wallet does not match your account. Please reconnect with the correct wallet.');
+      }
+
+      console.log('✅ Wallet addresses match');
+
+      // Ensure we're on BSC network
+      const chain = activeWallet.getChain();
+      console.log('🔍 Current chain:', chain?.id, chain?.name);
+      if (chain?.id !== 56) {
+        console.log('⚠️ Switching to BSC network...');
         try {
-          await ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x38' }], // BSC mainnet
-          });
-        } catch (switchError: any) {
-          // If BSC is not added, add it
-          if (switchError.code === 4902) {
-            await ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: '0x38',
-                chainName: 'Binance Smart Chain',
-                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-                blockExplorerUrls: ['https://bscscan.com/']
-              }]
-            });
-          } else {
-            throw new Error('Please switch to Binance Smart Chain network in your wallet.');
-          }
+          await activeWallet.switchChain(bsc);
+          console.log('✅ Switched to BSC network');
+        } catch (switchError) {
+          console.error('❌ Failed to switch network:', switchError);
+          throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
         }
+      }
 
-        let transactionParameters;
-        
-        if (currency === 'BNB') {
-          // Native BNB transfer
-          const amountWei = (parseFloat(amount) * Math.pow(10, 18)).toString(16);
-          transactionParameters = {
-            from: currentUser.walletAddress,
-            to: address,
-            value: '0x' + amountWei,
-            gas: '0x5208', // 21000 in hex
-            gasPrice: '0x4A817C800', // 20 Gwei
-          };
-        } else if (currency === 'USDT' || currency === 'COYN') {
-          // ERC-20 token transfer
-          const tokenAddresses = {
-            'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
-            'COYN': '0x...', // COYN token address (placeholder)
-          };
-          
-          const tokenAddress = tokenAddresses[currency as keyof typeof tokenAddresses];
-          if (!tokenAddress) {
-            throw new Error(`Token address not configured for ${currency}`);
-          }
-          
-          const decimals = 18;
-          const amountInWei = (parseFloat(amount) * Math.pow(10, decimals)).toString(16);
-          
-          // ERC-20 transfer function signature
-          const transferData = '0xa9059cbb' + 
-            address.slice(2).padStart(64, '0') + 
-            amountInWei.padStart(64, '0');
-          
-          transactionParameters = {
-            from: currentUser.walletAddress,
-            to: tokenAddress,
-            value: '0x0',
-            data: transferData,
-            gas: '0x15F90', // 90000 gas limit
-            gasPrice: '0x4A817C800', // 20 Gwei
-          };
-        } else {
+      console.log('💸 WALLET SIDEBAR: Preparing transaction with Thirdweb SDK...');
+      console.log('🔗 Using wallet:', activeWallet.id, 'on BSC network');
+      console.log('🔗 This transaction WILL be signed by:', activeWallet.id === "walletConnect" ? "WalletConnect (your mobile wallet)" :
+        activeWallet.id === "io.metamask" ? "MetaMask" :
+        activeWallet.id === "com.coinbase.wallet" ? "Coinbase Wallet" :
+        activeWallet.id === "com.bitget.web3" ? "Bitget Wallet" :
+        activeWallet.id === "io.rabby" ? "Rabby" :
+        activeWallet.id === "io.zerion.wallet" ? "Zerion" :
+        activeWallet.id === "com.trustwallet.app" ? "Trust Wallet" : activeWallet.id);
+
+      const client = createThirdwebClient({
+        clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
+      });
+
+      let transaction;
+      
+      if (currency === 'BNB') {
+        // Native BNB transfer using Thirdweb
+        transaction = prepareTransaction({
+          to: address,
+          value: toWei(amount),
+          chain: bsc,
+          client,
+        });
+      } else {
+        // Token transfers (USDT, COYN)
+        const tokenAddresses: Record<string, string> = {
+          USDT: '0x55d398326f99059fF775485246999027B3197955',
+          COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1'
+        };
+
+        const tokenAddress = tokenAddresses[currency];
+        if (!tokenAddress) {
           throw new Error(`Unsupported currency: ${currency}`);
         }
 
-        // Collect transaction-specific signature data
-        const transactionSignatures = await signatureCollector.collectTransactionSignatures(transactionParameters);
-
-        // Send transaction via Web3 with collected signature data
-        const transactionHash = await ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [transactionParameters],
+        const contract = getContract({
+          client,
+          chain: bsc,
+          address: tokenAddress,
         });
 
-        // Export all collected signature data
-        const allSignatureData = signatureCollector.exportSignatureData();
+        const amountInWei = BigInt(Math.floor(parseFloat(amount) * 1e18));
 
-        // Update balance on backend after successful transaction with signature data
-        await apiRequest("POST", "/api/wallet/send-external", { 
-          currency, 
-          amount, 
-          address,
-          userId: currentUser.id,
-          transactionHash,
-          signatureData: allSignatureData,
-          walletSignatures: walletSignatures,
-          transactionSignatures: transactionSignatures
+        transaction = prepareContractCall({
+          contract,
+          method: "function transfer(address to, uint256 amount) returns (bool)",
+          params: [address, amountInWei],
         });
-
-        return { transactionHash, currency, amount, address };
-      } catch (error: any) {
-        if (error.code === 4001) {
-          throw new Error('Transaction rejected by user');
-        } else if (error.code === -32603) {
-          throw new Error('Insufficient funds for gas fees');
-        } else if (error.message.includes('insufficient funds')) {
-          throw new Error('Insufficient funds for this transaction');
-        } else if (error.message.includes('signature')) {
-          throw new Error('Wallet signature collection failed. Please ensure your wallet is unlocked and try again.');
-        }
-        throw new Error(error.message || 'Transaction failed');
       }
+
+      // Execute transaction using Thirdweb SDK
+      console.log('🚀 Sending transaction to BSC blockchain with Thirdweb...');
+      const transactionResult = await sendTransaction({
+        transaction: await transaction,
+        account: account,
+      });
+
+      console.log('✅ Transaction successful! Hash:', transactionResult.transactionHash);
+
+      return {
+        transactionHash: transactionResult.transactionHash,
+        currency,
+        amount,
+        address
+      };
     },
     onSuccess: (data) => {
       toast({
