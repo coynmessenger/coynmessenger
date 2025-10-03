@@ -15,10 +15,6 @@ import QRCode from "qrcode";
 import { generateMetaMaskQRCode } from "@/lib/qr-generator";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import { apiRequest } from "@/lib/queryClient";
-import { useActiveWallet } from "thirdweb/react";
-import { sendTransaction, prepareTransaction, toWei } from "thirdweb";
-import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
-import { bsc } from "thirdweb/chains";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -29,7 +25,6 @@ interface WalletModalProps {
 export default function WalletModal({ isOpen, onClose, initialCurrency }: WalletModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const activeWallet = useActiveWallet();
   
   const [view, setView] = useState<"main" | "send" | "qr" | "success">("main");
   const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency || "BNB");
@@ -111,99 +106,144 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       amount: string; 
       recipientAddress: string;
     }) => {
-      // Ensure wallet is connected via Thirdweb
-      if (!activeWallet) {
-        throw new Error('No wallet connected. Please connect your wallet first.');
-      }
-
-      console.log('🔍 WALLET MODAL: Active wallet detected');
-      console.log('🔍 Wallet ID:', activeWallet.id);
-
-      // Get current user's wallet address
-      if (!currentUser?.walletAddress) {
-        throw new Error('No wallet address found. Please connect your wallet.');
-      }
-
-      // Verify wallet connection and account
-      const account = activeWallet.getAccount();
-      if (!account?.address) {
-        throw new Error('Unable to access wallet account. Please reconnect your wallet.');
-      }
-
-      console.log('✅ WALLET ROUTING: Transaction will be signed by', activeWallet.id);
-
-      // Verify connected account matches user's wallet
-      const connectedAccount = account.address.toLowerCase();
-      const userWallet = currentUser.walletAddress.toLowerCase();
-      if (connectedAccount !== userWallet) {
-        throw new Error('Connected wallet does not match your account. Please reconnect with the correct wallet.');
-      }
-
-      // Ensure we're on BSC network
-      const chain = activeWallet.getChain();
-      if (chain?.id !== 56) {
+      // Real Web3 transaction processing
+      if (typeof window.ethereum !== 'undefined' && currentUser?.walletAddress) {
         try {
-          await activeWallet.switchChain(bsc);
-        } catch (switchError) {
-          throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
+          // Request wallet permissions first
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          if (accounts.length === 0) {
+            throw new Error('No wallet accounts found. Please connect your wallet.');
+          }
+
+          // For BNB transactions, ensure we're using a BNB-compatible wallet address
+          let senderAddress = currentUser.walletAddress;
+          if (data.currency === 'BNB') {
+            // Verify the current user's wallet address is BNB-compatible (BSC address)
+            if (!senderAddress || !senderAddress.startsWith('0x') || senderAddress.length !== 42) {
+              throw new Error('Invalid BNB wallet address. Please connect a valid BSC-compatible wallet.');
+            }
+            
+            // Ensure the connected wallet can send from this address
+            const connectedAccount = accounts[0].toLowerCase();
+            if (connectedAccount !== senderAddress.toLowerCase()) {
+              // Check if the user's wallet address is among the connected accounts
+              const allAccounts = await window.ethereum.request({ method: 'eth_accounts' });
+              const hasCorrectAccount = allAccounts.some((addr: string) => 
+                addr.toLowerCase() === senderAddress.toLowerCase()
+              );
+              
+              if (!hasCorrectAccount) {
+                throw new Error(
+                  `BNB transaction requires wallet address ${senderAddress.slice(0, 6)}...${senderAddress.slice(-4)}. ` +
+                  'Please switch to the correct wallet address for BNB transactions.'
+                );
+              }
+            }
+          } else {
+            // For other currencies, use standard validation
+            const connectedAccount = accounts[0].toLowerCase();
+            const userWallet = currentUser.walletAddress.toLowerCase();
+            if (connectedAccount !== userWallet) {
+              throw new Error('Connected wallet does not match your account. Please switch to the correct wallet.');
+            }
+          }
+
+          // Handle different networks based on currency
+          let targetChainId = '0x38'; // BSC Mainnet for BNB
+          
+
+          // Switch to appropriate network
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: targetChainId }],
+            });
+          } catch (switchError: any) {
+            if (switchError.code === 4902) {
+              // Add BSC network if it doesn't exist
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x38',
+                  chainName: 'Binance Smart Chain',
+                  nativeCurrency: {
+                    name: 'BNB',
+                    symbol: 'BNB',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                  blockExplorerUrls: ['https://bscscan.com/']
+                }]
+              });
+            } else {
+              throw new Error('Please switch to Binance Smart Chain network in your wallet.');
+            }
+          }
+
+          let transactionParameters;
+          
+          if (data.currency === 'BNB') {
+            // Native BNB transfer - use validated BNB wallet address
+            const amountInWei = (parseFloat(data.amount) * Math.pow(10, 18)).toString(16);
+            
+            // Double-check the sender address is valid for BNB
+            if (!senderAddress || !senderAddress.startsWith('0x') || senderAddress.length !== 42) {
+              throw new Error('Invalid sender address for BNB transaction.');
+            }
+            
+            transactionParameters = {
+              to: data.recipientAddress,
+              from: senderAddress, // Use the validated BNB address
+              value: '0x' + amountInWei,
+              gas: '0x5208', // 21000 gas limit
+              gasPrice: '0x4A817C800', // 20 Gwei
+            };
+          } else if (data.currency === 'USDT' || data.currency === 'COYN') {
+            // ERC-20 token transfer
+            const tokenAddresses = {
+              'USDT': '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+              'COYN': '0x...', // COYN token address (placeholder)
+            };
+            
+            const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
+            if (!tokenAddress) {
+              throw new Error(`Token address not configured for ${data.currency}`);
+            }
+            
+            // Create ERC-20 transfer data
+            const decimals = data.currency === 'USDT' ? 18 : 18; // Both use 18 decimals on BSC
+            const amountInWei = (parseFloat(data.amount) * Math.pow(10, decimals)).toString(16);
+            
+            // ERC-20 transfer function signature: transfer(address,uint256)
+            const transferData = '0xa9059cbb' + 
+              data.recipientAddress.slice(2).padStart(64, '0') + 
+              amountInWei.padStart(64, '0');
+            
+            transactionParameters = {
+              to: tokenAddress,
+              from: senderAddress, // Use the validated sender address
+              value: '0x0',
+              data: transferData,
+              gas: '0x15F90', // 90000 gas limit for token transfers
+              gasPrice: '0x4A817C800', // 20 Gwei
+            };
+          } else {
+            throw new Error(`Unsupported currency: ${data.currency}`);
+          }
+
+          // Send transaction
+          const txHash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [transactionParameters],
+          });
+
+          return { txId: txHash, ...data };
+        } catch (error: any) {
+          throw new Error(error.message || 'Transaction failed');
         }
-      }
-
-      console.log('💸 WALLET MODAL: Preparing transaction with Thirdweb SDK...');
-
-      const client = createThirdwebClient({
-        clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
-      });
-
-      let transaction;
-      
-      if (data.currency === 'BNB') {
-        // Native BNB transfer
-        transaction = prepareTransaction({
-          to: data.recipientAddress,
-          value: toWei(data.amount),
-          chain: bsc,
-          client,
-        });
       } else {
-        // Token transfers (USDT, COYN)
-        const tokenAddresses: Record<string, string> = {
-          USDT: '0x55d398326f99059fF775485246999027B3197955',
-          COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1'
-        };
-
-        const tokenAddress = tokenAddresses[data.currency];
-        if (!tokenAddress) {
-          throw new Error(`Unsupported currency: ${data.currency}`);
-        }
-
-        const contract = getContract({
-          client,
-          chain: bsc,
-          address: tokenAddress,
-        });
-
-        const amountInWei = BigInt(Math.floor(parseFloat(data.amount) * 1e18));
-
-        transaction = prepareContractCall({
-          contract,
-          method: "function transfer(address to, uint256 amount) returns (bool)",
-          params: [data.recipientAddress, amountInWei],
-        });
+        throw new Error('Web3 wallet not detected. Please install MetaMask or Trust Wallet.');
       }
-
-      // Execute transaction
-      const transactionResult = await sendTransaction({
-        transaction: await transaction,
-        account: account,
-      });
-
-      console.log('✅ Transaction successful! Hash:', transactionResult.transactionHash);
-
-      return { 
-        txId: transactionResult.transactionHash,
-        ...data 
-      };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });

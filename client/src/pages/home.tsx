@@ -1,18 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDisconnect, useActiveWallet } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { MessageCircle, Check, Users, Lock, Globe, ArrowRight, Send, Wallet } from "lucide-react";
-import { SiBinance } from "react-icons/si";
+import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-react";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
 import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
@@ -21,10 +16,7 @@ import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import ThirdwebWalletConnector from "@/components/thirdweb-wallet-connector";
-import type { User, WalletBalance } from "@shared/schema";
-import { sendTransaction, prepareTransaction, toWei } from "thirdweb";
-import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
-import { bsc } from "thirdweb/chains";
+import type { User } from "@shared/schema";
 
 export default function HomePage() {
   useScrollToTop();
@@ -32,7 +24,6 @@ export default function HomePage() {
   const queryClient = useQueryClient();
   const { disconnect } = useDisconnect();
   const activeWallet = useActiveWallet();
-  const { toast } = useToast();
   
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
@@ -51,12 +42,6 @@ export default function HomePage() {
   
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  
-  // Send token modal states
-  const [showSendModal, setShowSendModal] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("");
-  const [sendAmount, setSendAmount] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
 
   // Check for existing authentication on mount and when wallet state changes
   useEffect(() => {
@@ -156,13 +141,6 @@ export default function HomePage() {
       window.removeEventListener('focus', handleFocus);
     };
   }, [setLocation]);
-
-  // Fetch wallet balances
-  const { data: walletBalances = [] } = useQuery<WalletBalance[]>({
-    queryKey: ["/api/wallet/balances", connectedUser?.id],
-    enabled: !!connectedUser?.id && isConnected,
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
@@ -298,150 +276,6 @@ export default function HomePage() {
     queryClient.clear();
   };
 
-  // Handle sending tokens
-  const sendTokenMutation = useMutation({
-    mutationFn: async ({ currency, amount, recipient }: { currency: string; amount: string; recipient: string }) => {
-      if (!activeWallet || !connectedUser?.walletAddress) {
-        throw new Error('Wallet not connected');
-      }
-
-      const account = activeWallet.getAccount();
-      if (!account?.address) {
-        throw new Error('Unable to access wallet account');
-      }
-
-      // Validate recipient address
-      if (!recipient.startsWith('0x') || recipient.length !== 42) {
-        throw new Error('Invalid recipient address format');
-      }
-
-      // Ensure on BSC network
-      const chain = activeWallet.getChain();
-      if (chain?.id !== 56) {
-        await activeWallet.switchChain(bsc);
-      }
-
-      const client = createThirdwebClient({
-        clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
-      });
-
-      let transaction;
-      
-      if (currency === 'BNB') {
-        // Native BNB transfer
-        transaction = prepareTransaction({
-          to: recipient,
-          value: toWei(amount),
-          chain: bsc,
-          client,
-        });
-      } else {
-        // Token transfers (USDT, COYN)
-        const tokenAddresses: Record<string, string> = {
-          USDT: '0x55d398326f99059fF775485246999027B3197955',
-          COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1'
-        };
-
-        const tokenAddress = tokenAddresses[currency];
-        if (!tokenAddress) {
-          throw new Error(`Unsupported currency: ${currency}`);
-        }
-
-        const contract = getContract({
-          client,
-          chain: bsc,
-          address: tokenAddress,
-        });
-
-        const amountInWei = BigInt(Math.floor(parseFloat(amount) * 1e18));
-
-        transaction = prepareContractCall({
-          contract,
-          method: "function transfer(address to, uint256 amount) returns (bool)",
-          params: [recipient, amountInWei],
-        });
-      }
-
-      const result = await sendTransaction({
-        transaction: await transaction,
-        account,
-      });
-
-      return result.transactionHash;
-    },
-    onSuccess: (txHash) => {
-      toast({
-        title: "Transaction Sent!",
-        description: `Transaction hash: ${txHash.substring(0, 10)}...`,
-      });
-      
-      // Reset form
-      setSendAmount("");
-      setRecipientAddress("");
-      setShowSendModal(false);
-      
-      // Refresh balances
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", connectedUser?.id] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Transaction Failed",
-        description: error.message || "Failed to send transaction",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSendClick = (currency: string, balance: string) => {
-    setSelectedCurrency(currency);
-    setSendAmount(balance); // Set to max by default
-    setShowSendModal(true);
-  };
-
-  const handleConfirmSend = () => {
-    if (!sendAmount || !recipientAddress || !selectedCurrency) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter amount and recipient address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    sendTokenMutation.mutate({
-      currency: selectedCurrency,
-      amount: sendAmount,
-      recipient: recipientAddress,
-    });
-  };
-
-  const getCurrencyIcon = (currency: string) => {
-    switch (currency) {
-      case "BNB":
-        return <SiBinance className="h-5 w-5 text-yellow-500" />;
-      case "USDT":
-        return <div className="h-5 w-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">T</div>;
-      case "COYN":
-        return <img src={coynCoinPath} alt="COYN" className="h-5 w-5 rounded-full" />;
-      default:
-        return null;
-    }
-  };
-
-  const formatBalance = (balance: string) => {
-    const num = parseFloat(balance);
-    if (num >= 1) {
-      return num.toLocaleString('en-US', {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4
-      });
-    }
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 8,
-      maximumFractionDigits: 8
-    });
-  };
-
   const features = [
     { icon: MessageCircle, title: "Real-time Messaging", description: "Instant encrypted communication" },
     { icon: Users, title: "Wallet Integration", description: "Send crypto directly in chats" },
@@ -509,97 +343,54 @@ export default function HomePage() {
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                        <Check className="h-8 w-8 text-green-500" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
-                          Connected to COYN Network
-                        </h3>
-                        <p className="text-black dark:text-foreground mb-2">
-                          Welcome to COYN, {connectedUser?.displayName}!
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
-                          {connectedUser?.walletAddress}
-                        </p>
-                      </div>
+                  <div className="text-center space-y-6">
+                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                      <Check className="h-8 w-8 text-green-500" />
                     </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
+                        Connected to COYN Network
+                      </h3>
+                      <p className="text-black dark:text-foreground mb-2">
+                        Welcome to COYN, {connectedUser?.displayName}!
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
+                        {connectedUser?.walletAddress}
+                      </p>
 
-                    {/* Wallet Balances Section */}
-                    <div className="border-t border-border pt-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                          <Wallet className="h-4 w-4" />
-                          Your Tokens
-                        </h4>
+                      <div className="space-y-3 mt-6">
+                        <Button
+                          onClick={() => setLocation("/messenger")}
+                          className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
+                        >
+                          <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
+                          Open Messenger
+                        </Button>
+                        <Button
+                          onClick={handleSignOut}
+                          variant="outline"
+                          className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
+                        >
+                          Sign Out
+                        </Button>
                       </div>
-                      
-                      <div className="space-y-3">
-                        {walletBalances.length > 0 ? (
-                          walletBalances.map((balance) => (
-                            <div
-                              key={balance.currency}
-                              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-                              data-testid={`token-balance-${balance.currency.toLowerCase()}`}
-                            >
-                              <div className="flex items-center space-x-3">
-                                {getCurrencyIcon(balance.currency)}
-                                <div>
-                                  <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                                    {balance.currency}
-                                  </div>
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                onClick={() => handleSendClick(balance.currency, balance.balance)}
-                                className="bg-orange-500 hover:bg-orange-600 text-white"
-                                data-testid={`button-send-${balance.currency.toLowerCase()}`}
-                              >
-                                <Send className="h-3 w-3 mr-1" />
-                                Send All
-                              </Button>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-                            Loading balances...
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 border-t border-border pt-4">
-                      <Button
-                        onClick={() => setLocation("/messenger")}
-                        className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
-                        data-testid="button-open-messenger"
-                      >
-                        <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                        Open Messenger
-                      </Button>
-                      <Button
-                        onClick={handleSignOut}
-                        variant="outline"
-                        className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
-                        data-testid="button-sign-out"
-                      >
-                        Sign Out
-                      </Button>
                     </div>
                   </div>
                 )}
 
                 {/* Supported Currencies */}
-                {(!isConnected || !connectedUser) && (
-                  <div className="border-t border-border pt-4">
-                    <p className="text-center text-muted-foreground text-sm">
-                      Supporting all major currencies
-                    </p>
+                <div className="border-t border-border pt-4">
+                  <p className="text-center text-muted-foreground mb-3 text-sm">
+                    Supported Currencies
+                  </p>
+                  <div className="flex justify-center space-x-3 flex-wrap gap-2">
+                    {['BNB', 'USDT', 'COYN'].map((currency) => (
+                      <Badge key={currency} variant="secondary" className="text-xs">
+                        {currency}
+                      </Badge>
+                    ))}
                   </div>
-                )}
+                </div>
               </CardContent>
             </Card>
         </div>
@@ -657,97 +448,6 @@ export default function HomePage() {
         isOpen={showPrivacyModal} 
         onClose={() => setShowPrivacyModal(false)} 
       />
-      
-      {/* Send Token Modal */}
-      <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
-        <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              {selectedCurrency && getCurrencyIcon(selectedCurrency)}
-              <span>Send All {selectedCurrency}</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="send-amount">Amount</Label>
-              <div className="flex space-x-2">
-                <Input
-                  id="send-amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={sendAmount}
-                  onChange={(e) => setSendAmount(e.target.value)}
-                  className="flex-1 bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50"
-                  data-testid="input-send-amount"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const balance = walletBalances.find(b => b.currency === selectedCurrency);
-                    if (balance) setSendAmount(balance.balance);
-                  }}
-                  className="px-3 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400"
-                  data-testid="button-max-amount"
-                >
-                  Max
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                This will send all available {selectedCurrency} tokens
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="recipient-address">Recipient Address</Label>
-              <textarea
-                id="recipient-address"
-                placeholder="Enter full wallet address (0x...)"
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-                className="w-full min-h-[80px] p-3 text-sm font-mono bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-md resize-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 break-all"
-                rows={3}
-                data-testid="input-recipient-address"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Paste the complete wallet address (42 characters starting with 0x)
-              </p>
-            </div>
-            <div className="flex space-x-3 pt-4">
-              <Button
-                onClick={handleConfirmSend}
-                disabled={sendTokenMutation.isPending || !sendAmount || !recipientAddress}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
-                data-testid="button-confirm-send"
-              >
-                {sendTokenMutation.isPending ? (
-                  <span className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    <span>Sending...</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center space-x-2">
-                    <Send className="h-4 w-4" />
-                    <span>Send {selectedCurrency}</span>
-                  </span>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowSendModal(false);
-                  setSendAmount("");
-                  setRecipientAddress("");
-                }}
-                disabled={sendTokenMutation.isPending}
-                className="flex-1 border-gray-300 dark:border-gray-600"
-                data-testid="button-cancel-send"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
       
       <PWAInstallPrompt />
     </div>
