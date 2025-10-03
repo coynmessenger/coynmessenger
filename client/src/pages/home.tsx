@@ -595,16 +595,9 @@ export default function HomePage() {
                 {/* Supported Currencies */}
                 {(!isConnected || !connectedUser) && (
                   <div className="border-t border-border pt-4">
-                    <p className="text-center text-muted-foreground mb-3 text-sm">
-                      Supported Currencies
+                    <p className="text-center text-muted-foreground text-sm">
+                      Supporting all major currencies
                     </p>
-                    <div className="flex justify-center space-x-3 flex-wrap gap-2">
-                      {['BNB', 'USDT', 'COYN'].map((currency) => (
-                        <Badge key={currency} variant="secondary" className="text-xs">
-                          {currency}
-                        </Badge>
-                      ))}
-                    </div>
                   </div>
                 )}
               </CardContent>
