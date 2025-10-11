@@ -12,8 +12,9 @@ const client = createThirdwebClient({
 const supportedChains = [bsc];
 
 // Enhanced wallet configuration for optimal mobile experience
+// WalletConnect automatically handles mobile deep linking through Thirdweb SDK
 const wallets = [
-  createWallet("walletConnect"),
+  createWallet("walletConnect"), // Mobile-optimized: auto-detects mobile wallets
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("com.bitget.web3"),
@@ -66,20 +67,22 @@ export default function ThirdwebWalletConnector({
           </div>
         ),
         className: className || `
-          w-full h-full bg-white dark:bg-slate-800
-          hover:bg-gray-50 dark:hover:bg-slate-700 
+          w-full h-full min-h-[56px] bg-white dark:bg-slate-800
+          hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600
           text-gray-900 dark:text-white font-medium py-8 px-10 rounded-lg
           transition-all duration-200 shadow-md hover:shadow-lg
           border border-gray-200 dark:border-slate-600 flex items-center justify-center
+          touch-manipulation select-none
         `
       }}
       detailsButton={{
         className: `
           bg-gradient-to-r from-orange-500 to-orange-600 
-          hover:from-orange-600 hover:to-orange-700 
-          text-white font-medium py-2 px-4 rounded-lg 
+          hover:from-orange-600 hover:to-orange-700 active:from-orange-700 active:to-orange-800
+          text-white font-medium py-2 px-4 min-h-[44px] rounded-lg 
           transition-all duration-200 shadow-md hover:shadow-lg
           border border-orange-400/20
+          touch-manipulation select-none
         `
       }}
       onConnect={async (wallet) => {
