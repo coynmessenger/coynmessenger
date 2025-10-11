@@ -4,8 +4,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
-import { ThirdwebProvider } from "thirdweb/react";
+import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
+import { createWallet } from "thirdweb/wallets";
 import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
 import { useEffect } from "react";
 import HomePage from "@/pages/home";
@@ -16,6 +17,22 @@ import FavoritesPage from "@/pages/favorites";
 import PurchaseHistoryPage from "@/pages/purchase-history";
 
 import NotFound from "@/pages/not-found";
+
+// Create Thirdweb client for wallet connections
+const client = createThirdwebClient({
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+});
+
+// Configure supported wallets for auto-reconnection
+const wallets = [
+  createWallet("walletConnect"),
+  createWallet("io.metamask"),
+  createWallet("com.coinbase.wallet"),
+  createWallet("com.bitget.web3"),
+  createWallet("io.rabby"),
+  createWallet("io.zerion.wallet"),
+  createWallet("com.trustwallet.app"),
+];
 
 function Router() {
   return (
@@ -31,10 +48,6 @@ function Router() {
     </Switch>
   );
 }
-
-const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
-});
 
 function App() {
   // GLOBAL WebRTC INITIALIZATION: Initialize WebRTC for any authenticated user
@@ -77,8 +90,19 @@ function App() {
     
   }, []);
 
+  // Check if user has explicitly signed out to prevent autoconnect
+  const userSignedOut = typeof window !== 'undefined' && localStorage.getItem('userSignedOut') === 'true';
+
   return (
     <ThirdwebProvider>
+      {/* AutoConnect component maintains wallet connection across all pages */}
+      {!userSignedOut && (
+        <AutoConnect
+          client={client}
+          wallets={wallets}
+          timeout={15000}
+        />
+      )}
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" storageKey="coyn-theme">
           <TooltipProvider>
