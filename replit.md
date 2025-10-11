@@ -25,13 +25,13 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication Flow
 - **Standalone App Experience**: Authenticated users are automatically redirected to the main messenger interface
-- **Wallet Authentication**: Supports MetaMask and Trust Wallet with comprehensive signature collection
-- **Trust Wallet Deep Linking**: Enhanced mobile deep linking with multiple fallback approaches and session tracking
-- **Return Detection**: URL parameter system (?wallet_return=true&session=ID) to detect wallet app returns
+- **Universal Wallet Support**: Thirdweb SDK v5 provides seamless support for all major Web3 wallets
+- **Supported Wallets**: WalletConnect (mobile), MetaMask, Coinbase Wallet, Bitget Wallet, Trust Wallet, Rabby, Zerion
+- **Auto-Reconnection**: AutoConnect component maintains wallet connections across page navigation
 - **Visual Feedback**: Loading modals and status messages during wallet redirects and connections
 - **Auto-Navigation**: Post-authentication automatically opens the messenger with smart delay detection
 - **Authentication Guard**: HomePage checks for existing authentication and redirects to messenger immediately
-- **Session Management**: Unique session IDs track wallet connection attempts and returns
+- **Session Management**: Wallet connections persist in localStorage with automatic rehydration
 - **Clean Sign-out**: Proper cleanup prevents auto-reconnection after explicit sign-out
 
 ### Core Features
@@ -72,9 +72,10 @@ Preferred communication style: Simple, everyday language.
 ### System Design
 - Database schema includes `users`, `conversations`, `messages`, and `wallet_balances`.
 - API routes for user, conversations, messages, and marketplace interactions.
-- Universal Web3 wallet authentication system with wallet-specific transaction routing (MetaMask, Trust Wallet, Bitget, Coinbase, Rabby, Zerion, WalletConnect) ensuring transactions execute through the connected wallet.
-- Transaction processing uses real BNB chain for BNB, USDT, and COYN.
-- Comprehensive signature data collection for token transactions.
+- **Universal Wallet Transaction System**: Thirdweb SDK automatically routes ALL transactions through the user's connected wallet - no wallet-specific code required.
+- **Transaction Flow**: Same code works for all wallets - Thirdweb handles wallet differences internally.
+- **Supported Tokens**: BNB (native), USDT (ERC-20), COYN (ERC-20) all use unified transaction preparation and signing.
+- Transaction processing uses real BNB chain (BSC) for all token transfers.
 - Automated scroll-to-top functionality on page navigation.
 - Optimized performance with React Query caching and HTTP cache headers.
 - Comprehensive security with wallet address validation and controlled user registration.
@@ -86,10 +87,81 @@ Preferred communication style: Simple, everyday language.
 - **@radix-ui/***: Headless UI components.
 - **date-fns**: Date formatting.
 - **tailwindcss**: CSS framework.
-- **ethers.js**: Web3 interaction for blockchain.
+- **Thirdweb SDK v5**: Universal Web3 wallet integration and blockchain transactions.
 - **CoinGecko API**: Live cryptocurrency prices and 24h change data.
 - **GIPHY API**: GIF integration.
 - **Socket.IO**: Real-time communication for encrypted calls.
+
+## Wallet Integration Architecture
+
+### Thirdweb SDK v5 Implementation
+The application uses **Thirdweb SDK v5** for universal wallet support, eliminating the need for wallet-specific transaction code.
+
+**Key Components:**
+1. **ThirdwebProvider** (`client/src/App.tsx`)
+   - Wraps entire app with Thirdweb context
+   - Configured with `VITE_THIRDWEB_CLIENT_ID` environment variable
+   - Provides SDK access to all child components
+
+2. **AutoConnect Component** (`client/src/App.tsx`)
+   - Maintains wallet connections across page navigation
+   - Automatically reconnects previously connected wallets
+   - Supports all configured wallet types
+   - Respects user sign-out state (disabled when `userSignedOut=true`)
+
+3. **ConnectButton** (`client/src/components/thirdweb-wallet-connector.tsx`)
+   - Primary wallet connection interface on HomePage
+   - Displays wallet options in modal
+   - Handles connection approval and chain switching
+   - Configured for BSC (Binance Smart Chain) network
+
+4. **Universal Transaction Handler** (`client/src/components/chat-window.tsx`)
+   - Uses `useActiveWallet()` hook to get connected wallet
+   - Same code works for ALL wallets (no wallet-specific logic)
+   - Thirdweb SDK automatically routes transactions to the connected wallet
+
+**Transaction Flow:**
+```typescript
+// 1. Get active wallet (works for ANY wallet)
+const activeWallet = useActiveWallet();
+
+// 2. Prepare transaction (same for all wallets)
+const transaction = prepareTransaction({
+  client,
+  chain: bsc,
+  to: recipientAddress,
+  value: amount, // For BNB
+  // OR
+  data: erc20TransferData, // For USDT/COYN
+});
+
+// 3. Send transaction (Thirdweb routes to connected wallet)
+await sendTransaction({
+  transaction: await transaction,
+  account: activeWallet.getAccount(),
+});
+```
+
+**Supported Wallets:**
+- ✅ WalletConnect (any mobile wallet)
+- ✅ MetaMask
+- ✅ Coinbase Wallet
+- ✅ Bitget Wallet
+- ✅ Trust Wallet
+- ✅ Rabby
+- ✅ Zerion
+
+**Token Support:**
+- **BNB**: Native BSC transfers via `value` parameter
+- **USDT**: ERC-20 token at `0x55d398326f99059fF775485246999027B3197955`
+- **COYN**: ERC-20 token at `0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1`
+
+**Key Advantages:**
+- ✅ **Universal Code**: Single implementation works for all wallets
+- ✅ **Automatic Routing**: Thirdweb SDK handles wallet-specific differences
+- ✅ **Connection Persistence**: AutoConnect maintains state across navigation
+- ✅ **No Vendor Lock-in**: Easy to add new wallets without code changes
+- ✅ **Type Safety**: Full TypeScript support with proper error handling
 
 ## Native Mobile App Requirements
 

@@ -1619,30 +1619,31 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             // Animate ONLY the highlighted search terms with enhanced visibility
             highlightElements.forEach((mark, i) => {
               setTimeout(() => {
+                const htmlMark = mark as HTMLElement;
                 // Enhanced highlighting just for the search term
-                mark.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'; // Gold background
-                mark.style.color = 'rgba(0, 0, 0, 0.9)'; // Dark text
-                mark.style.fontWeight = 'bold';
-                mark.style.transform = 'scale(1.15)';
-                mark.style.boxShadow = '0 0 12px rgba(255, 215, 0, 0.8)';
-                mark.style.border = '2px solid rgba(255, 140, 0, 0.8)';
-                mark.style.borderRadius = '4px';
-                mark.style.padding = '2px 4px';
-                mark.style.transition = 'all 0.3s ease';
-                mark.style.zIndex = '1000';
-                mark.style.position = 'relative';
+                htmlMark.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'; // Gold background
+                htmlMark.style.color = 'rgba(0, 0, 0, 0.9)'; // Dark text
+                htmlMark.style.fontWeight = 'bold';
+                htmlMark.style.transform = 'scale(1.15)';
+                htmlMark.style.boxShadow = '0 0 12px rgba(255, 215, 0, 0.8)';
+                htmlMark.style.border = '2px solid rgba(255, 140, 0, 0.8)';
+                htmlMark.style.borderRadius = '4px';
+                htmlMark.style.padding = '2px 4px';
+                htmlMark.style.transition = 'all 0.3s ease';
+                htmlMark.style.zIndex = '1000';
+                htmlMark.style.position = 'relative';
                 
                 setTimeout(() => {
-                  mark.style.backgroundColor = '';
-                  mark.style.color = '';
-                  mark.style.fontWeight = '';
-                  mark.style.transform = '';
-                  mark.style.boxShadow = '';
-                  mark.style.border = '';
-                  mark.style.borderRadius = '';
-                  mark.style.padding = '';
-                  mark.style.zIndex = '';
-                  mark.style.position = '';
+                  htmlMark.style.backgroundColor = '';
+                  htmlMark.style.color = '';
+                  htmlMark.style.fontWeight = '';
+                  htmlMark.style.transform = '';
+                  htmlMark.style.boxShadow = '';
+                  htmlMark.style.border = '';
+                  htmlMark.style.borderRadius = '';
+                  htmlMark.style.padding = '';
+                  htmlMark.style.zIndex = '';
+                  htmlMark.style.position = '';
                 }, 3000);
               }, i * 100);
             });
