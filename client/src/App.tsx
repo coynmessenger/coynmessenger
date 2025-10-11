@@ -94,7 +94,7 @@ function App() {
   const userSignedOut = typeof window !== 'undefined' && localStorage.getItem('userSignedOut') === 'true';
 
   return (
-    <ThirdwebProvider clientId={import.meta.env.VITE_THIRDWEB_CLIENT_ID}>
+    <ThirdwebProvider>
       {/* AutoConnect component maintains wallet connection across all pages */}
       {!userSignedOut && (
         <AutoConnect
