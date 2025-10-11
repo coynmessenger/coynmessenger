@@ -1016,6 +1016,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       }
     },
     onError: (error: any) => {
+      // Enhanced error logging for debugging
+      console.error('❌ CRYPTO SEND ERROR:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+      
       const errorMessage = error.message || "Please try again.";
       
       toast({

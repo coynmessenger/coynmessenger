@@ -1,6 +1,6 @@
 // COYN Messenger Service Worker for PWA functionality
-const CACHE_NAME = 'coyn-messenger-v1';
-const STATIC_CACHE_NAME = 'coyn-static-v1';
+const CACHE_NAME = 'coyn-messenger-v2';
+const STATIC_CACHE_NAME = 'coyn-static-v2';
 
 // Assets to cache for offline functionality  
 const STATIC_ASSETS = [
@@ -12,7 +12,7 @@ const STATIC_ASSETS = [
 ];
 
 // Network-first strategy for API calls
-const API_CACHE_NAME = 'coyn-api-v1';
+const API_CACHE_NAME = 'coyn-api-v2';
 const API_URLS = [
   '/api/user',
   '/api/conversations',
