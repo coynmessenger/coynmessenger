@@ -70,6 +70,32 @@ body::before {
   z-index: -1;
 }
 
+/* Mobile-optimized touch targets for Thirdweb wallet buttons */
+.mobile-wallet-connector button,
+.mobile-wallet-connector div[role="button"],
+button[data-connect-button],
+button[data-connect-wallet] {
+  min-height: 56px !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  touch-action: manipulation !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Mobile touch feedback for Thirdweb buttons */
+.mobile-wallet-connector button:active,
+.mobile-wallet-connector div[role="button"]:active,
+button[data-connect-button]:active,
+button[data-connect-wallet]:active {
+  transform: scale(0.98) !important;
+  opacity: 0.9 !important;
+  transition: all 0.1s ease !important;
+}
+
 /* Fix for mobile viewport scrolling and keyboard handling */
 @media (max-width: 768px) {
   html, body {

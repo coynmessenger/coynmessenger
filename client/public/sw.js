@@ -25,10 +25,14 @@ self.addEventListener('install', (event) => {
   
   event.waitUntil(
     Promise.all([
-      // Cache static assets
+      // Cache static assets (with error handling for development)
       caches.open(STATIC_CACHE_NAME).then((cache) => {
         console.log('📦 Caching static assets');
-        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })));
+        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })))
+          .catch((err) => {
+            console.warn('⚠️ Some assets could not be cached (normal in development):', err.message);
+            return Promise.resolve(); // Don't fail installation if caching fails
+          });
       }),
       // Skip waiting to activate immediately
       self.skipWaiting()

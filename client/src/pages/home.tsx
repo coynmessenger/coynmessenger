@@ -338,12 +338,12 @@ export default function HomePage() {
                       </p>
                     </div>
 
-                    {/* Thirdweb Wallet Connection */}
-                    <div className="flex justify-center">
+                    {/* Thirdweb Wallet Connection - Mobile Optimized */}
+                    <div className="flex justify-center mobile-wallet-connector">
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}
-                        className="w-[640px] h-[370px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600"
+                        className="w-full min-h-[56px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600 text-gray-900 dark:text-white font-medium py-4 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600 touch-manipulation select-none"
                       />
                     </div>
                     
