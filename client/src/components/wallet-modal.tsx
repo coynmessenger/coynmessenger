@@ -242,7 +242,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           throw new Error(error.message || 'Transaction failed');
         }
       } else {
-        throw new Error('Web3 wallet not detected. Please install MetaMask or Trust Wallet.');
+        throw new Error('Web3 wallet not detected. Please connect your wallet using the Thirdweb wallet connector.');
       }
     },
     onSuccess: (data) => {

@@ -108,7 +108,7 @@ class WalletConnector {
     }
     
     if (!walletProvider) {
-      throw new Error('No Web3 wallet detected. Please install MetaMask or Trust Wallet.');
+      throw new Error('No Web3 wallet detected. Please connect your wallet.');
     }
 
     try {
