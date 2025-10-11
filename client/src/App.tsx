@@ -27,7 +27,7 @@ const client = createThirdwebClient({
 const wallets = [
   createWallet("walletConnect"),
   createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
+  createWallet("com.coinbase.wallet"),  
   createWallet("com.bitget.web3"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
@@ -94,7 +94,7 @@ function App() {
   const userSignedOut = typeof window !== 'undefined' && localStorage.getItem('userSignedOut') === 'true';
 
   return (
-    <ThirdwebProvider>
+    <ThirdwebProvider clientId={import.meta.env.VITE_THIRDWEB_CLIENT_ID}>
       {/* AutoConnect component maintains wallet connection across all pages */}
       {!userSignedOut && (
         <AutoConnect
