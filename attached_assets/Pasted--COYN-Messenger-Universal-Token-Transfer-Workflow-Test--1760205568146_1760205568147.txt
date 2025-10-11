@@ -1,0 +1,62 @@
+/*
+  COYN Messenger - Universal Token Transfer Workflow Test
+  --------------------------------------------------------
+  This script tests token transfer across any wallet connected via Thirdweb.
+  It replicates MetaMask/Trust Wallet workflow for all supported wallets (500+).
+*/
+
+import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { ethers } from "ethers";
+
+// ===== CONFIGURATION =====
+const NETWORK = "binance"; // or "ethereum", "polygon", etc.
+const TOKEN_ADDRESSES = {
+  USDT: "0x55d398326f99059fF775485246999027B3197955", // BSC USDT
+  COYN: "0xYourCOYNContractAddress", // Replace with your COYN token
+  BNB: ethers.constants.AddressZero, // Native token
+};
+
+// ===== STEP 1: INITIALIZE SDK =====
+// Use Thirdweb's wallet connection UI in your app; here we assume the signer is already connected.
+async function init() {
+  // This part will use the signer of whichever wallet the user connects (MetaMask, TrustWallet, etc.)
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const sdk = ThirdwebSDK.fromSigner(signer, NETWORK);
+
+  console.log(`Connected to ${await signer.getAddress()} on ${NETWORK}`);
+  return { sdk, signer };
+}
+
+// ===== STEP 2: SEND TOKEN =====
+async function sendToken(symbol, toAddress, amount) {
+  const { sdk, signer } = await init();
+  const tokenAddress = TOKEN_ADDRESSES[symbol];
+  const from = await signer.getAddress();
+
+  console.log(`\n🔹 Sending ${amount} ${symbol} from ${from} to ${toAddress}...`);
+
+  if (symbol === "BNB") {
+    // Native transfer
+    const tx = await signer.sendTransaction({
+      to: toAddress,
+      value: ethers.utils.parseEther(amount),
+    });
+    console.log(`✅ TX Sent: ${tx.hash}`);
+    console.log(`🔗 View on BscScan: https://bscscan.com/tx/${tx.hash}`);
+  } else {
+    // ERC20 / BEP20 token transfer
+    const token = await sdk.getContract(tokenAddress);
+    const tx = await token.erc20.transfer(toAddress, amount);
+    console.log(`✅ TX Sent: ${tx.receipt.transactionHash}`);
+    console.log(`🔗 View on BscScan: https://bscscan.com/tx/${tx.receipt.transactionHash}`);
+  }
+}
+
+// ===== STEP 3: TEST WORKFLOW =====
+(async () => {
+  const testRecipient = "0xRecipientWalletAddress"; // Replace with a test wallet
+  await sendToken("USDT", testRecipient, "1"); // send 1 USDT
+  await sendToken("COYN", testRecipient, "10"); // send 10 COYN
+  await sendToken("BNB", testRecipient, "0.001"); // send 0.001 BNB
+})();
