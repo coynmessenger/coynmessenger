@@ -53,13 +53,17 @@ Preferred communication style: Simple, everyday language.
 - Draggable call modals with persistence.
 
 ### Mobile Optimizations (Current Web App)
-- Touch-optimized interactions with 44px minimum touch targets
-- Mobile keyboard awareness with dynamic viewport height
-- iOS-specific optimizations (zoom prevention, safe area insets)
-- Touch scrolling optimizations and gesture handling
-- Mobile-first responsive design with 768px breakpoint
-- Enhanced microphone permission handling for mobile browsers
-- Consolidated authentication flow preventing race conditions
+- **Touch-optimized interactions** with 44px+ minimum touch targets
+- **Mobile keyboard awareness** with dynamic viewport height
+- **iOS-specific optimizations** (zoom prevention, safe area insets, visibility detection)
+- **Touch scrolling optimizations** and gesture handling with `touch-manipulation` CSS
+- **Mobile-first responsive design** with 768px breakpoint
+- **Enhanced microphone permission** handling for mobile browsers
+- **Consolidated authentication flow** preventing race conditions
+- **WalletConnect deep linking** for mobile wallet app connections
+- **Page Visibility API integration** for reliable wallet app return detection
+- **Multi-strategy wallet return handling** (storage events, focus, visibility)
+- **Active state styling** for better touch feedback on mobile devices
 
 ### UI/UX Decisions
 - Dark-themed interface with orange accents.
@@ -119,6 +123,7 @@ The application uses **Thirdweb SDK v5** for universal wallet support, eliminati
    - Uses `useActiveWallet()` hook to get connected wallet
    - Same code works for ALL wallets (no wallet-specific logic)
    - Thirdweb SDK automatically routes transactions to the connected wallet
+   - Mobile-optimized with proper deep linking for mobile wallet apps
 
 **Transaction Flow:**
 ```typescript
@@ -162,6 +167,8 @@ await sendTransaction({
 - ✅ **Connection Persistence**: AutoConnect maintains state across navigation
 - ✅ **No Vendor Lock-in**: Easy to add new wallets without code changes
 - ✅ **Type Safety**: Full TypeScript support with proper error handling
+- ✅ **Mobile-First**: WalletConnect deep linking for seamless mobile wallet integration
+- ✅ **Cross-Platform**: Works identically on desktop browsers and mobile devices
 
 ## Native Mobile App Requirements
 

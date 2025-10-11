@@ -132,13 +132,24 @@ export default function HomePage() {
       authCheckTimeout = setTimeout(checkAuthAndRedirect, 150);
     };
 
+    // Enhanced mobile support: Page Visibility API for iOS/Android wallet returns
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('📱 MOBILE: Page became visible (wallet app return), checking auth...');
+        clearTimeout(authCheckTimeout);
+        authCheckTimeout = setTimeout(checkAuthAndRedirect, 200);
+      }
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       clearTimeout(authCheckTimeout);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [setLocation]);
 
