@@ -23,6 +23,14 @@ export class EncryptedWebRTCSignaling {
   private socketUsers = new Map<string, string>(); // socketId -> userId
   private encryptionServices = new Map<string, SignalEncryptionService>(); // userId -> service
   private conversationRooms = new Map<string, Set<string>>(); // conversationId -> Set of socketIds
+  private verboseLogging = process.env.NODE_ENV === 'development'; // Enable detailed logs in development only
+
+  // Helper method for verbose logging
+  private log(...args: any[]) {
+    if (this.verboseLogging) {
+      console.log(...args);
+    }
+  }
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -169,23 +177,28 @@ export class EncryptedWebRTCSignaling {
       }) => {
         const callerId = this.socketUsers.get(socket.id);
         
-        console.log('\n');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('📞 CALL FLOW: [1/6] INITIATE-CALL EVENT RECEIVED');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('📞 Timestamp:', new Date().toISOString());
-        console.log('📞 Caller Socket ID:', socket.id);
-        console.log('📞 Caller User ID:', callerId);
-        console.log('📞 Target User ID:', data.targetUserId);
-        console.log('📞 Call ID:', data.callId);
-        console.log('📞 Call Type:', data.type);
-        console.log('📞 Offer Provided:', !!data.offer);
-        console.log('📞 Current Active User-Socket Mappings:');
-        this.userSockets.forEach((socketId, userId) => {
-          const socket = this.io.sockets.sockets.get(socketId);
-          const isConnected = socket?.connected ? '✅' : '❌';
-          console.log(`   ${isConnected} User ${userId} -> Socket ${socketId}`);
-        });
+        if (this.verboseLogging) {
+          console.log('\n');
+          console.log('════════════════════════════════════════════════════════');
+          console.log('📞 CALL FLOW: [1/6] INITIATE-CALL EVENT RECEIVED');
+          console.log('════════════════════════════════════════════════════════');
+          console.log('📞 Timestamp:', new Date().toISOString());
+          console.log('📞 Caller Socket ID:', socket.id);
+          console.log('📞 Caller User ID:', callerId);
+          console.log('📞 Target User ID:', data.targetUserId);
+          console.log('📞 Call ID:', data.callId);
+          console.log('📞 Call Type:', data.type);
+          console.log('📞 Offer Provided:', !!data.offer);
+          console.log('📞 Current Active User-Socket Mappings:');
+          this.userSockets.forEach((socketId, userId) => {
+            const socket = this.io.sockets.sockets.get(socketId);
+            const isConnected = socket?.connected ? '✅' : '❌';
+            console.log(`   ${isConnected} User ${userId} -> Socket ${socketId}`);
+          });
+        } else {
+          // Production: minimal logging
+          console.log(`📞 Call initiated: ${callerId} → ${data.targetUserId} (${data.type})`);
+        }
         
         // Validate caller authentication
         if (!callerId) {
@@ -195,13 +208,13 @@ export class EncryptedWebRTCSignaling {
           return;
         }
 
-        console.log('✅ CALL FLOW: Caller authenticated');
+        this.log('✅ CALL FLOW: Caller authenticated');
         
         // Lookup target socket
         const targetSocketId = this.userSockets.get(data.targetUserId);
-        console.log('\n📞 CALL FLOW: [2/6] TARGET SOCKET LOOKUP');
-        console.log('   Target User ID:', data.targetUserId);
-        console.log('   Target Socket ID:', targetSocketId || 'NOT FOUND');
+        this.log('\n📞 CALL FLOW: [2/6] TARGET SOCKET LOOKUP');
+        this.log('   Target User ID:', data.targetUserId);
+        this.log('   Target Socket ID:', targetSocketId || 'NOT FOUND');
         
         if (!targetSocketId) {
           console.error('❌ CALL FLOW: ERROR - Target user not found or not connected');
@@ -220,12 +233,12 @@ export class EncryptedWebRTCSignaling {
           return;
         }
         
-        console.log('✅ CALL FLOW: Target socket is connected and reachable');
+        this.log('✅ CALL FLOW: Target socket is connected and reachable');
         
         const callerEncryption = this.encryptionServices.get(callerId);
-        console.log('\n📞 CALL FLOW: [3/6] ENCRYPTION SETUP');
-        console.log('   Caller encryption available:', !!callerEncryption);
-        console.log('   Target encryption available:', !!this.encryptionServices.get(data.targetUserId));
+        this.log('\n📞 CALL FLOW: [3/6] ENCRYPTION SETUP');
+        this.log('   Caller encryption available:', !!callerEncryption);
+        this.log('   Target encryption available:', !!this.encryptionServices.get(data.targetUserId));
 
         if (targetSocketId && callerEncryption) {
           // Use the incoming callId from client to maintain synchronization
