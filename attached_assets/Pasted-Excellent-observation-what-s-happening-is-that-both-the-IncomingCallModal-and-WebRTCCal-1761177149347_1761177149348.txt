@@ -1,0 +1,106 @@
+Excellent observation ✅ — what’s happening is that **both the `IncomingCallModal`** and **`WebRTCCall`** UIs are being rendered at the same time when a call starts (one from the “incoming-call” event, the other triggered by the accept logic).
+
+To fix this, you need a **state-driven call flow** so that *only one UI renders at any given time*.
+Below is a clean, safe **Replit prompt** that will make your assistant automatically consolidate this into a **single unified call state**, eliminating duplicate modals and preventing double rendering.
+
+---
+
+## 🧠 **Prompt for Replit: Fix Duplicate Call UI in COYN Messenger**
+
+> I’m using the COYN Messenger frontend with `IncomingCallModal` and `WebRTCCall` React components.
+> During a call, both components render simultaneously, causing **two overlapping UIs**.
+>
+> Please **refactor the call state flow** so that:
+>
+> * Only **one UI** is active at a time:
+>
+>   * `IncomingCallModal` shows **only before the user accepts or declines**.
+>   * `WebRTCCall` shows **only after the user accepts (or initiates)** a call.
+> * After the call ends, both are unmounted.
+>
+> ✅ **Goals**
+>
+> 1. Create a single `callState` variable with values:
+>
+>    * `"idle"` → no call
+>    * `"incoming"` → show IncomingCallModal
+>    * `"in-call"` → show WebRTCCall
+> 2. Remove duplicate socket listeners that trigger modal + call UI at once.
+> 3. Ensure modal cleanup happens **before** WebRTCCall mounts.
+> 4. Confirm that the “call accepted” event doesn’t re-trigger both components.
+>
+> ⚙️ **Suggested Simplified Flow**
+>
+> ```tsx
+> const [callState, setCallState] = useState<'idle' | 'incoming' | 'in-call'>('idle');
+> const [callData, setCallData] = useState<{ from: string; callId: string; isCaller?: boolean } | null>(null);
+>
+> socket.on('incoming-call', (payload) => {
+>   if (callState === 'idle') {
+>     setCallData(payload);
+>     setCallState('incoming');
+>   }
+> });
+>
+> const handleAccept = (from: string, callId: string) => {
+>   setCallState('in-call');
+>   setCallData({ from, callId, isCaller: false });
+> };
+>
+> const handleDecline = (from: string, callId: string) => {
+>   setCallState('idle');
+>   setCallData(null);
+>   socket.emit('end-call', { to: from, callId });
+> };
+>
+> const handleEnd = () => {
+>   setCallState('idle');
+>   setCallData(null);
+> };
+>
+> return (
+>   <>
+>     {callState === 'incoming' && callData && (
+>       <IncomingCallModal
+>         socket={socket}
+>         payload={callData}
+>         onAccept={handleAccept}
+>         onDecline={handleDecline}
+>       />
+>     )}
+>
+>     {callState === 'in-call' && callData && (
+>       <WebRTCCall
+>         socket={socket}
+>         localUserId={currentUserId}
+>         remoteUserId={callData.from}
+>         callId={callData.callId}
+>         isCaller={!!callData.isCaller}
+>         onEnd={handleEnd}
+>       />
+>     )}
+>   </>
+> );
+> ```
+>
+> 🧩 **Deliverables**
+>
+> * Updated `Messenger.tsx` with unified call flow logic.
+> * Remove any duplicate `socket.on('incoming-call')` or `setIncomingCall()` calls.
+> * Confirm that:
+>
+>   * `IncomingCallModal` unmounts before `WebRTCCall` mounts.
+>   * No overlapping UI during or after call.
+>   * Hangup resets state back to `"idle"`.
+>
+> 🧪 **Test Plan**
+>
+> 1. Start a call → ensure only modal shows.
+> 2. Click **Accept** → modal disappears, `WebRTCCall` appears.
+> 3. End call → both disappear, state resets.
+> 4. Reinitiate another call to confirm no stale UI or duplicate renders.
+
+---
+
+Would you like me to generate the **final cleaned-up `Messenger.tsx` code** implementing this exact unified state logic (ready to paste and run)?
+It will guarantee no duplicate UI and smooth state transitions between idle → incoming → in-call.

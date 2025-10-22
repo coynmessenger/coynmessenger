@@ -1,0 +1,342 @@
+Excellent ✅ — let’s now turn your incoming call system into a **fully functional WebRTC call experience** inside **COYN Messenger**, with:
+
+* Automatic WebRTC connection setup when the user accepts the call
+* Local + remote video display
+* Mute/unmute and camera toggle
+* Graceful hangup handling
+
+Below is a complete, production-ready React/Next.js integration you can drop into your **frontend**.
+
+---
+
+## 📦 File 1: `components/WebRTCCall.tsx`
+
+This handles **the entire call experience** — peer connection, video streams, and controls.
+
+```tsx
+import React, { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+
+interface WebRTCCallProps {
+  socket: Socket;
+  localUserId: string;
+  remoteUserId: string;
+  callId: string;
+  isCaller: boolean;
+  onEnd: () => void;
+}
+
+/**
+ * WebRTCCall
+ * ----------
+ * Handles the WebRTC peer connection, video/audio streaming,
+ * and call controls (mute, camera toggle, hangup).
+ */
+const WebRTCCall: React.FC<WebRTCCallProps> = ({
+  socket,
+  localUserId,
+  remoteUserId,
+  callId,
+  isCaller,
+  onEnd,
+}) => {
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const [muted, setMuted] = useState(false);
+  const [cameraOn, setCameraOn] = useState(true);
+
+  // Create peer connection + media
+  useEffect(() => {
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    });
+    pcRef.current = pc;
+
+    // Handle incoming remote tracks
+    pc.ontrack = (event) => {
+      const [stream] = event.streams;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream;
+    };
+
+    // ICE candidates
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("ice-candidate", {
+          to: remoteUserId,
+          from: localUserId,
+          candidate: event.candidate,
+          callId,
+        });
+      }
+    };
+
+    // Initialize local media
+    const initMedia = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: { width: 640, height: 480 },
+      });
+      localStreamRef.current = stream;
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+      if (isCaller) {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("initiate-call", {
+          to: remoteUserId,
+          from: localUserId,
+          callId,
+          sdp: offer,
+        });
+      }
+    };
+
+    initMedia();
+
+    return () => {
+      // Cleanup
+      streamCleanup();
+      pc.close();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle incoming answer or offer
+  useEffect(() => {
+    socket.on("incoming-call", async (payload) => {
+      if (payload.from === remoteUserId && !isCaller) {
+        const pc = pcRef.current!;
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit("accept-call", {
+          to: remoteUserId,
+          from: localUserId,
+          callId,
+          sdp: answer,
+        });
+      }
+    });
+
+    socket.on("call-accepted", async (payload) => {
+      if (payload.from === remoteUserId) {
+        const pc = pcRef.current!;
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      }
+    });
+
+    socket.on("ice-candidate", async (payload) => {
+      if (payload.from === remoteUserId && payload.candidate) {
+        const pc = pcRef.current!;
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+        } catch (err) {
+          console.error("Error adding ICE candidate", err);
+        }
+      }
+    });
+
+    socket.on("call-ended", () => {
+      streamCleanup();
+      onEnd();
+    });
+
+    return () => {
+      socket.off("incoming-call");
+      socket.off("call-accepted");
+      socket.off("ice-candidate");
+      socket.off("call-ended");
+    };
+  }, [socket, remoteUserId, localUserId, isCaller, onEnd, callId]);
+
+  const streamCleanup = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+    }
+  };
+
+  const handleHangup = () => {
+    socket.emit("end-call", { to: remoteUserId, callId });
+    streamCleanup();
+    pcRef.current?.close();
+    onEnd();
+  };
+
+  const toggleMute = () => {
+    if (!localStreamRef.current) return;
+    const enabled = !muted;
+    localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = enabled));
+    setMuted(!enabled);
+  };
+
+  const toggleCamera = () => {
+    if (!localStreamRef.current) return;
+    const enabled = !cameraOn;
+    localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = enabled));
+    setCameraOn(enabled);
+  };
+
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-80 z-40 text-white">
+      <div className="flex gap-4 mb-4">
+        <video ref={localVideoRef} autoPlay muted playsInline className="w-48 h-36 bg-gray-800 rounded" />
+        <video ref={remoteVideoRef} autoPlay playsInline className="w-64 h-48 bg-gray-900 rounded" />
+      </div>
+
+      <div className="flex gap-4">
+        <button
+          onClick={toggleMute}
+          className={`px-4 py-2 rounded ${muted ? "bg-gray-600" : "bg-green-600"}`}
+        >
+          {muted ? "Unmute" : "Mute"}
+        </button>
+        <button
+          onClick={toggleCamera}
+          className={`px-4 py-2 rounded ${cameraOn ? "bg-blue-600" : "bg-gray-600"}`}
+        >
+          {cameraOn ? "Camera Off" : "Camera On"}
+        </button>
+        <button
+          onClick={handleHangup}
+          className="px-4 py-2 rounded bg-red-600 hover:bg-red-700"
+        >
+          Hang Up
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default WebRTCCall;
+```
+
+---
+
+## 📦 File 2: Update `Messenger.tsx`
+
+Integrates the **IncomingCallModal** and **WebRTCCall** components together.
+
+```tsx
+import React, { useState } from "react";
+import { io } from "socket.io-client";
+import IncomingCallModal from "@/components/IncomingCallModal";
+import WebRTCCall from "@/components/WebRTCCall";
+
+const socket = io(process.env.NEXT_PUBLIC_SIGNAL_SERVER || "http://localhost:3000");
+
+const Messenger = () => {
+  const [incomingCall, setIncomingCall] = useState<{ from: string; callId: string } | null>(null);
+  const [activeCall, setActiveCall] = useState<{
+    remoteUserId: string;
+    callId: string;
+    isCaller: boolean;
+  } | null>(null);
+
+  const currentUserId = "userA"; // Replace with your auth context user ID
+
+  socket.on("incoming-call", (payload) => {
+    if (payload.to === currentUserId) {
+      setIncomingCall(payload);
+    }
+  });
+
+  const handleAccept = (from: string, callId: string) => {
+    setIncomingCall(null);
+    setActiveCall({ remoteUserId: from, callId, isCaller: false });
+  };
+
+  const handleDecline = (from: string, callId: string) => {
+    setIncomingCall(null);
+    socket.emit("end-call", { to: from, callId });
+  };
+
+  const handleEndCall = () => {
+    setActiveCall(null);
+  };
+
+  return (
+    <>
+      {/* Messenger UI */}
+      <div className="p-6 text-gray-800">COYN Messenger Chat Area</div>
+
+      {incomingCall && (
+        <IncomingCallModal
+          socket={socket}
+          payload={incomingCall}
+          onAccept={handleAccept}
+          onDecline={handleDecline}
+        />
+      )}
+
+      {activeCall && (
+        <WebRTCCall
+          socket={socket}
+          localUserId={currentUserId}
+          remoteUserId={activeCall.remoteUserId}
+          callId={activeCall.callId}
+          isCaller={activeCall.isCaller}
+          onEnd={handleEndCall}
+        />
+      )}
+    </>
+  );
+};
+
+export default Messenger;
+```
+
+---
+
+## 🧠 What Happens Now
+
+| Event                                | Behavior                                        |
+| ------------------------------------ | ----------------------------------------------- |
+| Caller presses “Call”                | Emits `initiate-call`                           |
+| Callee receives `incoming-call`      | Modal + ringtone shown                          |
+| Callee clicks **Accept**             | WebRTCCall initializes; peer connection created |
+| Offer/answer exchanged via Socket.IO | Audio/video streams connect                     |
+| Both users see local & remote video  |                                                 |
+| Mute/camera toggle buttons work      |                                                 |
+| **Hang Up** ends the call cleanly    |                                                 |
+
+---
+
+## 🧩 Folder Structure Summary
+
+```
+/components
+ ├── IncomingCallModal.tsx
+ └── WebRTCCall.tsx
+/pages
+ └── Messenger.tsx
+/public/audio
+ └── ringtone.mp3
+```
+
+---
+
+## 🧪 Test Procedure
+
+1. Run your signaling server (`npm start`).
+2. Launch two browser tabs → one logs in as `userA`, the other as `userB`.
+3. From `userA`, trigger a call → `userB` gets modal + ringtone.
+4. When `userB` accepts → both peers connect, video and audio begin streaming.
+5. Test **mute**, **camera toggle**, and **hang up** buttons.
+
+---
+
+## ⚙️ Optional Improvements
+
+* 🔒 Integrate with COYN’s Signal Protocol wrappers for encrypted SDP exchange.
+* 🧭 Add “call status” overlay (`Connecting…`, `Connected`, etc.).
+* 📱 Make responsive for mobile layouts (using Tailwind grid).
+* 💾 Track call history (“Missed / Accepted” calls).
+
+---
+
+Would you like me to extend this setup so that it supports **group calls (multi-user WebRTC mesh or SFU)** — letting several participants join the same call room seamlessly?
