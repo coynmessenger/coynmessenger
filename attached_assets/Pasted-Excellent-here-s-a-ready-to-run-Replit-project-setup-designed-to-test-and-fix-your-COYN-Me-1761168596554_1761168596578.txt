@@ -1,0 +1,255 @@
+Excellent ✅ — here’s a **ready-to-run Replit project setup** designed to **test and fix your COYN Messenger’s WebRTC signaling flow**, specifically focusing on the **“incoming call not initiating”** issue.
+
+This includes:
+
+* a **test-ready Node.js + Socket.IO signaling server**
+* a **simulated caller and callee harness**
+* detailed **logging and diagnostics**
+* setup instructions
+
+---
+
+## 🧠 Project Name
+
+**COYN WebRTC Signaling Debugger**
+
+---
+
+## 🗂️ Project Structure
+
+```
+/project-root
+├── package.json
+├── server/
+│   └── webrtc-signaling.ts      # your existing signaling logic (copy here)
+├── test/
+│   └── simulate-calls.ts        # diagnostic client simulation
+└── replit.md                    # Replit AI prompt for debugging and fixes
+```
+
+---
+
+## 📦 package.json
+
+```json
+{
+  "name": "coyn-webrtc-debugger",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node server/webrtc-signaling.ts",
+    "test:simulate": "ts-node test/simulate-calls.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
+```
+
+---
+
+## 🧩 `server/webrtc-signaling.ts`
+
+This is a **diagnostic version** of your signaling server that logs all call-related events.
+
+If you already have this file, replace your event handlers with these extended logs (don’t remove your encryption logic — just wrap it with debug logs):
+
+```ts
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+interface ActiveCall {
+  callerId: string;
+  calleeId: string;
+  callId: string;
+}
+
+const activeCalls: Record<string, ActiveCall> = {};
+
+io.on('connection', (socket) => {
+  console.log(`[CONNECT] Socket ${socket.id} connected`);
+
+  socket.on('authenticate', (data) => {
+    socket.data.userId = data.userId;
+    socket.join(data.userId);
+    console.log(`[AUTH] ${socket.id} registered as ${data.userId}`);
+  });
+
+  socket.on('initiate-call', (payload) => {
+    console.log(`[CALL] ${socket.data.userId} initiating call to ${payload.to}`);
+    const target = payload.to;
+    const callId = payload.callId;
+
+    activeCalls[callId] = {
+      callerId: socket.data.userId,
+      calleeId: target,
+      callId
+    };
+
+    // Forward to callee
+    io.to(target).emit('incoming-call', {
+      from: socket.data.userId,
+      callId,
+      sdp: payload.sdp
+    });
+
+    console.log(`[FORWARD] Emitted incoming-call to ${target}`);
+  });
+
+  socket.on('accept-call', (payload) => {
+    console.log(`[ACCEPT] ${socket.data.userId} accepted call from ${payload.to}`);
+    io.to(payload.to).emit('call-accepted', {
+      from: socket.data.userId,
+      callId: payload.callId,
+      sdp: payload.sdp
+    });
+  });
+
+  socket.on('ice-candidate', (payload) => {
+    console.log(`[ICE] ${socket.data.userId} → ${payload.to}`);
+    io.to(payload.to).emit('ice-candidate', payload);
+  });
+
+  socket.on('end-call', (payload) => {
+    console.log(`[END] Call ${payload.callId} ended by ${socket.data.userId}`);
+    io.to(payload.to).emit('call-ended', payload);
+    delete activeCalls[payload.callId];
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`[DISCONNECT] Socket ${socket.id} (${socket.data.userId}) disconnected`);
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🛰️ Signaling server running on port ${PORT}`);
+});
+```
+
+---
+
+## 🧪 `test/simulate-calls.ts`
+
+This simulates two clients (User A and User B) connecting, authenticating, and exchanging call events.
+
+```ts
+import { io } from 'socket.io-client';
+
+const URL = 'http://localhost:3000';
+const caller = io(URL);
+const callee = io(URL);
+
+caller.on('connect', () => {
+  console.log('[CALLER] Connected', caller.id);
+  caller.emit('authenticate', { userId: 'userA' });
+
+  // Wait to ensure callee is ready
+  setTimeout(() => {
+    console.log('[CALLER] Initiating call to userB...');
+    caller.emit('initiate-call', {
+      to: 'userB',
+      sdp: 'fake-offer',
+      callId: Date.now().toString()
+    });
+  }, 1500);
+});
+
+callee.on('connect', () => {
+  console.log('[CALLEE] Connected', callee.id);
+  callee.emit('authenticate', { userId: 'userB' });
+
+  callee.on('incoming-call', (payload) => {
+    console.log('[CALLEE] Incoming call detected:', payload);
+    // Simulate acceptance
+    callee.emit('accept-call', {
+      to: 'userA',
+      sdp: 'fake-answer',
+      callId: payload.callId
+    });
+  });
+});
+
+caller.on('call-accepted', (payload) => {
+  console.log('[CALLER] Call accepted:', payload);
+});
+
+caller.on('ice-candidate', (data) => console.log('[CALLER] ICE from callee', data));
+callee.on('ice-candidate', (data) => console.log('[CALLEE] ICE from caller', data));
+
+caller.on('call-ended', (payload) => console.log('[CALLER] Call ended:', payload));
+callee.on('call-ended', (payload) => console.log('[CALLEE] Call ended:', payload));
+
+caller.onAny((event, ...args) => console.log('[CALLER EVENT]', event, args));
+callee.onAny((event, ...args) => console.log('[CALLEE EVENT]', event, args));
+```
+
+---
+
+## 🧭 `replit.md`
+
+Paste this prompt into your Replit AI panel to help it **analyze, test, and fix** the system:
+
+```markdown
+# Replit Debugging Prompt — COYN Messenger WebRTC Fix
+
+I’ve set up a test harness for COYN Messenger’s WebRTC signaling.
+The issue: **incoming calls aren’t triggering on the callee side**.
+
+Please do the following:
+1. Run the signaling server (`npm start`).
+2. In a new tab, run the test harness (`npm run test:simulate`).
+3. Observe console logs to confirm if `incoming-call` is emitted to userB.
+4. If not:
+   - Trace where `initiate-call` is handled inside `server/webrtc-signaling.ts`.
+   - Verify that `socket.join(userId)` correctly maps sockets to rooms.
+   - Ensure `io.to(targetUserId).emit('incoming-call', payload)` targets the right user room.
+   - Check if encryption wrappers block event forwarding.
+5. Fix or patch the event routing so the callee receives `incoming-call`.
+6. Re-run the simulation and confirm:
+   ✅ Caller sends `initiate-call`
+   ✅ Server forwards `incoming-call`
+   ✅ Callee receives and responds with `accept-call`
+   ✅ Offer/answer flow completes
+7. Summarize changes in `replit.md` after confirming fix.
+
+Keep the Signal Protocol encryption intact — only unwrap temporarily for debugging if required.
+```
+
+---
+
+## 🚀 How to Run in Replit
+
+1. Create a new Replit → import or paste this structure.
+2. Install dependencies:
+
+   ```
+   npm install
+   ```
+3. Run the signaling server:
+
+   ```
+   npm start
+   ```
+4. Open a new shell tab and run the simulation:
+
+   ```
+   npm run test:simulate
+   ```
+5. Watch logs in both tabs — if `incoming-call` doesn’t fire, the AI or you can trace and patch it using the verbose logs.
+
+---
+
+Would you like me to modify this setup to **interface directly with COYN’s live backend** (instead of localhost) so you can run the tests against your deployed signaling server too?
+That would let you debug production signaling without touching local dev code.
