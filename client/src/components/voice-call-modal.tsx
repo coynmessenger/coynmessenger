@@ -286,6 +286,16 @@ export default function VoiceCallModal({
               // Store the stream temporarily - we'll use it when user accepts
               incomingStreamRef.current = result.stream;
               setCallStatus("ringing"); // Now we can show ringing state
+              
+              // Add 30-second auto-timeout for incoming calls
+              setTimeout(() => {
+                if (callStatus === "ringing") {
+                  console.log('📞 INCOMING CALL: Call timeout - no answer after 30 seconds');
+                  ringtoneService.stopRingtone();
+                  setCallStatus("ended");
+                  setTimeout(() => onClose(), 1500);
+                }
+              }, 30000);
             } else {
               throw new Error(result.error?.message || 'Failed to get microphone access');
             }

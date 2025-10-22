@@ -1,0 +1,184 @@
+Perfect — that means your **signaling flow works** ✅ (the `incoming-call` event fires), but now you’re missing:
+
+* 🛎️ **A ringing mechanism** on the callee side
+* 📞 **Accept/Decline call buttons** (with functional handlers)
+* ⏹️ Optional auto-timeout if the call isn’t answered
+
+Below is a **complete Replit prompt** that instructs Replit AI (or any dev assistant) to implement those missing features safely in your **COYN Messenger frontend**.
+
+---
+
+## 🧠 **Prompt for Replit: Fix WebRTC Call UI – Ring + Accept/Decline**
+
+> I’m updating the **COYN Messenger** frontend to make the incoming call system fully interactive.
+>
+> **Current State:**
+>
+> * The `incoming-call` event fires successfully on the callee’s client.
+> * However, there’s no **ringing sound**, **visual notification**, or **Accept/Decline** buttons to respond.
+>
+> Please implement a **complete incoming call UI flow** with the following behavior and reusable code modules.
+>
+> ---
+>
+> ### ✅ **Goals**
+>
+> 1. Show an **incoming call popup/modal** when `socket.on('incoming-call')` fires.
+> 2. Include:
+>
+>    * Caller’s name or ID (from event payload: `payload.from`)
+>    * A ringing tone that loops until answered or declined
+>    * Two buttons:
+>
+>      * **Accept** → triggers `socket.emit('accept-call', { to, callId, sdp })`
+>      * **Decline** → triggers `socket.emit('end-call', { to, callId })` and stops ringing
+> 3. If no response after 30 seconds, auto-decline and stop ringing.
+> 4. Ensure answering the call triggers the WebRTC offer/answer flow (integrate with your existing peer connection setup).
+> 5. Handle ring tone playback using an `<audio>` element or Audio API.
+> 6. On call acceptance, hide the modal and switch to the in-call UI (existing video/audio elements).
+> 7. Preserve accessibility and responsiveness (mobile and desktop).
+>
+> ---
+>
+> ### 🧩 **Frontend Components to Implement**
+>
+> #### 🔔 `IncomingCallModal.js` (or `.ts`)
+>
+> * Renders caller info, buttons, and manages ring tone playback.
+> * Accept button emits `accept-call` with the proper payload.
+> * Decline button emits `end-call`.
+> * Auto-dismisses on timeout.
+>
+> #### 🪄 `ringtone.mp3`
+>
+> * Simple looping sound in `/public/audio/` (or use an online sound for testing).
+> * Example: [https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg](https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg)
+>
+> #### 🎛️ Hook into your WebRTC client:
+>
+> ```js
+> socket.on('incoming-call', (payload) => {
+>   showIncomingCallModal(payload);
+> });
+> ```
+>
+> #### 🧠 Example Implementation Outline:
+>
+> ```js
+> // incoming-call handler
+> import ringtone from '/public/audio/ringtone.mp3';
+>
+> function showIncomingCallModal({ from, callId }) {
+>   const modal = document.createElement('div');
+>   modal.className = 'incoming-call-modal';
+>   modal.innerHTML = `
+>     <div class="incoming-call-content">
+>       <p>📞 Incoming call from <strong>${from}</strong></p>
+>       <div class="buttons">
+>         <button id="acceptBtn">Accept</button>
+>         <button id="declineBtn">Decline</button>
+>       </div>
+>     </div>`;
+>   document.body.appendChild(modal);
+>
+>   const ring = new Audio(ringtone);
+>   ring.loop = true;
+>   ring.play().catch(console.warn);
+>
+>   const cleanup = () => {
+>     ring.pause();
+>     ring.currentTime = 0;
+>     modal.remove();
+>   };
+>
+>   document.getElementById('acceptBtn').onclick = async () => {
+>     cleanup();
+>     socket.emit('accept-call', { to: from, callId });
+>     // trigger peer connection setup here (start WebRTC)
+>   };
+>
+>   document.getElementById('declineBtn').onclick = () => {
+>     cleanup();
+>     socket.emit('end-call', { to: from, callId });
+>   };
+>
+>   setTimeout(() => {
+>     console.log('Call timed out');
+>     cleanup();
+>     socket.emit('end-call', { to: from, callId });
+>   }, 30000); // 30s timeout
+> }
+> ```
+>
+> ---
+>
+> ### 🎨 **CSS (add in your app styles)**
+>
+> ```css
+> .incoming-call-modal {
+>   position: fixed;
+>   top: 0;
+>   left: 0;
+>   width: 100%;
+>   height: 100%;
+>   background: rgba(0, 0, 0, 0.7);
+>   display: flex;
+>   align-items: center;
+>   justify-content: center;
+>   z-index: 9999;
+> }
+>
+> .incoming-call-content {
+>   background: white;
+>   padding: 20px 30px;
+>   border-radius: 12px;
+>   text-align: center;
+>   font-size: 18px;
+>   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+> }
+>
+> .incoming-call-content .buttons {
+>   margin-top: 15px;
+>   display: flex;
+>   justify-content: center;
+>   gap: 10px;
+> }
+>
+> .incoming-call-content button {
+>   font-size: 16px;
+>   padding: 10px 16px;
+>   border-radius: 6px;
+>   cursor: pointer;
+> }
+>
+> #acceptBtn { background: #28a745; color: white; }
+> #declineBtn { background: #dc3545; color: white; }
+> ```
+>
+> ---
+>
+> ### 🧰 **Test Plan**
+>
+> 1. Start the signaling server (`npm start`).
+> 2. Run the simulator or open two browsers (User A & User B).
+> 3. User A calls User B → confirm:
+>
+>    * Ring tone plays
+>    * Modal appears with buttons
+>    * Clicking **Accept** connects the call
+>    * Clicking **Decline** ends it
+>    * Timeout auto-declines after 30 seconds
+> 4. Ensure no errors in console.
+>
+> ---
+>
+> ### 💡 **Bonus Enhancements**
+>
+> * Add call duration display and “Missed Call” notification.
+> * Allow custom ringtones per user.
+> * Add push notifications when app is minimized.
+
+---
+
+Would you like me to generate the **actual React/Next.js component version** of this (`IncomingCallModal.tsx` with hooks, state, and context integration for COYN Messenger)?
+That version can drop right into your current frontend repo and link with your WebRTC logic automatically.

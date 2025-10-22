@@ -1,0 +1,244 @@
+Perfect — here’s a **production-ready React/Next.js component** that drops directly into **COYN Messenger’s frontend** to handle incoming call notifications, ringing, and accept/decline logic.
+
+It’s written in **TypeScript**, built to integrate with your existing **WebRTC + Socket.IO signaling**, and styled with clean CSS (or Tailwind-compatible classes).
+
+---
+
+## 📦 File: `components/IncomingCallModal.tsx`
+
+```tsx
+import React, { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+
+interface IncomingCallModalProps {
+  socket: Socket;
+  payload: {
+    from: string;
+    callId: string;
+  };
+  onAccept: (from: string, callId: string) => void;
+  onDecline?: (from: string, callId: string) => void;
+}
+
+/**
+ * IncomingCallModal
+ * -----------------
+ * Displays a modal popup when a call arrives.
+ * Plays a ringtone loop until accepted, declined, or timeout.
+ * Integrates directly with COYN Messenger’s WebRTC flow.
+ */
+const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
+  socket,
+  payload,
+  onAccept,
+  onDecline,
+}) => {
+  const [visible, setVisible] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(30); // 30s timeout
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Start ringtone
+    const audio = new Audio("/audio/ringtone.mp3");
+    audio.loop = true;
+    audioRef.current = audio;
+    audio.play().catch(() => console.warn("Ringtone autoplay blocked"));
+
+    // Countdown + auto-decline timer
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleDecline();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAccept = () => {
+    cleanup();
+    socket.emit("accept-call", { to: payload.from, callId: payload.callId });
+    onAccept(payload.from, payload.callId);
+  };
+
+  const handleDecline = () => {
+    cleanup();
+    socket.emit("end-call", { to: payload.from, callId: payload.callId });
+    onDecline?.(payload.from, payload.callId);
+  };
+
+  const cleanup = () => {
+    setVisible(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-xl shadow-lg text-center w-[90%] max-w-sm">
+        <p className="text-lg font-semibold mb-2">
+          📞 Incoming call from <span className="text-indigo-600">{payload.from}</span>
+        </p>
+        <p className="text-sm text-gray-500 mb-4">
+          Auto-declining in {timeLeft}s
+        </p>
+        <div className="flex justify-center gap-4">
+          <button
+            className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition"
+            onClick={handleAccept}
+          >
+            Accept
+          </button>
+          <button
+            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition"
+            onClick={handleDecline}
+          >
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default IncomingCallModal;
+```
+
+---
+
+## 🎧 Add a Ringtone File
+
+Place your ringtone under:
+
+```
+/public/audio/ringtone.mp3
+```
+
+For quick testing, you can use this free tone:
+[Google Phone Ring Sample](https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg)
+
+Rename it to `ringtone.mp3`.
+
+---
+
+## 🧩 Integration Example
+
+Add this logic in your **WebRTC or Socket listener component**, e.g., `WebRTCProvider.tsx` or `Messenger.tsx`.
+
+```tsx
+import React, { useState } from "react";
+import { io } from "socket.io-client";
+import IncomingCallModal from "@/components/IncomingCallModal";
+
+const socket = io(process.env.NEXT_PUBLIC_SIGNAL_SERVER || "http://localhost:3000");
+
+const Messenger = () => {
+  const [incomingCall, setIncomingCall] = useState<{ from: string; callId: string } | null>(null);
+
+  // Listen for incoming calls
+  socket.on("incoming-call", (payload) => {
+    console.log("📞 Incoming call event:", payload);
+    setIncomingCall(payload);
+  });
+
+  const handleAccept = (from: string, callId: string) => {
+    console.log(`✅ Call accepted from ${from}`);
+    // Start your WebRTC peer connection setup here
+    // For example:
+    // webRTCClient.acceptIncomingCall(from, callId);
+  };
+
+  const handleDecline = (from: string, callId: string) => {
+    console.log(`❌ Call declined from ${from}`);
+    setIncomingCall(null);
+  };
+
+  return (
+    <>
+      {/* Your existing Messenger UI */}
+      <div className="p-6">COYN Messenger Interface</div>
+
+      {/* Show incoming call modal when applicable */}
+      {incomingCall && (
+        <IncomingCallModal
+          socket={socket}
+          payload={incomingCall}
+          onAccept={handleAccept}
+          onDecline={handleDecline}
+        />
+      )}
+    </>
+  );
+};
+
+export default Messenger;
+```
+
+---
+
+## 🎨 Tailwind CSS (if used)
+
+You can use Tailwind (as above) or add this to your CSS:
+
+```css
+.fixed {
+  position: fixed;
+}
+.bg-black {
+  background: rgba(0, 0, 0, 0.6);
+}
+.rounded-xl {
+  border-radius: 12px;
+}
+```
+
+---
+
+## 🧪 Testing Steps
+
+1. Run your signaling server (`npm start` or Replit run).
+2. Open two browser tabs (User A and User B).
+3. Log each user into COYN Messenger.
+4. User A starts a call → User B should see:
+   ✅ A modal with “Accept / Decline” buttons
+   ✅ A ringtone playing in loop
+   ✅ Countdown to auto-decline
+5. Click **Accept** → start the WebRTC offer/answer flow.
+6. Click **Decline** → stop ringing and close the modal.
+
+---
+
+## 🧰 Optional Enhancements
+
+* 🔕 **Add vibration** for mobile devices:
+
+  ```js
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  ```
+
+* 🕓 **Show missed call** notification if timed out.
+
+* 🎨 **Add caller avatar** (fetch from your user profile API).
+
+* 🎚️ **Volume control** for ringtone.
+
+---
+
+Would you like me to extend this so that when the user **accepts the call**, it automatically initializes the **WebRTC peer connection** and displays both **local and remote video elements** (with mute/camera toggle)?
+That would make this a complete plug-and-play calling feature for COYN Messenger.
