@@ -1,0 +1,85 @@
+I’m working on the COYN Messenger project. The backend already has an advanced WebRTC signaling system in server/webrtc-signaling.ts, using encrypted signaling events like:
+
+authenticate
+
+initiate-call
+
+accept-call
+
+ice-candidate
+
+end-call
+
+However, incoming calls are not initiating correctly — the callee never receives the incoming call notification or offer.
+
+Please test, trace, and fix this behavior while preserving existing encryption and call-tracking logic.
+
+✅ Goals:
+
+Verify that initiate-call events are emitted and reach the target socket.
+
+Ensure that the callee’s listener (socket.on('incoming-call') or equivalent) is properly triggered.
+
+Confirm that accept-call sends a valid WebRTC offer or answer payload to the caller.
+
+Log and display call flow stages:
+
+Caller emits initiate-call
+
+Server forwards incoming-call
+
+Callee responds with accept-call
+
+Offer/answer exchange completes
+
+Ensure cleanup (end-call) still works.
+
+🧩 Testing Plan:
+
+Create two simulated users (User A = caller, User B = callee).
+
+Each connects to the Socket.IO signaling server using the same auth process.
+
+Trigger initiate-call from User A → check if User B receives an incoming call event.
+
+If not, trace the server’s initiate-call event listener in server/webrtc-signaling.ts:
+
+Verify that socket.to(targetUserId).emit('incoming-call', payload) (or similar) executes.
+
+Ensure targetUserId matches the socket room or ID of the callee.
+
+Add verbose logging for:
+
+initiate-call
+
+incoming-call
+
+accept-call
+
+ice-candidate
+
+end-call
+
+Test with and without encryption wrappers to isolate possible crypto issues.
+
+🔍 Expected Outcome:
+
+When User A initiates a call, User B should immediately receive an incoming-call event with caller metadata (callerId, conversationId, etc.).
+
+When User B accepts, signaling proceeds to accept-call, followed by WebRTC offer/answer exchange.
+
+⚙️ Deliverables:
+
+Updated server/webrtc-signaling.ts (with improved call flow logging and fixed event routing).
+
+Optional: small test harness (test/webrtc-simulate.ts) to emulate two users and print logs of the signaling flow.
+
+Summary of what was fixed or re-routed.
+
+🚀 Extra context:
+
+Keep Signal Protocol encryption intact — only wrap or unwrap messages for testing if necessary.
+
+Maintain activeCallMap or equivalent tracking structure.
+
+Don’t refactor the crypto or authentication layers unless they block signaling.
