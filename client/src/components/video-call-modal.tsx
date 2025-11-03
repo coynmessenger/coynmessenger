@@ -37,6 +37,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
   
   // Prevent multiple call initiations
   const callInitiatedRef = useRef(false);
@@ -168,6 +169,19 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           },
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
+          },
+          onRemoteStream: (stream) => {
+            console.log('📹 VIDEO CALL: Received remote stream');
+            if (remoteAudioRef.current) {
+              remoteAudioRef.current.srcObject = stream;
+              remoteAudioRef.current.play()
+                .then(() => {
+                  console.log('✅ VIDEO CALL: Remote audio playback started successfully');
+                })
+                .catch(err => {
+                  console.error('❌ VIDEO CALL: Remote audio playback failed:', err);
+                });
+            }
           }
         });
       }
@@ -858,44 +872,16 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               </Button>
             </div>
           )}
-
-          {/* In-Call Controls */}
-          {callStatus === "connected" && (
-            <div className="flex justify-center space-x-6">
-              <Button
-                onClick={() => {
-                  console.log('🔇 TOGGLE VIDEO MUTE');
-                  // TODO: Implement video mute toggle
-                }}
-                className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Toggle Video"
-              >
-                <Video className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={() => {
-                  console.log('🔇 TOGGLE SPEAKER');
-                  // TODO: Implement speaker toggle
-                }}
-                className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Speaker"
-              >
-                <Volume2 className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={() => {
-                  console.log('📞 HANG UP VIDEO CALL');
-                  handleEndCall();
-                }}
-                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Hang Up"
-              >
-                <PhoneOff className="h-8 w-8" />
-              </Button>
-            </div>
-          )}
         </div>
       </DialogContent>
+      
+      {/* Hidden audio element for remote stream */}
+      <audio 
+        ref={remoteAudioRef} 
+        autoPlay 
+        playsInline
+        style={{ display: 'none' }}
+      />
     </Dialog>
   );
 }
