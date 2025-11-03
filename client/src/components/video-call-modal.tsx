@@ -7,6 +7,7 @@ import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
+import { ringtoneService } from "@/lib/ringtone-service";
 import type { User } from "@shared/schema";
 
 interface VideoCallModalProps {
@@ -195,6 +196,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
 
   useEffect(() => {
     if (!isOpen) {
+      // Stop ringtone when modal closes
+      ringtoneService.stopRingtone();
+      
       // Only reset if call is not active (completely ending the call)
       if (!isCallActive) {
         setCallStatus("connecting");
@@ -271,6 +275,15 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       // For incoming calls, set to ringing immediately
       setCallStatus("ringing");
       
+      // Start ringtone for incoming video call
+      ringtoneService.startRingtone()
+        .then(() => {
+          console.log('🔔 VIDEO CALL: Ringtone started for incoming call');
+        })
+        .catch(err => {
+          console.warn('🔕 VIDEO CALL: Ringtone autoplay blocked:', err);
+        });
+      
       // Show notification for incoming video calls
       if (user) {
         const callerName = user.displayName || user.signInName || `@${user.walletAddress?.slice(-6)}` || user.username || "Unknown";
@@ -305,6 +318,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     console.log('🎯 VIDEO ACCEPT BUTTON CLICKED');
     console.log('🆔 Encrypted Call ID:', encryptedCallId);
     console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
+    
+    // Stop ringtone when accepting call
+    ringtoneService.stopRingtone();
     
     if (encryptedCallId && webrtcService.current) {
       try {
@@ -416,6 +432,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   };
 
   const handleEndCall = () => {
+    // Stop ringtone when ending/declining call
+    ringtoneService.stopRingtone();
+    
     if (encryptedCallId && webrtcService.current) {
       webrtcService.current.endCall(encryptedCallId);
     }
