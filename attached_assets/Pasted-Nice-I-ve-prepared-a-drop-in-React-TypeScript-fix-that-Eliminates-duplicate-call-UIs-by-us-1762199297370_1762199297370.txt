@@ -1,0 +1,515 @@
+Nice — I’ve prepared a **drop-in React/TypeScript fix** that:
+
+* Eliminates duplicate call UIs by using a *single `callState`*
+* Ensures the **callee adds local tracks before creating / sending the answer** so audio/video are actually transmitted
+* Centralizes socket handling to avoid double listeners
+* Adds helpful logs and cleans up listeners & media on hangup
+
+You can paste these three components into your Next.js / React frontend. They’re written to be compatible with the previous components you used (IncomingCallModal + WebRTCCall) but redesigned so *only one* shows at a time and the negotiation order is correct.
+
+---
+
+## 1) `components/Messenger.tsx` — unified call state & socket handlers
+
+```tsx
+// components/Messenger.tsx
+import React, { useEffect, useState, useRef } from "react";
+import { io, Socket } from "socket.io-client";
+import IncomingCallModal from "./IncomingCallModal";
+import WebRTCCall from "./WebRTCCall";
+
+type CallState = "idle" | "outgoing" | "incoming" | "in-call";
+
+interface CallData {
+  callId: string;
+  from: string; // remote user id (caller for incoming; callee for outgoing)
+  sdp?: any; // offer SDP (for incoming)
+  isCaller?: boolean;
+}
+
+const SIGNALING_URL = process.env.NEXT_PUBLIC_SIGNAL_SERVER || "http://localhost:3000";
+
+const Messenger: React.FC<{ currentUserId: string }> = ({ currentUserId }) => {
+  const [callState, setCallState] = useState<CallState>("idle");
+  const [callData, setCallData] = useState<CallData | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const socket = io(SIGNALING_URL, { autoConnect: true });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("[socket] connected", socket.id);
+      // register authenticated user id on socket
+      socket.emit("authenticate", { userId: currentUserId });
+    });
+
+    // Single incoming-call handler
+    socket.on("incoming-call", (payload: { from: string; callId: string; sdp?: any }) => {
+      console.log("[socket] incoming-call", payload);
+      // only accept if idle
+      if (callState === "idle") {
+        setCallData({ callId: payload.callId, from: payload.from, sdp: payload.sdp, isCaller: false });
+        setCallState("incoming");
+      } else {
+        // Optionally notify caller that callee is busy
+        socket.emit("end-call", { to: payload.from, callId: payload.callId, reason: "busy" });
+      }
+    });
+
+    // When the server notifies that call was accepted (for the caller)
+    socket.on("call-accepted", (payload: { from: string; callId: string; sdp: any }) => {
+      console.log("[socket] call-accepted", payload);
+      // Caller should be in outgoing state
+      if (callState === "outgoing" && callData?.callId === payload.callId) {
+        // update callData and move into in-call
+        setCallData((prev) => prev ? ({ ...prev, sdp: payload.sdp }) : { callId: payload.callId, from: payload.from, sdp: payload.sdp, isCaller: true });
+        setCallState("in-call");
+      }
+    });
+
+    // If the server tells us the call ended
+    socket.on("call-ended", (payload: { callId: string; from?: string }) => {
+      console.log("[socket] call-ended", payload);
+      // Reset UI
+      setCallState("idle");
+      setCallData(null);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("incoming-call");
+      socket.off("call-accepted");
+      socket.off("call-ended");
+      socket.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId, callState, callData?.callId]); // callState in deps so incoming-call check is fresh
+
+  // Caller initiates outgoing call
+  const initiateCall = (targetUserId: string) => {
+    if (!socketRef.current) return;
+    const callId = Date.now().toString();
+    setCallData({ callId, from: targetUserId, isCaller: true });
+    setCallState("outgoing");
+    // WebRTCCall will create the offer and emit `initiate-call` itself on mount (isCaller=true)
+  };
+
+  const handleAccept = (from: string, callId: string) => {
+    // From incoming modal accept: mount WebRTCCall in callee role
+    setCallState("in-call");
+    setCallData({ callId, from, isCaller: false, sdp: callData?.sdp }); // sdp exists on incoming
+  };
+
+  const handleDecline = (from: string, callId: string) => {
+    if (!socketRef.current) return;
+    socketRef.current.emit("end-call", { to: from, callId });
+    setCallState("idle");
+    setCallData(null);
+  };
+
+  const handleEnd = () => {
+    setCallState("idle");
+    setCallData(null);
+  };
+
+  return (
+    <div>
+      {/* Your normal messenger UI here */}
+      <div className="p-4">COYN Messenger content</div>
+
+      {/* Incoming modal only during incoming state */}
+      {callState === "incoming" && callData && (
+        <IncomingCallModal
+          socket={socketRef.current!}
+          payload={{ from: callData.from, callId: callData.callId }}
+          onAccept={handleAccept}
+          onDecline={handleDecline}
+        />
+      )}
+
+      {/* WebRTC call UI only when in-call or when outgoing (to show dialing UI) */}
+      {(callState === "in-call" || callState === "outgoing") && callData && (
+        <WebRTCCall
+          socket={socketRef.current!}
+          localUserId={currentUserId}
+          remoteUserId={callData.from}
+          callId={callData.callId}
+          isCaller={!!callData.isCaller}
+          remoteOffer={callData.sdp} // for callee this contains the caller's offer
+          onEnd={handleEnd}
+        />
+      )}
+
+      {/* Example: call button to test outgoing */}
+      <div style={{ position: "fixed", right: 20, bottom: 20 }}>
+        <button
+          onClick={() => initiateCall("userB")}
+          style={{ padding: "8px 12px", background: "#0b74de", color: "#fff", borderRadius: 8 }}
+        >
+          Call userB (test)
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Messenger;
+```
+
+---
+
+## 2) `components/IncomingCallModal.tsx` — unchanged UI but ensured to call accept only once
+
+```tsx
+// components/IncomingCallModal.tsx
+import React, { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+
+interface Props {
+  socket: Socket;
+  payload: { from: string; callId: string };
+  onAccept: (from: string, callId: string) => void;
+  onDecline?: (from: string, callId: string) => void;
+}
+
+const IncomingCallModal: React.FC<Props> = ({ socket, payload, onAccept, onDecline }) => {
+  const [timeLeft, setTimeLeft] = useState(30);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const acceptedRef = useRef(false);
+
+  useEffect(() => {
+    // Try to play ringtone; browsers may block autoplay.
+    audioRef.current = new Audio("/audio/ringtone.mp3");
+    audioRef.current.loop = true;
+    audioRef.current.play().catch(() => console.warn("Autoplay blocked - ringtone suppressed"));
+
+    const t = setInterval(() => {
+      setTimeLeft((s) => {
+        if (s <= 1) {
+          // auto-decline
+          handleDecline();
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => {
+      t && clearInterval(t);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const cleanup = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
+  const handleAccept = () => {
+    if (acceptedRef.current) return;
+    acceptedRef.current = true;
+    cleanup();
+    onAccept(payload.from, payload.callId);
+  };
+
+  const handleDecline = () => {
+    cleanup();
+    onDecline?.(payload.from, payload.callId);
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.6)", zIndex: 9999
+    }}>
+      <div style={{ background: "white", padding: 24, borderRadius: 12, width: 320, textAlign: "center" }}>
+        <h3>Incoming call</h3>
+        <p style={{ fontWeight: 600 }}>{payload.from}</p>
+        <p style={{ color: "#666" }}>Auto-decline in {timeLeft}s</p>
+        <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center" }}>
+          <button onClick={handleAccept} style={{ padding: "8px 14px", background: "#28a745", color: "#fff", borderRadius: 8 }}>Accept</button>
+          <button onClick={handleDecline} style={{ padding: "8px 14px", background: "#dc3545", color: "#fff", borderRadius: 8 }}>Decline</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default IncomingCallModal;
+```
+
+---
+
+## 3) `components/WebRTCCall.tsx` — corrected negotiation order & cleanup
+
+This is the important file. It ensures:
+
+* `getUserMedia()` runs, local tracks are added to the `RTCPeerConnection` **before** creating/setting local SDP.
+* If `isCaller` → createOffer → setLocalDescription → emit `initiate-call` with sdp.
+* If callee (not `isCaller`) → setRemoteDescription(offer received via `remoteOffer` prop) **before** creating answer; but only AFTER adding local tracks — that ensures tracks are included and transmitted.
+* Proper handling of `call-accepted` arriving for caller, and `ice-candidate` exchange.
+* Proper cleanup and removal of socket listeners.
+
+```tsx
+// components/WebRTCCall.tsx
+import React, { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+
+interface Props {
+  socket: Socket;
+  localUserId: string;
+  remoteUserId: string;
+  callId: string;
+  isCaller: boolean;
+  remoteOffer?: any; // incoming offer SDP (for callee)
+  onEnd: () => void;
+}
+
+const WebRTCCall: React.FC<Props> = ({ socket, localUserId, remoteUserId, callId, isCaller, remoteOffer, onEnd }) => {
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    pcRef.current = pc;
+
+    pc.ontrack = (ev) => {
+      console.log("[pc] ontrack", ev.streams);
+      const s = ev.streams && ev.streams[0];
+      if (remoteVideoRef.current && s) {
+        remoteVideoRef.current.srcObject = s;
+        // try autoplay (should be user gesture if accepted)
+        remoteVideoRef.current.play().catch(() => console.warn("remote video autoplay blocked"));
+      }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log("[pc] iceConnectionState", pc.iceConnectionState);
+      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+        setConnected(true);
+      }
+      if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
+        setConnected(false);
+      }
+    };
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        console.log("[pc] sending ice-candidate to", remoteUserId);
+        socket.emit("ice-candidate", { to: remoteUserId, from: localUserId, candidate: event.candidate, callId });
+      }
+    };
+
+    // Acquire local media and add tracks BEFORE SDP exchange
+    const prepareLocalMediaAndNegotiate = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        localStreamRef.current = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.muted = true;
+          // try to play local preview (user gesture may be required)
+          localVideoRef.current.play().catch(() => {});
+        }
+
+        // add local tracks to pc
+        stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+        console.log("[pc] local tracks added");
+
+        if (isCaller) {
+          // create offer and emit to callee
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          console.log("[pc] created offer, emitting initiate-call");
+          socket.emit("initiate-call", { to: remoteUserId, from: localUserId, callId, sdp: pc.localDescription });
+        } else {
+          // callee flow: we should already have remoteOffer prop
+          if (!remoteOffer) {
+            console.warn("No remoteOffer provided to callee - cannot answer");
+            return;
+          }
+          // first set remote offer
+          await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+          console.log("[pc] remote offer set on callee");
+          // then create answer
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          console.log("[pc] created answer, emitting accept-call");
+          socket.emit("accept-call", { to: remoteUserId, from: localUserId, callId, sdp: pc.localDescription });
+        }
+      } catch (err) {
+        console.error("Error preparing media or negotiating", err);
+      }
+    };
+
+    prepareLocalMediaAndNegotiate();
+
+    // socket event handlers (listen only for the events relevant to this call)
+    const onCallAccepted = async (payload: { from: string; callId: string; sdp: any }) => {
+      if (payload.callId !== callId) return;
+      console.log("[socket] call-accepted received", payload);
+      if (payload.sdp && pcRef.current) {
+        try {
+          await pcRef.current.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+          console.log("[pc] caller setRemoteDescription(answer)");
+        } catch (err) {
+          console.error("Error setting remote description on call-accepted", err);
+        }
+      }
+    };
+
+    const onIceCandidate = async (payload: { from: string; callId: string; candidate: any }) => {
+      if (payload.callId !== callId) return;
+      if (!payload.candidate || !pcRef.current) return;
+      try {
+        await pcRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate));
+      } catch (err) {
+        console.warn("Failed to add remote ICE candidate", err);
+      }
+    };
+
+    const onCallEnded = (payload: { callId: string }) => {
+      if (payload.callId !== callId) return;
+      cleanupAndFinish();
+    };
+
+    socket.on("call-accepted", onCallAccepted);
+    socket.on("ice-candidate", onIceCandidate);
+    socket.on("call-ended", onCallEnded);
+
+    const cleanupAndFinish = () => {
+      try {
+        if (pcRef.current) {
+          pcRef.current.close();
+          pcRef.current = null;
+        }
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach((t) => t.stop());
+          localStreamRef.current = null;
+        }
+      } catch (e) {
+        console.warn("Error during cleanup", e);
+      }
+      onEnd();
+    };
+
+    // cleanup on unmount
+    return () => {
+      socket.off("call-accepted", onCallAccepted);
+      socket.off("ice-candidate", onIceCandidate);
+      socket.off("call-ended", onCallEnded);
+      // close pc and stop streams
+      try {
+        if (pcRef.current) {
+          pcRef.current.close();
+          pcRef.current = null;
+        }
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach((t) => t.stop());
+          localStreamRef.current = null;
+        }
+      } catch (e) {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run only once on mount
+
+  const handleHangup = () => {
+    console.log("Hanging up call", callId);
+    socket.emit("end-call", { to: remoteUserId, callId });
+    // cleanup will trigger on call-ended or unmount
+    if (pcRef.current) {
+      try { pcRef.current.close(); } catch (e) {}
+      pcRef.current = null;
+    }
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+    }
+    onEnd();
+  };
+
+  const toggleMute = () => {
+    if (!localStreamRef.current) return;
+    const audioTracks = localStreamRef.current.getAudioTracks();
+    audioTracks.forEach((t) => (t.enabled = !t.enabled));
+  };
+
+  const toggleCamera = () => {
+    if (!localStreamRef.current) return;
+    const videoTracks = localStreamRef.current.getVideoTracks();
+    videoTracks.forEach((t) => (t.enabled = !t.enabled));
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)" }}>
+      <div style={{ background: "#111", padding: 16, borderRadius: 12, color: "#fff", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+          <video ref={localVideoRef} autoPlay playsInline muted style={{ width: 160, height: 120, background: "#333", borderRadius: 8 }} />
+          <video ref={remoteVideoRef} autoPlay playsInline style={{ width: 240, height: 180, background: "#000", borderRadius: 8 }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={toggleMute} style={{ padding: "8px 12px", borderRadius: 8 }}>Mute</button>
+          <button onClick={toggleCamera} style={{ padding: "8px 12px", borderRadius: 8 }}>Toggle Cam</button>
+          <button onClick={handleHangup} style={{ padding: "8px 12px", borderRadius: 8, background: "red", color: "#fff" }}>Hang Up</button>
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <small>{connected ? "Connected" : isCaller ? "Dialing..." : "Connecting..."}</small>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WebRTCCall;
+```
+
+---
+
+## Why this solves your two problems
+
+1. **No duplicate UIs** — `Messenger.tsx` uses one `callState` and only mounts `IncomingCallModal` when `callState === 'incoming'`. `WebRTCCall` is mounted only when `callState === 'in-call'` *or* `'outgoing'` for the caller. That eliminates overlap.
+
+2. **Audio missing** — negotiation order is corrected:
+
+   * Local tracks are added to the `RTCPeerConnection` **before** creating the offer (caller) or creating the answer (callee).
+   * The callee sets the remote description (offer) first and only then creates the answer, making sure their local tracks are included in the answer so both sides receive RTP.
+
+3. **No double listeners** — socket listeners are centralized in `Messenger.tsx` for incoming-call/call-accepted/call-ended. `WebRTCCall` adds minimal listeners scoped to the call and removes them on unmount.
+
+---
+
+## Quick Testing Checklist
+
+1. Deploy the new components, replace your current Messenger wiring with this `Messenger.tsx`.
+2. Place a ringtone file at `/public/audio/ringtone.mp3`.
+3. Start signaling server and open two clients:
+
+   * Caller: press “Call userB” (or hook to your contact list trigger).
+   * Callee: ringing modal appears (only modal).
+4. Callee clicks **Accept**:
+
+   * Modal unmounts
+   * `WebRTCCall` mounts once, local preview visible
+   * Both clients exchange SDP/ICE; audio should start in ~1–3s
+5. Verify mute / camera toggle and hangup.
+6. Check console logs for `pc.iceConnectionState` and `ontrack` events.
+
+---
+
+If you want, I can:
+
+* Convert this into a more polished version integrated with your real user/contacts UI (caller name/avatar).
+* Add stricter checks such as "busy" responses, glare handling for simultaneous calls, and TURN server support.
+* Provide a minimal patch diff to apply to your current codebase.
+
+Which of those would you like next?
