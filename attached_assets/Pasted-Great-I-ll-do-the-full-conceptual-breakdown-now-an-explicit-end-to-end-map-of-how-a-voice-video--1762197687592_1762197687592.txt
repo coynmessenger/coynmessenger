@@ -1,0 +1,235 @@
+Great — I’ll do the full conceptual breakdown now: an explicit, end-to-end map of how a voice/video call moves from the **sending user (caller)** to the **receiving user (callee)** in your COYN Messenger environment (signaling via Socket.IO, WebRTC for media). I’ll include a textual “diagram”, the canonical message sequence, a clear state machine, common failure modes & fixes (including the duplicate-UI issue you saw), security notes, and a testing checklist you can run immediately.
+
+I assume the signaling events in your system use names like `initiate-call` / `incoming-call` / `accept-call` / `call-accepted` / `ice-candidate` / `end-call` and that sockets are registered to user IDs (e.g., `socket.join(userId)`). If any names differ in your code, substitute accordingly.
+
+# 1 — High-level summary
+
+User A (caller) clicks **Call** → Client A requests permission for mic/camera → Client A creates a WebRTC `RTCPeerConnection` and (if caller) creates an SDP *offer* and sends it via the Signal server (`initiate-call`) → Server forwards to User B (`incoming-call`) → User B sees ring UI → B accepts → B creates/sets local description (answer) and sends it back (`accept-call` / `call-accepted`) → Both exchange ICE candidates via `ice-candidate` → DTLS/SRTP-secured audio/video flows P2P (or via TURN) → Either side hangs up → `end-call` → cleanup.
+
+# 2 — Textual sequence (canonical message order)
+
+1. Caller UI: user clicks **Call** (identifies `targetUserId`).
+2. Caller client:
+
+   * getUserMedia([...])
+   * create RTCPeerConnection (PC)
+   * add local tracks to PC
+   * createOffer() → setLocalDescription(offer)
+   * emit `initiate-call` to signaling server `{ to: targetUserId, from: callerId, callId, sdp: offer }`
+3. Server receives `initiate-call`:
+
+   * validate `from` via socket auth (do not trust client-sent `from`)
+   * optionally log / store `activeCallMap[callId] = { callerId, calleeId }`
+   * emit `incoming-call` to callee room/ID: `{ from: callerId, callId, sdp: offer, meta... }`
+4. Callee client receives `incoming-call`:
+
+   * display IncomingCallModal (ring tone, caller info)
+   * on Accept:
+
+     * getUserMedia() (or reuse pre-granted stream)
+     * create RTCPeerConnection
+     * add local tracks to PC
+     * setRemoteDescription(offer)
+     * createAnswer() → setLocalDescription(answer)
+     * emit `accept-call` / `call-accepted` to server: `{ to: callerId, from: calleeId, callId, sdp: answer }`
+   * on Decline:
+
+     * emit `end-call` to server `{ to: callerId, from: calleeId, callId }`
+5. Caller client receives `call-accepted`:
+
+   * setRemoteDescription(answer)
+6. Both clients exchange ICE candidates:
+
+   * each `pc.onicecandidate` → emit `ice-candidate` to server `{ to, from, candidate, callId }`
+   * on receiving `ice-candidate` → pc.addIceCandidate(candidate)
+7. On `pc.connectionState === 'connected'` or `iceConnectionState === 'connected'` → media flowing.
+8. Hangup:
+
+   * either side emits `end-call` to server
+   * server forwards `call-ended` to other participant
+   * both clients stop tracks, close PC, set UI to `idle`, and remove call from `activeCallMap`.
+
+# 3 — Sequence (simple ASCII diagram)
+
+```
+Caller (A)                         Signaling Server                       Callee (B)
+-------------------------------------------------------------------------------------
+click Call
+getUserMedia
+createOffer -> setLocalDesc
+emit initiate-call -----> (validate) -----> emit incoming-call -----> receives incoming-call
+                                                ^                             |
+                                                |                             v
+                                          (store callId)                 show modal + ring
+                                                                          accept? → yes
+                                                                          getUserMedia
+                                                                          createAnswer -> setLocalDesc
+emit call-accepted <-----  (forward)  <----- emit accept-call
+setRemoteDesc (answer)
+<-- ICE candidates ---> (through server) <---> addIceCandidate
+DTLS/SRTP encrypted media --------- P2P (or via TURN) ----------
+end-call ------------------> forward ----------------> call-ended
+cleanup                                                     cleanup
+```
+
+# 4 — Call state machine (single source of truth)
+
+Use one `callState` state in your top-level UI component. Values:
+
+* `idle` — no active call UI
+* `outgoing` — caller pressed call, waiting for ring/answer
+* `incoming` — callee receiving `incoming-call` (modal displayed & ringing)
+* `in-call` — WebRTCCall UI mounted, PC established or establishing
+* `ending` — teardown in progress
+
+Transitions:
+
+* `idle` → `outgoing` (caller triggers call)
+* `idle` → `incoming` (callee gets incoming-call)
+* `incoming` → `in-call` (callee accepts)
+* `outgoing` → `in-call` (caller receives call-accepted)
+* `in-call` → `ending` (hang up)
+* `incoming` → `idle` (decline or timeout)
+* `ending` → `idle` (cleanup done)
+
+Important: enforce that only one of `IncomingCallModal` or `WebRTCCall` mounts based on `callState`. This prevents duplicate UI.
+
+# 5 — Recommended React state pattern (one place of truth)
+
+```tsx
+type CallState = 'idle' | 'outgoing' | 'incoming' | 'in-call';
+
+const [callState, setCallState] = useState<CallState>('idle');
+const [callData, setCallData] = useState<{ callId: string; remoteUserId: string; isCaller?: boolean } | null>(null);
+
+// incoming-call handler
+socket.on('incoming-call', (payload) => {
+  if (callState === 'idle') {
+    setCallData({ callId: payload.callId, remoteUserId: payload.from, isCaller: false });
+    setCallState('incoming');
+  } else {
+    // optionally send 'busy' or auto-decline
+    socket.emit('end-call', { to: payload.from, callId: payload.callId, reason: 'busy' });
+  }
+});
+
+// Accept
+function acceptCall() {
+  setCallState('in-call');
+  // mount WebRTCCall which will handle SDP answer emission
+}
+```
+
+# 6 — Fixes for the duplicate UI problem you saw
+
+Likely causes:
+
+* Multiple socket listeners are calling `setIncomingCall(...)` and also immediately triggering `setActiveCall(...)`.
+* UI code accepts automatically or mounts `WebRTCCall` when receiving `incoming-call` without waiting for explicit Accept click.
+* Another code path (e.g., `call-accepted` handler) is triggering `WebRTCCall` even though the modal still displays.
+
+Fix steps (apply immediately):
+
+1. Centralize socket listeners in one component (e.g., `WebRTCProvider`) — avoid `socket.on('incoming-call')` scattered across components.
+2. Only transition to `in-call` on explicit user action `Accept` or on server-confirmed `call-accepted` *for the caller*.
+3. Ensure Accept button handler triggers the transition (modal unmount first, then mount `WebRTCCall`).
+4. Debounce state transitions so that `incoming` → `in-call` happens once: use `callState` guard checks.
+5. Avoid auto-starting WebRTC connection on `incoming-call` — wait for accept. If you need pre-warming (faster connect), do it in a way that doesn’t render the in-call UI until Accept, and don't call UI mount logic until Accept.
+
+# 7 — Edge cases & race conditions (and mitigations)
+
+* **Simultaneous calls**: both users call each other. Decide policy: first-come-first-served or auto-merge to a single call with negotiation. Mitigation: server checks `activeCallMap` and rejects/queues second call.
+* **Offer/Answer race**: if both sides create offers simultaneously, use *glare handling*. Mitigate by adding role flags (`isCaller`) or server-mediated role assignment so only one side creates offer.
+* **ICE candidate lost during quick hangup**: handle `addIceCandidate` errors gracefully (catch and ignore if pc closed).
+* **Ringing UI blocked (autoplay)**: browsers may block autoplay of audio. On `incoming-call`, try `audio.play()` and show a visual ring even if audio blocked; encourage user interaction via Alerts.
+* **User navigates away**: if callee backgrounded or disconnected, server should detect disconnects and forward `call-ended` or return `busy`.
+* **Network change**: if ICE restarts needed, support `pc.restartIce()` by negotiating a new offer.
+
+# 8 — Security considerations (practical)
+
+* **Signal channel auth**: Server must authenticate sockets and *never* trust `from` fields from client. Use `socket.data.userId` or server-side mapping.
+* **SDP confidentiality**: WebRTC uses DTLS and SRTP for media; signaling channel (Socket.IO) should be TLS (wss) and, if you have E2E requirements, wrap SDP using Signal Protocol or application-level encryption (you mentioned COYN already uses this).
+* **TURN in production**: Without TURN, many NATs fail. Use a TURN with shared secret or coturn.
+* **Sanitize metadata**: Caller display name/avatar should be fetched from server-side user profile, not sent raw in payload for trust.
+
+# 9 — Logging & debug recommendations (quick)
+
+* Log at server: `initiate-call`, `incoming-call` forwarding, `accept-call`, `call-accepted`, `ice-candidate`, `end-call`, socket disconnect, `activeCallMap` updates.
+* Client logs: when `incoming-call` arrives, when modal shown, when Accept clicked, when `call-accepted` received, ICE events, `pc.connectionState`.
+* Add a short test harness that simulates calls (you already have one) and asserts state transitions.
+
+# 10 — Test checklist (practical actions to verify)
+
+1. Caller A → call B: verify server log `initiate-call` and server forwarded `incoming-call`.
+2. Callee B UI: shows ringing modal, audio plays or visual ring visible, Accept & Decline present.
+3. Clicking Accept:
+
+   * modal unmounts
+   * `in-call` state sets
+   * callee emits `accept-call` (with SDP)
+   * caller receives `call-accepted` and sets remote desc
+4. Check ICE flow: candidates exchanged and added without errors.
+5. Check `pc.connectionState === 'connected'` within 10–20s on common networks.
+6. Mute/camera toggle works and toggles local tracks.
+7. Hangup from either side triggers `end-call`, server forwards, UIs cleanly unmount and resources freed.
+8. Try call while already in-call → server responds `busy`, callee not distracted.
+
+# 11 — Minimal sample of server-side routing (pseudo)
+
+(Use your existing secure wrappers — shown here as a logic map.)
+
+```ts
+// on initiate-call (server)
+socket.on('initiate-call', (payload) => {
+  const callerId = socket.data.userId;
+  const to = payload.to;
+  if (!callerId || !to) return;
+  if (activeCallMap[to] || activeCallMap[callerId]) {
+     // someone busy
+     socket.emit('call-rejected', { to: callerId, reason: 'busy' });
+     return;
+  }
+  activeCallMap[payload.callId] = { callerId, calleeId: to };
+  io.to(to).emit('incoming-call', { from: callerId, callId: payload.callId, sdp: payload.sdp });
+});
+```
+
+# 12 — Recommended immediate code changes to remove duplicate UI (copy/paste)
+
+1. Ensure a *single* socket listener location:
+
+```ts
+// WebRTCProvider or Messenger root - single place
+useEffect(() => {
+  socket.on('incoming-call', handleIncomingCall);
+  socket.on('call-accepted', handleCallAccepted);
+  socket.on('end-call', handleCallEnded);
+  return () => {
+    socket.off('incoming-call', handleIncomingCall);
+    socket.off('call-accepted', handleCallAccepted);
+    socket.off('end-call', handleCallEnded);
+  };
+}, [socket]);
+```
+
+2. `handleIncomingCall` should only set `callState` to `incoming` — never directly mount `WebRTCCall`.
+3. `Accept` must call a handler that:
+
+   * `setCallState('in-call')`
+   * `setCallData({ ... , isCaller: false })`
+   * then mount `WebRTCCall` (which will perform answer/SDP exchange).
+
+# 13 — Conceptual diagram (textual summary you can paste into docs)
+
+* Caller UI: Call button → `initiate-call` (server-validated) → callee receives `incoming-call` → callee modal & ring → user Accept → `accept-call` → server forwards to caller → caller receives `call-accepted` → both exchange ICE → Secure P2P media stream.
+
+# 14 — Deliverables I can produce for you next (pick any)
+
+* A single-file `Messenger.tsx` implementing the unified `callState` pattern and consolidated socket listeners.
+* A test harness that simulates ringing and acceptance and prints state transitions.
+* A short patch for your existing server `webrtc-signaling.ts` to ensure it sends `busy`/`call-rejected` and prevents duplicate forwards.
+* A short sequence diagram image or Mermaid diagram (text) for docs.
+
+---
+
+Would you like me to generate the **ready-to-paste `Messenger.tsx`** that implements the single call state pattern and prevents duplicate UI (with hooks, socket listeners consolidated, and integrated with the `IncomingCallModal` + `WebRTCCall` components you have)? I can produce that now.
