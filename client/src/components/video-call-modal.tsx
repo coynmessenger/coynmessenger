@@ -788,8 +788,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
           </div>
 
-          {/* Call Controls */}
-          {callStatus !== "ended" && (
+          {/* Call Controls - Only show when NOT showing incoming call actions */}
+          {callStatus !== "ended" && !(callType === "incoming" && callStatus === "ringing") && (
             <div className="flex justify-center space-x-3">
               {callStatus === "connected" && (
                 <>

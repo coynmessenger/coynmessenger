@@ -808,8 +808,8 @@ export default function VoiceCallModal({
             </div>
           </div>
 
-          {/* Call Controls */}
-          {callStatus !== "ended" && (
+          {/* Call Controls - Only show when NOT showing incoming call actions */}
+          {callStatus !== "ended" && !(callType === "incoming" && callStatus === "ringing") && (
             <div className="flex justify-center">
               {callStatus === "connected" && (
                 <div className="flex justify-center space-x-3">
@@ -911,42 +911,6 @@ export default function VoiceCallModal({
                 title="Answer Call"
               >
                 <Phone className="h-10 w-10" />
-              </Button>
-            </div>
-          )}
-
-          {/* In-Call Controls */}
-          {callStatus === "connected" && (
-            <div className="flex justify-center space-x-6">
-              <Button
-                onClick={() => {
-                  console.log('🔇 TOGGLE SPEAKER');
-                  // TODO: Implement speaker toggle
-                }}
-                className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Speaker"
-              >
-                <Volume2 className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={() => {
-                  console.log('📹 SWITCH TO VIDEO');
-                  // TODO: Implement switch to video
-                }}
-                className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Switch to Video"
-              >
-                <Video className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={() => {
-                  console.log('📞 HANG UP');
-                  handleEndCall();
-                }}
-                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Hang Up"
-              >
-                <PhoneOff className="h-8 w-8" />
               </Button>
             </div>
           )}
