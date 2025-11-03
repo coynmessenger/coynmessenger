@@ -1,0 +1,116 @@
+Perfect — that image gives me excellent context ✅.
+It confirms that **two UI layers** (the outgoing `WebRTCCall` overlay and a duplicated call modal) are mounting at the same time. Also, the **audio not transmitting** on answer points to a likely **PeerConnection negotiation issue** — specifically one of the following:
+
+---
+
+## 🧩 **Diagnosis Summary**
+
+### 1. **Duplicate UI**
+
+You currently have **two separate components** mounting:
+
+* `IncomingCallModal` or similar overlay (blurred background, call buttons)
+* `WebRTCCall` UI (the full call interface with mute/video/hangup)
+
+These are both being rendered at once because:
+
+* The callee automatically mounts `WebRTCCall` *and* still shows the modal instead of unmounting it when they accept.
+* Or both `incoming-call` and `call-accepted` events are being handled simultaneously, triggering two renders.
+
+🛠 **Fix Strategy**
+We’ll move to a **single unified call state controller** (see below).
+
+---
+
+### 2. **Audio Not Heard (Both Sides)**
+
+When the callee answers, the offer/answer exchange completes, but:
+
+* One or both sides never call `pc.addTrack(localStreamTrack, stream)` properly, **or**
+* `setRemoteDescription()` was called before tracks were added, **or**
+* Local media (`getUserMedia`) wasn’t re-initialized on the receiver (common on answer side).
+
+🧠 Likely:
+The **callee never adds local tracks** to the `RTCPeerConnection` before sending the answer.
+So both peers connect, but no audio/video is transmitted.
+
+---
+
+## ✅ **Replit Prompt to Fix Both Issues**
+
+Use this in Replit (or your assistant workspace) to fully synchronize UI + audio:
+
+---
+
+### **Prompt: Fix Duplicate Call UI and Missing Audio Flow**
+
+> My COYN Messenger voice/video calling UI currently shows **two call interfaces at once** when a call is accepted — an overlay modal and the full WebRTC UI. Additionally, after accepting the call, **audio is not heard by either user**.
+>
+> Please refactor the WebRTC call flow to:
+>
+> ### 🧩 1. Remove Duplicate UI
+>
+> * Introduce a unified `callState` variable with values: `'idle' | 'incoming' | 'outgoing' | 'in-call'`.
+> * When `callState === 'incoming'`, show **IncomingCallModal** only.
+> * When the callee clicks **Accept**, immediately:
+>
+>   * Unmount the modal (`setCallState('in-call')`)
+>   * Mount **WebRTCCall**.
+> * Prevent both from rendering simultaneously by guarding each component:
+>
+>   ```tsx
+>   {callState === 'incoming' && <IncomingCallModal ... />}
+>   {callState === 'in-call' && <WebRTCCall ... />}
+>   ```
+> * Ensure `IncomingCallModal` does not auto-mount WebRTCCall before acceptance.
+>
+> ### 🎧 2. Fix Missing Audio/Video
+>
+> * Ensure that **both caller and callee**:
+>
+>   1. Call `navigator.mediaDevices.getUserMedia({ audio: true, video: optional })`
+>   2. Add all local tracks **before** sending or setting SDP:
+>
+>      ```js
+>      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+>      ```
+>   3. For the callee:
+>
+>      * Call `setRemoteDescription(offer)` **before** `createAnswer()`.
+>      * After `setLocalDescription(answer)`, emit `accept-call` with SDP.
+>   4. On receiving remote stream:
+>
+>      ```js
+>      pc.ontrack = (event) => {
+>        remoteVideoRef.srcObject = event.streams[0];
+>      };
+>      ```
+>
+> ### 🧹 3. Ensure Clean Cleanup
+>
+> * On `end-call`, close `pc`, stop tracks, set `callState = 'idle'`, and unmount all UI.
+>
+> ### 🧪 4. Test Plan
+>
+> 1. Caller initiates call → only one outgoing UI appears.
+> 2. Receiver gets ringing modal → accepts → modal disappears, single `WebRTCCall` UI appears.
+> 3. Both users hear audio within ~1–2 seconds.
+> 4. End call → UI resets to idle cleanly.
+>
+> ### ⚙️ Additional Verification
+>
+> * Log `pc.connectionState` on both sides.
+> * Check for errors in `addTrack` or `setRemoteDescription`.
+> * If using `autoplay`-blocked browsers (mobile Safari/Chrome), call `video.play()` inside a user action handler.
+>
+> Deliverables:
+>
+> * Updated `Messenger.tsx` or `WebRTCProvider.tsx` with single `callState` logic.
+> * Correct placement of `addTrack()` and `ontrack` handlers.
+> * Working audio both ways after acceptance.
+> * No duplicate call overlays.
+
+---
+
+Would you like me to now generate the **exact React + WebRTC code fix** (for both the UI duplication and audio negotiation bug)?
+It’ll include the corrected `getUserMedia`, `addTrack`, and `ontrack` handling for both caller and callee sides.
