@@ -1,0 +1,299 @@
+Perfect — let’s add a **proper ringtone system** for your `incoming-call` event so that when a user receives a call, the app:
+
+1. Plays a looping ringtone sound,
+2. Displays the caller info (name/avatar),
+3. Allows the user to **Accept** or **Decline**,
+4. Stops the ringtone automatically when either action is taken.
+
+We’ll build this modularly so you can plug it into your **COYN Messenger** easily.
+
+---
+
+# 🎵 Ringtone System for Incoming Calls
+
+### ✅ Key Features
+
+* Plays ringtone audio on incoming call
+* Handles browser autoplay restrictions
+* Automatically stops when call is accepted, declined, or timed out
+* Works in parallel with your WebRTC signaling events
+
+---
+
+## 🔧 1. Utility Hook — `useRingtone.ts`
+
+This manages ringtone playback cleanly and safely:
+
+```ts
+// hooks/useRingtone.ts
+import { useEffect, useRef } from "react";
+
+export function useRingtone(src: string, loop: boolean = true) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio(src);
+    audioRef.current.loop = loop;
+
+    return () => {
+      stop();
+    };
+  }, [src, loop]);
+
+  const play = async () => {
+    try {
+      await audioRef.current?.play();
+    } catch (err) {
+      console.warn("Ringtone autoplay blocked. Will start on user gesture.", err);
+    }
+  };
+
+  const stop = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
+  return { play, stop };
+}
+```
+
+---
+
+## 🔔 2. Incoming Call Modal (with ringtone)
+
+We’ll build an enhanced modal that integrates the ringtone, timeout, and user actions.
+
+```tsx
+// components/IncomingCallModal.tsx
+import React, { useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
+import { useRingtone } from "@/hooks/useRingtone";
+
+interface IncomingCallModalProps {
+  socket: Socket;
+  caller: { id: string; name: string; avatar?: string };
+  callId: string;
+  onAccept: (callerId: string, callId: string) => void;
+  onDecline: (callerId: string, callId: string) => void;
+}
+
+const RINGTONE_PATH = "/audio/ringtone.mp3";
+
+export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
+  socket,
+  caller,
+  callId,
+  onAccept,
+  onDecline,
+}) => {
+  const [secondsLeft, setSecondsLeft] = useState(30);
+  const { play, stop } = useRingtone(RINGTONE_PATH);
+
+  useEffect(() => {
+    // Start ringtone
+    play();
+
+    // Countdown auto-decline
+    const timer = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          handleDecline();
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+      stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAccept = () => {
+    stop();
+    onAccept(caller.id, callId);
+  };
+
+  const handleDecline = () => {
+    stop();
+    onDecline(caller.id, callId);
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "rgba(0,0,0,0.6)",
+        zIndex: 9999,
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          padding: 24,
+          borderRadius: 12,
+          textAlign: "center",
+          width: 300,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+        }}
+      >
+        <img
+          src={caller.avatar || "/default-avatar.png"}
+          alt="caller avatar"
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: "50%",
+            objectFit: "cover",
+            marginBottom: 12,
+          }}
+        />
+        <h3>{caller.name} is calling…</h3>
+        <p style={{ color: "#777" }}>Auto-decline in {secondsLeft}s</p>
+        <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: "center" }}>
+          <button
+            onClick={handleAccept}
+            style={{
+              background: "#28a745",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "10px 16px",
+              fontWeight: 600,
+            }}
+          >
+            Accept
+          </button>
+          <button
+            onClick={handleDecline}
+            style={{
+              background: "#dc3545",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "10px 16px",
+              fontWeight: 600,
+            }}
+          >
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
+## 📡 3. Integrate with `Messenger.tsx`
+
+Inside your socket handler for `incoming-call`, open the modal and trigger the ringtone automatically:
+
+```ts
+socket.on("incoming-call", (payload) => {
+  console.log("Incoming call:", payload);
+  setCallData({
+    callId: payload.callId,
+    from: payload.from,
+    callerName: payload.callerName,
+    callerAvatar: payload.callerAvatar,
+  });
+  setCallState("incoming");
+});
+```
+
+Then, render:
+
+```tsx
+{callState === "incoming" && callData && (
+  <IncomingCallModal
+    socket={socketRef.current!}
+    caller={{
+      id: callData.from,
+      name: callData.callerName,
+      avatar: callData.callerAvatar,
+    }}
+    callId={callData.callId}
+    onAccept={handleAccept}
+    onDecline={handleDecline}
+  />
+)}
+```
+
+---
+
+## 🗂️ 4. Ringtone File
+
+Place a ringtone MP3 file in:
+
+```
+/public/audio/ringtone.mp3
+```
+
+Example free ringtone:
+
+* `/audio/ringtone.mp3` → a short 10-second loop clip
+* Ideal format: 128 kbps MP3, under 100 KB
+
+---
+
+## 🧠 5. How It Works
+
+| Step                          | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| 1️⃣ Incoming call event       | Received from Socket.io: `incoming-call`    |
+| 2️⃣ Ringtone starts           | `useRingtone` hook starts playback, looping |
+| 3️⃣ Modal displayed           | Caller info + Accept/Decline buttons        |
+| 4️⃣ Accept pressed            | Ringtone stops → starts WebRTC negotiation  |
+| 5️⃣ Decline pressed / timeout | Ringtone stops → sends `end-call` event     |
+
+---
+
+## 🔐 Browser Autoplay Policy
+
+If you test in Chrome or Safari:
+
+* The ringtone may not start until **the user interacts** (click, tap).
+* That’s expected — you can show a “Tap to enable sound” prompt once per session.
+
+---
+
+## ✅ Example Console Output
+
+```
+[socket] incoming-call { from: "userB", callId: "1730654887123" }
+[ringtone] playing /audio/ringtone.mp3
+[voiceCall] Remote offer set
+[pc] ICE connected
+[ringtone] stopped
+```
+
+---
+
+## 🧱 Optional Enhancements
+
+* Add vibration (mobile):
+
+  ```js
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  ```
+* Add different ringtones per contact or call type (voice/video).
+* Add volume fade-in/out effect.
+* Cache ringtone for offline use with a Service Worker.
+
+---
+
+Would you like me to extend this to support **distinct ringtones** for:
+
+* 📞 Voice calls
+* 🎥 Video calls
+  so that each type of call plays a different tone and shows different UI styling?
