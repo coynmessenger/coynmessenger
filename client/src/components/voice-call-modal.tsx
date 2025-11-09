@@ -9,6 +9,7 @@ import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { microphoneService } from "@/lib/microphone-service";
+import { tryPlayMedia } from "@/utils/media";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -152,16 +153,16 @@ export default function VoiceCallModal({
   const retryPendingAudioPlayback = async () => {
     if (pendingAudioPlaybackRef.current && remoteAudioRef.current) {
       console.log('🔄 VOICE CALL: Retrying audio playback after user gesture');
-      try {
-        // Ensure audio element is configured
-        remoteAudioRef.current.volume = 1.0;
-        remoteAudioRef.current.muted = false;
-        
-        await remoteAudioRef.current.play();
+      // Ensure audio element is configured
+      remoteAudioRef.current.volume = 1.0;
+      remoteAudioRef.current.muted = false;
+      
+      const played = await tryPlayMedia(remoteAudioRef.current);
+      if (played) {
         console.log('✅ VOICE CALL: Audio playback succeeded after user gesture');
         pendingAudioPlaybackRef.current = null; // Clear pending playback
-      } catch (err) {
-        console.error('❌ VOICE CALL: Audio playback still failed after user gesture:', err);
+      } else {
+        console.error('❌ VOICE CALL: Audio playback still failed after user gesture');
       }
     }
   };
@@ -282,34 +283,33 @@ export default function VoiceCallModal({
                 // Attempt to play with retry mechanism
                 const attemptPlay = async (retries = 3) => {
                   for (let i = 0; i < retries; i++) {
-                    try {
-                      await remoteAudioRef.current!.play();
+                    const played = await tryPlayMedia(remoteAudioRef.current);
+                    
+                    if (played) {
                       console.log('✅ VOICE CALL: Remote audio playback started successfully');
                       return;
-                    } catch (err: any) {
-                      console.warn(`⚠️ VOICE CALL: Playback attempt ${i + 1} failed:`, err);
+                    }
+                    
+                    console.warn(`⚠️ VOICE CALL: Playback attempt ${i + 1} failed`);
+                    
+                    if (i === retries - 1) {
+                      // Last attempt failed - likely autoplay blocked
+                      console.error('❌ VOICE CALL: All playback attempts failed');
                       
-                      if (i === retries - 1) {
-                        // Last attempt failed
-                        console.error('❌ VOICE CALL: All playback attempts failed:', err);
-                        
-                        // Save stream for retry on user gesture
-                        if (err.name === 'NotAllowedError') {
-                          console.log('💡 VOICE CALL: Autoplay blocked - saving stream for retry');
-                          pendingAudioPlaybackRef.current = stream;
-                          
-                          // If user already made a gesture (accepted call), retry immediately
-                          if (userGestureReceivedRef.current) {
-                            console.log('🔄 VOICE CALL: User gesture already received, retrying immediately');
-                            setTimeout(async () => {
-                              await retryPendingAudioPlayback();
-                            }, 100); // Small delay to ensure everything is set up
-                          }
-                        }
-                      } else {
-                        // Wait before retry (exponential backoff)
-                        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, i)));
+                      // Save stream for retry on user gesture
+                      console.log('💡 VOICE CALL: Autoplay blocked - saving stream for retry');
+                      pendingAudioPlaybackRef.current = stream;
+                      
+                      // If user already made a gesture (accepted call), retry immediately
+                      if (userGestureReceivedRef.current) {
+                        console.log('🔄 VOICE CALL: User gesture already received, retrying immediately');
+                        setTimeout(async () => {
+                          await retryPendingAudioPlayback();
+                        }, 100); // Small delay to ensure everything is set up
                       }
+                    } else {
+                      // Wait before retry (exponential backoff)
+                      await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, i)));
                     }
                   }
                 };
