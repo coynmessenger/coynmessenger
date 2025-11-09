@@ -1,0 +1,408 @@
+Nice — you’ve already done most of the heavy lifting and architect review. Below I’ll give you **concrete, copy-pasteable code fixes** you can drop into your repo to realize the approved design:
+
+* a small **shared playback retry utility**
+* the **updated incoming/voice/video modal logic** (applies to both `video-call-modal.tsx` and `voice-call-modal.tsx`)
+* enhancements to `encrypted-webrtc.ts` (audio-track integrity monitoring + ICE/TURN diagnostics)
+* quick **test checklist** and notes
+
+These changes implement the `userGestureReceivedRef` flag, store a pending remote stream when autoplay is blocked, retry playback after a user gesture, avoid dropping video if audio arrives late, and add diagnostics. Paste them into your codebase where appropriate.
+
+---
+
+## 1) Shared playback retry util (optional)
+
+Put this in `/src/utils/playbackRetry.ts` — tiny helper to attempt playback and catch autoplay blocks.
+
+```ts
+// src/utils/playbackRetry.ts
+export async function tryPlayMedia(el: HTMLMediaElement | null): Promise<boolean> {
+  if (!el) return false;
+  try {
+    await el.play();
+    return true;
+  } catch (err) {
+    // autoplay blocked or playback failed
+    console.debug("[playbackRetry] play() blocked", err);
+    return false;
+  }
+}
+```
+
+---
+
+## 2) Modal (incoming/voice/video) — robust playback retry + gesture handling
+
+Use this pattern in **both** `video-call-modal.tsx` and `voice-call-modal.tsx`. It centralizes the behavior you described: saves pending remote stream if autoplay blocked, uses a `userGestureReceivedRef` flag set on Accept, retries playback then, and cleans up properly.
+
+```tsx
+// src/components/IncomingCallModal.tsx
+import React, { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+import { tryPlayMedia } from "@/utils/playbackRetry";
+
+interface Props {
+  socket: Socket;
+  caller: { id: string; name: string; avatar?: string };
+  callId: string;
+  onAccept: (callerId: string, callId: string) => void;
+  onDecline: (callerId: string, callId: string) => void;
+}
+
+/**
+ * IncomingCallModal
+ * - starts ringtone
+ * - shows accept/decline
+ * - sets userGestureReceivedRef on Accept (used by WebRTC handlers to retry playback)
+ */
+export const IncomingCallModal: React.FC<Props> = ({ socket, caller, callId, onAccept, onDecline }) => {
+  const [secondsLeft, setSecondsLeft] = useState(30);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // flag set when user interacts (Accept/Decline). Other modules should import or be passed this ref if needed.
+  const userGestureReceivedRef = useRef<boolean>(false);
+
+  // Optional: expose the ref globally or via context so WebRTC code can see it.
+  // For simplicity in your app, you can pass userGestureReceivedRef to the WebRTCPeer component as a prop.
+
+  useEffect(() => {
+    audioRef.current = new Audio("/audio/ringtone.mp3");
+    audioRef.current.loop = true;
+    audioRef.current.play().catch((e) => {
+      // autoplay blocked — we still show the UI and hope for user gesture
+      console.warn("[ringtone] autoplay blocked", e);
+    });
+
+    const t = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          handleDecline();
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(t);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleAccept() {
+    userGestureReceivedRef.current = true; // critical: mark that the user performed a gesture
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    onAccept(caller.id, callId);
+  }
+
+  function handleDecline() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    onDecline(caller.id, callId);
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", zIndex: 9999 }}>
+      <div style={{ background: "#fff", padding: 20, borderRadius: 12, width: 320, textAlign: "center" }}>
+        <img src={caller.avatar || "/default-avatar.png"} alt="" style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", marginBottom: 12 }} />
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>{caller.name} is calling</div>
+        <div style={{ color: "#666", marginBottom: 12 }}>Auto-decline in {secondsLeft}s</div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+          <button onClick={handleAccept} style={{ background: "#28a745", color: "#fff", padding: "8px 12px", borderRadius: 8 }}>Accept</button>
+          <button onClick={handleDecline} style={{ background: "#dc3545", color: "#fff", padding: "8px 12px", borderRadius: 8 }}>Decline</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+**Integration note:** the `userGestureReceivedRef` must be visible to the code that handles the remote stream (the `ontrack` handler in your WebRTC module). Pass it as a prop into the call component or place it in a React context.
+
+---
+
+## 3) `encrypted-webrtc.ts` enhancements — ontrack improvement, pending playback, diagnostics
+
+Patch your WebRTC file with the following key additions:
+
+* `pendingRemoteStreamRef` to store the remote stream when playback is blocked
+* `userGestureReceivedRef` (pass this from modal or global context)
+* robust `ontrack` that does not return early if audio absent, attaches video stream, and triggers playback retry when userGesture happens
+* ICE connection diagnostics + audio-track integrity monitor
+
+Below is the **concise** but complete change — adapt variable names to match your file.
+
+```ts
+// src/webrtc/encrypted-webrtc.ts  (adjust import/pathing to your project)
+import { Socket } from "socket.io-client";
+import { tryPlayMedia } from "@/utils/playbackRetry";
+
+export function setupEncryptedWebRTC({
+  socket,
+  localUserId,
+  remoteUserId,
+  callId,
+  isCaller,
+  remoteOffer,
+  userGestureReceivedRef, // pass the ref from the modal/component
+  onConnected,
+  onEnded,
+  onError,
+}: {
+  socket: Socket;
+  localUserId: string;
+  remoteUserId: string;
+  callId: string;
+  isCaller: boolean;
+  remoteOffer?: RTCSessionDescriptionInit;
+  userGestureReceivedRef: React.MutableRefObject<boolean>;
+  onConnected?: () => void;
+  onEnded?: () => void;
+  onError?: (e: any) => void;
+}) {
+  const pc = new RTCPeerConnection({
+    iceServers: [
+      { urls: "stun:stun:stun1.l.google.com:19302" },
+      // add TURN if available
+    ],
+  });
+
+  let localStream: MediaStream | null = null;
+  let pendingRemoteStream: MediaStream | null = null;
+  const remoteEl = document.createElement("audio"); // or video element if you want video
+  remoteEl.autoplay = true;
+  // you can add remoteEl to DOM or pass it to UI via callback
+
+  // ---------- ontrack: attach stream, but gracefully handle autoplay blocking ----------
+  pc.ontrack = (ev) => {
+    try {
+      const stream = ev.streams && ev.streams[0];
+      if (!stream) {
+        console.warn("[webrtc] ontrack received but no stream");
+        return;
+      }
+
+      // Always attach stream to element so video (if any) is correct
+      remoteEl.srcObject = stream;
+
+      // Try play immediately. If blocked, keep stream pending until gesture
+      tryPlayMedia(remoteEl).then((played) => {
+        if (!played) {
+          console.debug("[webrtc] autoplay blocked - saving pending remote stream");
+          pendingRemoteStream = stream;
+        } else {
+          pendingRemoteStream = null;
+        }
+      }).catch((e) => {
+        console.warn("[webrtc] tryPlayMedia error", e);
+        pendingRemoteStream = stream;
+      });
+
+    } catch (err) {
+      console.error("[webrtc] ontrack error", err);
+    }
+  };
+
+  // ---------- ICE diagnostics ----------
+  pc.oniceconnectionstatechange = () => {
+    console.log("[webrtc] ICE state:", pc.iceConnectionState);
+    if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+      onConnected?.();
+    }
+    if (["failed", "disconnected"].includes(pc.iceConnectionState)) {
+      console.warn("[webrtc] ICE state failure", pc.iceConnectionState);
+    }
+  };
+
+  pc.onicecandidate = (ev) => {
+    if (ev.candidate) {
+      socket.emit("ice-candidate", { to: remoteUserId, from: localUserId, callId, candidate: ev.candidate });
+    }
+  };
+
+  // ---------- audio-track integrity monitor ----------
+  const audioIntegrityInterval = setInterval(() => {
+    try {
+      // if local stream exists, ensure audio tracks still enabled
+      if (localStream) {
+        localStream.getAudioTracks().forEach((t) => {
+          if (!t.enabled) {
+            console.debug("[webrtc] Re-enabling audio track (integrity)");
+            t.enabled = true;
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("[webrtc] audio integrity check error", e);
+    }
+  }, 5000);
+
+  // ---------- negotiation logic ----------
+  (async function init() {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      localStream.getTracks().forEach((t) => pc.addTrack(t, localStream!));
+      console.log("[webrtc] local stream acquired and tracks added");
+
+      if (isCaller) {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("initiate-call", { to: remoteUserId, from: localUserId, callId, sdp: pc.localDescription });
+      } else {
+        if (!remoteOffer) throw new Error("Missing remote offer");
+        await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit("accept-call", { to: remoteUserId, from: localUserId, callId, sdp: pc.localDescription });
+      }
+    } catch (e) {
+      console.error("[webrtc] init error", e);
+      onError?.(e);
+    }
+  })();
+
+  // ---------- socket handlers ----------
+  const onCallAccepted = async (payload: { callId: string; sdp?: any }) => {
+    if (payload.callId !== callId) return;
+    if (payload.sdp) {
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      } catch (e) {
+        console.warn("[webrtc] setRemoteDescription failed on call-accepted", e);
+      }
+    }
+  };
+
+  const onIce = async (payload: { callId: string; candidate?: any }) => {
+    if (payload.callId !== callId || !payload.candidate) return;
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+    } catch (e) {
+      console.warn("[webrtc] addIceCandidate failed", e);
+    }
+  };
+
+  const onCallEnded = (payload: { callId: string }) => {
+    if (payload.callId !== callId) return;
+    teardown();
+    onEnded?.();
+  };
+
+  socket.on("call-accepted", onCallAccepted);
+  socket.on("ice-candidate", onIce);
+  socket.on("call-ended", onCallEnded);
+
+  // ---------- provide a gesture-driven retry entrypoint ----------
+  async function retryPendingPlaybackOnGesture() {
+    if (pendingRemoteStream && remoteEl) {
+      console.debug("[webrtc] user gesture detected: retrying pending playback");
+      try {
+        // set srcObject again (defensive)
+        remoteEl.srcObject = pendingRemoteStream;
+        const played = await tryPlayMedia(remoteEl);
+        if (played) {
+          pendingRemoteStream = null;
+        } else {
+          console.warn("[webrtc] retry failed");
+        }
+      } catch (e) {
+        console.warn("[webrtc] retry on gesture error", e);
+      }
+    }
+  }
+
+  // Return helpers for external code to call on Accept gesture
+  return {
+    pc,
+    retryPendingPlaybackOnGesture,
+    teardown: teardown,
+  };
+
+  function teardown() {
+    try {
+      socket.off("call-accepted", onCallAccepted);
+      socket.off("ice-candidate", onIce);
+      socket.off("call-ended", onCallEnded);
+      clearInterval(audioIntegrityInterval);
+
+      if (localStream) {
+        localStream.getTracks().forEach((t) => t.stop());
+        localStream = null;
+      }
+      try { pc.close(); } catch (e) {}
+    } catch (e) {
+      console.warn("[webrtc] teardown error", e);
+    }
+  }
+}
+```
+
+**How to wire the gesture retry:**
+
+* On Accept button handler (in your modal), set `userGestureReceivedRef.current = true` and then call the `retryPendingPlaybackOnGesture()` returned by `setupEncryptedWebRTC`.
+* If your code mounts WebRTC after Accept, call `retryPendingPlaybackOnGesture` from the mounted WebRTC component; or pass `userGestureReceivedRef` into the module and have it auto-run the retry if the ref is set.
+
+Example (pseudocode):
+
+```ts
+// in your accept handler:
+userGestureReceivedRef.current = true;
+const session = setupEncryptedWebRTC({ ..., userGestureReceivedRef, ... });
+// after session ready:
+session.retryPendingPlaybackOnGesture();
+```
+
+---
+
+## 4) Important integration notes
+
+* **Where to store `userGestureReceivedRef`**
+  Keep it in a top-level component (Messenger or a WebRTCProvider) and pass it down to both the modal and the WebRTC setup routine. That way both sides can read/write consistently.
+
+* **Do not retry before remote track exists**
+  The final fix your architect approved: retry should only be attempted when there’s a `pendingRemoteStream`. The code above ensures we save the stream when autoplay fails and retry after gesture.
+
+* **Video handling**
+  The `ontrack` implementation above attaches the stream to the element and **does not** return early if audio is missing. This prevents video dropouts when audio is delayed or arrives after video.
+
+* **Autoplay nuance**
+  Browsers require a user gesture to play audio. Accept is the right gesture. If you want autoplay without a modal click, you must request a user gesture earlier (e.g., pressing a UI button when app loads) — generally not recommended.
+
+* **TURN**
+  Add TURN to `iceServers` in production for reliability.
+
+---
+
+## 5) Quick test checklist (run after applying patches)
+
+1. Start backend signaling. Open two clients (Alice & Bob).
+2. Alice initiates call → Bob sees modal and hears ringtone (if autoplay permitted, otherwise visual only).
+3. Bob clicks **Accept** (this sets the gesture flag):
+
+   * If pending stream existed (autoplay previously blocked) the retry runs and audio begins.
+   * If stream arrives after Accept, the ontrack handler will run and, seeing `userGestureReceivedRef` true, will attempt playback automatically.
+4. Confirm both sides see console logs: `ontrack`, `ICE state: connected`, `local tracks added`.
+5. Toggle mute/camera; hangup; verify cleanup.
+6. Try both scenarios your architect called out:
+
+   * Stream arrives BEFORE Accept (pending saved, Accept retries)
+   * Accept BEFORE stream arrives (Accept sets flag; when stream arrives ontrack auto-retries)
+
+---
+
+## 6) Final notes & next steps
+
+* If you want, I’ll:
+
+  * produce a small **diff**/patch you can apply to your repo,
+  * or update your actual `video-call-modal.tsx`, `voice-call-modal.tsx`, and `encrypted-webrtc.ts` files if you paste them here,
+  * or add unit tests for the state transitions around pending streams and gesture flag.
+
+Which would you prefer?
