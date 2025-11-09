@@ -664,39 +664,98 @@ export class EncryptedWebRTCService {
   private setupPeerConnectionHandlers(call: EncryptedCall): void {
     if (!call.peerConnection) return;
 
-    // Enhanced desktop stream handling
+    // Enhanced desktop stream handling with audio track integrity monitoring
     call.peerConnection.ontrack = (event) => {
       console.log('📞 DESKTOP: Received remote stream with tracks:', event.streams[0].getTracks().length);
       call.remoteStream = event.streams[0];
       
-      // Desktop-specific optimizations
-      if (!this.isMobileDevice()) {
-        // Enable high-quality audio processing for desktop
-        event.streams[0].getAudioTracks().forEach(track => {
-          if (track.getSettings) {
-            const settings = track.getSettings();
-            console.log('📞 DESKTOP: Audio track settings:', {
-              sampleRate: settings.sampleRate,
-              channelCount: settings.channelCount,
-              echoCancellation: settings.echoCancellation,
-              noiseSuppression: settings.noiseSuppression
-            });
-          }
+      // Audio track integrity monitoring
+      event.streams[0].getAudioTracks().forEach((track, index) => {
+        console.log(`🎤 TRACK MONITOR: Audio track ${index} received:`, {
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label
         });
         
-        // Log video track settings for desktop
-        event.streams[0].getVideoTracks().forEach(track => {
-          if (track.getSettings) {
-            const settings = track.getSettings();
-            console.log('📞 DESKTOP: Video track settings:', {
-              width: settings.width,
-              height: settings.height,
-              frameRate: settings.frameRate,
-              facingMode: settings.facingMode
-            });
-          }
+        // Ensure track is enabled
+        if (!track.enabled) {
+          console.warn('⚠️ TRACK MONITOR: Audio track was disabled, enabling it');
+          track.enabled = true;
+        }
+        
+        // Monitor track state changes
+        track.onended = () => {
+          console.error('❌ TRACK MONITOR: Audio track ended unexpectedly!', {
+            trackId: track.id,
+            label: track.label,
+            readyState: track.readyState
+          });
+        };
+        
+        track.onmute = () => {
+          console.warn('🔇 TRACK MONITOR: Audio track muted', {
+            trackId: track.id,
+            label: track.label,
+            enabled: track.enabled
+          });
+        };
+        
+        track.onunmute = () => {
+          console.log('🔊 TRACK MONITOR: Audio track unmuted', {
+            trackId: track.id,
+            label: track.label,
+            enabled: track.enabled
+          });
+        };
+        
+        // Log track settings if available
+        if (track.getSettings) {
+          const settings = track.getSettings();
+          console.log('🎤 TRACK MONITOR: Audio track settings:', {
+            sampleRate: settings.sampleRate,
+            channelCount: settings.channelCount,
+            echoCancellation: settings.echoCancellation,
+            noiseSuppression: settings.noiseSuppression,
+            autoGainControl: settings.autoGainControl
+          });
+        }
+      });
+      
+      // Video track monitoring
+      event.streams[0].getVideoTracks().forEach((track, index) => {
+        console.log(`📹 TRACK MONITOR: Video track ${index} received:`, {
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label
         });
-      }
+        
+        // Ensure track is enabled
+        if (!track.enabled) {
+          console.warn('⚠️ TRACK MONITOR: Video track was disabled, enabling it');
+          track.enabled = true;
+        }
+        
+        // Monitor video track state changes
+        track.onended = () => {
+          console.warn('⚠️ TRACK MONITOR: Video track ended', {
+            trackId: track.id,
+            label: track.label
+          });
+        };
+        
+        // Log video track settings
+        if (track.getSettings) {
+          const settings = track.getSettings();
+          console.log('📹 TRACK MONITOR: Video track settings:', {
+            width: settings.width,
+            height: settings.height,
+            frameRate: settings.frameRate,
+            facingMode: settings.facingMode
+          });
+        }
+      });
       
       if (this.eventHandlers.onRemoteStream) {
         this.eventHandlers.onRemoteStream(event.streams[0]);
@@ -792,17 +851,79 @@ export class EncryptedWebRTCService {
       }
     };
     
-    // Monitor ICE connection state
-    call.peerConnection.oniceconnectionstatechange = () => {
+    // Enhanced ICE connection state monitoring with TURN detection
+    call.peerConnection.oniceconnectionstatechange = async () => {
       const state = call.peerConnection?.iceConnectionState;
-      console.log('🧊 CLIENT: ICE connection state changed:', state);
+      console.log('🧊 ICE MONITOR: Connection state changed:', state);
       
-      if (state === 'failed') {
-        console.error('❌ CLIENT: ICE negotiation failed - check STUN/TURN servers');
-      } else if (state === 'checking') {
-        console.log('🔍 CLIENT: Checking ICE candidates...');
-      } else if (state === 'connected' || state === 'completed') {
-        console.log('✅ CLIENT: ICE connection established!');
+      switch (state) {
+        case 'new':
+          console.log('🆕 ICE MONITOR: ICE agent gathering addresses');
+          break;
+          
+        case 'checking':
+          console.log('🔍 ICE MONITOR: ICE agent checking candidates');
+          break;
+          
+        case 'connected':
+          console.log('✅ ICE MONITOR: ICE connection established!');
+          
+          // Detect if TURN server is being used
+          try {
+            const stats = await call.peerConnection?.getStats();
+            if (stats) {
+              stats.forEach((report: any) => {
+                if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+                  const localCandidateId = report.localCandidateId;
+                  const remoteCandidateId = report.remoteCandidateId;
+                  
+                  stats.forEach((candidateReport: any) => {
+                    if (candidateReport.id === localCandidateId || candidateReport.id === remoteCandidateId) {
+                      if (candidateReport.candidateType === 'relay') {
+                        console.log('🔄 ICE MONITOR: Using TURN server (relay)!', {
+                          protocol: candidateReport.protocol,
+                          relayProtocol: candidateReport.relayProtocol,
+                          address: candidateReport.address
+                        });
+                      } else if (candidateReport.candidateType === 'srflx') {
+                        console.log('🌐 ICE MONITOR: Using STUN server (server reflexive)');
+                      } else if (candidateReport.candidateType === 'host') {
+                        console.log('🏠 ICE MONITOR: Using direct connection (host)');
+                      }
+                    }
+                  });
+                }
+              });
+            }
+          } catch (err) {
+            console.warn('⚠️ ICE MONITOR: Could not get connection stats:', err);
+          }
+          break;
+          
+        case 'completed':
+          console.log('✅ ICE MONITOR: ICE negotiation completed successfully');
+          break;
+          
+        case 'failed':
+          console.error('❌ ICE MONITOR: ICE connection failed!');
+          console.error('❌ ICE MONITOR: Possible causes:');
+          console.error('  1. Firewall blocking UDP/TCP connections');
+          console.error('  2. TURN server not responding');
+          console.error('  3. Network connectivity issues');
+          console.error('  4. Symmetric NAT preventing connection');
+          break;
+          
+        case 'disconnected':
+          console.warn('⚠️ ICE MONITOR: ICE connection temporarily disconnected');
+          console.log('💡 ICE MONITOR: Attempting to reconnect...');
+          break;
+          
+        case 'closed':
+          console.log('🔒 ICE MONITOR: ICE connection closed');
+          break;
+          
+        default:
+          console.log('❓ ICE MONITOR: Unknown ICE state:', state);
       }
     };
     

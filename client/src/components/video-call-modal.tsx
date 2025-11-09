@@ -50,6 +50,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // Stream management
   const incomingStreamRef = useRef<MediaStream | null>(null);
   
+  // Pending audio playback (for autoplay blocked scenarios)
+  const pendingAudioPlaybackRef = useRef<MediaStream | null>(null);
+  const userGestureReceivedRef = useRef(false); // Track if user has made a gesture
+  
   // Prevent multiple end operations
   const isEndingRef = useRef(false);
   
@@ -115,6 +119,24 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     console.log('📹 RESET: Local state reset complete');
   };
 
+  // Retry pending audio playback after user gesture (accept button click)
+  const retryPendingAudioPlayback = async () => {
+    if (pendingAudioPlaybackRef.current && remoteAudioRef.current) {
+      console.log('🔄 VIDEO CALL: Retrying audio playback after user gesture');
+      try {
+        // Ensure audio element is configured
+        remoteAudioRef.current.volume = 1.0;
+        remoteAudioRef.current.muted = false;
+        
+        await remoteAudioRef.current.play();
+        console.log('✅ VIDEO CALL: Audio playback succeeded after user gesture');
+        pendingAudioPlaybackRef.current = null; // Clear pending playback
+      } catch (err) {
+        console.error('❌ VIDEO CALL: Audio playback still failed after user gesture:', err);
+      }
+    }
+  };
+
   // Center modal when it opens and trigger entrance animation
   useEffect(() => {
     if (isOpen && !isInitialized) {
@@ -173,15 +195,103 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           },
           onRemoteStream: (stream) => {
             console.log('📹 VIDEO CALL: Received remote stream');
+            
+            // Validate stream has active audio tracks (but don't return if missing - video might arrive first)
+            const audioTracks = stream.getAudioTracks();
+            console.log('📹 VIDEO CALL: Audio tracks:', audioTracks.length, 'tracks');
+            audioTracks.forEach((track, index) => {
+              console.log(`📹 VIDEO CALL: Audio track ${index}:`, {
+                enabled: track.enabled,
+                muted: track.muted,
+                readyState: track.readyState,
+                label: track.label
+              });
+            });
+            
+            if (audioTracks.length === 0) {
+              console.warn('⚠️ VIDEO CALL: No audio tracks yet (video may arrive first)');
+              // Don't return - continue to set up video if available
+            }
+            
+            // Ensure all audio tracks are enabled
+            audioTracks.forEach(track => {
+              if (!track.enabled) {
+                console.log('🔧 VIDEO CALL: Enabling disabled audio track');
+                track.enabled = true;
+              }
+            });
+            
             if (remoteAudioRef.current) {
+              // Set the stream source
               remoteAudioRef.current.srcObject = stream;
-              remoteAudioRef.current.play()
-                .then(() => {
-                  console.log('✅ VIDEO CALL: Remote audio playback started successfully');
-                })
-                .catch(err => {
-                  console.error('❌ VIDEO CALL: Remote audio playback failed:', err);
-                });
+              
+              // Configure audio element for optimal playback
+              remoteAudioRef.current.volume = 1.0; // Maximum volume
+              remoteAudioRef.current.muted = false; // Ensure not muted
+              
+              // Handle stream loading
+              const handleLoadedMetadata = () => {
+                console.log('📹 VIDEO CALL: Audio metadata loaded, attempting playback');
+                
+                // Attempt to play with retry mechanism
+                const attemptPlay = async (retries = 3) => {
+                  for (let i = 0; i < retries; i++) {
+                    try {
+                      await remoteAudioRef.current!.play();
+                      console.log('✅ VIDEO CALL: Remote audio playback started successfully');
+                      return;
+                    } catch (err: any) {
+                      console.warn(`⚠️ VIDEO CALL: Playback attempt ${i + 1} failed:`, err);
+                      
+                      if (i === retries - 1) {
+                        // Last attempt failed
+                        console.error('❌ VIDEO CALL: All playback attempts failed:', err);
+                        
+                        // Save stream for retry on user gesture
+                        if (err.name === 'NotAllowedError') {
+                          console.log('💡 VIDEO CALL: Autoplay blocked - saving stream for retry');
+                          pendingAudioPlaybackRef.current = stream;
+                          
+                          // If user already made a gesture (accepted call), retry immediately
+                          if (userGestureReceivedRef.current) {
+                            console.log('🔄 VIDEO CALL: User gesture already received, retrying immediately');
+                            setTimeout(async () => {
+                              await retryPendingAudioPlayback();
+                            }, 100); // Small delay to ensure everything is set up
+                          }
+                        }
+                      } else {
+                        // Wait before retry (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, i)));
+                      }
+                    }
+                  }
+                };
+                
+                attemptPlay();
+              };
+              
+              // Listen for metadata loaded event
+              if (remoteAudioRef.current.readyState >= 2) {
+                // Metadata already loaded
+                handleLoadedMetadata();
+              } else {
+                remoteAudioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
+              }
+              
+              // Add error handler
+              remoteAudioRef.current.onerror = (err) => {
+                console.error('❌ VIDEO CALL: Audio element error:', err);
+              };
+              
+              // Monitor stream active state
+              stream.addEventListener('active', () => {
+                console.log('✅ VIDEO CALL: Stream became active');
+              });
+              
+              stream.addEventListener('inactive', () => {
+                console.warn('⚠️ VIDEO CALL: Stream became inactive');
+              });
             }
           }
         });
@@ -207,7 +317,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setIsVideoOff(false);
         setEncryptedCallId(null);
         callInitiatedRef.current = false; // Reset call initiation flag
-        console.log('📹 VIDEO CALL: ✅ Call initiation flag reset on modal close');
+        userGestureReceivedRef.current = false; // Reset user gesture flag
+        pendingAudioPlaybackRef.current = null; // Clear pending audio
+        console.log('📹 VIDEO CALL: ✅ Call state reset on modal close');
       }
       return;
     }
@@ -319,6 +431,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     console.log('🆔 Encrypted Call ID:', encryptedCallId);
     console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
     
+    // Mark that user has made a gesture (clicked accept button)
+    userGestureReceivedRef.current = true;
+    console.log('👆 VIDEO ACCEPT: User gesture received (button click)');
+    
     // Stop ringtone when accepting call
     ringtoneService.stopRingtone();
     
@@ -327,6 +443,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         console.log('📞 VIDEO ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
         console.log('✅ VIDEO ACCEPT: Call accepted successfully');
+        
+        // Retry any pending audio playback (autoplay might have been blocked)
+        // Note: If remote stream hasn't arrived yet, retry will happen when stream arrives and checks userGestureReceivedRef
+        await retryPendingAudioPlayback();
+        
         setCallStatus("connected");
         if (onCallStart) onCallStart();
       } catch (error: any) {
