@@ -5,14 +5,60 @@
  * Used in WebRTC modals to handle autoplay restrictions gracefully.
  */
 export async function tryPlayMedia(element: HTMLMediaElement | null): Promise<boolean> {
-  if (!element) return false;
+  if (!element) {
+    console.warn("🔊 AUDIO DEBUG (PLAY): Element is null, cannot play");
+    return false;
+  }
+
+  // Log element state BEFORE play attempt
+  console.log("🔊 AUDIO DEBUG (PLAY): Attempting playback...", {
+    elementType: element.tagName,
+    readyState: element.readyState,
+    paused: element.paused,
+    muted: element.muted,
+    volume: element.volume,
+    hasSrcObject: !!element.srcObject,
+    networkState: element.networkState,
+    currentTime: element.currentTime,
+    duration: element.duration
+  });
+
+  // Log srcObject details if available
+  if (element.srcObject instanceof MediaStream) {
+    console.log("🔊 AUDIO DEBUG (PLAY): MediaStream details:", {
+      active: element.srcObject.active,
+      id: element.srcObject.id,
+      audioTracks: element.srcObject.getAudioTracks().length,
+      videoTracks: element.srcObject.getVideoTracks().length,
+      audioTrackDetails: element.srcObject.getAudioTracks().map(t => ({
+        id: t.id,
+        enabled: t.enabled,
+        muted: t.muted,
+        readyState: t.readyState,
+        label: t.label
+      }))
+    });
+  }
 
   try {
     await element.play();
-    console.debug("[tryPlayMedia] Playback succeeded");
+    console.log("✅ AUDIO DEBUG (PLAY): Playback SUCCEEDED", {
+      readyState: element.readyState,
+      paused: element.paused,
+      currentTime: element.currentTime
+    });
     return true;
-  } catch (err) {
-    console.debug("[tryPlayMedia] Playback blocked or failed:", err);
+  } catch (err: any) {
+    console.error("❌ AUDIO DEBUG (PLAY): Playback FAILED", {
+      errorName: err.name,
+      errorMessage: err.message,
+      elementState: {
+        readyState: element.readyState,
+        paused: element.paused,
+        muted: element.muted,
+        volume: element.volume
+      }
+    });
     return false;
   }
 }

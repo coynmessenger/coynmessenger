@@ -433,12 +433,22 @@ export class EncryptedWebRTCService {
 
       let localStream: MediaStream;
       try {
-        
+        console.log('🎤 AUDIO DEBUG: Requesting microphone with constraints:', constraints);
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
+        console.log('✅ AUDIO DEBUG: Microphone access granted!');
+        console.log('🎤 AUDIO DEBUG: Local stream tracks:', {
+          audioTracks: localStream.getAudioTracks().length,
+          videoTracks: localStream.getVideoTracks().length,
+          audioTrackDetails: localStream.getAudioTracks().map(t => ({
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+            label: t.label
+          }))
+        });
         
       } catch (error: any) {
-        
+        console.error('❌ AUDIO DEBUG: Microphone access failed:', error);
         // Provide specific error messages
         if (error.name === 'NotAllowedError') {
           throw new Error('Microphone access denied. Please allow microphone permissions to make calls.');
@@ -452,14 +462,23 @@ export class EncryptedWebRTCService {
       }
       
       // Create peer connection
-      
+      console.log('🔗 AUDIO DEBUG: Creating peer connection with config:', this.rtcConfiguration);
       const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
       
       
       // Add local stream tracks to peer connection
+      console.log('📤 AUDIO DEBUG: Adding local tracks to peer connection...');
       localStream.getTracks().forEach(track => {
+        console.log('📤 AUDIO DEBUG: Adding track:', {
+          kind: track.kind,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label
+        });
         peerConnection.addTrack(track, localStream);
       });
+      console.log('✅ AUDIO DEBUG: All local tracks added to peer connection');
 
       // Generate call ID
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -558,16 +577,36 @@ export class EncryptedWebRTCService {
       if (tempStream) {
         console.log('✅ WebRTC: Using pre-authorized microphone stream for call acceptance');
         localStream = tempStream;
+        console.log('🎤 AUDIO DEBUG: Pre-authorized stream tracks:', {
+          audioTracks: localStream.getAudioTracks().length,
+          videoTracks: localStream.getVideoTracks().length,
+          audioTrackDetails: localStream.getAudioTracks().map(t => ({
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+            label: t.label
+          }))
+        });
         // Clean up the temporary reference
         delete (window as any).tempIncomingCallStream;
       } else {
         // Fallback: Get user media with proper error handling
         try {
-          console.log('🎤 Requesting microphone permissions...');
+          console.log('🎤 AUDIO DEBUG (ACCEPT): Requesting microphone with constraints:', constraints);
           localStream = await navigator.mediaDevices.getUserMedia(constraints);
-          console.log('✅ Microphone access granted');
+          console.log('✅ AUDIO DEBUG (ACCEPT): Microphone access granted!');
+          console.log('🎤 AUDIO DEBUG (ACCEPT): Local stream tracks:', {
+            audioTracks: localStream.getAudioTracks().length,
+            videoTracks: localStream.getVideoTracks().length,
+            audioTrackDetails: localStream.getAudioTracks().map(t => ({
+              enabled: t.enabled,
+              muted: t.muted,
+              readyState: t.readyState,
+              label: t.label
+            }))
+          });
         } catch (error: any) {
-          console.error('❌ Microphone permission error:', error);
+          console.error('❌ AUDIO DEBUG (ACCEPT): Microphone access failed:', error);
           
           // Provide specific error messages
           if (error.name === 'NotAllowedError') {
@@ -583,12 +622,22 @@ export class EncryptedWebRTCService {
       }
       
       // Create peer connection
+      console.log('🔗 AUDIO DEBUG (ACCEPT): Creating peer connection with config:', this.rtcConfiguration);
       const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
       
       // Add local stream
+      console.log('📤 AUDIO DEBUG (ACCEPT): Adding local tracks to peer connection...');
       localStream.getTracks().forEach(track => {
+        console.log('📤 AUDIO DEBUG (ACCEPT): Adding track:', {
+          kind: track.kind,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label
+        });
         peerConnection.addTrack(track, localStream);
       });
+      console.log('✅ AUDIO DEBUG (ACCEPT): All local tracks added to peer connection');
 
       // Update call object
       call.localStream = localStream;
@@ -663,15 +712,38 @@ export class EncryptedWebRTCService {
 
   private setupPeerConnectionHandlers(call: EncryptedCall): void {
     if (!call.peerConnection) return;
+    
+    // Cache peer connection for type safety (architect recommendation)
+    const peerConnection = call.peerConnection;
 
     // Enhanced desktop stream handling with audio track integrity monitoring
-    call.peerConnection.ontrack = (event) => {
+    peerConnection.ontrack = (event) => {
+      console.log('🎧 AUDIO DEBUG: ========== ONTRACK EVENT FIRED ==========');
+      console.log('🎧 AUDIO DEBUG: Event:', {
+        streamCount: event.streams.length,
+        trackKind: event.track.kind,
+        trackId: event.track.id,
+        trackLabel: event.track.label,
+        trackEnabled: event.track.enabled,
+        trackMuted: event.track.muted,
+        trackReadyState: event.track.readyState
+      });
+      
       console.log('📞 DESKTOP: Received remote stream with tracks:', event.streams[0].getTracks().length);
       call.remoteStream = event.streams[0];
+      
+      // Check transceiver direction (architect recommendation)
+      const transceivers = peerConnection.getTransceivers();
+      console.log('🔀 AUDIO DEBUG: Transceivers:', transceivers.map(t => ({
+        direction: t.direction,
+        currentDirection: t.currentDirection,
+        trackKind: t.receiver?.track?.kind
+      })));
       
       // Audio track integrity monitoring
       event.streams[0].getAudioTracks().forEach((track, index) => {
         console.log(`🎤 TRACK MONITOR: Audio track ${index} received:`, {
+          id: track.id,
           enabled: track.enabled,
           muted: track.muted,
           readyState: track.readyState,
