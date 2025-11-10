@@ -58,6 +58,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // Prevent multiple end operations
   const isEndingRef = useRef(false);
   
+  // Track component mount state for proper cleanup
+  const encryptedCallIdRef = useRef<string | null>(null);
+  
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -303,6 +306,23 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       webrtcService.current = null;
     };
   }, [isOpen, user, onCallStart, onCallEnd]);
+  
+  // CRITICAL: Keep ref in sync with current call ID (runs on every render)
+  encryptedCallIdRef.current = encryptedCallId;
+  
+  // CRITICAL: Unmount-only cleanup - release streams when component truly unmounts
+  useEffect(() => {
+    return () => {
+      // This cleanup only runs on true unmount (empty dependency array)
+      if (encryptedCallIdRef.current && !isEndingRef.current) {
+        console.log('🧹 VIDEO CALL: Component unmounting, ending call to release streams');
+        const service = getGlobalWebRTC();
+        if (service) {
+          service.endCall(encryptedCallIdRef.current);
+        }
+      }
+    };
+  }, []); // Empty array = cleanup only on unmount
 
   useEffect(() => {
     if (!isOpen) {
