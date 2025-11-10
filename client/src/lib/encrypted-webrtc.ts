@@ -604,19 +604,24 @@ export class EncryptedWebRTCService {
       throw new Error('Call not found');
     }
 
+    // CRITICAL: Request media through permissionService for consistent error handling
+    const streamType = call.type === 'video' ? 'camera' : 'microphone';
+    let cachedStream = permissionService.getCachedStream(streamType);
+    
+    let localStream: MediaStream | undefined;
+    let usingCachedStream = false;
+    
     try {
-      // Get user media with enhanced desktop constraints
-      const constraints = this.getDesktopMediaConstraints(call.type);
-
-      let localStream: MediaStream;
-      
-      // Check if we have a pre-authorized stream from the incoming call preparation
-      const tempStream = (window as any).tempIncomingCallStream;
-      
-      if (tempStream) {
-        console.log('✅ WebRTC: Using pre-authorized microphone stream for call acceptance');
-        localStream = tempStream;
-        console.log('🎤 AUDIO DEBUG: Pre-authorized stream tracks:', {
+      if (cachedStream) {
+        console.log(`✅ ACCEPT: Using cached ${streamType} stream`);
+        // Clone the cached stream
+        localStream = cachedStream.clone();
+        
+        // Retain the stream (increment ref count)
+        permissionService.retainStream(streamType);
+        usingCachedStream = true;
+        
+        console.log('🎤 AUDIO DEBUG (ACCEPT): Using cached stream, tracks:', {
           audioTracks: localStream.getAudioTracks().length,
           videoTracks: localStream.getVideoTracks().length,
           audioTrackDetails: localStream.getAudioTracks().map(t => ({
@@ -626,38 +631,34 @@ export class EncryptedWebRTCService {
             label: t.label
           }))
         });
-        // Clean up the temporary reference
-        delete (window as any).tempIncomingCallStream;
       } else {
-        // Fallback: Get user media with proper error handling
-        try {
-          console.log('🎤 AUDIO DEBUG (ACCEPT): Requesting microphone with constraints:', constraints);
-          localStream = await navigator.mediaDevices.getUserMedia(constraints);
-          console.log('✅ AUDIO DEBUG (ACCEPT): Microphone access granted!');
-          console.log('🎤 AUDIO DEBUG (ACCEPT): Local stream tracks:', {
-            audioTracks: localStream.getAudioTracks().length,
-            videoTracks: localStream.getVideoTracks().length,
-            audioTrackDetails: localStream.getAudioTracks().map(t => ({
-              enabled: t.enabled,
-              muted: t.muted,
-              readyState: t.readyState,
-              label: t.label
-            }))
-          });
-        } catch (error: any) {
-          console.error('❌ AUDIO DEBUG (ACCEPT): Microphone access failed:', error);
-          
-          // Provide specific error messages
-          if (error.name === 'NotAllowedError') {
-            throw new Error('Microphone access denied. Please allow microphone permissions to accept calls.');
-          } else if (error.name === 'NotFoundError') {
-            throw new Error('No microphone found. Please connect a microphone to accept calls.');
-          } else if (error.name === 'NotReadableError') {
-            throw new Error('Microphone is already in use by another application.');
-          } else {
-            throw new Error(`Failed to access microphone: ${error.message}`);
-          }
+        // Request through permissionService for consistent error handling
+        console.log(`⚠️ ACCEPT: No cached stream, requesting ${streamType} permission`);
+        
+        const permissionResult = call.type === 'video' 
+          ? await permissionService.requestCameraPermission()
+          : await permissionService.requestMicrophonePermission();
+        
+        if (!permissionResult.success || !permissionResult.stream) {
+          throw new Error(permissionResult.errorMessage || 'Failed to access media devices');
         }
+        
+        localStream = permissionResult.stream.clone();
+        // Retain since we're now caching it
+        permissionService.retainStream(streamType);
+        usingCachedStream = true;
+        
+        console.log('✅ AUDIO DEBUG (ACCEPT): Permission granted');
+        console.log('🎤 AUDIO DEBUG (ACCEPT): Local stream tracks:', {
+          audioTracks: localStream.getAudioTracks().length,
+          videoTracks: localStream.getVideoTracks().length,
+          audioTrackDetails: localStream.getAudioTracks().map(t => ({
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+            label: t.label
+          }))
+        });
       }
       
       // Create peer connection
@@ -674,13 +675,14 @@ export class EncryptedWebRTCService {
           readyState: track.readyState,
           label: track.label
         });
-        peerConnection.addTrack(track, localStream);
+        peerConnection.addTrack(track, localStream!);
       });
       console.log('✅ AUDIO DEBUG (ACCEPT): All local tracks added to peer connection');
 
       // Update call object
       call.localStream = localStream;
       call.peerConnection = peerConnection;
+      call.retainedStreamType = usingCachedStream ? streamType : undefined; // Track for cleanup
 
       // Set up peer connection handlers
       this.setupPeerConnectionHandlers(call);
@@ -719,6 +721,18 @@ export class EncryptedWebRTCService {
       
     } catch (error) {
       console.error('Failed to accept call:', error);
+      
+      // CRITICAL: Cleanup on error - release retained stream and stop cloned tracks
+      if (usingCachedStream) {
+        console.log(`🧹 Releasing ${streamType} stream due to error in acceptCall`);
+        permissionService.releaseStream(streamType);
+      }
+      
+      if (localStream) {
+        console.log('🧹 Stopping cloned tracks due to error');
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      
       throw error;
     }
   }
@@ -1138,20 +1152,30 @@ export class EncryptedWebRTCService {
       
       console.log('📞 DESKTOP: Switching to camera:', nextDevice.label);
       
-      // Get new video stream with desktop constraints
-      const constraints = this.getDesktopMediaConstraints('video');
-      if (typeof constraints.video === 'object' && constraints.video !== null) {
-        constraints.video = {
-          ...constraints.video,
+      // Build video constraints with specific deviceId
+      const baseConstraints = this.getDesktopMediaConstraints('video');
+      let videoConstraints: MediaTrackConstraints;
+      
+      if (typeof baseConstraints.video === 'object' && baseConstraints.video !== null) {
+        videoConstraints = {
+          ...baseConstraints.video,
           deviceId: { exact: nextDevice.deviceId }
         };
       } else {
-        constraints.video = {
+        videoConstraints = {
           deviceId: { exact: nextDevice.deviceId }
         };
       }
       
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      // CRITICAL: Request through permissionService for consistent error handling
+      // Note: This is uncached because we need specific deviceId constraints
+      const permissionResult = await permissionService.requestCameraWithConstraints(videoConstraints);
+      
+      if (!permissionResult.success || !permissionResult.stream) {
+        throw new Error(permissionResult.errorMessage || 'Failed to switch camera');
+      }
+      
+      const newStream = permissionResult.stream;
       const newVideoTrack = newStream.getVideoTracks()[0];
       
       // Replace video track in peer connection
