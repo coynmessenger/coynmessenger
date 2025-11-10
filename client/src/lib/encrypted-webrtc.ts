@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { permissionService } from './permission-service';
 
 export interface EncryptedCall {
   callId: string;
@@ -10,6 +11,7 @@ export interface EncryptedCall {
   peerConnection?: RTCPeerConnection;
   remoteOffer?: RTCSessionDescriptionInit;
   status?: 'connecting' | 'ringing' | 'connected' | 'ended';
+  retainedStreamType?: 'microphone' | 'camera'; // Track if using cached stream for proper release
 }
 
 export interface CallEventHandlers {
@@ -427,15 +429,52 @@ export class EncryptedWebRTCService {
       throw new Error(error);
     }
 
+    // CRITICAL: Try to use cached stream first (set by preflight permission check)
+    const streamType = type === 'video' ? 'camera' : 'microphone';
+    let cachedStream = permissionService.getCachedStream(streamType);
+    
+    let localStream: MediaStream | undefined;
+    let usingCachedStream = false;
+    
     try {
-      // Get user media with enhanced desktop constraints
-      const constraints = this.getDesktopMediaConstraints(type);
-
-      let localStream: MediaStream;
-      try {
-        console.log('🎤 AUDIO DEBUG: Requesting microphone with constraints:', constraints);
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('✅ AUDIO DEBUG: Microphone access granted!');
+      if (cachedStream) {
+        console.log(`✅ Using cached ${streamType} stream from preflight permission check`);
+        // Clone the cached stream to create a new MediaStream with copies of the tracks
+        // This allows the cache to remain live for subsequent uses
+        localStream = cachedStream.clone();
+        
+        // Retain the stream (increment ref count)
+        permissionService.retainStream(streamType);
+        usingCachedStream = true;
+        
+        console.log('🎤 AUDIO DEBUG: Using cached stream, tracks:', {
+          audioTracks: localStream.getAudioTracks().length,
+          videoTracks: localStream.getVideoTracks().length,
+          audioTrackDetails: localStream.getAudioTracks().map(t => ({
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+            label: t.label
+          }))
+        });
+      } else {
+        // Fallback: Request through permissionService for consistent error handling
+        console.warn('⚠️ No cached stream found, requesting through permissionService (fallback)');
+        
+        const permissionResult = type === 'video' 
+          ? await permissionService.requestCameraPermission()
+          : await permissionService.requestMicrophonePermission();
+        
+        if (!permissionResult.success || !permissionResult.stream) {
+          throw new Error(permissionResult.errorMessage || 'Failed to access media devices');
+        }
+        
+        localStream = permissionResult.stream.clone();
+        // Retain since we're now caching it
+        permissionService.retainStream(streamType);
+        usingCachedStream = true;
+        
+        console.log('✅ AUDIO DEBUG: Permission granted via fallback');
         console.log('🎤 AUDIO DEBUG: Local stream tracks:', {
           audioTracks: localStream.getAudioTracks().length,
           videoTracks: localStream.getVideoTracks().length,
@@ -446,19 +485,6 @@ export class EncryptedWebRTCService {
             label: t.label
           }))
         });
-        
-      } catch (error: any) {
-        console.error('❌ AUDIO DEBUG: Microphone access failed:', error);
-        // Provide specific error messages
-        if (error.name === 'NotAllowedError') {
-          throw new Error('Microphone access denied. Please allow microphone permissions to make calls.');
-        } else if (error.name === 'NotFoundError') {
-          throw new Error('No microphone found. Please connect a microphone to make calls.');
-        } else if (error.name === 'NotReadableError') {
-          throw new Error('Microphone is already in use by another application.');
-        } else {
-          throw new Error(`Failed to access microphone: ${error.message}`);
-        }
       }
       
       // Create peer connection
@@ -476,7 +502,7 @@ export class EncryptedWebRTCService {
           readyState: track.readyState,
           label: track.label
         });
-        peerConnection.addTrack(track, localStream);
+        peerConnection.addTrack(track, localStream!);
       });
       console.log('✅ AUDIO DEBUG: All local tracks added to peer connection');
 
@@ -492,6 +518,7 @@ export class EncryptedWebRTCService {
         localStream,
         peerConnection,
         status: 'ringing', // Set proper initial status for outgoing calls
+        retainedStreamType: usingCachedStream ? streamType : undefined, // Track for proper cleanup
       };
       
       this.activeCalls.set(callId, call);
@@ -529,6 +556,18 @@ export class EncryptedWebRTCService {
       
     } catch (error) {
       console.error('Failed to initiate call:', error);
+      
+      // CRITICAL: Cleanup on error - release retained stream and stop cloned tracks
+      if (usingCachedStream) {
+        console.log(`🧹 Releasing ${streamType} stream due to error in initiateCall`);
+        permissionService.releaseStream(streamType);
+      }
+      
+      if (localStream) {
+        console.log('🧹 Stopping cloned tracks due to error');
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      
       throw error;
     }
   }
@@ -689,9 +728,16 @@ export class EncryptedWebRTCService {
     const call = this.activeCalls.get(callId);
     if (!call) return;
 
-    // Clean up media streams
+    // Clean up media streams - stop tracks first
     if (call.localStream) {
       call.localStream.getTracks().forEach(track => track.stop());
+      console.log('🧹 Stopped local stream tracks');
+    }
+    
+    // CRITICAL: Release retained stream AFTER stopping tracks
+    if (call.retainedStreamType) {
+      console.log(`🧹 Releasing ${call.retainedStreamType} stream (endCall)`);
+      permissionService.releaseStream(call.retainedStreamType);
     }
 
     // Close peer connection

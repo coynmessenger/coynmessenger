@@ -18,6 +18,48 @@ export interface PermissionResult {
 
 class PermissionService {
   private cachedStreams = new Map<string, MediaStream>();
+  private retentionCounts = new Map<string, number>();
+  
+  constructor() {
+    // Cleanup cached streams on window unload to avoid stale handles
+    window.addEventListener('beforeunload', () => {
+      this.clearAllCachedStreams();
+    });
+  }
+  
+  /**
+   * Retain a cached stream (increment ref count)
+   * Call this when you acquire a cached stream for use
+   */
+  retainStream(type: 'microphone' | 'camera'): void {
+    const currentCount = this.retentionCounts.get(type) || 0;
+    this.retentionCounts.set(type, currentCount + 1);
+    console.log(`🔒 Retained ${type} stream (count: ${currentCount + 1})`);
+  }
+  
+  /**
+   * Release a cached stream (decrement ref count)
+   * Call this when you're done using the stream
+   * Stream is stopped and removed when count reaches 0
+   */
+  releaseStream(type: 'microphone' | 'camera'): void {
+    const currentCount = this.retentionCounts.get(type) || 0;
+    
+    if (currentCount <= 0) {
+      console.warn(`⚠️ Attempted to release ${type} stream with count ${currentCount}`);
+      return;
+    }
+    
+    const newCount = currentCount - 1;
+    this.retentionCounts.set(type, newCount);
+    console.log(`🔓 Released ${type} stream (count: ${newCount})`);
+    
+    // If no one is using the stream anymore, clear it
+    if (newCount === 0) {
+      this.clearCachedStream(type);
+      this.retentionCounts.delete(type);
+    }
+  }
   
   /**
    * Check permission state without requesting
@@ -146,6 +188,50 @@ class PermissionService {
       
     } catch (error: any) {
       console.error('❌ Camera permission failed:', error);
+      return this.classifyPermissionError(error, 'camera');
+    }
+  }
+  
+  /**
+   * Request camera with custom constraints (bypasses cache)
+   * Used for camera switching where we need specific facingMode or other constraints
+   * MUST be called within user gesture on mobile!
+   */
+  async requestCameraWithConstraints(videoConstraints: MediaTrackConstraints): Promise<PermissionResult> {
+    console.log('📹 Requesting camera with custom constraints (uncached):', videoConstraints);
+    
+    // Check security context first
+    if (!window.isSecureContext) {
+      return {
+        success: false,
+        state: 'unavailable',
+        errorType: 'insecure_context',
+        errorMessage: 'Camera/microphone access requires HTTPS connection',
+        userAction: 'Please access this site via HTTPS'
+      };
+    }
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: videoConstraints
+      });
+      
+      console.log('✅ Camera with custom constraints granted (uncached)');
+      
+      // Do NOT cache this stream - it's for specific use cases like camera switching
+      return {
+        success: true,
+        stream,
+        state: 'granted'
+      };
+      
+    } catch (error: any) {
+      console.error('❌ Camera with custom constraints failed:', error);
       return this.classifyPermissionError(error, 'camera');
     }
   }
