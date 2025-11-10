@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { notificationService } from "@/lib/notification-service";
+import { permissionService } from "@/lib/permission-service";
 import { io, Socket } from "socket.io-client";
 
 import ShareModal from "@/components/share-modal";
@@ -1821,10 +1822,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
                   if (!isInitiatingCall) {
                     setIsInitiatingCall(true);
-                    setShowVoiceCall(true);
+                    
+                    // CRITICAL: Request microphone permission FIRST (during user gesture)
+                    console.log('🎤 Voice Call: Requesting microphone permission...');
+                    const permissionResult = await permissionService.requestMicrophonePermission();
+                    
+                    if (permissionResult.success) {
+                      console.log('✅ Voice Call: Permission granted, opening modal');
+                      setShowVoiceCall(true);
+                    } else {
+                      console.error('❌ Voice Call: Permission denied:', permissionResult);
+                      toast({
+                        title: "Microphone Access Required",
+                        description: permissionResult.userAction || permissionResult.errorMessage || "Please allow microphone access to make voice calls",
+                        variant: "destructive",
+                      });
+                    }
+                    
                     // Reset debounce after 1 second
                     setTimeout(() => setIsInitiatingCall(false), 1000);
                   }
@@ -1842,10 +1859,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
                   if (!isInitiatingCall) {
                     setIsInitiatingCall(true);
-                    setShowVideoCall(true);
+                    
+                    // CRITICAL: Request camera + microphone permission FIRST (during user gesture)
+                    console.log('📹 Video Call: Requesting camera + microphone permission...');
+                    const permissionResult = await permissionService.requestCameraPermission();
+                    
+                    if (permissionResult.success) {
+                      console.log('✅ Video Call: Permission granted, opening modal');
+                      setShowVideoCall(true);
+                    } else {
+                      console.error('❌ Video Call: Permission denied:', permissionResult);
+                      toast({
+                        title: "Camera & Microphone Access Required",
+                        description: permissionResult.userAction || permissionResult.errorMessage || "Please allow camera and microphone access to make video calls",
+                        variant: "destructive",
+                      });
+                    }
+                    
                     // Reset debounce after 1 second
                     setTimeout(() => setIsInitiatingCall(false), 1000);
                   }
