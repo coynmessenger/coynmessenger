@@ -1,0 +1,445 @@
+Nice — below is a **ready-to-paste, minimal but fully functional video/voice test module** (frontend + small server signaling snippet) that implements the clean WebRTC flow you described: proper offer/answer, ICE exchange, user-gesture playback retry, detailed logs, and a `/call-test` page for two-tab testing.
+
+Drop these into your repo (Next.js/React frontend + Node signaling server). I kept the code compact and annotated so you can integrate it with your existing COYN flows or run it standalone.
+
+---
+
+# 1 — Signaling server (Node.js + Socket.IO)
+
+Use this if you need a minimal local signaling server to test with.
+
+```ts
+// server/signaling.js  (Node, plain JS)
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+io.on("connection", (socket) => {
+  console.log("[signaling] connect", socket.id);
+
+  socket.on("authenticate", ({ userId }) => {
+    socket.data.userId = userId;
+    socket.join(userId);
+    console.log(`[signaling] ${socket.id} registered as ${userId}`);
+  });
+
+  socket.on("initiate-call", (payload) => {
+    console.log("[signaling] initiate-call", payload);
+    const { to } = payload;
+    io.to(to).emit("incoming-call", payload);
+  });
+
+  socket.on("accept-call", (payload) => {
+    console.log("[signaling] accept-call", payload);
+    const { to } = payload;
+    io.to(to).emit("call-accepted", payload);
+  });
+
+  socket.on("ice-candidate", (payload) => {
+    // payload: { to, from, candidate, callId }
+    io.to(payload.to).emit("ice-candidate", payload);
+  });
+
+  socket.on("end-call", (payload) => {
+    io.to(payload.to).emit("call-ended", payload);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("[signaling] disconnect", socket.id);
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log("Signaling server listening on", PORT));
+```
+
+Run with:
+
+```
+node server/signaling.js
+```
+
+---
+
+# 2 — WebRTC service (frontend helper)
+
+Create `src/services/webrtcService.ts` (TS). This encapsulates peer connection, offer/answer, ICE, ontrack, and retry helper.
+
+```ts
+// src/services/webrtcService.ts
+import { Socket } from "socket.io-client";
+
+export type CallOptions = {
+  socket: Socket;
+  localUserId: string;
+  remoteUserId: string;
+  callId: string;
+  isCaller: boolean;
+  remoteOffer?: RTCSessionDescriptionInit;
+  onConnected?: () => void;
+  onEnded?: () => void;
+  onTrack?: (stream: MediaStream) => void; // where UI will hook audio/video element
+  userGestureRef?: { current: boolean }; // set to true on Accept button click
+};
+
+export async function tryPlayMedia(el: HTMLMediaElement | null): Promise<boolean> {
+  if (!el) return false;
+  try {
+    await el.play();
+    console.debug("[tryPlayMedia] success");
+    return true;
+  } catch (err) {
+    console.debug("[tryPlayMedia] blocked", err);
+    return false;
+  }
+}
+
+export async function startCall(opts: CallOptions) {
+  const {
+    socket,
+    localUserId,
+    remoteUserId,
+    callId,
+    isCaller,
+    remoteOffer,
+    onConnected,
+    onEnded,
+    onTrack,
+    userGestureRef,
+  } = opts;
+
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  });
+
+  let localStream: MediaStream | null = null;
+  let pendingRemoteStream: MediaStream | null = null;
+
+  pc.onicecandidate = (ev) => {
+    if (ev.candidate) {
+      socket.emit("ice-candidate", { to: remoteUserId, from: localUserId, candidate: ev.candidate, callId });
+    }
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    console.debug("[webrtc] ice state", pc.iceConnectionState);
+    if (["connected", "completed"].includes(pc.iceConnectionState)) onConnected?.();
+    if (["failed", "disconnected"].includes(pc.iceConnectionState)) console.warn("[webrtc] ice failure", pc.iceConnectionState);
+  };
+
+  pc.ontrack = async (ev) => {
+    console.debug("[webrtc] ontrack", ev.track.kind, ev.track.readyState);
+    const [stream] = ev.streams;
+    if (!stream) {
+      console.warn("[webrtc] ontrack: no stream");
+      return;
+    }
+    // pass stream to UI
+    onTrack?.(stream);
+
+    // try to autoplay; if blocked store pending stream for later retry
+    const audioEl = document.createElement(ev.track.kind === "audio" ? "audio" : "video") as HTMLMediaElement;
+    audioEl.autoplay = true;
+    audioEl.playsInline = true;
+    audioEl.srcObject = stream;
+
+    const played = await tryPlayMedia(audioEl);
+    if (!played) {
+      console.debug("[webrtc] autoplay blocked -> pendingRemoteStream");
+      pendingRemoteStream = stream;
+    } else {
+      pendingRemoteStream = null;
+    }
+
+    // If user already gave gesture earlier, retry immediately
+    if (userGestureRef?.current && pendingRemoteStream) {
+      console.debug("[webrtc] gesture already present, retrying playback");
+      const played2 = await tryPlayMedia(audioEl);
+      if (played2) pendingRemoteStream = null;
+    }
+  };
+
+  // Acquire local audio (+video optional) and add tracks
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    console.debug("[webrtc] got local stream", localStream.id, localStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
+    localStream.getTracks().forEach((t) => pc.addTrack(t, localStream!));
+  } catch (err) {
+    console.error("[webrtc] getUserMedia failed", err);
+    throw err;
+  }
+
+  // Negotiation
+  if (isCaller) {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit("initiate-call", { to: remoteUserId, from: localUserId, callId, sdp: pc.localDescription });
+    console.debug("[webrtc] offer created & sent");
+  } else {
+    if (!remoteOffer) throw new Error("callee missing remoteOffer");
+    await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+    console.debug("[webrtc] remote offer set for callee");
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("accept-call", { to: remoteUserId, from: localUserId, callId, sdp: pc.localDescription });
+    console.debug("[webrtc] answer created & sent");
+  }
+
+  // Socket event handlers
+  const onRemoteAnswer = async (payload: { callId: string; sdp: any }) => {
+    if (payload.callId !== callId) return;
+    if (payload.sdp && pc.signalingState !== "closed") {
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        console.debug("[webrtc] setRemoteDesc(answer)");
+      } catch (e) { console.warn("[webrtc] setRemoteDescription failed", e); }
+    }
+  };
+
+  const onIce = async (payload: any) => {
+    if (payload.callId !== callId || !payload.candidate) return;
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+      console.debug("[webrtc] addIceCandidate OK");
+    } catch (e) {
+      console.warn("[webrtc] addIceCandidate failed", e);
+    }
+  };
+
+  const onEnd = (payload: any) => {
+    if (payload.callId !== callId) return;
+    cleanup();
+    onEnded?.();
+  };
+
+  socket.on("call-accepted", onRemoteAnswer);
+  socket.on("ice-candidate", onIce);
+  socket.on("call-ended", onEnd);
+
+  // Expose a retry method to be called on Accept user gesture
+  const retryPending = async () => {
+    if (!pendingRemoteStream) return false;
+    console.debug("[webrtc] retryPending called");
+    const audioEl = document.createElement("audio");
+    audioEl.autoplay = true;
+    audioEl.playsInline = true;
+    audioEl.srcObject = pendingRemoteStream;
+    const played = await tryPlayMedia(audioEl);
+    if (played) pendingRemoteStream = null;
+    return played;
+  };
+
+  function cleanup() {
+    try {
+      socket.off("call-accepted", onRemoteAnswer);
+      socket.off("ice-candidate", onIce);
+      socket.off("call-ended", onEnd);
+      if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+      try { pc.close(); } catch (e) {}
+    } catch (e) { console.warn(e); }
+  }
+
+  return { pc, retryPending, cleanup };
+}
+```
+
+---
+
+# 3 — `/call-test` React page (Next.js)
+
+Create `pages/call-test.tsx` or similar. This UI shows your userId, lets you dial and receive calls, and connects to the signaling server.
+
+```tsx
+// pages/call-test.tsx
+import React, { useEffect, useRef, useState } from "react";
+import io from "socket.io-client";
+import { startCall } from "@/services/webrtcService";
+
+const SIGNAL = process.env.NEXT_PUBLIC_SIGNAL_SERVER || "http://localhost:3000";
+
+export default function CallTestPage() {
+  const [socket, setSocket] = useState<any>(null);
+  const [userId] = useState(() => `u${Math.floor(Math.random() * 1e6).toString(16)}`);
+  const [incoming, setIncoming] = useState<any>(null);
+  const [target, setTarget] = useState("");
+  const [callData, setCallData] = useState<any>(null);
+  const userGestureRef = useRef({ current: false });
+  const callSessionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const s = io(SIGNAL);
+    setSocket(s);
+    s.on("connect", () => { s.emit("authenticate", { userId }); console.debug("[socket] connected", s.id); });
+    s.on("incoming-call", (payload: any) => {
+      console.debug("[socket] incoming-call", payload);
+      setIncoming(payload);
+    });
+    s.on("call-ended", (payload: any) => {
+      console.debug("[socket] call-ended", payload);
+      setIncoming(null);
+      setCallData(null);
+      userGestureRef.current = false;
+      if (callSessionRef.current) { callSessionRef.current.cleanup(); callSessionRef.current = null; }
+    });
+    s.on("call-accepted", (payload: any) => {
+      console.debug("[socket] call-accepted (for caller)", payload);
+      // caller handled in page flow
+    });
+    return () => { s.disconnect(); };
+  }, [userId]);
+
+  async function startOutgoing() {
+    if (!socket) return;
+    const callId = Date.now().toString();
+    setCallData({ callId, remote: target, isCaller: true });
+    // create session; WebRTC service will emit initiate-call
+    const session = await startCall({
+      socket,
+      localUserId: userId,
+      remoteUserId: target,
+      callId,
+      isCaller: true,
+      onConnected: () => console.debug("[UI] connected"),
+      onEnded: () => {
+        setCallData(null);
+        userGestureRef.current = false;
+      },
+      onTrack: (stream) => {
+        // attach remote stream to video element
+        const el = document.getElementById("remote") as HTMLVideoElement;
+        if (el) { el.srcObject = stream; el.play().catch(()=>{}); }
+      },
+      userGestureRef,
+    });
+    callSessionRef.current = session;
+  }
+
+  async function acceptIncoming() {
+    if (!socket || !incoming) return;
+    // mark user gesture before mounting/starting webRTC
+    userGestureRef.current = true;
+    setCallData({ callId: incoming.callId, remote: incoming.from, isCaller: false });
+    setIncoming(null);
+
+    // start call as callee, pass remoteOffer so it can answer
+    const session = await startCall({
+      socket,
+      localUserId: userId,
+      remoteUserId: incoming.from,
+      callId: incoming.callId,
+      isCaller: false,
+      remoteOffer: incoming.sdp,
+      onConnected: () => console.debug("[UI] connected"),
+      onEnded: () => { setCallData(null); userGestureRef.current = false; },
+      onTrack: (stream) => {
+        const el = document.getElementById("remote") as HTMLVideoElement;
+        if (el) { el.srcObject = stream; el.play().catch(()=>{}); }
+      },
+      userGestureRef,
+    });
+    callSessionRef.current = session;
+
+    // after mounting, try to retry pending playback (if any)
+    setTimeout(() => {
+      session.retryPending?.().then((ok: boolean) => console.debug("[UI] retryPending result", ok));
+    }, 200);
+  }
+
+  function endCall() {
+    socket?.emit("end-call", { to: callData.remote, callId: callData.callId });
+    callSessionRef.current?.cleanup();
+    callSessionRef.current = null;
+    setCallData(null);
+    userGestureRef.current = false;
+  }
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Call Test</h2>
+      <div><strong>Your ID:</strong> {userId}</div>
+
+      <div style={{ marginTop: 12 }}>
+        <input placeholder="Target User ID" value={target} onChange={(e) => setTarget(e.target.value)} />
+        <button onClick={startOutgoing} disabled={!target} style={{ marginLeft: 8 }}>Start Call</button>
+      </div>
+
+      {incoming && (
+        <div style={{ marginTop: 20, padding: 12, border: "1px solid #ddd" }}>
+          <div>Incoming call from {incoming.from}</div>
+          <button onClick={acceptIncoming} style={{ marginRight: 8 }}>Accept</button>
+          <button onClick={() => { socket?.emit("end-call", { to: incoming.from, callId: incoming.callId }); setIncoming(null); }}>Decline</button>
+        </div>
+      )}
+
+      {callData && (
+        <div style={{ marginTop: 12 }}>
+          <div>In call with {callData.remote} (callId: {callData.callId})</div>
+          <button onClick={endCall} style={{ marginTop: 8 }}>Hangup</button>
+          <div style={{ marginTop: 12 }}>
+            <video id="local" style={{ width: 160 }} autoPlay muted playsInline />
+            <video id="remote" style={{ width: 320 }} autoPlay playsInline />
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginTop: 18 }}>
+        <small>Open this page in two tabs. Use IDs to call each other.</small>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+# 4 — Files & assets
+
+* Put `ringtone.mp3` into `public/audio/ringtone.mp3` if you want real ringtone playback when receiving a call (the test page currently uses an accept click gesture; you can add the modal/ringtone around `incoming`).
+
+---
+
+# 5 — How to test (two-tab)
+
+1. Start signaling server: `node server/signaling.js`
+2. Start frontend (Next): `npm run dev`
+3. Open two tabs to `http://localhost:3000/call-test`
+4. Note each tab’s ID. In Tab A, enter Tab B’s ID and click **Start Call**
+5. Tab B sees incoming notification → click **Accept**
+6. Watch both consoles and the UI video elements.
+
+If audio or remote video is not heard/seen, copy console logs and paste them here. Key things to look for:
+
+* `[webrtc] got local stream ...`
+* `[webrtc] offer created & sent`
+* `[webrtc] remote offer set for callee`
+* `[webrtc] ontrack ...`
+* `[tryPlayMedia] success` or `[tryPlayMedia] blocked`
+* `[webrtc] ice state connected`
+
+---
+
+# 6 — If audio still silent — what to copy & share
+
+If you still get silence after testing, paste the console output from both tabs (caller & callee). Important lines:
+
+* Local stream capture logs (track labels & enabled)
+* `ontrack` logs and stream track metadata
+* `tryPlayMedia` success/failure
+* `pc.iceConnectionState` transitions
+* Any errors or warnings
+
+I’ll parse the logs and point to the exact failing stage (capture, SDP, ICE, or playback) and give a targeted fix.
+
+---
+
+If you want, I can now:
+
+* produce a ready-to-apply **git patch** for your current repo (based on paths you provide),
+* or adapt this test page to plug into your live COYN Messenger frontend (swap signaling endpoints and user IDs),
+* or produce a small real-time overlay of audio/mic levels for on-device debugging.
+
+Which would you like next?
