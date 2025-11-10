@@ -216,8 +216,26 @@ export class SimpleWebRTCService {
       console.log('🎤 WebRTC: Requesting media access...');
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
       console.log('✅ WebRTC: Media access granted');
-      console.log('🎤 Audio tracks:', localStream.getAudioTracks().length);
-      console.log('📹 Video tracks:', localStream.getVideoTracks().length);
+      
+      // DEBUG: Verify microphone track state
+      localStream.getAudioTracks().forEach(track => {
+        console.log('[mic] 🎤 Local audio track:', {
+          label: track.label,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+        });
+      });
+      
+      if (config.type === 'video') {
+        localStream.getVideoTracks().forEach(track => {
+          console.log('[camera] 📹 Local video track:', {
+            label: track.label,
+            enabled: track.enabled,
+            readyState: track.readyState,
+          });
+        });
+      }
 
       // Attach local stream to video element if provided
       if (config.localVideoElement && config.type === 'video') {
@@ -243,13 +261,32 @@ export class SimpleWebRTCService {
 
       // Handle remote stream
       peerConnection.ontrack = (event) => {
-        console.log('📥 WebRTC: Received remote track:', event.track.kind);
+        console.log('[webrtc] 🔊 ontrack event fired:', {
+          trackKind: event.track.kind,
+          enabled: event.track.enabled,
+          readyState: event.track.readyState,
+          muted: event.track.muted,
+        });
         
         const remoteStream = event.streams[0];
+        
+        // DEBUG: Log remote stream details
+        console.log('[webrtc] 📡 Remote stream details:', {
+          id: remoteStream.id,
+          active: remoteStream.active,
+          tracks: remoteStream.getTracks().map(t => ({
+            kind: t.kind,
+            enabled: t.enabled,
+            readyState: t.readyState,
+            muted: t.muted,
+            label: t.label,
+          })),
+        });
         
         // Attach to remote video element if video call
         if (config.remoteVideoElement && config.type === 'video') {
           config.remoteVideoElement.srcObject = remoteStream;
+          console.log('[webrtc] 📺 Remote video element srcObject set');
         }
 
         // CRITICAL: Always attach audio to dedicated audio element
@@ -258,14 +295,21 @@ export class SimpleWebRTCService {
           config.remoteAudioElement.volume = 1.0;
           config.remoteAudioElement.muted = false;
           
-          // Attempt playback with user gesture
+          console.log('[webrtc] 🔊 Remote audio element configured:', {
+            srcObject: !!config.remoteAudioElement.srcObject,
+            volume: config.remoteAudioElement.volume,
+            muted: config.remoteAudioElement.muted,
+            paused: config.remoteAudioElement.paused,
+          });
+          
+          // Attempt playback
           config.remoteAudioElement.play()
             .then(() => {
-              console.log('✅ WebRTC: Remote audio playback started');
+              console.log('[tryPlayMedia] ✅ Playback succeeded - audio should be playing');
             })
             .catch((error) => {
-              console.warn('⚠️ WebRTC: Autoplay blocked, will retry on user gesture');
-              console.error(error);
+              console.warn('[tryPlayMedia] ⚠️ Playback blocked or failed - will retry on user gesture');
+              console.error('[tryPlayMedia] Error details:', error);
               
               // Store for retry on user interaction
               (window as any).__pendingAudioElement = config.remoteAudioElement;
@@ -292,16 +336,21 @@ export class SimpleWebRTCService {
 
       // Monitor connection state
       peerConnection.onconnectionstatechange = () => {
-        console.log('🔗 WebRTC: Connection state:', peerConnection.connectionState);
+        console.log('[webrtc] 🔗 Connection state:', peerConnection.connectionState);
         
         if (peerConnection.connectionState === 'connected') {
-          console.log('✅ WebRTC: Peer connection established');
+          console.log('[webrtc] ✅ ICE connected - peer connection established');
         } else if (peerConnection.connectionState === 'failed') {
-          console.error('❌ WebRTC: Connection failed');
+          console.error('[webrtc] ❌ Connection failed');
           if (events.onError) {
             events.onError(new Error('WebRTC connection failed'));
           }
         }
+      };
+      
+      // Monitor ICE connection state for debugging
+      peerConnection.oniceconnectionstatechange = () => {
+        console.log('[webrtc] 🧊 ICE connection state:', peerConnection.iceConnectionState);
       };
 
       // Create offer
@@ -378,6 +427,26 @@ export class SimpleWebRTCService {
       console.log('🎤 WebRTC: Requesting media access for answer...');
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
       console.log('✅ WebRTC: Media access granted');
+      
+      // DEBUG: Verify microphone track state
+      localStream.getAudioTracks().forEach(track => {
+        console.log('[mic] 🎤 Local audio track (receiver):', {
+          label: track.label,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+        });
+      });
+      
+      if (config.type === 'video') {
+        localStream.getVideoTracks().forEach(track => {
+          console.log('[camera] 📹 Local video track (receiver):', {
+            label: track.label,
+            enabled: track.enabled,
+            readyState: track.readyState,
+          });
+        });
+      }
 
       // Attach local stream
       if (config.localVideoElement && config.type === 'video') {
@@ -402,12 +471,31 @@ export class SimpleWebRTCService {
 
       // Handle remote stream
       peerConnection.ontrack = (event) => {
-        console.log('📥 WebRTC: Received remote track:', event.track.kind);
+        console.log('[webrtc] 🔊 ontrack event fired (receiver):', {
+          trackKind: event.track.kind,
+          enabled: event.track.enabled,
+          readyState: event.track.readyState,
+          muted: event.track.muted,
+        });
         
         const remoteStream = event.streams[0];
         
+        // DEBUG: Log remote stream details
+        console.log('[webrtc] 📡 Remote stream details (receiver):', {
+          id: remoteStream.id,
+          active: remoteStream.active,
+          tracks: remoteStream.getTracks().map(t => ({
+            kind: t.kind,
+            enabled: t.enabled,
+            readyState: t.readyState,
+            muted: t.muted,
+            label: t.label,
+          })),
+        });
+        
         if (config.remoteVideoElement && config.type === 'video') {
           config.remoteVideoElement.srcObject = remoteStream;
+          console.log('[webrtc] 📺 Remote video element srcObject set (receiver)');
         }
 
         // CRITICAL: Audio element handling
@@ -416,13 +504,20 @@ export class SimpleWebRTCService {
           config.remoteAudioElement.volume = 1.0;
           config.remoteAudioElement.muted = false;
           
+          console.log('[webrtc] 🔊 Remote audio element configured (receiver):', {
+            srcObject: !!config.remoteAudioElement.srcObject,
+            volume: config.remoteAudioElement.volume,
+            muted: config.remoteAudioElement.muted,
+            paused: config.remoteAudioElement.paused,
+          });
+          
           // Since this is triggered by accept button click, we have user gesture
           config.remoteAudioElement.play()
             .then(() => {
-              console.log('✅ WebRTC: Remote audio playback started');
+              console.log('[tryPlayMedia] ✅ Playback succeeded (receiver) - audio should be playing');
             })
             .catch((error) => {
-              console.error('❌ WebRTC: Audio playback failed:', error);
+              console.error('[tryPlayMedia] ❌ Audio playback failed (receiver):', error);
             });
         }
 
@@ -445,14 +540,19 @@ export class SimpleWebRTCService {
 
       // Monitor connection state
       peerConnection.onconnectionstatechange = () => {
-        console.log('🔗 WebRTC: Connection state:', peerConnection.connectionState);
+        console.log('[webrtc] 🔗 Connection state (receiver):', peerConnection.connectionState);
         
         if (peerConnection.connectionState === 'connected') {
-          console.log('✅ WebRTC: Peer connection established');
+          console.log('[webrtc] ✅ ICE connected (receiver) - peer connection established');
           if (events.onCallConnected) {
             events.onCallConnected();
           }
         }
+      };
+      
+      // Monitor ICE connection state for debugging
+      peerConnection.oniceconnectionstatechange = () => {
+        console.log('[webrtc] 🧊 ICE connection state (receiver):', peerConnection.iceConnectionState);
       };
 
       // Set remote description from offer
@@ -591,18 +691,27 @@ export function retryPendingAudio(): Promise<boolean> {
     const audioElement = (window as any).__pendingAudioElement as HTMLAudioElement;
     
     if (!audioElement || !audioElement.srcObject) {
+      console.log('[tryPlayMedia] ⏭️ No pending audio to retry');
       resolve(false);
       return;
     }
 
+    console.log('[tryPlayMedia] 🔄 Retrying audio playback after user gesture...');
+    console.log('[tryPlayMedia] Audio element state before retry:', {
+      srcObject: !!audioElement.srcObject,
+      volume: audioElement.volume,
+      muted: audioElement.muted,
+      paused: audioElement.paused,
+    });
+
     audioElement.play()
       .then(() => {
-        console.log('✅ Retry: Audio playback started after user gesture');
+        console.log('[tryPlayMedia] ✅ Playback succeeded after user gesture - audio should now be playing!');
         delete (window as any).__pendingAudioElement;
         resolve(true);
       })
       .catch((error) => {
-        console.error('❌ Retry: Audio playback still blocked:', error);
+        console.error('[tryPlayMedia] ❌ Playback still blocked after user gesture:', error);
         resolve(false);
       });
   });

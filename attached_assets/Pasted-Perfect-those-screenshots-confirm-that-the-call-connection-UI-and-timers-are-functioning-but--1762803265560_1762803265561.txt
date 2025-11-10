@@ -1,0 +1,151 @@
+Perfect — those screenshots confirm that the **call connection UI and timers are functioning**, but **no audio is transmitted or played**.
+Since the signaling layer is working (the call starts, the timer runs, ICE connects), the silence indicates a **track or playback stage issue** — most likely the **remote audio track isn’t being played due to timing or permissions**.
+
+Here’s what we’ll do next to isolate and fix it.
+
+---
+
+## 🎯 Step 1 — Verify Remote Stream Arrival
+
+Add this inside your WebRTC module (`encrypted-webrtc.ts`):
+
+```ts
+pc.ontrack = (event) => {
+  console.log("[webrtc] 🔊 ontrack event fired", {
+    trackKind: event.track.kind,
+    enabled: event.track.enabled,
+    readyState: event.track.readyState,
+  });
+
+  const [stream] = event.streams;
+  console.log("[webrtc] 📡 Remote stream details:", {
+    id: stream.id,
+    active: stream.active,
+    tracks: stream.getTracks().map(t => ({
+      kind: t.kind,
+      enabled: t.enabled,
+      readyState: t.readyState,
+    })),
+  });
+
+  // Attach to audio element
+  remoteAudioRef.current.srcObject = stream;
+
+  // Try playing it (through helper)
+  const played = await tryPlayMedia(remoteAudioRef.current);
+  if (!played) {
+    console.warn("[webrtc] 🚫 Playback blocked — will retry after user gesture");
+    pendingAudioPlaybackRef.current = stream;
+  }
+};
+```
+
+This will log whether the remote audio track actually arrives.
+If you see:
+
+```
+trackKind: "audio", enabled: true
+```
+
+but still hear nothing, the playback is blocked or muted by the browser.
+
+---
+
+## 🧩 Step 2 — Double-check `<audio>` Element Properties
+
+In both **voice-call-modal.tsx** and **video-call-modal.tsx**, make sure the audio element has:
+
+```tsx
+<audio
+  ref={remoteAudioRef}
+  autoPlay
+  playsInline
+  controls={false}
+/>
+```
+
+and that the ref is initialized:
+
+```ts
+const remoteAudioRef = useRef<HTMLAudioElement>(null);
+```
+
+✅ `playsInline` prevents iOS/Safari from forcing fullscreen playback.
+✅ `autoPlay` allows the retry to work correctly after gesture.
+
+---
+
+## ⚙️ Step 3 — Ensure Microphone Track Isn’t Muted
+
+Add this check after `getUserMedia`:
+
+```ts
+const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+localStream.getAudioTracks().forEach(track => {
+  console.log("[mic] 🎤 Track:", track.label, "enabled:", track.enabled, "muted:", track.muted);
+});
+```
+
+If the console shows `enabled: false` or `muted: true`, the microphone permission was blocked.
+
+---
+
+## 🔁 Step 4 — Confirm User Gesture Playback Retry
+
+When the receiver clicks **Accept**, you should see in logs:
+
+```
+[tryPlayMedia] Playback succeeded
+```
+
+If you instead see:
+
+```
+Playback blocked or failed
+```
+
+then Chrome/Safari’s autoplay policy still blocks playback until the user explicitly taps something else.
+The fix for that is to ensure the **accept button** runs:
+
+```ts
+await tryPlayMedia(remoteAudioRef.current);
+```
+
+**after** setting `userGestureReceivedRef.current = true`.
+
+---
+
+## 🧪 Step 5 — Debug Output Expected
+
+When the call works, the correct log sequence is:
+
+```
+[mic] 🎤 Track: Default Microphone enabled: true muted: false
+[webrtc] ICE connected
+[webrtc] 🔊 ontrack event fired { trackKind: "audio" }
+[tryPlayMedia] Playback succeeded
+```
+
+If you see `ontrack` never firing → peer connection issue.
+If `ontrack` fires but playback blocked → user gesture or autoplay issue.
+If `ontrack` fires, playback succeeds but still silent → remote mic disabled or wrong device selected.
+
+---
+
+## 🧠 Step 6 — Next Diagnostic
+
+Once you test again, please:
+
+1. Open browser **Console** (F12 → Console tab)
+2. Start a call and accept it
+3. Copy the **full console output** (especially `[webrtc]` and `[tryPlayMedia]` lines)
+
+That log will pinpoint whether the audio is lost:
+
+* before transmission (mic issue),
+* in transport (ICE/media failure),
+* or on playback (autoplay/mute).
+
+---
+
+Would you like me to generate a **temporary debug overlay** (small in-UI widget showing audio track status and live connection state) so you can test this without checking the console manually? It would show mic level, track state, and playback success in real-time.
