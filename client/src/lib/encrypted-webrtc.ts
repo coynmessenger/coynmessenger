@@ -12,6 +12,7 @@ export interface EncryptedCall {
   remoteOffer?: RTCSessionDescriptionInit;
   status?: 'connecting' | 'ringing' | 'connected' | 'ended';
   retainedStreamType?: 'microphone' | 'camera'; // Track if using cached stream for proper release
+  pendingIceCandidates?: RTCIceCandidateInit[]; // Queue for ICE candidates that arrive before remote description
 }
 
 export interface CallEventHandlers {
@@ -81,6 +82,34 @@ export class EncryptedWebRTCService {
   // Desktop device detection
   private isMobileDevice(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Process pending ICE candidates after remote description is set
+  private async processPendingIceCandidates(call: EncryptedCall): Promise<void> {
+    if (!call.pendingIceCandidates || call.pendingIceCandidates.length === 0) {
+      return;
+    }
+    
+    if (!call.peerConnection) {
+      console.log('🧊 ICE: Cannot process pending candidates - no peer connection');
+      return;
+    }
+    
+    console.log(`🧊 ICE: Processing ${call.pendingIceCandidates.length} pending ICE candidates`);
+    
+    const candidates = [...call.pendingIceCandidates];
+    call.pendingIceCandidates = []; // Clear the queue
+    
+    for (const candidate of candidates) {
+      try {
+        await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log('🧊 ICE: Pending candidate added successfully');
+      } catch (error) {
+        console.error('🧊 ICE: Failed to add pending ICE candidate:', error);
+      }
+    }
+    
+    console.log('🧊 ICE: All pending candidates processed');
   }
 
   // Enhanced desktop media constraints
@@ -233,6 +262,9 @@ export class EncryptedWebRTCService {
           // Use standard answer (WebRTC provides DTLS-SRTP encryption)
           await call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
           
+          // CRITICAL: Process any queued ICE candidates now that remote description is set
+          await this.processPendingIceCandidates(call);
+          
           // CRITICAL: Update call status to connected
           call.status = 'connected';
           this.activeCalls.set(data.callId, call);
@@ -270,7 +302,7 @@ export class EncryptedWebRTCService {
       this.endCall(data.callId);
     });
 
-    // Handle ICE candidates
+    // Handle ICE candidates with queuing support
     this.socket.on('ice-candidate', async (data: {
       callId: string;
       fromUserId: string;
@@ -278,37 +310,53 @@ export class EncryptedWebRTCService {
       candidate?: RTCIceCandidateInit;
       encrypted: boolean;
     }) => {
-      console.log('Received ICE candidate:', data);
+      console.log('🧊 ICE: Received ICE candidate for call:', data.callId);
       
       const call = this.activeCalls.get(data.callId);
-      if (!call?.peerConnection) {
-        console.log('No peer connection found for ICE candidate - may be timing issue');
+      if (!call) {
+        console.log('🧊 ICE: No call found for ICE candidate - queueing not possible');
+        return;
+      }
+      
+      let candidate = data.candidate;
+      
+      // Handle encrypted ICE candidates if available
+      if (data.encrypted && data.encryptedCandidate) {
+        console.log('🧊 ICE: Encrypted ICE candidate received');
+      }
+      
+      if (!candidate) {
+        console.log('🧊 ICE: No candidate data in message');
+        return;
+      }
+      
+      // If no peer connection yet, queue the candidate
+      if (!call.peerConnection) {
+        console.log('🧊 ICE: No peer connection yet - queuing candidate');
+        if (!call.pendingIceCandidates) {
+          call.pendingIceCandidates = [];
+        }
+        call.pendingIceCandidates.push(candidate);
+        console.log('🧊 ICE: Queued candidates count:', call.pendingIceCandidates.length);
         return;
       }
       
       // Check if remote description is set before adding ICE candidates
       if (!call.peerConnection.remoteDescription) {
-        console.log('⚠️ WARNING: Trying to add ICE candidate before remote description is set');
-        // Could implement queueing here if needed
+        console.log('🧊 ICE: Remote description not set yet - queuing candidate');
+        if (!call.pendingIceCandidates) {
+          call.pendingIceCandidates = [];
+        }
+        call.pendingIceCandidates.push(candidate);
+        console.log('🧊 ICE: Queued candidates count:', call.pendingIceCandidates.length);
         return;
       }
 
       try {
-        let candidate = data.candidate;
-        
-        // Handle encrypted ICE candidates if available
-        if (data.encrypted && data.encryptedCandidate) {
-          // For now, decrypt on server side and use plain candidate
-          // This could be enhanced with client-side decryption
-          console.log('Encrypted ICE candidate received');
-        }
-
-        if (candidate) {
-          await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-          console.log('ICE candidate added successfully');
-        }
+        await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log('🧊 ICE: Candidate added successfully');
       } catch (error) {
-        console.error('Failed to add ICE candidate:', error);
+        console.error('🧊 ICE: Failed to add ICE candidate:', error);
       }
     });
 
@@ -342,9 +390,13 @@ export class EncryptedWebRTCService {
           if (data.type === 'offer') {
             await call.peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
             console.log('Remote offer set successfully');
+            // Process any queued ICE candidates
+            await this.processPendingIceCandidates(call);
           } else if (data.type === 'answer') {
             await call.peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
             console.log('Remote answer set successfully');
+            // Process any queued ICE candidates
+            await this.processPendingIceCandidates(call);
           }
         }
       } catch (error) {
@@ -706,6 +758,9 @@ export class EncryptedWebRTCService {
         console.log('📞 ACCEPT: Setting remote offer description');
         await peerConnection.setRemoteDescription(new RTCSessionDescription(call.remoteOffer));
         console.log('✅ ACCEPT: Remote offer set successfully');
+        
+        // CRITICAL: Process any queued ICE candidates now that remote description is set
+        await this.processPendingIceCandidates(call);
       }
 
       // Create answer
