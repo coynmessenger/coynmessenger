@@ -13,6 +13,9 @@ export interface EncryptedCall {
   status?: 'connecting' | 'ringing' | 'connected' | 'ended';
   retainedStreamType?: 'microphone' | 'camera'; // Track if using cached stream for proper release
   pendingIceCandidates?: RTCIceCandidateInit[]; // Queue for ICE candidates that arrive before remote description
+  // Pending events for when handlers aren't registered yet
+  pendingIncomingCall?: { callId: string; fromUserId: string; type: 'voice' | 'video' };
+  pendingCallAccepted?: { callId: string; fromUserId: string; type: 'voice' | 'video'; status: string };
 }
 
 export interface CallEventHandlers {
@@ -224,15 +227,18 @@ export class EncryptedWebRTCService {
         console.log('✅ INCOMING CALL: Active call IDs:', Array.from(this.activeCalls.keys()));
 
         // Trigger the incoming call event for UI
+        const incomingCallEvent = {
+          callId: data.callId,
+          fromUserId: data.fromUserId,
+          type: data.type,
+        };
+        
         if (this.eventHandlers.onIncomingCall) {
           console.log('📞 INCOMING CALL: Triggering onIncomingCall handler');
-          this.eventHandlers.onIncomingCall({
-            callId: data.callId,
-            fromUserId: data.fromUserId,
-            type: data.type,
-          });
+          this.eventHandlers.onIncomingCall(incomingCallEvent);
         } else {
-          console.warn('⚠️ INCOMING CALL: No onIncomingCall handler registered!');
+          console.log('📦 INCOMING CALL: No handler yet, buffering event for later delivery');
+          call.pendingIncomingCall = incomingCallEvent;
         }
 
         // If there's an offer, prepare for potential acceptance
@@ -275,16 +281,21 @@ export class EncryptedWebRTCService {
       }
       
       // CRITICAL: Trigger call accepted event for UI to show connected state
+      const callAcceptedEvent = {
+        callId: data.callId,
+        fromUserId: data.byUserId,
+        type: call?.type || 'voice',
+        status: 'connected'
+      };
+      
       if (this.eventHandlers.onCallAccepted) {
-        this.eventHandlers.onCallAccepted({
-          callId: data.callId,
-          fromUserId: data.byUserId,
-          type: call?.type || 'voice',
-          status: 'connected'
-        });
+        this.eventHandlers.onCallAccepted(callAcceptedEvent);
         console.log('✅ CALLER: UI should now show in-call controls (Hang Up, Speaker, etc.)');
       } else {
-        console.error('❌ CALLER: No onCallAccepted handler available');
+        console.log('📦 CALLER: No handler yet, buffering callAccepted event');
+        if (call) {
+          call.pendingCallAccepted = callAcceptedEvent;
+        }
       }
     });
 
@@ -462,16 +473,35 @@ export class EncryptedWebRTCService {
   setEventHandlers(handlers: CallEventHandlers): void {
     this.eventHandlers = { ...this.eventHandlers, ...handlers };
     
-    // CRITICAL: Deliver any pending remote streams immediately
-    // This handles the race condition where streams arrive before handlers are set
-    if (handlers.onRemoteStream) {
-      this.activeCalls.forEach((call, callId) => {
-        if (call.remoteStream) {
-          console.log('📦 STREAM SETUP: Delivering buffered remote stream for call:', callId);
-          handlers.onRemoteStream!(call.remoteStream);
-        }
-      });
-    }
+    // CRITICAL: Deliver any pending events immediately
+    // This handles race conditions where events fire before handlers are registered
+    this.activeCalls.forEach((call, callId) => {
+      // Deliver pending incoming call events
+      if (handlers.onIncomingCall && call.pendingIncomingCall) {
+        console.log('📦 EVENT HANDLER: Delivering buffered incoming call for:', callId);
+        handlers.onIncomingCall(call.pendingIncomingCall);
+        call.pendingIncomingCall = undefined; // Clear after delivery
+      }
+      
+      // Deliver pending call accepted events
+      if (handlers.onCallAccepted && call.pendingCallAccepted) {
+        console.log('📦 EVENT HANDLER: Delivering buffered call accepted for:', callId);
+        handlers.onCallAccepted(call.pendingCallAccepted);
+        call.pendingCallAccepted = undefined; // Clear after delivery
+      }
+      
+      // Deliver pending remote streams
+      if (handlers.onRemoteStream && call.remoteStream) {
+        console.log('📦 EVENT HANDLER: Delivering buffered remote stream for:', callId);
+        handlers.onRemoteStream(call.remoteStream);
+      }
+      
+      // Deliver pending local streams
+      if (handlers.onLocalStream && call.localStream) {
+        console.log('📦 EVENT HANDLER: Delivering buffered local stream for:', callId);
+        handlers.onLocalStream(call.localStream);
+      }
+    });
   }
 
   // Clean up existing connection
