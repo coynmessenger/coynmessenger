@@ -461,6 +461,17 @@ export class EncryptedWebRTCService {
   // Set event handlers
   setEventHandlers(handlers: CallEventHandlers): void {
     this.eventHandlers = { ...this.eventHandlers, ...handlers };
+    
+    // CRITICAL: Deliver any pending remote streams immediately
+    // This handles the race condition where streams arrive before handlers are set
+    if (handlers.onRemoteStream) {
+      this.activeCalls.forEach((call, callId) => {
+        if (call.remoteStream) {
+          console.log('📦 STREAM SETUP: Delivering buffered remote stream for call:', callId);
+          handlers.onRemoteStream!(call.remoteStream);
+        }
+      });
+    }
   }
 
   // Clean up existing connection
@@ -860,6 +871,13 @@ export class EncryptedWebRTCService {
       
       console.log('📞 DESKTOP: Received remote stream with tracks:', event.streams[0].getTracks().length);
       call.remoteStream = event.streams[0];
+      
+      // Log if handler is available
+      if (this.eventHandlers.onRemoteStream) {
+        console.log('✅ STREAM SETUP: Handler available, delivering stream immediately');
+      } else {
+        console.log('📦 STREAM SETUP: No handler yet, stream buffered in call.remoteStream');
+      }
       
       // Check transceiver direction (architect recommendation)
       const transceivers = peerConnection.getTransceivers();
