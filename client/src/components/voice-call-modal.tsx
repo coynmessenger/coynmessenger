@@ -561,6 +561,15 @@ export default function VoiceCallModal({
     }
   }, [isOpen, isCallActive, onCallStart, callType, user?.id]); // Fixed dependencies to prevent infinite loops
 
+  // CRITICAL: Separate useEffect to handle incomingCallId timing
+  // This ensures encryptedCallId is set even if incomingCallId arrives after modal opens
+  useEffect(() => {
+    if (callType === "incoming" && incomingCallId && !encryptedCallId) {
+      console.log('🎙️ VOICE: Setting encryptedCallId from incomingCallId:', incomingCallId);
+      setEncryptedCallId(incomingCallId);
+    }
+  }, [callType, incomingCallId, encryptedCallId]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (callStatus === "connected") {

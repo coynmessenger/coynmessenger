@@ -430,6 +430,15 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   }, [isOpen, isCallActive, onCallStart]); // Removed incomingCallId to prevent multiple calls
 
+  // CRITICAL: Separate useEffect to handle incomingCallId timing
+  // This ensures encryptedCallId is set even if incomingCallId arrives after modal opens
+  useEffect(() => {
+    if (callType === "incoming" && incomingCallId && !encryptedCallId) {
+      console.log('📹 VIDEO: Setting encryptedCallId from incomingCallId:', incomingCallId);
+      setEncryptedCallId(incomingCallId);
+    }
+  }, [callType, incomingCallId, encryptedCallId]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (callStatus === "connected") {

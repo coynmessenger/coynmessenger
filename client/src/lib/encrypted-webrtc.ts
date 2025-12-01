@@ -175,7 +175,11 @@ export class EncryptedWebRTCService {
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
-      
+      console.log('📞 INCOMING CALL: ==================== RECEIVED ====================');
+      console.log('📞 INCOMING CALL: Call ID:', data.callId);
+      console.log('📞 INCOMING CALL: From User:', data.fromUserId);
+      console.log('📞 INCOMING CALL: Type:', data.type);
+      console.log('📞 INCOMING CALL: Has Offer:', !!data.offer);
       
       try {
         // Store call information
@@ -187,24 +191,30 @@ export class EncryptedWebRTCService {
         };
         
         this.activeCalls.set(data.callId, call);
+        console.log('✅ INCOMING CALL: Added to activeCalls. Total calls:', this.activeCalls.size);
+        console.log('✅ INCOMING CALL: Active call IDs:', Array.from(this.activeCalls.keys()));
 
         // Trigger the incoming call event for UI
         if (this.eventHandlers.onIncomingCall) {
+          console.log('📞 INCOMING CALL: Triggering onIncomingCall handler');
           this.eventHandlers.onIncomingCall({
             callId: data.callId,
             fromUserId: data.fromUserId,
             type: data.type,
           });
         } else {
+          console.warn('⚠️ INCOMING CALL: No onIncomingCall handler registered!');
         }
 
         // If there's an offer, prepare for potential acceptance
         if (data.offer) {
           // Store offer data for when user accepts (use standard offer, not encrypted)
           call.remoteOffer = data.offer;
+          console.log('✅ INCOMING CALL: Stored remote offer for later acceptance');
         }
         
       } catch (error) {
+        console.error('❌ INCOMING CALL: Error processing incoming call:', error);
       }
     });
 
@@ -601,8 +611,12 @@ export class EncryptedWebRTCService {
     // Test 2: Call Existence Check
     const call = this.activeCalls.get(callId);
     if (!call) {
-      throw new Error('Call not found');
+      console.error('❌ TEST FAILED: Call not found in activeCalls');
+      console.error('❌ Requested call ID:', callId);
+      console.error('❌ Available calls:', Array.from(this.activeCalls.keys()));
+      throw new Error(`Call not found: ${callId}. Available calls: ${Array.from(this.activeCalls.keys()).join(', ') || 'none'}`);
     }
+    console.log('✅ TEST PASSED: Call found in activeCalls');
 
     // CRITICAL: Request media through permissionService for consistent error handling
     const streamType = call.type === 'video' ? 'camera' : 'microphone';
