@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, Move, SwitchCamera } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
@@ -14,7 +12,6 @@ import {
   IncomingCallControls, 
   ActiveCallControls, 
   ConnectingCallControls,
-  CallStatusIndicator,
   useCallTimer
 } from "@/components/call-controls";
 import type { User } from "@shared/schema";
