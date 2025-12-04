@@ -13,6 +13,7 @@ import {
   ConnectingCallControls,
   useCallTimer
 } from "@/components/call-controls";
+import { useCallRingtone, useRingback } from "@/hooks/use-ringtone";
 import type { User } from "@shared/schema";
 
 interface VideoCallModalProps {
@@ -39,6 +40,28 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   
   // Use the modular call timer hook
   const { duration: callDuration, formattedDuration, reset: resetCallTimer } = useCallTimer(callStatus === "connected");
+  
+  // Use centralized ringtone hooks for incoming and outgoing calls
+  const { 
+    isPlaying: isRingtonePlayingState, 
+    isPending: isRingtonePending,
+    stopRingtone: stopRingtoneHook 
+  } = useCallRingtone({
+    callStatus,
+    callType,
+    isOpen,
+    maxDuration: 45000,
+    onMaxDurationReached: () => {
+      console.log('📹 VIDEO CALL: Ringtone max duration reached');
+    }
+  });
+  
+  // Ringback tone for outgoing calls
+  const { isPlaying: isRingbackPlaying, stopRingback } = useRingback({
+    callStatus,
+    callType,
+    isOpen
+  });
   
   // Remote stream state for video display
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);

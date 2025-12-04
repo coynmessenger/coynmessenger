@@ -14,6 +14,7 @@ import {
   ConnectingCallControls,
   useCallTimer
 } from "@/components/call-controls";
+import { useCallRingtone, useRingback } from "@/hooks/use-ringtone";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -69,6 +70,28 @@ export default function VoiceCallModal({
   
   // Use the modular call timer hook
   const { duration: callDuration, formattedDuration, reset: resetCallTimer } = useCallTimer(callStatus === "connected");
+  
+  // Use centralized ringtone hooks for incoming and outgoing calls
+  const { 
+    isPlaying: isRingtonePlayingState, 
+    isPending: isRingtonePending,
+    stopRingtone 
+  } = useCallRingtone({
+    callStatus,
+    callType,
+    isOpen,
+    maxDuration: 45000,
+    onMaxDurationReached: () => {
+      console.log('🔔 VOICE CALL: Ringtone max duration reached');
+    }
+  });
+  
+  // Ringback tone for outgoing calls
+  const { isPlaying: isRingbackPlaying, stopRingback } = useRingback({
+    callStatus,
+    callType,
+    isOpen
+  });
   
   // WebRTC service instance - get from global service
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
@@ -260,8 +283,9 @@ export default function VoiceCallModal({
               return;
             }
             
-            // Stop ringtone if still playing
-            ringtoneService.stopRingtone();
+            // Stop ringtone/ringback if still playing (handled by hooks but ensure cleanup)
+            stopRingtone();
+            stopRingback();
             
             // CRITICAL: Call full resetLocalState for complete cleanup
             resetLocalState();
