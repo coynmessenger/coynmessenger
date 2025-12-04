@@ -450,21 +450,278 @@ The voice call system uses a **three-layer approach** for reliable ringtone play
 
 ---
 
+---
+
+# VIDEO CALL TESTING
+
+## Video Call Technical Architecture
+
+The video call implementation follows the same 4-step WebRTC specification as voice calls, with additional video track handling:
+
+### Step 1: Get Local Media Stream (Camera + Microphone)
+```
+navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+```
+
+### Step 2: Process Offer & Add Local Tracks
+```
+peerConnection.setRemoteDescription(offerSDP)
+localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream))
+```
+
+### Step 3: Create and Send Answer
+```
+peerConnection.createAnswer()
+peerConnection.setLocalDescription(answerSDP)
+socket.emit('accept-call', { callId, answer })
+```
+
+### Step 4: Handle Remote Stream (Video + Audio)
+```
+peerConnection.ontrack = (event) => {
+  videoElement.srcObject = event.streams[0]  // Video display
+  audioElement.srcObject = event.streams[0]  // Audio playback
+}
+```
+
+---
+
+## Video Call Test Scenarios
+
+### Video Test 1: Basic Outgoing Video Call
+**Objective**: Verify outgoing video call initiation works
+
+**Steps**:
+1. User A logs in and opens messenger
+2. User A clicks video call button to User B
+3. Check console for logs:
+   - ✅ `📹 VIDEO CALL: LOCAL STREAM RECEIVED`
+   - ✅ `📤 OUTGOING STREAM ANALYSIS: Video tracks: 1`
+   - ✅ `✅ VIDEO CALL: LOCAL STREAM ATTACHED`
+
+**Expected Results**:
+- Modal opens with "Connecting" status
+- Self-view shows local camera feed
+- Camera permission granted (no popup blocks)
+
+---
+
+### Video Test 2: Answer Incoming Video Call
+**Objective**: Verify complete WebRTC handshake for video calls
+
+**Steps**:
+1. User A calls User B with video
+2. User B clicks "Answer" button
+3. Check User B's console for logs:
+   - ✅ `📹 VIDEO CALL: STEP 4 - HANDLE REMOTE STREAM`
+   - ✅ `📥 INCOMING STREAM ANALYSIS:`
+   - ✅ `  Audio tracks: 1`
+   - ✅ `  Video tracks: 1`
+   - ✅ `📺 VIDEO CALL: Attaching remote video stream to video element`
+   - ✅ `✅ VIDEO CALL: Remote video playback started`
+   - ✅ `✅ VIDEO CALL: STEP 4 COMPLETE - REMOTE STREAM ATTACHED`
+
+**Expected Results**:
+- Remote video displays in main area
+- Self-view shows local camera in corner
+- Both audio tracks are enabled
+
+---
+
+### Video Test 3: Bi-directional Video Verification
+**Objective**: Verify video flows both directions
+
+**Steps**:
+1. Establish video call between User A and User B
+2. Check both consoles for:
+   - ✅ `📤 Outgoing video: YES`
+   - ✅ `📥 Incoming video: YES`
+3. Both users should see each other's video
+
+**Expected Results**:
+- Main area shows remote user's video
+- Corner shows local user's video (mirrored)
+- Name overlay appears on remote video
+
+---
+
+### Video Test 4: Toggle Camera Off/On
+**Objective**: Verify camera toggle works
+
+**Steps**:
+1. Establish video call
+2. Click camera toggle button
+3. Check remote user sees "Camera off" message
+4. Toggle back on
+5. Verify video resumes
+
+**Expected Results**:
+- Toggle button turns red when camera off
+- Remote user sees avatar instead of video
+- Camera restores when toggled on
+
+---
+
+### Video Test 5: Self-View Expansion
+**Objective**: Verify self-view expand/collapse works
+
+**Steps**:
+1. Establish video call
+2. Click on small self-view corner
+3. Self-view expands to full screen
+4. Remote user appears in corner
+5. Click to collapse back
+
+**Expected Results**:
+- Self-view expands smoothly
+- Remote video shows in corner preview
+- Collapse returns to normal layout
+
+---
+
+## Video Call Expected Console Logs
+
+### Caller (User A) - Initiating Video Call:
+```
+📹 VIDEO CALL: LOCAL STREAM RECEIVED
+═══════════════════════════════════════════════════════
+📤 OUTGOING STREAM ANALYSIS:
+  Audio tracks: 1
+  Video tracks: 1
+  📹 Video track 0: { enabled: true, muted: false, readyState: live }
+═══════════════════════════════════════════════════════
+✅ VIDEO CALL: LOCAL STREAM ATTACHED
+  📤 Outgoing audio: YES
+  📤 Outgoing video: YES
+═══════════════════════════════════════════════════════
+```
+
+### Receiver (User B) - Answering Video Call:
+```
+═══════════════════════════════════════════════════════
+📹 VIDEO CALL: STEP 4 - HANDLE REMOTE STREAM
+═══════════════════════════════════════════════════════
+📥 INCOMING STREAM ANALYSIS:
+  Audio tracks: 1
+  Video tracks: 1
+  🔊 Audio track 0: { enabled: true, muted: false, readyState: live }
+  📹 Video track 0: { enabled: true, muted: false, readyState: live }
+📺 VIDEO CALL: Attaching remote video stream to video element
+✅ VIDEO CALL: Remote video playback started
+🔊 VIDEO CALL: Attaching remote audio stream to audio element
+✅ VIDEO CALL: Remote audio playback started successfully
+═══════════════════════════════════════════════════════
+✅ VIDEO CALL: STEP 4 COMPLETE - REMOTE STREAM ATTACHED
+  📥 Incoming audio: YES
+  📥 Incoming video: YES
+═══════════════════════════════════════════════════════
+```
+
+---
+
 ## Known Limitations
 
 - Autoplay may be blocked on first call (user gesture required for playback)
 - Some browsers require user interaction before any audio playback
 - NAT/Firewall may require TURN servers for connection
 - Multiple tabs may share microphone (browser dependent)
+- Video quality depends on network bandwidth
+- Camera switching may require page refresh on some devices
 
 ---
 
 ## Success Criteria
 
-✅ All 14 tests pass without errors
+### Voice Calls:
+✅ All 18 voice call tests pass without errors
 ✅ No "Call not found" errors
 ✅ Audio plays bi-directionally
 ✅ Connection establishes within 10 seconds
 ✅ Call can be ended cleanly
 ✅ No resource leaks
 ✅ Proper error messages for failures
+
+### Video Calls:
+✅ All 5 video call tests pass without errors
+✅ Local video displays in self-view
+✅ Remote video displays in main area
+✅ Audio plays bi-directionally (separate from video)
+✅ Camera toggle works correctly
+✅ Self-view expand/collapse works
+✅ Proper fallback to avatar when camera off
+
+---
+
+## Media Resource Cleanup Architecture
+
+### Cleanup Strategy Overview
+Both voice and video call modals use **idempotent, ref-based cleanup** to ensure camera and microphone resources are properly released in all teardown scenarios.
+
+### Stream Refs (Mirror State for Cleanup Access)
+```typescript
+// REFS mirror STATE for cleanup access in effects
+const localStreamRef = useRef<MediaStream | null>(null);
+const remoteStreamRef = useRef<MediaStream | null>(null);
+const currentStreamRef = useRef<MediaStream | null>(null);
+const incomingStreamRef = useRef<MediaStream | null>(null);
+
+// Keep refs in sync with state
+useEffect(() => { localStreamRef.current = localStream; }, [localStream]);
+useEffect(() => { remoteStreamRef.current = remoteStream; }, [remoteStream]);
+useEffect(() => { currentStreamRef.current = currentStream; }, [currentStream]);
+```
+
+### Idempotent Cleanup Function (resetLocalState)
+The `resetLocalState` function is **idempotent** - safe to call multiple times without side effects:
+```typescript
+const resetLocalState = () => {
+  // Uses REFS (not state) for unmount access
+  if (localStreamRef.current) {
+    localStreamRef.current.getTracks().forEach(track => {
+      if (track.readyState !== 'ended') {  // Defensive check
+        track.stop();
+      }
+    });
+    localStreamRef.current = null;
+  }
+  // ... similar for other streams
+};
+```
+
+### Teardown Paths
+All four teardown paths ensure complete cleanup:
+
+1. **handleEndCall()**: User clicks "End Call" button
+   - Sets `isEndingRef.current = true` to prevent duplicate callbacks
+   - Calls `resetLocalState()` (uses refs)
+   - Clears DOM element srcObjects
+   - Resets `isEndingRef` after timeout
+
+2. **Modal Close (!isOpen)**: Modal is closed/hidden
+   - Always calls `resetLocalState()` (idempotent, safe even if cleanup already done)
+   - Stops ringtone
+
+3. **onCallEnded Handler**: Remote user ends the call
+   - Checks `isEndingRef` to skip if already ending
+   - Calls `resetLocalState()` for complete cleanup
+
+4. **Component Unmount**: Component is unmounted
+   - Stops all stream tracks via refs (not state, since closures are stale)
+   - Clears all refs and DOM srcObjects
+
+### Console Log Patterns for Cleanup Verification
+```
+🧹 VIDEO/VOICE CALL: Starting complete cleanup...
+🧹 VIDEO/VOICE CALL: Stopping localStreamRef tracks
+  Stopping track: audio (Default - MacBook Pro Microphone)
+  Stopping track: video (FaceTime HD Camera)
+✅ VIDEO/VOICE CALL: Cleanup complete
+```
+
+### Testing Cleanup
+To verify cleanup is working:
+1. Start a call and let it connect
+2. End the call via any method
+3. Check console for cleanup logs
+4. Verify camera light turns off immediately
+5. Check for no "track already ended" errors (idempotent handling)

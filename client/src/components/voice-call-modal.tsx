@@ -75,8 +75,9 @@ export default function VoiceCallModal({
   const onCallStartRef = useRef(onCallStart);
   const onCallEndRef = useRef(onCallEnd);
   
-  // Stream management
+  // Stream management - REFS mirror STATE for cleanup access in effects
   const incomingStreamRef = useRef<MediaStream | null>(null);
+  const currentStreamRef = useRef<MediaStream | null>(null);
   
   // Pending audio playback (for autoplay blocked scenarios)
   const pendingAudioPlaybackRef = useRef<MediaStream | null>(null);
@@ -84,6 +85,11 @@ export default function VoiceCallModal({
   
   // Prevent multiple end operations
   const isEndingRef = useRef(false);
+  
+  // Keep stream ref in sync with state for unmount cleanup access
+  useEffect(() => {
+    currentStreamRef.current = currentStream;
+  }, [currentStream]);
   
   // Track component mount state for proper cleanup
   const encryptedCallIdRef = useRef<string | null>(null);
@@ -124,32 +130,52 @@ export default function VoiceCallModal({
     onCallEndRef.current = onCallEnd;
   }, [onCallStart, onCallEnd]);
 
-  // Centralized state reset function
+  // Centralized state reset function - COMPLETE IDEMPOTENT CLEANUP
+  // Uses refs instead of state to ensure cleanup works in all contexts (including unmount)
   const resetLocalState = () => {
-    if (isEndingRef.current) return; // Prevent double reset
+    console.log('📞 VOICE CALL: Starting complete cleanup...');
     
+    // Reset state
     setCallStatus("connecting");
     setCallDuration(0);
     setIsMuted(false);
     setIsSpeakerOn(false);
     setEncryptedCallId(null);
     callInitiatedRef.current = false;
-    userGestureReceivedRef.current = false; // Reset user gesture flag
-    pendingAudioPlaybackRef.current = null; // Clear pending audio
+    userGestureReceivedRef.current = false;
+    pendingAudioPlaybackRef.current = null;
     
-    // Clean up incoming stream
+    // Clean up incoming stream ref - defensive check for already-stopped tracks
     if (incomingStreamRef.current) {
-      incomingStreamRef.current.getTracks().forEach(track => track.stop());
+      console.log('🧹 VOICE CALL: Stopping incomingStreamRef tracks');
+      incomingStreamRef.current.getTracks().forEach(track => {
+        if (track.readyState !== 'ended') {
+          console.log(`  Stopping track: ${track.kind} (${track.label})`);
+          track.stop();
+        }
+      });
       incomingStreamRef.current = null;
     }
     
-    // Clean up current stream
-    if (currentStream) {
-      currentStream.getTracks().forEach(track => track.stop());
-      setCurrentStream(null);
+    // Clean up current stream using REF (not state) for unmount access
+    if (currentStreamRef.current) {
+      console.log('🧹 VOICE CALL: Stopping currentStream tracks');
+      currentStreamRef.current.getTracks().forEach(track => {
+        if (track.readyState !== 'ended') {
+          console.log(`  Stopping track: ${track.kind} (${track.label})`);
+          track.stop();
+        }
+      });
+      currentStreamRef.current = null;
+    }
+    setCurrentStream(null);
+    
+    // Clear audio element srcObject
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = null;
     }
     
-    console.log('📞 RESET: Local state reset complete');
+    console.log('✅ VOICE CALL: Cleanup complete');
   };
 
   // Retry pending audio playback after user gesture (accept button click)
@@ -220,25 +246,28 @@ export default function VoiceCallModal({
             if (onCallStartRef.current) onCallStartRef.current();
           },
           onCallEnded: (call) => {
-            console.log('📞 CALL ENDED: Received call ended event for call:', call.callId);
+            console.log('📞 VOICE CALL: onCallEnded triggered - invoking full cleanup');
             
-            if (!isEndingRef.current) {
-              isEndingRef.current = true;
-              resetLocalState();
-              ringtoneService.stopRingtone();
-              setCallStatus("ended");
-              
-              // Auto-close modal after delay if not already closing
-              setTimeout(() => {
-                if (isEndingRef.current) {
-                  console.log('📞 CALL ENDED: Auto-closing modal after call ended');
-                  onClose();
-                  isEndingRef.current = false;
-                }
-              }, 1500);
-              
-              if (onCallEndRef.current) onCallEndRef.current();
+            // Skip if already ending (handleEndCall already did cleanup)
+            if (isEndingRef.current) {
+              console.log('📞 VOICE CALL: Already ending, skipping duplicate cleanup');
+              return;
             }
+            
+            // Stop ringtone if still playing
+            ringtoneService.stopRingtone();
+            
+            // CRITICAL: Call full resetLocalState for complete cleanup
+            resetLocalState();
+            
+            setCallStatus("ended");
+            if (onCallEndRef.current) onCallEndRef.current();
+            
+            // Auto-close modal after delay
+            setTimeout(() => {
+              console.log('📞 VOICE CALL: Auto-closing modal after call ended');
+              onClose();
+            }, 1500);
           },
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
@@ -361,24 +390,53 @@ export default function VoiceCallModal({
   // CRITICAL: Unmount-only cleanup - release streams when component truly unmounts
   useEffect(() => {
     return () => {
-      // This cleanup only runs on true unmount (empty dependency array)
+      console.log('🧹 VOICE CALL: Component unmounting - performing full cleanup');
+      
+      // Stop any active call first
       if (encryptedCallIdRef.current && !isEndingRef.current) {
-        console.log('🧹 VOICE CALL: Component unmounting, ending call to release streams');
+        console.log('🧹 VOICE CALL: Ending active call on unmount');
         const service = getGlobalWebRTC();
         if (service) {
           service.endCall(encryptedCallIdRef.current);
         }
       }
+      
+      // CRITICAL: Stop ALL stream tracks using REFS (refs have current values, state doesn't)
+      const stopStreamTracks = (stream: MediaStream | null, name: string) => {
+        if (stream) {
+          stream.getTracks().forEach(track => {
+            if (track.readyState !== 'ended') {
+              console.log(`🧹 Stopping ${name} track: ${track.kind}`);
+              track.stop();
+            }
+          });
+        }
+      };
+      
+      stopStreamTracks(currentStreamRef.current, 'currentStream');
+      stopStreamTracks(incomingStreamRef.current, 'incomingStream');
+      
+      // Clear refs
+      currentStreamRef.current = null;
+      incomingStreamRef.current = null;
+      pendingAudioPlaybackRef.current = null;
+      
+      // Clear DOM element srcObject
+      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
+      
+      console.log('✅ VOICE CALL: Unmount cleanup complete');
     };
   }, []); // Empty array = cleanup only on unmount
 
   useEffect(() => {
     if (!isOpen) {
-      // Always reset state when closing modal (remove isCallActive condition)
-      if (!isEndingRef.current) {
-        resetLocalState();
-        console.log('📞 RESET: Modal closed, state reset complete');
-      }
+      // Stop ringtone when modal closes
+      ringtoneService.stopRingtone();
+      
+      // ALWAYS trigger cleanup when modal closes, regardless of isEndingRef
+      // This ensures microphone resources are released even if user just hides modal
+      console.log('📞 VOICE CALL: Modal closed, triggering full cleanup');
+      resetLocalState();
       return;
     }
 
@@ -693,13 +751,23 @@ export default function VoiceCallModal({
     // Stop ringtone when call is ended/rejected
     ringtoneService.stopRingtone();
     
+    // Mark as ending to prevent duplicate callbacks
+    isEndingRef.current = true;
+    
     if (encryptedCallId && webrtcService.current) {
       webrtcService.current.endCall(encryptedCallId);
     }
+    
+    // CRITICAL: Use centralized cleanup - handles all streams, refs, and state
+    console.log('📞 VOICE CALL: handleEndCall - invoking resetLocalState');
+    resetLocalState();
+    
     setCallStatus("ended");
     if (onCallEnd) onCallEnd();
+    
     setTimeout(() => {
       onClose();
+      isEndingRef.current = false; // Reset for next call
     }, 1000);
   };
   
