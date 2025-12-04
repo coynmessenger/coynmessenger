@@ -10,6 +10,13 @@ import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { microphoneService } from "@/lib/microphone-service";
 import { tryPlayMedia } from "@/utils/media";
+import { 
+  IncomingCallControls, 
+  ActiveCallControls, 
+  ConnectingCallControls,
+  CallStatusIndicator,
+  useCallTimer
+} from "@/components/call-controls";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -61,8 +68,10 @@ export default function VoiceCallModal({
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
   const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
-  const [callDuration, setCallDuration] = useState(0);
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
+  
+  // Use the modular call timer hook
+  const { duration: callDuration, formattedDuration, reset: resetCallTimer } = useCallTimer(callStatus === "connected");
   
   // WebRTC service instance - get from global service
   const webrtcService = useRef<EncryptedWebRTCService | null>(null);
@@ -137,7 +146,7 @@ export default function VoiceCallModal({
     
     // Reset state
     setCallStatus("connecting");
-    setCallDuration(0);
+    resetCallTimer();
     setIsMuted(false);
     setIsSpeakerOn(false);
     setEncryptedCallId(null);
@@ -628,21 +637,7 @@ export default function VoiceCallModal({
     }
   }, [callType, incomingCallId, encryptedCallId]);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (callStatus === "connected") {
-      interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [callStatus]);
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Note: Timer is now handled by useCallTimer hook
 
   const handleAcceptCall = async () => {
     console.log('🎯 ACCEPT BUTTON CLICKED');
@@ -930,7 +925,7 @@ export default function VoiceCallModal({
           </span>
         );
       case "connected":
-        return formatDuration(callDuration);
+        return formattedDuration;
       case "ended":
         return "Call ended";
       default:
@@ -1026,111 +1021,40 @@ export default function VoiceCallModal({
             </div>
           </div>
 
-          {/* Call Controls - Only show when NOT showing incoming call actions */}
-          {callStatus !== "ended" && !(callType === "incoming" && callStatus === "ringing") && (
-            <div className="flex justify-center">
+          {/* Call Controls - Using Modular Components */}
+          {callStatus !== "ended" && (
+            <>
+              {/* Active Call Controls - When connected */}
               {callStatus === "connected" && (
-                <div className="flex justify-center space-x-3">
-                  {/* Quick Action Buttons Row */}
-                  
-                  {/* Mute Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleMute}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-                      isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-                    }`}
-                    title={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  </Button>
-
-                  {/* Speaker Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleSpeaker}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-                      isSpeakerOn 
-                        ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30 shadow-lg shadow-blue-500/20" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-                    }`}
-                    title={isSpeakerOn ? "Turn off speaker" : "Turn on speaker"}
-                  >
-                    {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                  </Button>
-
-                  {/* Video Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      if (onSwitchToVideo) {
-                        // End voice call first
-                        if (onCallEnd) {
-                          onCallEnd();
-                        }
-                        // Then switch to video
-                        onSwitchToVideo();
-                        onClose(); // Close voice call modal
-                      }
-                    }}
-                    className="w-12 h-12 rounded-full border-2 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400 transition-all duration-200"
-                    title="Switch to video call"
-                  >
-                    <Video className="h-5 w-5" />
-                  </Button>
-
-                  {/* End Call Button */}
-                  <Button
-                    onClick={handleEndCall}
-                    className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30"
-                    title="End call"
-                  >
-                    <PhoneOff className="h-5 w-5" />
-                  </Button>
-                </div>
+                <ActiveCallControls
+                  onEndCall={handleEndCall}
+                  onToggleMute={handleToggleMute}
+                  onToggleSpeaker={handleToggleSpeaker}
+                  onSwitchToVideo={onSwitchToVideo ? () => {
+                    if (onCallEnd) onCallEnd();
+                    onSwitchToVideo();
+                    onClose();
+                  } : undefined}
+                  isMuted={isMuted}
+                  isSpeakerOn={isSpeakerOn}
+                  callType="voice"
+                />
               )}
 
-              {/* Single End Call Button for non-connected states (but not for incoming calls in ringing state) */}
+              {/* Connecting/Outgoing Call Controls */}
               {callStatus !== "connected" && !(callType === "incoming" && callStatus === "ringing") && (
-                <Button
-                  onClick={handleEndCall}
-                  className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
-                >
-                  <PhoneOff className="h-6 w-6" />
-                </Button>
+                <ConnectingCallControls onEndCall={handleEndCall} />
               )}
-            </div>
-          )}
 
-          {/* Incoming Call Actions */}
-          {callType === "incoming" && callStatus === "ringing" && (
-            <div className="flex justify-center space-x-12">
-              <Button
-                onClick={() => {
-                  console.log('🔴 DECLINE CALL');
-                  handleEndCall();
-                }}
-                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Decline Call"
-              >
-                <PhoneOff className="h-10 w-10" />
-              </Button>
-              <Button
-                onClick={() => {
-                  console.log('🎯 ANSWER CALL');
-                  handleAcceptCall();
-                }}
-                className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Answer Call"
-              >
-                <Phone className="h-10 w-10" />
-              </Button>
-            </div>
+              {/* Incoming Call Controls - Answer/Decline */}
+              {callType === "incoming" && callStatus === "ringing" && (
+                <IncomingCallControls
+                  onAnswer={handleAcceptCall}
+                  onDecline={handleEndCall}
+                  callType="voice"
+                />
+              )}
+            </>
           )}
         </div>
       </DialogContent>
