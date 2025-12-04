@@ -148,28 +148,40 @@ The voice call system uses a **three-layer approach** for reliable ringtone play
 ---
 
 ### Test 7: Accept Voice Call
-**Objective**: Verify call acceptance flow
+**Objective**: Verify call acceptance flow with bi-directional audio
 
 **Steps**:
 1. User B receives incoming call
 2. User B clicks Accept button
-3. Check console for:
+3. Check console for (RECEIVER SIDE):
    - ✅ `🧪 COMPREHENSIVE TEST: ==================== ACCEPT CALL TEST ====================`
    - ✅ `✅ TEST PASSED: Service Initialization Check`
    - ✅ `✅ TEST PASSED: Call found in activeCalls`
    - ✅ `✅ ACCEPT: Using cached microphone stream`
    - ✅ `📞 ACCEPT: Setting remote offer description`
    - ✅ `✅ ACCEPT: Remote offer set successfully`
-   - ✅ `🧊 ICE: Processing [N] pending ICE candidates`
-   - ✅ `✅ ACCEPT: Call accepted and answer sent`
+   - ✅ `📞 ACCEPT: Creating WebRTC answer...`
+   - ✅ `✅ ACCEPT: Local answer SDP set successfully`
+   - ✅ `🔊 BI-DIRECTIONAL AUDIO CHECK:` (with outgoing track info)
+   - ✅ `📤 ACCEPT: Sending answer to signaling server...`
+   - ✅ `✅ ACCEPT: Call accepted and answer sent to caller`
+   - ✅ `✅ ACCEPT CALL: HANDSHAKE COMPLETE`
+4. Check console for (CALLER SIDE):
+   - ✅ `📞 CALLER: RECEIVED ANSWER FROM RECEIVER`
+   - ✅ `📞 CALLER: Setting remote answer SDP...`
+   - ✅ `✅ CALLER: Remote answer set successfully`
+   - ✅ `🔊 CALLER BI-DIRECTIONAL AUDIO CHECK:` (with incoming/outgoing track info)
+   - ✅ `✅ CALLER: WEBRTC HANDSHAKE COMPLETE`
 
 **Expected Results**:
 - Accept button responsive
 - Microphone stream acquired
 - Remote offer processed
 - Answer generated and sent
+- Bi-directional audio tracks verified (both outgoing and incoming)
 - Connection established
 - Modal transitions to "Connected" state
+- Both users can hear each other
 
 ---
 

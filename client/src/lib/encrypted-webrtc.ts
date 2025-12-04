@@ -260,13 +260,21 @@ export class EncryptedWebRTCService {
       answer?: RTCSessionDescriptionInit;
       encrypted: boolean;
     }) => {
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('📞 CALLER: RECEIVED ANSWER FROM RECEIVER');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('  Call ID:', data.callId);
+      console.log('  Accepted by:', data.byUserId);
+      console.log('  Answer received:', !!data.answer);
       
       // Set remote description with the answer
       const call = this.activeCalls.get(data.callId);
       if (call?.peerConnection && data.answer) {
         try {
+          console.log('📞 CALLER: Setting remote answer SDP...');
           // Use standard answer (WebRTC provides DTLS-SRTP encryption)
           await call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          console.log('✅ CALLER: Remote answer set successfully');
           
           // CRITICAL: Process any queued ICE candidates now that remote description is set
           await this.processPendingIceCandidates(call);
@@ -274,6 +282,32 @@ export class EncryptedWebRTCService {
           // CRITICAL: Update call status to connected
           call.status = 'connected';
           this.activeCalls.set(data.callId, call);
+          
+          // Verify bi-directional audio setup on caller side
+          console.log('🔊 CALLER BI-DIRECTIONAL AUDIO CHECK:');
+          console.log('  📤 Outgoing (caller → receiver):');
+          const senders = call.peerConnection.getSenders();
+          senders.forEach((sender, i) => {
+            if (sender.track) {
+              console.log(`    Track ${i}: ${sender.track.kind} - enabled: ${sender.track.enabled}, state: ${sender.track.readyState}`);
+            }
+          });
+          console.log('  📥 Incoming (receiver → caller):');
+          const receivers = call.peerConnection.getReceivers();
+          receivers.forEach((receiver, i) => {
+            if (receiver.track) {
+              console.log(`    Track ${i}: ${receiver.track.kind} - enabled: ${receiver.track.enabled}, state: ${receiver.track.readyState}`);
+            }
+          });
+          
+          // Log connection summary
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('✅ CALLER: WEBRTC HANDSHAKE COMPLETE');
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('  Peer connection state:', call.peerConnection.connectionState);
+          console.log('  ICE connection state:', call.peerConnection.iceConnectionState);
+          console.log('  Signaling state:', call.peerConnection.signalingState);
+          console.log('═══════════════════════════════════════════════════════');
           
         } catch (error) {
           console.error('❌ CALLER: Failed to set remote answer:', error);
@@ -804,20 +838,53 @@ export class EncryptedWebRTCService {
         await this.processPendingIceCandidates(call);
       }
 
-      // Create answer
+      // Create answer - this completes the WebRTC offer/answer handshake on receiver side
+      console.log('📞 ACCEPT: Creating WebRTC answer...');
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
+      console.log('✅ ACCEPT: Local answer SDP set successfully');
 
-      // Send call acceptance to server
+      // Verify bi-directional audio setup BEFORE sending answer
+      console.log('🔊 BI-DIRECTIONAL AUDIO CHECK:');
+      console.log('  📤 Outgoing (local → remote):');
+      const senders = peerConnection.getSenders();
+      senders.forEach((sender, i) => {
+        if (sender.track) {
+          console.log(`    Track ${i}: ${sender.track.kind} - enabled: ${sender.track.enabled}, state: ${sender.track.readyState}`);
+        }
+      });
+      console.log('  📥 Incoming (remote → local): Waiting for ontrack event after answer exchange');
       
+      // Verify transceivers are set up for bi-directional communication
+      const transceivers = peerConnection.getTransceivers();
+      console.log('  🔀 Transceivers:', transceivers.length);
+      transceivers.forEach((t, i) => {
+        console.log(`    Transceiver ${i}: direction=${t.direction}, currentDirection=${t.currentDirection}`);
+      });
+
+      // Send call acceptance to server - this triggers the answer delivery to caller
+      console.log('📤 ACCEPT: Sending answer to signaling server...');
       this.socket.emit('accept-call', {
         callId,
         answer,
       });
+      console.log('✅ ACCEPT: Call accepted and answer sent to caller');
 
       // Update call status to connected and trigger UI update
       call.status = 'connected';
       this.activeCalls.set(callId, call);
+
+      // Log final success summary
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('✅ ACCEPT CALL: HANDSHAKE COMPLETE');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('  Call ID:', callId);
+      console.log('  Local stream tracks:', localStream.getTracks().length);
+      console.log('  Audio tracks enabled:', localStream.getAudioTracks().filter(t => t.enabled).length);
+      console.log('  Peer connection state:', peerConnection.connectionState);
+      console.log('  ICE connection state:', peerConnection.iceConnectionState);
+      console.log('  Signaling state:', peerConnection.signalingState);
+      console.log('═══════════════════════════════════════════════════════');
 
       // Trigger call accepted event for UI to show connected state  
       if (this.eventHandlers.onCallAccepted) {
