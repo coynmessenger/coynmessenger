@@ -1,5 +1,26 @@
 # Voice Call Testing Guide - Comprehensive Test Suite
 
+## Ringtone System Architecture
+
+The voice call system uses a **three-layer approach** for reliable ringtone playback:
+
+### Layer 1: Backend Signaling
+- When User A calls User B, the server routes `incoming-call` event via WebSocket
+- Server sends instant notification for UI toast display
+- Event includes callId, caller info, and call type
+
+### Layer 2: Frontend Client
+- Voice/video modal receives `incoming-call` event
+- Immediately calls `ringtoneService.startRingtone()`
+- Ringtone loops until user answers, declines, or caller hangs up
+- Uses Web Audio API with dual-tone ring (440Hz + 480Hz) - classic US phone ring
+
+### Layer 3: Browser API Persistence
+- Uses `document.hidden` to detect background tabs
+- Implements Visibility API listener for tab focus changes
+- Queues ringtone if tab is hidden, resumes when visible
+- Handles autoplay restrictions with user gesture detection
+
 ## Prerequisites
 - Two browser windows/tabs or two devices
 - User A: First account (caller)
@@ -339,6 +360,81 @@
 3. **Search Logs**: Type emoji filters: 🎙️, 🧊, 🔊, ✅, ❌
 4. **Copy Logs**: Select all (Ctrl+A), copy for analysis
 5. **Check Timestamps**: Compare timestamps between browser and mobile client
+
+---
+
+## Ringtone Testing
+
+### Test 15: Ringtone Playback
+**Objective**: Verify ringtone plays for incoming calls
+
+**Steps**:
+1. User A calls User B
+2. On User B's device, check console for:
+   - ✅ `🔔 RINGTONE: Starting incoming call ringtone...`
+   - ✅ `🔔 RINGTONE: Tab hidden: false`
+   - ✅ `✅ RINGTONE: Started successfully`
+3. Listen for dual-tone ring sound (440Hz + 480Hz pattern)
+
+**Expected Results**:
+- Classic phone ring sound plays
+- Ring pattern: two bursts, then 2-second silence, repeat
+- Volume is audible but not startling
+
+---
+
+### Test 16: Ringtone Stop on Accept
+**Objective**: Verify ringtone stops when call is accepted
+
+**Steps**:
+1. User B receives incoming call (ringtone playing)
+2. User B clicks Accept
+3. Check console for:
+   - ✅ `🔇 RINGTONE: Stopping...`
+   - ✅ `✅ RINGTONE: Stopped`
+
+**Expected Results**:
+- Ringtone stops immediately
+- No lingering audio
+- Smooth transition to connected state
+
+---
+
+### Test 17: Ringtone in Background Tab
+**Objective**: Verify ringtone behavior when tab is hidden
+
+**Steps**:
+1. Open User B's tab
+2. Switch to another tab (making User B's tab hidden)
+3. User A calls User B
+4. Check console for:
+   - ✅ `🔔 RINGTONE: Tab is hidden, setting pending flag`
+5. Switch back to User B's tab
+6. Check console for:
+   - ✅ `🔔 RINGTONE: Tab became visible, resuming ringtone`
+
+**Expected Results**:
+- Ringtone queued when tab hidden
+- Ringtone starts when tab becomes visible
+- User gesture detection helps with autoplay restrictions
+
+---
+
+### Test 18: Autoplay Restriction Handling
+**Objective**: Verify handling of browser autoplay restrictions
+
+**Steps**:
+1. Open User B's tab in a fresh browser session
+2. Don't interact with the page (no clicks/touches)
+3. User A calls User B
+4. Check console for autoplay warning if blocked
+5. Click anywhere on the page
+6. Check if ringtone resumes
+
+**Expected Results**:
+- If autoplay blocked, pending flag set
+- After user gesture, audio context resumes
+- Ringtone plays after user interaction
 
 ---
 
