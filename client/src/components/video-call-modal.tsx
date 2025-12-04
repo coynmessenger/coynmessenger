@@ -9,6 +9,13 @@ import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { tryPlayMedia } from "@/utils/media";
+import { 
+  IncomingCallControls, 
+  ActiveCallControls, 
+  ConnectingCallControls,
+  CallStatusIndicator,
+  useCallTimer
+} from "@/components/call-controls";
 import type { User } from "@shared/schema";
 
 interface VideoCallModalProps {
@@ -33,7 +40,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [currentCamera, setCurrentCamera] = useState<'user' | 'environment'>('user');
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
   
-  const [callDuration, setCallDuration] = useState(0);
+  // Use the modular call timer hook
+  const { duration: callDuration, formattedDuration, reset: resetCallTimer } = useCallTimer(callStatus === "connected");
   
   // Remote stream state for video display
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -125,7 +133,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // Reset state
     setCallStatus("connecting");
-    setCallDuration(0);
+    resetCallTimer();
     setIsMuted(false);
     setIsVideoOff(false);
     setEncryptedCallId(null);
@@ -655,21 +663,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   }, [callType, incomingCallId, encryptedCallId]);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (callStatus === "connected") {
-      interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [callStatus]);
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Note: Timer is now handled by useCallTimer hook
 
   const handleAcceptCall = async () => {
     console.log('🎯 VIDEO ACCEPT BUTTON CLICKED');
@@ -982,7 +976,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           </span>
         );
       case "connected":
-        return formatDuration(callDuration);
+        return formattedDuration;
       case "ended":
         return "Call ended";
       default:
@@ -1255,89 +1249,36 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
           </div>
 
-          {/* Call Controls - Only show when NOT showing incoming call actions */}
-          {callStatus !== "ended" && !(callType === "incoming" && callStatus === "ringing") && (
-            <div className="flex justify-center space-x-3">
+          {/* Call Controls - Using Modular Components */}
+          {callStatus !== "ended" && (
+            <>
+              {/* Active Call Controls - When connected */}
               {callStatus === "connected" && (
-                <>
-                  {/* Mute Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleMute}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-                      isMuted 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-                    }`}
-                    title={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  </Button>
-
-                  {/* Video Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleVideo}
-                    className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-                      isVideoOff 
-                        ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
-                        : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-                    }`}
-                    title={isVideoOff ? "Turn on your camera" : "Turn off your camera"}
-                  >
-                    {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                  </Button>
-
-                  {/* Camera Switch Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleSwitchCamera}
-                    className="w-12 h-12 rounded-full border-2 transition-all duration-200 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-                    title="Switch camera"
-                  >
-                    <SwitchCamera className="h-5 w-5" />
-                  </Button>
-                </>
+                <ActiveCallControls
+                  onEndCall={handleEndCall}
+                  onToggleMute={handleToggleMute}
+                  onToggleVideo={handleToggleVideo}
+                  onSwitchCamera={handleSwitchCamera}
+                  isMuted={isMuted}
+                  isVideoOff={isVideoOff}
+                  callType="video"
+                />
               )}
 
-              {/* End Call Button */}
-              <Button
-                onClick={handleEndCall}
-                className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30"
-                title="End call"
-              >
-                <PhoneOff className="h-5 w-5" />
-              </Button>
-            </div>
-          )}
+              {/* Connecting/Outgoing Call Controls */}
+              {callStatus !== "connected" && !(callType === "incoming" && callStatus === "ringing") && (
+                <ConnectingCallControls onEndCall={handleEndCall} />
+              )}
 
-          {/* Incoming Call Actions */}
-          {callType === "incoming" && callStatus === "ringing" && (
-            <div className="flex justify-center space-x-12">
-              <Button
-                onClick={() => {
-                  console.log('🔴 DECLINE VIDEO CALL');
-                  handleEndCall();
-                }}
-                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Decline Call"
-              >
-                <PhoneOff className="h-10 w-10" />
-              </Button>
-              <Button
-                onClick={() => {
-                  console.log('🎯 ANSWER VIDEO CALL');
-                  handleAcceptCall();
-                }}
-                className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                title="Answer Video Call"
-              >
-                <Video className="h-10 w-10" />
-              </Button>
-            </div>
+              {/* Incoming Call Controls - Answer/Decline */}
+              {callType === "incoming" && callStatus === "ringing" && (
+                <IncomingCallControls
+                  onAnswer={handleAcceptCall}
+                  onDecline={handleEndCall}
+                  callType="video"
+                />
+              )}
+            </>
           )}
         </div>
       </DialogContent>
