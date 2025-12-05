@@ -448,54 +448,68 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             }
             
             // Step 4.2b: Attach audio stream to audio element (for speaker output)
-            if (remoteAudioRef.current) {
-              console.log('🔊 VIDEO CALL: Attaching remote audio stream to audio element');
-              remoteAudioRef.current.srcObject = stream;
-              remoteAudioRef.current.volume = 1.0;
-              remoteAudioRef.current.muted = false;
+            const audioEl = remoteAudioRef.current;
+            if (audioEl) {
+              console.log('🔊 VIDEO CALL: ========== ATTACHING REMOTE AUDIO ==========');
+              audioEl.srcObject = stream;
+              audioEl.volume = 1.0;
+              audioEl.muted = false;
               
-              const handleLoadedMetadata = () => {
-                console.log('📹 VIDEO CALL: Audio metadata loaded, attempting playback');
+              // CRITICAL: Try to play IMMEDIATELY - don't wait for loadedmetadata
+              // MediaStream sources are always "live" and don't need metadata loading
+              const playAudio = async () => {
+                console.log('🔊 VIDEO CALL: Attempting immediate audio playback...');
+                console.log('🔊 VIDEO CALL: Audio element state:', {
+                  paused: audioEl.paused,
+                  muted: audioEl.muted,
+                  volume: audioEl.volume,
+                  readyState: audioEl.readyState,
+                  srcObject: !!audioEl.srcObject
+                });
                 
-                const attemptPlay = async (retries = 3) => {
-                  for (let i = 0; i < retries; i++) {
-                    const played = await tryPlayMedia(remoteAudioRef.current);
-                    
-                    if (played) {
-                      console.log('✅ VIDEO CALL: Remote audio playback started successfully');
-                      return;
-                    }
-                    
-                    console.warn(`⚠️ VIDEO CALL: Playback attempt ${i + 1} failed`);
-                    
-                    if (i === retries - 1) {
-                      console.error('❌ VIDEO CALL: All playback attempts failed');
-                      pendingAudioPlaybackRef.current = stream;
-                      
-                      if (userGestureReceivedRef.current) {
-                        console.log('🔄 VIDEO CALL: User gesture already received, retrying immediately');
-                        setTimeout(async () => {
-                          await retryPendingAudioPlayback();
-                        }, 100);
+                try {
+                  await audioEl.play();
+                  console.log('✅ VIDEO CALL: ========== AUDIO PLAYBACK STARTED ==========');
+                } catch (err: any) {
+                  console.error('❌ VIDEO CALL: Audio playback failed:', err.name, err.message);
+                  
+                  // Save for retry on user gesture
+                  pendingAudioPlaybackRef.current = stream;
+                  
+                  // If user already made a gesture (accepted call), retry
+                  if (userGestureReceivedRef.current) {
+                    console.log('🔄 VIDEO CALL: User gesture exists, retrying after delay...');
+                    setTimeout(async () => {
+                      try {
+                        await audioEl.play();
+                        console.log('✅ VIDEO CALL: Retry audio playback succeeded!');
+                      } catch (retryErr) {
+                        console.error('❌ VIDEO CALL: Retry also failed:', retryErr);
                       }
-                    } else {
-                      await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, i)));
-                    }
+                    }, 200);
                   }
-                };
-                
-                attemptPlay();
+                }
               };
               
-              if (remoteAudioRef.current.readyState >= 2) {
-                handleLoadedMetadata();
-              } else {
-                remoteAudioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
-              }
+              // Play immediately
+              playAudio();
               
-              remoteAudioRef.current.onerror = (err) => {
+              // Also add fallback for loadedmetadata
+              audioEl.addEventListener('loadedmetadata', () => {
+                console.log('🔊 VIDEO CALL: Audio metadata loaded event fired');
+                if (audioEl.paused) {
+                  console.log('🔊 VIDEO CALL: Audio still paused, retrying play...');
+                  audioEl.play().catch(err => {
+                    console.warn('🔊 VIDEO CALL: Loadedmetadata play failed:', err.message);
+                  });
+                }
+              }, { once: true });
+              
+              audioEl.onerror = (err) => {
                 console.error('❌ VIDEO CALL: Audio element error:', err);
               };
+            } else {
+              console.error('❌ VIDEO CALL: No audio element ref available!');
             }
             
             // Monitor stream lifecycle
@@ -1078,9 +1092,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   if (!user) {
     return null;
   }
-  
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
         if (callStatus === "connected") {
@@ -1359,13 +1373,24 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         </div>
       </DialogContent>
       
-      {/* Hidden audio element for remote stream */}
-      <audio 
-        ref={remoteAudioRef} 
-        autoPlay 
-        playsInline
-        style={{ display: 'none' }}
-      />
     </Dialog>
+      
+    {/* Hidden audio element for remote stream - OUTSIDE Dialog for portal compatibility */}
+    <audio 
+      ref={remoteAudioRef} 
+      autoPlay 
+      playsInline
+      data-testid="video-call-remote-audio"
+      style={{ 
+        position: 'fixed',
+        top: '-9999px',
+        left: '-9999px',
+        width: '1px',
+        height: '1px',
+        opacity: 0,
+        pointerEvents: 'none'
+      }}
+    />
+    </>
   );
 }
