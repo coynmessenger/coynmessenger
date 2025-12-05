@@ -6,6 +6,7 @@ import { EncryptedWebRTCService } from "@/lib/encrypted-webrtc";
 import { getGlobalWebRTC } from "@/lib/global-webrtc";
 import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
+import { permissionService } from "@/lib/permission-service";
 import { tryPlayMedia } from "@/utils/media";
 import { 
   IncomingCallControls, 
@@ -648,17 +649,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         if (onCallEnd) onCallEnd();
       }
     } else if (callType === "incoming") {
-      // For incoming calls, set to ringing immediately
-      setCallStatus("ringing");
-      
-      // Start ringtone for incoming video call
-      ringtoneService.startRingtone()
-        .then(() => {
-          console.log('🔔 VIDEO CALL: Ringtone started for incoming call');
-        })
-        .catch(err => {
-          console.warn('🔕 VIDEO CALL: Ringtone autoplay blocked:', err);
-        });
+      // For incoming calls, start with connecting while we get permissions
+      setCallStatus("connecting");
       
       // Show notification for incoming video calls
       if (user) {
@@ -668,8 +660,60 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       
       // Set the encrypted call ID for incoming calls
       if (incomingCallId) {
-
         setEncryptedCallId(incomingCallId);
+        
+        // CRITICAL: Request camera permissions immediately for incoming video calls
+        console.log('📹 INCOMING VIDEO CALL: Requesting camera permissions immediately...');
+        
+        // Start ringtone for incoming video call
+        ringtoneService.startRingtone()
+          .then(() => {
+            console.log('🔔 VIDEO CALL: Ringtone started for incoming call');
+          })
+          .catch(err => {
+            console.warn('🔕 VIDEO CALL: Ringtone autoplay blocked:', err);
+          });
+        
+        // Request camera permissions with error handling
+        permissionService.requestCameraPermission()
+          .then((result) => {
+            if (result.success && result.stream) {
+              console.log('✅ INCOMING VIDEO CALL: Camera permissions granted');
+              // Store the stream temporarily - we'll use it when user accepts
+              incomingStreamRef.current = result.stream;
+              setCallStatus("ringing"); // Now we can show ringing state
+              
+              // Add 45-second auto-timeout for incoming calls
+              setTimeout(() => {
+                if (callStatus === "ringing") {
+                  console.log('📹 INCOMING VIDEO CALL: Call timeout - no answer after 45 seconds');
+                  ringtoneService.stopRingtone();
+                  setCallStatus("ended");
+                  setTimeout(() => onClose(), 1500);
+                }
+              }, 45000);
+            } else {
+              throw new Error(result.errorMessage || 'Failed to get camera access');
+            }
+          })
+          .catch(async (error) => {
+            console.error('❌ INCOMING VIDEO CALL: Camera permission denied:', error);
+            setCallStatus("ended");
+            
+            // Stop ringtone on error
+            ringtoneService.stopRingtone();
+            
+            import("@/hooks/use-toast").then(({ toast }) => {
+              toast({
+                title: "Video Call Failed",
+                description: 'Camera/microphone access is required to receive video calls. Please allow access in your browser settings.',
+                variant: "destructive",
+                duration: 8000,
+              });
+            });
+            
+            if (onCallEnd) onCallEnd();
+          });
       }
     }
   }, [isOpen, isCallActive, onCallStart]); // Removed incomingCallId to prevent multiple calls
@@ -696,9 +740,21 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // Stop ringtone when accepting call
     ringtoneService.stopRingtone();
+    stopRingtoneHook();
+    stopRingback();
     
     if (encryptedCallId && webrtcService.current) {
       try {
+        setCallStatus("connecting");
+        
+        // Check if we already have the media stream from the incoming call preparation
+        const tempStream = incomingStreamRef.current;
+        if (tempStream) {
+          console.log('✅ VIDEO ACCEPT: Using pre-authorized camera stream');
+          // Clean up the temporary reference
+          incomingStreamRef.current = null;
+        }
+        
         console.log('📞 VIDEO ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
         console.log('✅ VIDEO ACCEPT: Call accepted successfully');
