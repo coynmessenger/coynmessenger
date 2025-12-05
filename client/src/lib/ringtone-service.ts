@@ -1,9 +1,10 @@
 // Ringtone service for handling incoming call audio notifications
-// Implements the three-layer approach: Backend Signaling → Frontend Ringing → Browser API Persistence
+// Uses HTML Audio element with speaker routing for maximum compatibility
 
 class RingtoneService {
   private audioContext: AudioContext | null = null;
-  private oscillator: OscillatorNode | null = null;
+  private audioElement: HTMLAudioElement | null = null;
+  private mediaStreamDestination: MediaStreamAudioDestinationNode | null = null;
   private gainNode: GainNode | null = null;
   private isPlaying = false;
   private ringtoneInterval: NodeJS.Timeout | null = null;
@@ -49,9 +50,27 @@ class RingtoneService {
 
   private async resumeRingtone() {
     if (this.pendingRingtone && !this.isPlaying) {
+      console.log('🔔 RINGTONE: Resuming pending ringtone');
       this.pendingRingtone = false;
       await this.startWebAudioRingtone();
     }
+  }
+
+  // Public method to retry pending ringtone (call before stopRingtone)
+  async retryPendingRingtone(): Promise<boolean> {
+    if (this.pendingRingtone && !this.isPlaying) {
+      console.log('🔔 RINGTONE: Retrying pending ringtone on user gesture');
+      try {
+        await this.resumeRingtone();
+        // Play briefly so user hears it
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return true;
+      } catch (error) {
+        console.warn('🔔 RINGTONE: Retry failed:', error);
+        return false;
+      }
+    }
+    return this.isPlaying;
   }
 
   // Start the ringtone with proper error handling
@@ -106,10 +125,45 @@ class RingtoneService {
         await this.audioContext.resume();
       }
 
-      // Create audio nodes
+      // Create the audio routing graph
+      // gainNode -> mediaStreamDestination -> audioElement (for speaker routing)
+      // Also connect directly to destination as fallback
+      
       this.gainNode = this.audioContext.createGain();
-      this.gainNode.connect(this.audioContext.destination);
       this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+
+      // Try to use MediaStreamDestination for speaker routing
+      try {
+        this.mediaStreamDestination = this.audioContext.createMediaStreamDestination();
+        this.gainNode.connect(this.mediaStreamDestination);
+        
+        // Create audio element and route through it for speaker output
+        this.audioElement = new Audio();
+        this.audioElement.srcObject = this.mediaStreamDestination.stream;
+        this.audioElement.volume = 1.0;
+        
+        // Try to set speaker output (mobile devices)
+        if ('setSinkId' in this.audioElement) {
+          try {
+            // @ts-ignore - setSinkId exists but TypeScript doesn't know about it
+            await this.audioElement.setSinkId('default');
+            console.log('🔔 RINGTONE: Audio routed to default speaker');
+          } catch (sinkError) {
+            console.warn('🔔 RINGTONE: setSinkId not supported, using default output');
+          }
+        }
+        
+        // Play the audio element
+        await this.audioElement.play();
+        console.log('🔔 RINGTONE: Audio element playing');
+      } catch (mediaError) {
+        console.warn('🔔 RINGTONE: MediaStreamDestination failed, using direct output:', mediaError);
+        // Fallback: connect directly to audio context destination
+        this.gainNode.connect(this.audioContext.destination);
+      }
+
+      // Also connect to destination as backup
+      this.gainNode.connect(this.audioContext.destination);
 
       this.isPlaying = true;
       this.pendingRingtone = false;
@@ -120,6 +174,7 @@ class RingtoneService {
       console.log('✅ RINGTONE: Started successfully');
     } catch (error) {
       console.error('❌ RINGTONE: Web Audio API failed:', error);
+      this.pendingRingtone = true;
       throw error;
     }
   }
@@ -143,24 +198,24 @@ class RingtoneService {
       osc1.frequency.setValueAtTime(440, startTime);
       osc2.frequency.setValueAtTime(480, startTime);
 
-      // Create individual gain nodes for mixing
+      // Create individual gain nodes for mixing - higher volume
       const gain1 = this.audioContext.createGain();
       const gain2 = this.audioContext.createGain();
       
-      gain1.gain.setValueAtTime(0.3, startTime);
-      gain2.gain.setValueAtTime(0.3, startTime);
+      gain1.gain.setValueAtTime(0.5, startTime);
+      gain2.gain.setValueAtTime(0.5, startTime);
 
       osc1.connect(gain1);
       osc2.connect(gain2);
       gain1.connect(this.gainNode);
       gain2.connect(this.gainNode);
 
-      // Ramp up
+      // Ramp up - higher master volume (0.8 instead of 0.5)
       this.gainNode.gain.setValueAtTime(0, startTime);
-      this.gainNode.gain.linearRampToValueAtTime(0.5, startTime + 0.02);
+      this.gainNode.gain.linearRampToValueAtTime(0.8, startTime + 0.02);
       
       // Hold
-      this.gainNode.gain.setValueAtTime(0.5, startTime + duration - 0.02);
+      this.gainNode.gain.setValueAtTime(0.8, startTime + duration - 0.02);
       
       // Ramp down
       this.gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
@@ -204,6 +259,17 @@ class RingtoneService {
       this.ringtoneInterval = null;
     }
 
+    // Stop audio element
+    if (this.audioElement) {
+      try {
+        this.audioElement.pause();
+        this.audioElement.srcObject = null;
+      } catch (error) {
+        console.warn('🔔 RINGTONE: Error stopping audio element:', error);
+      }
+      this.audioElement = null;
+    }
+
     // Fade out and stop
     if (this.gainNode && this.audioContext) {
       try {
@@ -216,15 +282,14 @@ class RingtoneService {
       }
     }
 
-    // Clean up oscillator
-    if (this.oscillator) {
+    // Disconnect media stream destination
+    if (this.mediaStreamDestination) {
       try {
-        this.oscillator.stop();
-        this.oscillator.disconnect();
+        this.mediaStreamDestination.disconnect();
       } catch (error) {
-        // Ignore - oscillator may already be stopped
+        // Ignore
       }
-      this.oscillator = null;
+      this.mediaStreamDestination = null;
     }
 
     // Close audio context after a brief delay
