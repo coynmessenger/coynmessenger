@@ -182,68 +182,87 @@ class RingtoneService {
   private playRingtonePattern() {
     if (!this.isPlaying || !this.audioContext || !this.gainNode) return;
 
-    // Classic phone ring pattern: two bursts of 440Hz + 480Hz, then silence
-    // Pattern: ring (0.4s) - silence (0.2s) - ring (0.4s) - silence (2s)
+    console.log('🔔 RINGTONE: Playing classic phone ring pattern');
+
+    // Classic phone ring pattern: UK/EU style - continuous warbling ring
+    // More audible and recognizable than simple dual-tone
     const playRingBurst = (startTime: number, duration: number) => {
       if (!this.audioContext || !this.gainNode || !this.isPlaying) return;
 
-      // Create two oscillators for dual-tone ring
+      // Create oscillators for a rich, classic phone ring sound
       const osc1 = this.audioContext.createOscillator();
       const osc2 = this.audioContext.createOscillator();
+      const osc3 = this.audioContext.createOscillator();
       
       osc1.type = 'sine';
       osc2.type = 'sine';
+      osc3.type = 'triangle'; // Add harmonics for richer sound
       
-      // Classic phone ring frequencies (US standard: 440Hz + 480Hz)
-      osc1.frequency.setValueAtTime(440, startTime);
-      osc2.frequency.setValueAtTime(480, startTime);
+      // Classic phone ring frequencies - UK style (400Hz + 450Hz) with modulation
+      osc1.frequency.setValueAtTime(400, startTime);
+      osc2.frequency.setValueAtTime(450, startTime);
+      osc3.frequency.setValueAtTime(25, startTime); // Low frequency modulator for warble
 
-      // Create individual gain nodes for mixing - higher volume
+      // Create gain nodes for mixing - MAXIMUM VOLUME
       const gain1 = this.audioContext.createGain();
       const gain2 = this.audioContext.createGain();
+      const modulatorGain = this.audioContext.createGain();
       
-      gain1.gain.setValueAtTime(0.5, startTime);
-      gain2.gain.setValueAtTime(0.5, startTime);
+      // Higher individual gains for louder output
+      gain1.gain.setValueAtTime(0.6, startTime);
+      gain2.gain.setValueAtTime(0.6, startTime);
+      modulatorGain.gain.setValueAtTime(0.15, startTime); // Subtle warble effect
+
+      // Connect modulator to create warbling effect
+      osc3.connect(modulatorGain);
+      modulatorGain.connect(gain1.gain);
+      modulatorGain.connect(gain2.gain);
 
       osc1.connect(gain1);
       osc2.connect(gain2);
       gain1.connect(this.gainNode);
       gain2.connect(this.gainNode);
 
-      // Ramp up - higher master volume (0.8 instead of 0.5)
+      // MAXIMUM master volume (1.0) with smooth envelope
       this.gainNode.gain.setValueAtTime(0, startTime);
-      this.gainNode.gain.linearRampToValueAtTime(0.8, startTime + 0.02);
+      this.gainNode.gain.linearRampToValueAtTime(1.0, startTime + 0.02); // Quick attack
       
-      // Hold
-      this.gainNode.gain.setValueAtTime(0.8, startTime + duration - 0.02);
+      // Hold at max volume
+      this.gainNode.gain.setValueAtTime(1.0, startTime + duration - 0.02);
       
-      // Ramp down
+      // Quick release
       this.gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
 
       osc1.start(startTime);
       osc2.start(startTime);
+      osc3.start(startTime);
       osc1.stop(startTime + duration);
       osc2.stop(startTime + duration);
+      osc3.stop(startTime + duration);
+      
+      console.log('🔔 RINGTONE: Ring burst scheduled at', startTime.toFixed(2), 'for', duration, 'seconds');
     };
 
     const scheduleRingCycle = () => {
       if (!this.isPlaying || !this.audioContext) return;
 
       const now = this.audioContext.currentTime;
+      console.log('🔔 RINGTONE: Scheduling ring cycle at time:', now.toFixed(2));
 
+      // UK-style ring pattern: ring (0.4s) - pause (0.2s) - ring (0.4s) - long pause (2s)
       // First burst
       playRingBurst(now, 0.4);
       
       // Second burst after 0.2s silence
       playRingBurst(now + 0.6, 0.4);
 
-      // Schedule next cycle after 3 seconds total
+      // Schedule next cycle after 3 seconds total (1 second of ringing + 2 seconds silence)
       this.ringtoneInterval = setTimeout(() => {
         scheduleRingCycle();
       }, 3000);
     };
 
-    // Start the ringtone cycle
+    // Start the ringtone cycle immediately
     scheduleRingCycle();
   }
 
@@ -316,6 +335,32 @@ class RingtoneService {
     return this.pendingRingtone;
   }
 
+  // Test method - plays ringtone for specified duration then stops
+  async testRingtone(durationMs: number = 5000): Promise<void> {
+    console.log('🔔 RINGTONE TEST: Starting test for', durationMs, 'ms');
+    
+    try {
+      // Mark user gesture as received for testing
+      this.userGestureReceived = true;
+      
+      await this.startRingtone();
+      
+      if (this.isPlaying) {
+        console.log('✅ RINGTONE TEST: Ringtone is playing!');
+        
+        // Stop after duration
+        setTimeout(() => {
+          console.log('🔔 RINGTONE TEST: Test complete, stopping');
+          this.stopRingtone();
+        }, durationMs);
+      } else {
+        console.log('❌ RINGTONE TEST: Ringtone did not start');
+      }
+    } catch (error) {
+      console.error('❌ RINGTONE TEST: Failed:', error);
+    }
+  }
+
   // Clean up listeners when service is destroyed
   destroy() {
     this.stopRingtone();
@@ -329,3 +374,9 @@ class RingtoneService {
 
 // Create singleton instance
 export const ringtoneService = new RingtoneService();
+
+// Expose to window for console testing
+if (typeof window !== 'undefined') {
+  (window as any).testRingtone = (durationMs?: number) => ringtoneService.testRingtone(durationMs);
+  console.log('🔔 RINGTONE: Test available - run window.testRingtone() or testRingtone() in console');
+}
