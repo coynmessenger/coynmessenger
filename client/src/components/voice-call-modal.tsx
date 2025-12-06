@@ -339,60 +339,62 @@ export default function VoiceCallModal({
               // Set the stream source
               audioEl.srcObject = stream;
               
-              // Configure audio element for optimal playback
+              // CRITICAL: Configure audio element for maximum compatibility
               audioEl.volume = 1.0; // Maximum volume
               audioEl.muted = false; // Ensure not muted
+              audioEl.defaultMuted = false;
               
-              // CRITICAL: Try to play IMMEDIATELY - don't wait for loadedmetadata
-              // MediaStream sources are always "live" and don't need metadata loading
-              const playAudio = async () => {
-                console.log('🔊 VOICE CALL: Attempting immediate playback...');
+              // AGGRESSIVE MULTI-STRATEGY AUDIO PLAYBACK
+              const attemptPlayback = async (attempt: number): Promise<boolean> => {
+                console.log(`🔊 VOICE CALL: Playback attempt #${attempt}...`);
                 console.log('🔊 VOICE CALL: Audio element state:', {
                   paused: audioEl.paused,
                   muted: audioEl.muted,
                   volume: audioEl.volume,
                   readyState: audioEl.readyState,
-                  srcObject: !!audioEl.srcObject
+                  srcObject: !!audioEl.srcObject,
+                  currentTime: audioEl.currentTime
                 });
                 
                 try {
+                  // Reset any previous pause state
+                  audioEl.load();
                   await audioEl.play();
                   console.log('✅ VOICE CALL: ========== AUDIO PLAYBACK STARTED ==========');
-                  console.log('✅ VOICE CALL: Audio is now playing!');
+                  return true;
                 } catch (err: any) {
-                  console.error('❌ VOICE CALL: Playback failed:', err.name, err.message);
-                  
-                  // Save for retry on user gesture
-                  pendingAudioPlaybackRef.current = stream;
-                  
-                  // If user already made a gesture (accepted call), retry with a click
-                  if (userGestureReceivedRef.current) {
-                    console.log('🔄 VOICE CALL: User gesture exists, retrying after delay...');
-                    setTimeout(async () => {
-                      try {
-                        await audioEl.play();
-                        console.log('✅ VOICE CALL: Retry playback succeeded!');
-                      } catch (retryErr) {
-                        console.error('❌ VOICE CALL: Retry also failed:', retryErr);
-                      }
-                    }, 200);
-                  }
+                  console.error(`❌ VOICE CALL: Attempt #${attempt} failed:`, err.name, err.message);
+                  return false;
                 }
               };
               
-              // Play immediately
-              playAudio();
-              
-              // Also add fallback for loadedmetadata in case stream wasn't ready
-              audioEl.addEventListener('loadedmetadata', () => {
-                console.log('🔊 VOICE CALL: Metadata loaded event fired');
-                if (audioEl.paused) {
-                  console.log('🔊 VOICE CALL: Audio still paused, retrying play...');
-                  audioEl.play().catch(err => {
-                    console.warn('🔊 VOICE CALL: Loadedmetadata play failed:', err.message);
-                  });
+              // Strategy 1: Immediate play
+              attemptPlayback(1).then(async (success) => {
+                if (!success) {
+                  // Strategy 2: Wait for canplay event
+                  audioEl.addEventListener('canplay', async () => {
+                    console.log('🔊 VOICE CALL: canplay event fired');
+                    const played = await attemptPlayback(2);
+                    if (!played) {
+                      pendingAudioPlaybackRef.current = stream;
+                    }
+                  }, { once: true });
+                  
+                  // Strategy 3: Delayed retry with user gesture flag
+                  if (userGestureReceivedRef.current) {
+                    setTimeout(() => attemptPlayback(3), 300);
+                    setTimeout(() => attemptPlayback(4), 800);
+                  }
+                  
+                  // Strategy 4: Retry on loadedmetadata
+                  audioEl.addEventListener('loadedmetadata', () => {
+                    console.log('🔊 VOICE CALL: loadedmetadata fired');
+                    if (audioEl.paused) {
+                      attemptPlayback(5);
+                    }
+                  }, { once: true });
                 }
-              }, { once: true });
+              });
               
               // Monitor track state changes
               audioTracks.forEach(track => {
@@ -1097,18 +1099,17 @@ export default function VoiceCallModal({
     </Dialog>
       
     {/* Hidden audio element for remote stream - OUTSIDE Dialog for portal compatibility */}
+    {/* CRITICAL: Using visibility:hidden instead of off-screen positioning for better browser compatibility */}
     <audio 
       ref={remoteAudioRef} 
       autoPlay 
       playsInline
       data-testid="voice-call-remote-audio"
       style={{ 
-        position: 'fixed',
-        top: '-9999px',
-        left: '-9999px',
+        position: 'absolute',
         width: '1px',
         height: '1px',
-        opacity: 0,
+        visibility: 'hidden',
         pointerEvents: 'none'
       }}
     />
