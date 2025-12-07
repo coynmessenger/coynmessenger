@@ -746,6 +746,21 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   }, [callType, incomingCallId, encryptedCallId]);
 
+  // Display local camera preview during ringing state for incoming calls
+  useEffect(() => {
+    if (callType === "incoming" && callStatus === "ringing" && incomingStreamRef.current && localVideoRef.current) {
+      console.log('📹 INCOMING VIDEO: Displaying camera preview during ringing state');
+      localVideoRef.current.srcObject = incomingStreamRef.current;
+      localVideoRef.current.muted = true; // Prevent feedback
+      
+      localVideoRef.current.play().then(() => {
+        console.log('✅ INCOMING VIDEO: Camera preview playing');
+      }).catch((err) => {
+        console.warn('⚠️ INCOMING VIDEO: Camera preview autoplay blocked:', err);
+      });
+    }
+  }, [callType, callStatus]);
+
   // Note: Timer is now handled by useCallTimer hook
 
   const handleAcceptCall = async () => {
@@ -1229,15 +1244,17 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           )}
 
           {/* Self view (small preview) - YOUR camera with actual video */}
-          {callStatus === "connected" && !isSelfViewExpanded && (
+          {/* Show during: connected state OR ringing state for incoming calls (when we have camera stream ready) */}
+          {((callStatus === "connected" && !isSelfViewExpanded) || 
+            (callStatus === "ringing" && callType === "incoming" && incomingStreamRef.current)) && (
             <div 
-              className="absolute top-4 right-4 w-32 h-24 bg-slate-700 rounded-lg border-2 border-white/20 overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105"
-              onClick={() => setIsSelfViewExpanded(true)}
-              title="Click to expand your view"
+              className={`absolute ${callStatus === "ringing" ? "bottom-4 right-4" : "top-4 right-4"} w-32 h-24 bg-slate-700 rounded-lg border-2 ${callStatus === "ringing" ? "border-green-400/60" : "border-white/20"} overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105 z-20`}
+              onClick={() => callStatus === "connected" && setIsSelfViewExpanded(true)}
+              title={callStatus === "connected" ? "Click to expand your view" : "Your camera preview"}
               data-testid="video-self-view-small"
             >
               {/* Local video element for self-view */}
-              {!isVideoOff && localStream ? (
+              {!isVideoOff && (localStream || incomingStreamRef.current) ? (
                 <video
                   ref={localVideoRef}
                   autoPlay
@@ -1252,6 +1269,13 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                     <div className="text-white/40 text-xs">You</div>
                     {isVideoOff && <div className="text-red-400/80 text-xs mt-1">Camera off</div>}
                   </div>
+                </div>
+              )}
+              
+              {/* Camera ready indicator for incoming calls */}
+              {callStatus === "ringing" && callType === "incoming" && (
+                <div className="absolute top-1 left-1 bg-green-500/80 rounded-full px-1.5 py-0.5">
+                  <span className="text-white text-[10px] font-medium">Ready</span>
                 </div>
               )}
             </div>
