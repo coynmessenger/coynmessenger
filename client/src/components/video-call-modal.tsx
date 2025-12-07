@@ -615,9 +615,35 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
 
     // Initiate encrypted WebRTC video call for outgoing calls (only once)
+    // CRITICAL: Request camera/microphone permission IMMEDIATELY when outgoing call starts
     if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current) {
       callInitiatedRef.current = true; // Prevent multiple calls
       setCallStatus("connecting");
+      
+      // IMMEDIATELY request camera/microphone permission before initiating call
+      console.log('📹 OUTGOING VIDEO CALL: Requesting camera/microphone permission immediately...');
+      permissionService.requestCameraPermission()
+        .then((permissionResult) => {
+          if (permissionResult.success && permissionResult.stream) {
+            console.log('✅ OUTGOING VIDEO CALL: Camera/microphone permission granted');
+            // Store the stream for immediate local preview
+            incomingStreamRef.current = permissionResult.stream;
+            setLocalStream(permissionResult.stream);
+            
+            // Attach to local video element for preview
+            if (localVideoRef.current) {
+              localVideoRef.current.srcObject = permissionResult.stream;
+              localVideoRef.current.play().catch(err => {
+                console.warn('⚠️ OUTGOING VIDEO CALL: Local preview autoplay blocked:', err);
+              });
+            }
+          } else {
+            console.warn('⚠️ OUTGOING VIDEO CALL: Camera permission request failed, will retry during call');
+          }
+        })
+        .catch((err) => {
+          console.warn('⚠️ OUTGOING VIDEO CALL: Camera permission error:', err);
+        });
       
       const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
       if (currentUser.id) {
@@ -746,20 +772,27 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
   }, [callType, incomingCallId, encryptedCallId]);
 
-  // Display local camera preview during ringing state for incoming calls
+  // Display local camera preview during connecting/ringing state for all calls
   useEffect(() => {
-    if (callType === "incoming" && callStatus === "ringing" && incomingStreamRef.current && localVideoRef.current) {
-      console.log('📹 INCOMING VIDEO: Displaying camera preview during ringing state');
-      localVideoRef.current.srcObject = incomingStreamRef.current;
-      localVideoRef.current.muted = true; // Prevent feedback
+    const hasStream = localStream || incomingStreamRef.current;
+    const shouldShowPreview = (callStatus === "ringing" || callStatus === "connecting") && hasStream && localVideoRef.current;
+    
+    if (shouldShowPreview) {
+      const stream = localStream || incomingStreamRef.current;
+      console.log(`📹 VIDEO CALL: Displaying camera preview during ${callStatus} state (${callType})`);
       
-      localVideoRef.current.play().then(() => {
-        console.log('✅ INCOMING VIDEO: Camera preview playing');
-      }).catch((err) => {
-        console.warn('⚠️ INCOMING VIDEO: Camera preview autoplay blocked:', err);
-      });
+      if (localVideoRef.current && stream) {
+        localVideoRef.current.srcObject = stream;
+        localVideoRef.current.muted = true; // Prevent feedback
+        
+        localVideoRef.current.play().then(() => {
+          console.log('✅ VIDEO CALL: Camera preview playing');
+        }).catch((err) => {
+          console.warn('⚠️ VIDEO CALL: Camera preview autoplay blocked:', err);
+        });
+      }
     }
-  }, [callType, callStatus]);
+  }, [callType, callStatus, localStream]);
 
   // Note: Timer is now handled by useCallTimer hook
 
@@ -1244,11 +1277,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           )}
 
           {/* Self view (small preview) - YOUR camera with actual video */}
-          {/* Show during: connected state OR ringing state for incoming calls (when we have camera stream ready) */}
+          {/* Show during: connected state, ringing state (both incoming/outgoing when camera is ready), or connecting with stream */}
           {((callStatus === "connected" && !isSelfViewExpanded) || 
-            (callStatus === "ringing" && callType === "incoming" && incomingStreamRef.current)) && (
+            ((callStatus === "ringing" || callStatus === "connecting") && (localStream || incomingStreamRef.current))) && (
             <div 
-              className={`absolute ${callStatus === "ringing" ? "bottom-4 right-4" : "top-4 right-4"} w-32 h-24 bg-slate-700 rounded-lg border-2 ${callStatus === "ringing" ? "border-green-400/60" : "border-white/20"} overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105 z-20`}
+              className={`absolute ${callStatus !== "connected" ? "bottom-4 right-4" : "top-4 right-4"} w-32 h-24 bg-slate-700 rounded-lg border-2 ${callStatus !== "connected" ? "border-green-400/60" : "border-white/20"} overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105 z-20`}
               onClick={() => callStatus === "connected" && setIsSelfViewExpanded(true)}
               title={callStatus === "connected" ? "Click to expand your view" : "Your camera preview"}
               data-testid="video-self-view-small"
@@ -1272,8 +1305,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                 </div>
               )}
               
-              {/* Camera ready indicator for incoming calls */}
-              {callStatus === "ringing" && callType === "incoming" && (
+              {/* Camera ready indicator for pre-connected calls */}
+              {callStatus !== "connected" && (localStream || incomingStreamRef.current) && (
                 <div className="absolute top-1 left-1 bg-green-500/80 rounded-full px-1.5 py-0.5">
                   <span className="text-white text-[10px] font-medium">Ready</span>
                 </div>

@@ -572,31 +572,36 @@ export default function VoiceCallModal({
     }
 
     // Initiate encrypted WebRTC call for outgoing calls (only once)
-    console.log('📞 DEEP TEST: ===============================');
-    console.log('📞 DEEP TEST: OUTGOING CALL CONDITION CHECK');
-    console.log('📞 DEEP TEST: ===============================');
-    console.log('📞 DEEP TEST: callType:', callType);
-    console.log('📞 DEEP TEST: webrtcService.current available:', !!webrtcService.current);
-    console.log('📞 DEEP TEST: user available:', !!user);
-    console.log('📞 DEEP TEST: encryptedCallId:', encryptedCallId);
-    console.log('📞 DEEP TEST: callInitiatedRef.current:', callInitiatedRef.current);
-    console.log('📞 DEEP TEST: All conditions met:', callType === "outgoing" && webrtcService.current && user && !encryptedCallId && !callInitiatedRef.current);
-    
+    // CRITICAL: Request microphone permission IMMEDIATELY when outgoing call starts
     if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && isOpen) {
-      console.log('📞 DEEP TEST: ✅ STARTING OUTGOING CALL INITIATION...');
-      console.log('📞 DEEP TEST: Before setting flag - callInitiatedRef.current:', callInitiatedRef.current);
-      
       // Force reset and set the flag
       if (callInitiatedRef.current) {
-        console.log('📞 DEEP TEST: ⚠️ Call initiated flag was true, forcing reset...');
         callInitiatedRef.current = false;
       }
       
       if (!callInitiatedRef.current) {
         callInitiatedRef.current = true; // Prevent multiple calls
-        console.log('📞 DEEP TEST: ✅ Call initiated flag set to true');
+        console.log('📞 OUTGOING CALL: ✅ Starting call initiation with immediate microphone permission request');
         
         setCallStatus("connecting");
+        
+        // IMMEDIATELY request microphone permission before initiating call
+        console.log('🎤 OUTGOING CALL: Requesting microphone permission immediately...');
+        microphoneService.requestPermissionWithFallback()
+          .then((permissionResult) => {
+            if (permissionResult.success) {
+              console.log('✅ OUTGOING CALL: Microphone permission granted');
+              // Store the stream for later use
+              if (permissionResult.stream) {
+                incomingStreamRef.current = permissionResult.stream;
+              }
+            } else {
+              console.warn('⚠️ OUTGOING CALL: Microphone permission request failed, will retry during call');
+            }
+          })
+          .catch((err) => {
+            console.warn('⚠️ OUTGOING CALL: Microphone permission error:', err);
+          });
         
         const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
         if (currentUser.id) {
