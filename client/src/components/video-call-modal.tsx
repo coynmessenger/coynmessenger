@@ -471,8 +471,12 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                 });
                 
                 try {
-                  // Reset any previous pause state
-                  audioEl.load();
+                  // CRITICAL: Do NOT call load() on srcObject streams - it resets the stream!
+                  // Just ensure srcObject is set and call play()
+                  if (!audioEl.srcObject) {
+                    console.warn('⚠️ VIDEO CALL: No srcObject set, cannot play');
+                    return false;
+                  }
                   await audioEl.play();
                   console.log('✅ VIDEO CALL: ========== AUDIO PLAYBACK STARTED ==========');
                   return true;
@@ -1438,17 +1442,19 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     </Dialog>
       
     {/* Hidden audio element for remote stream - OUTSIDE Dialog for portal compatibility */}
-    {/* CRITICAL: Using visibility:hidden instead of off-screen positioning for better browser compatibility */}
+    {/* CRITICAL: Use opacity:0 instead of visibility:hidden - some browsers pause audio with visibility:hidden */}
     <audio 
       ref={remoteAudioRef} 
       autoPlay 
       playsInline
       data-testid="video-call-remote-audio"
       style={{ 
-        position: 'absolute',
+        position: 'fixed',
+        top: '-9999px',
+        left: '-9999px',
         width: '1px',
         height: '1px',
-        visibility: 'hidden',
+        opacity: 0,
         pointerEvents: 'none'
       }}
     />
