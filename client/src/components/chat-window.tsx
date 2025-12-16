@@ -20,6 +20,7 @@ import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
+import CallPermissionDialog from "@/components/call-permission-dialog";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
@@ -181,6 +182,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   
   // Add call debouncing state
   const [isInitiatingCall, setIsInitiatingCall] = useState(false);
+  
+  // Permission dialog state for calls
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [pendingCallType, setPendingCallType] = useState<"voice" | "video" | null>(null);
 
   // Socket.IO state for real-time messaging
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -1822,28 +1827,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={async () => {
+                onClick={() => {
                   if (!isInitiatingCall) {
-                    setIsInitiatingCall(true);
-                    
-                    // CRITICAL: Request microphone permission FIRST (during user gesture)
-                    console.log('🎤 Voice Call: Requesting microphone permission...');
-                    const permissionResult = await permissionService.requestMicrophonePermission();
-                    
-                    if (permissionResult.success) {
-                      console.log('✅ Voice Call: Permission granted, opening modal');
-                      setShowVoiceCall(true);
-                    } else {
-                      console.error('❌ Voice Call: Permission denied:', permissionResult);
-                      toast({
-                        title: "Microphone Access Required",
-                        description: permissionResult.userAction || permissionResult.errorMessage || "Please allow microphone access to make voice calls",
-                        variant: "destructive",
-                      });
-                    }
-                    
-                    // Reset debounce after 1 second
-                    setTimeout(() => setIsInitiatingCall(false), 1000);
+                    // Show permission dialog before starting voice call
+                    setPendingCallType("voice");
+                    setShowPermissionDialog(true);
                   }
                 }}
                 disabled={isInitiatingCall}
@@ -1853,34 +1841,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 title={isVoiceCallActive ? "Join active call" : "Voice call"}
+                data-testid="button-voice-call"
               >
                 <Phone className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={async () => {
+                onClick={() => {
                   if (!isInitiatingCall) {
-                    setIsInitiatingCall(true);
-                    
-                    // CRITICAL: Request camera + microphone permission FIRST (during user gesture)
-                    console.log('📹 Video Call: Requesting camera + microphone permission...');
-                    const permissionResult = await permissionService.requestCameraPermission();
-                    
-                    if (permissionResult.success) {
-                      console.log('✅ Video Call: Permission granted, opening modal');
-                      setShowVideoCall(true);
-                    } else {
-                      console.error('❌ Video Call: Permission denied:', permissionResult);
-                      toast({
-                        title: "Camera & Microphone Access Required",
-                        description: permissionResult.userAction || permissionResult.errorMessage || "Please allow camera and microphone access to make video calls",
-                        variant: "destructive",
-                      });
-                    }
-                    
-                    // Reset debounce after 1 second
-                    setTimeout(() => setIsInitiatingCall(false), 1000);
+                    // Show permission dialog before starting video call
+                    setPendingCallType("video");
+                    setShowPermissionDialog(true);
                   }
                 }}
                 disabled={isInitiatingCall}
@@ -1890,6 +1862,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 title={isVideoCallActive ? "Join active video call" : "Video call"}
+                data-testid="button-video-call"
               >
                 <Video className={`h-5 w-5 ${isVideoCallActive ? 'animate-pulse' : ''}`} />
               </Button>
@@ -3167,6 +3140,28 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         />
       )}
 
+      {/* Call Permission Dialog - asks for microphone/camera before starting call */}
+      <CallPermissionDialog
+        isOpen={showPermissionDialog}
+        onClose={() => {
+          setShowPermissionDialog(false);
+          setPendingCallType(null);
+        }}
+        onPermissionGranted={() => {
+          setShowPermissionDialog(false);
+          // Start the appropriate call based on pending type
+          if (pendingCallType === "voice") {
+            console.log("✅ Permission granted, starting voice call");
+            setShowVoiceCall(true);
+          } else if (pendingCallType === "video") {
+            console.log("✅ Permission granted, starting video call");
+            setShowVideoCall(true);
+          }
+          setPendingCallType(null);
+        }}
+        callType={pendingCallType || "voice"}
+        calleeName={getEffectiveDisplayName(conversation.otherUser)}
+      />
 
     </div>
   );
