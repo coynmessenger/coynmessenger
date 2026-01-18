@@ -8,16 +8,28 @@ import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
-import { useEffect } from "react";
-import HomePage from "@/pages/home";
-import MessengerPage from "@/pages/messenger";
-import MarketplacePage from "@/pages/marketplace";
-import ProductPage from "@/pages/product";
-import FavoritesPage from "@/pages/favorites";
-import PurchaseHistoryPage from "@/pages/purchase-history";
-import CallTestPage from "@/pages/call-test";
+import { useEffect, lazy, Suspense } from "react";
 
+import HomePage from "@/pages/home";
 import NotFound from "@/pages/not-found";
+
+const MessengerPage = lazy(() => import("@/pages/messenger"));
+const MarketplacePage = lazy(() => import("@/pages/marketplace"));
+const ProductPage = lazy(() => import("@/pages/product"));
+const FavoritesPage = lazy(() => import("@/pages/favorites"));
+const PurchaseHistoryPage = lazy(() => import("@/pages/purchase-history"));
+const CallTestPage = lazy(() => import("@/pages/call-test"));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-white/70 text-sm">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 // Create Thirdweb client for wallet connections
 const client = createThirdwebClient({
@@ -38,32 +50,31 @@ const wallets = [
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/messenger" component={MessengerPage} />
-      <Route path="/marketplace" component={MarketplacePage} />
-      <Route path="/product/:asin" component={ProductPage} />
-      <Route path="/favorites" component={FavoritesPage} />
-      <Route path="/purchase-history" component={PurchaseHistoryPage} />
-      <Route path="/call-test" component={CallTestPage} />
-
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/messenger" component={MessengerPage} />
+        <Route path="/marketplace" component={MarketplacePage} />
+        <Route path="/product/:asin" component={ProductPage} />
+        <Route path="/favorites" component={FavoritesPage} />
+        <Route path="/purchase-history" component={PurchaseHistoryPage} />
+        <Route path="/call-test" component={CallTestPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
 function App() {
-  // GLOBAL WebRTC INITIALIZATION: Initialize WebRTC for any authenticated user
+  // GLOBAL WebRTC INITIALIZATION: Deferred to not block initial render
   useEffect(() => {
     let isInitializing = false;
     
     const initGlobalWebRTC = async () => {
-      if (isInitializing) return; // Prevent multiple simultaneous initializations
+      if (isInitializing) return;
       
-      // Don't initialize WebRTC if user has explicitly signed out
       const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
       if (userSignedOut) {
-        console.log('🚫 Skipping WebRTC initialization - user signed out');
         return;
       }
       
@@ -75,8 +86,7 @@ function App() {
           const userId = parsedUser.id;
           
           if (userId) {
-            console.log('🎯 Initializing WebRTC for authenticated user:', userId);
-            await initializeGlobalWebRTC(userId.toString(), 1); // Reduce retries to 1
+            await initializeGlobalWebRTC(userId.toString(), 1);
           }
         }
       } catch (error) {
@@ -86,11 +96,9 @@ function App() {
       }
     };
     
-    // Initialize on app load only once
-    initGlobalWebRTC();
-    
-    // Remove storage listener to prevent reinitializations that cause loops
-    
+    // Defer WebRTC initialization to allow page to render first
+    const timeoutId = setTimeout(initGlobalWebRTC, 500);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Check if user has explicitly signed out to prevent autoconnect
@@ -103,7 +111,7 @@ function App() {
         <AutoConnect
           client={client}
           wallets={wallets}
-          timeout={15000}
+          timeout={5000}
         />
       )}
       <QueryClientProvider client={queryClient}>
