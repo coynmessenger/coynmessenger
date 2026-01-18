@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
@@ -9,12 +9,13 @@ import { io } from "socket.io-client";
 import { useToast } from "@/hooks/use-toast";
 
 import ChatWindow from "@/components/chat-window";
-import WalletModal from "@/components/wallet-modal";
-import WalletSidebar from "@/components/wallet-sidebar";
-import VideoCallModal from "@/components/video-call-modal";
-import VoiceCallModal from "@/components/voice-call-modal";
-import SettingsModal from "@/components/settings-modal";
 import HamburgerMenu from "@/components/hamburger-menu";
+
+const WalletModal = lazy(() => import("@/components/wallet-modal"));
+const WalletSidebar = lazy(() => import("@/components/wallet-sidebar"));
+const VideoCallModal = lazy(() => import("@/components/video-call-modal"));
+const VoiceCallModal = lazy(() => import("@/components/voice-call-modal"));
+const SettingsModal = lazy(() => import("@/components/settings-modal"));
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -1049,14 +1050,20 @@ export default function MessengerPage() {
 
       </div>
 
-      {/* Modals */}
-      <WalletModal 
-        isOpen={isWalletOpen} 
-        onClose={handleCloseWallet}
-        initialCurrency={selectedWalletCurrency}
-      />
+      {/* Modals - Lazy loaded for better performance */}
+      <Suspense fallback={null}>
+        {isWalletOpen && (
+          <WalletModal 
+            isOpen={isWalletOpen} 
+            onClose={handleCloseWallet}
+            initialCurrency={selectedWalletCurrency}
+          />
+        )}
+      </Suspense>
+      
       {/* Voice Call Modal */}
-      <VoiceCallModal
+      <Suspense fallback={null}>
+        <VoiceCallModal
         isOpen={isVoiceCallOpen}
         onClose={() => {
           console.log('🎙️ Voice call modal closing');
@@ -1097,61 +1104,73 @@ export default function MessengerPage() {
             : undefined
         }
       />
+      </Suspense>
       
-      {/* Video Call Modal - Enhanced debugging */}
-      <VideoCallModal
-        isOpen={isVideoCallOpen}
-        onClose={() => {
-          console.log('📹 Video call modal closing');
-          setIsVideoCallOpen(false);
-          setIncomingCallData(null);
-        }}
-        user={
-          incomingCallData && incomingCallData.type === 'video'
-            ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
-              { 
-                id: parseInt(incomingCallData.fromUserId), 
-                displayName: `User ${incomingCallData.fromUserId}`,
-                signInName: `user_${incomingCallData.fromUserId}`,
-                username: `user_${incomingCallData.fromUserId}`,
-                walletAddress: `0x...${incomingCallData.fromUserId}`,
-                profilePicture: null,
-                isOnline: null,
-                isSetup: null,
-                lastSeen: null,
-                fullName: null,
-                addressLine1: null,
-                addressLine2: null,
-                city: null,
-                state: null,
-                zipCode: null,
-                country: null
-              }
-            : currentConversation?.otherUser
-        }
-        callType={
-          incomingCallData && incomingCallData.type === 'video'
-            ? 'incoming'
-            : 'outgoing'
-        }
-        incomingCallId={
-          incomingCallData && incomingCallData.type === 'video'
-            ? incomingCallData.callId
-            : undefined
-        }
-      />
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        showShipping={false}
-      />
+      {/* Video Call Modal */}
+      <Suspense fallback={null}>
+        <VideoCallModal
+          isOpen={isVideoCallOpen}
+          onClose={() => {
+            console.log('📹 Video call modal closing');
+            setIsVideoCallOpen(false);
+            setIncomingCallData(null);
+          }}
+          user={
+            incomingCallData && incomingCallData.type === 'video'
+              ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
+                { 
+                  id: parseInt(incomingCallData.fromUserId), 
+                  displayName: `User ${incomingCallData.fromUserId}`,
+                  signInName: `user_${incomingCallData.fromUserId}`,
+                  username: `user_${incomingCallData.fromUserId}`,
+                  walletAddress: `0x...${incomingCallData.fromUserId}`,
+                  profilePicture: null,
+                  isOnline: null,
+                  isSetup: null,
+                  lastSeen: null,
+                  fullName: null,
+                  addressLine1: null,
+                  addressLine2: null,
+                  city: null,
+                  state: null,
+                  zipCode: null,
+                  country: null
+                }
+              : currentConversation?.otherUser
+          }
+          callType={
+            incomingCallData && incomingCallData.type === 'video'
+              ? 'incoming'
+              : 'outgoing'
+          }
+          incomingCallId={
+            incomingCallData && incomingCallData.type === 'video'
+              ? incomingCallData.callId
+              : undefined
+          }
+        />
+      </Suspense>
+      
+      <Suspense fallback={null}>
+        {isSettingsOpen && (
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            showShipping={false}
+          />
+        )}
+      </Suspense>
       
       {/* Wallet Sidebar */}
-      <WalletSidebar
-        isOpen={isWalletSidebarOpen}
-        onClose={() => setIsWalletSidebarOpen(false)}
-        user={user}
-      />
+      <Suspense fallback={null}>
+        {isWalletSidebarOpen && (
+          <WalletSidebar
+            isOpen={isWalletSidebarOpen}
+            onClose={() => setIsWalletSidebarOpen(false)}
+            user={user}
+          />
+        )}
+      </Suspense>
 
 
     </div>
