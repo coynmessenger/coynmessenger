@@ -318,12 +318,8 @@ export default function HomePage() {
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-3">
-                    <img 
-                      src={coynSymbolPath} 
-                      alt="COYN" 
-                      className="w-[35px] h-[35px]"
-                    />
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2">
+                    <span className="text-3xl text-orange-500">₡</span>
                     COYN Messenger
                   </h3>
                 </div>
