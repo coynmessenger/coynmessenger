@@ -434,7 +434,7 @@ export default function HomePage() {
           </div>
           
           {/* Copyright */}
-          <p className="flex items-center justify-center gap-1">© 2026-2030 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1"><img src={coynCoinPath} alt="COYN" className="w-4 h-4" />COYN</a></p>
+          <p className="flex items-center justify-center gap-1">© 2022-2030 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1"><img src={coynCoinPath} alt="COYN" className="w-4 h-4" />COYN</a></p>
         </div>
       </footer>
 
