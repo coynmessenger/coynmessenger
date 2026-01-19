@@ -319,7 +319,7 @@ export default function HomePage() {
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center">
-                    ₡OYN Messenger
+                    COYN Messenger
                   </h3>
                 </div>
               </CardHeader>
