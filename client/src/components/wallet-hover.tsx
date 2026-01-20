@@ -227,7 +227,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef, onOpenSend,
 
         {/* Individual Balances */}
         <div className="space-y-3">
-          <p className="text-sm font-medium text-foreground">Assets</p>
+          <p className="text-sm font-medium text-foreground">BSC Assets</p>
           {balances.map((balance) => (
             <div key={balance.currency} className="flex items-center justify-between">
               <div className="flex items-center gap-2">

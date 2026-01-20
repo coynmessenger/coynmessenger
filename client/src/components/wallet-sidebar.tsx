@@ -561,7 +561,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
             {/* Assets */}
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assets</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">BSC Assets</h3>
                 <Button
                   variant="ghost"
                   size="sm"
