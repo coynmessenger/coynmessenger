@@ -29,7 +29,25 @@ import { CryptoSender } from "@/components/crypto-sender";
 import { useActiveWallet } from "thirdweb/react";
 import { sendTransaction, prepareTransaction } from "thirdweb";
 import { createThirdwebClient } from "thirdweb";
-import { bsc } from "thirdweb/chains";
+import { defineChain } from "thirdweb/chains";
+
+// Define custom BSC chain with public RPC to avoid authentication issues
+const bsc = defineChain({
+  id: 56,
+  name: "BNB Smart Chain",
+  nativeCurrency: {
+    name: "BNB",
+    symbol: "BNB",
+    decimals: 18,
+  },
+  rpc: "https://bsc-dataseed.binance.org",
+  blockExplorers: [
+    {
+      name: "BscScan",
+      url: "https://bscscan.com",
+    },
+  ],
+});
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search } from "lucide-react";
