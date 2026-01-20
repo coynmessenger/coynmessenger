@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -15,6 +15,7 @@ import {
   useCallTimer
 } from "@/components/call-controls";
 import { useCallRingtone, useRingback } from "@/hooks/use-ringtone";
+import { useCallRecording } from "@/hooks/use-call-recording";
 import type { User } from "@shared/schema";
 
 interface VideoCallModalProps {
@@ -62,6 +63,22 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     callStatus,
     callType,
     isOpen
+  });
+  
+  // Get current user for call recording
+  const currentUserData = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('connectedUser') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+  
+  // Call recording hook for automatic transcription and Google Drive storage
+  const callRecording = useCallRecording({
+    callerAddress: callType === 'outgoing' ? (currentUserData.walletAddress || 'unknown') : (user?.walletAddress || 'unknown'),
+    receiverAddress: callType === 'outgoing' ? (user?.walletAddress || 'unknown') : (currentUserData.walletAddress || 'unknown'),
+    callType: 'video'
   });
   
   // Remote stream state for video display
@@ -159,6 +176,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     setIsVideoOff(false);
     setEncryptedCallId(null);
     callInitiatedRef.current = false;
+    
+    // Reset call recording state
+    callRecording.reset();
     
     // Clean up incoming stream ref - defensive check for already-stopped tracks
     if (incomingStreamRef.current) {
@@ -301,9 +321,13 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           },
           onCallAccepted: (call) => {
             setCallStatus("connected");
+            // Start recording when call is accepted
+            if (localStreamRef.current) {
+              callRecording.startRecording(localStreamRef.current);
+            }
             if (onCallStart) onCallStart();
           },
-          onCallEnded: (call) => {
+          onCallEnded: async (call) => {
             console.log('📹 VIDEO CALL: onCallEnded triggered - invoking full cleanup');
             
             // Skip if already ending (handleEndCall already did cleanup)
@@ -311,6 +335,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               console.log('📹 VIDEO CALL: Already ending, skipping duplicate cleanup');
               return;
             }
+            
+            // Stop recording and process (transcription + Google Drive upload)
+            await callRecording.stopRecording();
             
             // Stop ringtone if still playing
             ringtoneService.stopRingtone();
@@ -835,6 +862,12 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         await retryPendingAudioPlayback();
         
         setCallStatus("connected");
+        
+        // Start recording for incoming accepted call
+        if (localStreamRef.current) {
+          callRecording.startRecording(localStreamRef.current);
+        }
+        
         if (onCallStart) onCallStart();
       } catch (error: any) {
         console.error('❌ VIDEO ACCEPT: Failed to accept call:', error);

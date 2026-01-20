@@ -40,6 +40,8 @@ Preferred communication style: Simple, everyday language.
 - Wallet management for BNB, USDT, and COYN with real blockchain balances and live market prices.
 - Universal wallet support with wallet-specific transaction routing (Bitget → Bitget, MetaMask → MetaMask, etc.) ensuring transactions go through the specific connected wallet.
 - Encrypted wallet-to-wallet voice and video calling (WebRTC with Signal Protocol-inspired encryption).
+- **Automatic call recording** with encrypted storage to Google Drive.
+- **Call transcription** using OpenAI Whisper via Replit AI Integrations.
 - Comprehensive marketplace for crypto purchases with Amazon-style checkout.
 - Favorites/wishlist system.
 - Comprehensive purchase history.
@@ -95,6 +97,10 @@ Preferred communication style: Simple, everyday language.
 - **CoinGecko API**: Live cryptocurrency prices and 24h change data.
 - **GIPHY API**: GIF integration.
 - **Socket.IO**: Real-time communication for encrypted calls.
+- **OpenAI (Replit AI Integrations)**: Call transcription via Whisper/gpt-4o-mini-transcribe model.
+- **Google Drive API (googleapis)**: Encrypted call recording storage with AES-256-GCM encryption.
+- **FFmpeg (system)**: Audio/video processing and format conversion.
+- **OpenCV (system)**: Video processing capabilities.
 
 ## Wallet Integration Architecture
 

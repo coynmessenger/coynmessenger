@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
@@ -15,6 +15,7 @@ import {
   useCallTimer
 } from "@/components/call-controls";
 import { useCallRingtone, useRingback } from "@/hooks/use-ringtone";
+import { useCallRecording } from "@/hooks/use-call-recording";
 import type { User } from "@shared/schema";
 
 interface VoiceCallModalProps {
@@ -91,6 +92,22 @@ export default function VoiceCallModal({
     callStatus,
     callType,
     isOpen
+  });
+  
+  // Get current user for call recording
+  const currentUserData = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('connectedUser') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+  
+  // Call recording hook for automatic transcription and Google Drive storage
+  const callRecording = useCallRecording({
+    callerAddress: callType === 'outgoing' ? (currentUserData.walletAddress || 'unknown') : (user?.walletAddress || 'unknown'),
+    receiverAddress: callType === 'outgoing' ? (user?.walletAddress || 'unknown') : (currentUserData.walletAddress || 'unknown'),
+    callType: 'voice'
   });
   
   // WebRTC service instance - get from global service
@@ -173,6 +190,9 @@ export default function VoiceCallModal({
     callInitiatedRef.current = false;
     userGestureReceivedRef.current = false;
     pendingAudioPlaybackRef.current = null;
+    
+    // Reset call recording state
+    callRecording.reset();
     
     // Clean up incoming stream ref - defensive check for already-stopped tracks
     if (incomingStreamRef.current) {
@@ -272,9 +292,13 @@ export default function VoiceCallModal({
           },
           onCallAccepted: (call) => {
             setCallStatus("connected");
+            // Start recording when call is accepted
+            if (currentStreamRef.current) {
+              callRecording.startRecording(currentStreamRef.current);
+            }
             if (onCallStartRef.current) onCallStartRef.current();
           },
-          onCallEnded: (call) => {
+          onCallEnded: async (call) => {
             console.log('📞 VOICE CALL: onCallEnded triggered - invoking full cleanup');
             
             // Skip if already ending (handleEndCall already did cleanup)
@@ -282,6 +306,9 @@ export default function VoiceCallModal({
               console.log('📞 VOICE CALL: Already ending, skipping duplicate cleanup');
               return;
             }
+            
+            // Stop recording and process (transcription + Google Drive upload)
+            await callRecording.stopRecording();
             
             // Stop ringtone/ringback if still playing (handled by hooks but ensure cleanup)
             stopRingtone();
@@ -721,6 +748,12 @@ export default function VoiceCallModal({
         await retryPendingAudioPlayback();
         
         setCallStatus("connected");
+        
+        // Start recording for incoming accepted call
+        if (currentStreamRef.current) {
+          callRecording.startRecording(currentStreamRef.current);
+        }
+        
         if (onCallStart) onCallStart();
       } catch (error: any) {
         console.error('❌ ACCEPT: Failed to accept call:', error);
