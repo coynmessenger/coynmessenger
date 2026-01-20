@@ -27,6 +27,7 @@ import { signatureCollector } from "@/lib/signature-collector";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import QRCode from "qrcode";
 
 // Web3 types extension for ethereum provider
 interface EthereumProvider {
@@ -49,8 +50,30 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const [recipientAddress, setRecipientAddress] = useState("");
   const [showSendModal, setShowSendModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (showQRModal && user?.walletAddress) {
+      const generateQR = async () => {
+        try {
+          const qrUrl = await QRCode.toDataURL(user.walletAddress, {
+            width: 200,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+          setQrCodeUrl(qrUrl);
+        } catch (error) {
+          console.error("Failed to generate QR code:", error);
+        }
+      };
+      generateQR();
+    }
+  }, [showQRModal, user?.walletAddress]);
   const queryClient = useQueryClient();
 
   // Get current user ID from localStorage safely
@@ -685,20 +708,27 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">
-            <div className="w-48 h-48 bg-white border-2 border-gray-200 rounded-lg mx-auto flex items-center justify-center">
-              <div className="text-gray-400">QR Code</div>
+            <div className="bg-white p-4 rounded-lg inline-block mx-auto">
+              {qrCodeUrl ? (
+                <img src={qrCodeUrl} alt="Wallet QR Code" className="w-48 h-48" />
+              ) : (
+                <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-500">Generating QR...</span>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-600 dark:text-gray-400">Your {selectedCurrency} address:</p>
               <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <code className="flex-1 text-xs font-mono text-gray-800 dark:text-gray-200 break-all">
-                  {user?.walletAddress || "0x742d35Cc6673C38C6438b5a5b7d4f73dB1d4C8ab"}
+                  {user?.walletAddress}
                 </code>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => copyToClipboard(user?.walletAddress || "0x742d35Cc6673C38C6438b5a5b7d4f73dB1d4C8ab")}
+                  onClick={() => user?.walletAddress && copyToClipboard(user.walletAddress)}
                   className="h-8 w-8 p-0"
+                  disabled={!user?.walletAddress}
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
