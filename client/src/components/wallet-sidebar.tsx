@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +18,10 @@ import {
   ArrowDownLeft,
   Copy,
   Wallet,
-  RefreshCw
+  RefreshCw,
+  Camera
 } from "lucide-react";
+import { Html5Qrcode } from "html5-qrcode";
 import { SiBinance } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -51,6 +53,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const [showSendModal, setShowSendModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   
   const { toast } = useToast();
   
@@ -74,6 +79,130 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       generateQR();
     }
   }, [showQRModal, user?.walletAddress]);
+
+  const startQRScanner = async () => {
+    const element = document.getElementById("qr-reader");
+    if (!element) {
+      console.error("QR reader element not found");
+      return;
+    }
+    
+    if (scannerRef.current || isScanning) {
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast({
+        title: "Camera Not Available",
+        description: "Your browser doesn't support camera access. Please use HTTPS or a modern browser.",
+        variant: "destructive",
+      });
+      setShowQRScanner(false);
+      return;
+    }
+
+    setIsScanning(true);
+    try {
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      scannerRef.current = html5QrCode;
+      
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
+          const address = decodedText.trim();
+          if (address.startsWith("0x") && address.length === 42) {
+            setRecipientAddress(address);
+            toast({
+              title: "Address Scanned",
+              description: "Wallet address captured successfully",
+            });
+          } else {
+            setRecipientAddress(decodedText);
+            toast({
+              title: "QR Scanned",
+              description: "Content captured from QR code",
+            });
+          }
+          stopQRScanner();
+          setShowQRScanner(false);
+        },
+        () => {}
+      );
+    } catch (err: any) {
+      console.error("QR Scanner error:", err);
+      let errorMessage = "Could not access camera. Please check permissions.";
+      
+      if (err?.name === "NotFoundError" || err?.message?.includes("no camera")) {
+        errorMessage = "No camera found on this device.";
+      } else if (err?.name === "NotAllowedError") {
+        errorMessage = "Camera access denied. Please allow camera permissions.";
+      } else if (err?.name === "InsecureContextError") {
+        errorMessage = "Camera requires HTTPS connection.";
+      }
+      
+      toast({
+        title: "Camera Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      setIsScanning(false);
+      setShowQRScanner(false);
+      scannerRef.current = null;
+    }
+  };
+
+  const stopQRScanner = async () => {
+    const scanner = scannerRef.current;
+    if (scanner) {
+      try {
+        if (isScanning) {
+          await scanner.stop();
+        }
+        scanner.clear();
+      } catch (err) {
+        console.error("Error stopping scanner:", err);
+      } finally {
+        scannerRef.current = null;
+        setIsScanning(false);
+      }
+    } else {
+      setIsScanning(false);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    let rafId: number | null = null;
+    
+    if (showQRScanner) {
+      const initScanner = () => {
+        if (cancelled) return;
+        rafId = requestAnimationFrame(() => {
+          if (cancelled) return;
+          const element = document.getElementById("qr-reader");
+          if (element) {
+            startQRScanner();
+          } else {
+            initScanner();
+          }
+        });
+      };
+      initScanner();
+    }
+    
+    return () => {
+      cancelled = true;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      stopQRScanner();
+    };
+  }, [showQRScanner]);
+
   const queryClient = useQueryClient();
 
   // Get current user ID from localStorage safely
@@ -669,7 +798,19 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
               </div>
             </div>
             <div>
-              <Label htmlFor="address">Recipient Address</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label htmlFor="address">Recipient Address</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowQRScanner(true)}
+                  className="h-8 px-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                >
+                  <Camera className="w-4 h-4 mr-1" />
+                  Scan QR
+                </Button>
+              </div>
               <textarea
                 id="address"
                 placeholder="Enter full wallet address (0x...)"
@@ -679,7 +820,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 rows={3}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Paste the complete wallet address (42 characters starting with 0x)
+                Paste the complete wallet address or scan a QR code
               </p>
             </div>
             <div className="flex space-x-3 pt-4">
@@ -734,6 +875,49 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 </Button>
               </div>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Scanner Modal */}
+      <Dialog open={showQRScanner} onOpenChange={(open) => {
+        if (!open) {
+          stopQRScanner();
+        }
+        setShowQRScanner(open);
+      }}>
+        <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Camera className="w-5 h-5" />
+              <span>Scan Wallet QR Code</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '300px' }}>
+              <div id="qr-reader" className="w-full" />
+              {!isScanning && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
+                  <div className="text-center text-white">
+                    <Camera className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Initializing camera...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+              Point your camera at a wallet QR code to scan
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                stopQRScanner();
+                setShowQRScanner(false);
+              }}
+              className="w-full"
+            >
+              Cancel
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
