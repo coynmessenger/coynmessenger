@@ -1257,6 +1257,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
       
+      const parsedUserId = parseInt(userId);
+      if (isNaN(parsedUserId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
       if (!conversationIds || !messageIds || conversationIds.length === 0 || messageIds.length === 0) {
         return res.status(400).json({ message: "Missing conversation IDs or message IDs" });
       }
@@ -1272,7 +1277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const message of messages) {
           const sharedMessage = {
             conversationId,
-            senderId: userId,
+            senderId: parsedUserId,
             content: `📤 Shared: ${message.content}`,
             messageType: "text" as const,
             originalMessageId: message.id
