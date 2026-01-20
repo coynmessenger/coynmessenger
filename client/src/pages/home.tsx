@@ -384,10 +384,10 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Supporting major cryptocurrencies */}
+                {/* Supporting Major Cryptocurrencies */}
                 <div className="border-t border-border pt-4">
                   <p className="text-center text-muted-foreground text-sm">
-                    Supporting major cryptocurrencies
+                    Supporting Major Cryptocurrencies
                   </p>
                 </div>
               </CardContent>
