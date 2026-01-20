@@ -16,6 +16,9 @@ import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 import { requireAuth } from "./middleware/security";
 
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
+import { registerAudioRoutes } from "./replit_integrations/audio";
+import { registerImageRoutes } from "./replit_integrations/image/routes";
+import { registerGoogleDriveRoutes } from "./replit_integrations/google-drive";
 
 // Configure multer for avatar uploads
 const upload = multer({
@@ -109,6 +112,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/health', healthCheck);
   app.get('/health/ready', readinessCheck);
   app.get('/health/live', livenessCheck);
+
+  // Register AI integration routes
+  registerAudioRoutes(app);
+  registerImageRoutes(app);
+  registerGoogleDriveRoutes(app);
 
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
