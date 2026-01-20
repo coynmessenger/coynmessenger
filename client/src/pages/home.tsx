@@ -291,7 +291,7 @@ export default function HomePage() {
     { icon: MessageCircle, title: "Real-time Messaging", description: "Instant encrypted communication" },
     { icon: Users, title: "Wallet Integration", description: "Send crypto directly in chats" },
     { icon: Lock, title: "Secure & Private", description: "End-to-end encryption" },
-    { icon: Globe, title: "Global Network", description: "Connect with users worldwide" }
+    { icon: Globe, title: "Global Network", description: "Chat with friends internationally" }
   ];
 
   return (
