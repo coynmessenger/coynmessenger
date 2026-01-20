@@ -40,6 +40,9 @@ app.use((req, res, next) => {
 import path from 'path';
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// Serve attached_assets for favicon and other static assets
+app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
+
 (async () => {
   try {
     const server = await registerRoutes(app);
