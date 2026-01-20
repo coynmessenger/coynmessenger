@@ -1251,8 +1251,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Share messages between conversations
   app.post("/api/messages/share", async (req, res) => {
     try {
-      const { conversationIds, messageIds } = req.body;
-      const userId = 5; // Current user
+      const { conversationIds, messageIds, userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
       
       if (!conversationIds || !messageIds || conversationIds.length === 0 || messageIds.length === 0) {
         return res.status(400).json({ message: "Missing conversation IDs or message IDs" });

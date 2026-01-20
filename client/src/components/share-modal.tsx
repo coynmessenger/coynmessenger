@@ -14,9 +14,10 @@ interface ShareModalProps {
   onClose: () => void;
   selectedMessages: Set<number>;
   currentConversationId: number;
+  userId: number | null;
 }
 
-export default function ShareModal({ isOpen, onClose, selectedMessages, currentConversationId }: ShareModalProps) {
+export default function ShareModal({ isOpen, onClose, selectedMessages, currentConversationId, userId }: ShareModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConversations, setSelectedConversations] = useState<Set<number>>(new Set());
   const { toast } = useToast();
@@ -36,6 +37,7 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
     mutationFn: async (data: { 
       conversationIds: number[];
       messageIds: number[];
+      userId: number;
     }) => {
       return apiRequest("POST", "/api/messages/share", data);
     },
@@ -75,9 +77,19 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
       return;
     }
 
+    if (!userId) {
+      toast({
+        title: "Not authenticated",
+        description: "Please sign in to share messages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     shareMessagesMutation.mutate({
       conversationIds: Array.from(selectedConversations),
       messageIds: Array.from(selectedMessages),
+      userId: userId,
     });
   };
 

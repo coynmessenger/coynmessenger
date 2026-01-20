@@ -1370,7 +1370,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const handleForwardMessage = (message: Message) => {
-    // Implement forward functionality
+    // Add the message to selected messages for sharing
+    setSelectedMessages(new Set([message.id]));
     setShowShareModal(true);
     setContextMenuMessage(null);
   };
@@ -2875,9 +2876,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
       <ShareModal
         isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
+        onClose={() => {
+          setShowShareModal(false);
+          setSelectedMessages(new Set());
+        }}
         selectedMessages={selectedMessages}
         currentConversationId={conversation.id}
+        userId={connectedUserId}
       />
 
       {/* Crypto Send Modal */}
