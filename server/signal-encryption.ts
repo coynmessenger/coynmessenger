@@ -87,7 +87,7 @@ export class SimpleEncryptionService {
     }
 
     const iv = Buffer.from(encryptedData.iv, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-gcm', sharedSecret, iv);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', sharedSecret, iv, { authTagLength: 16 });
     decipher.setAAD(Buffer.from(senderId));
     decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
 
