@@ -1,6 +1,6 @@
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
-import { createWallet, walletConnect } from "thirdweb/wallets";
+import { createWallet } from "thirdweb/wallets";
 import { defineChain } from "thirdweb/chains";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 
@@ -30,9 +30,9 @@ const client = createThirdwebClient({
 const supportedChains = [bsc];
 
 // Enhanced wallet configuration for optimal mobile experience
-// WalletConnect projectId is passed via ConnectButton's walletConnect prop
+// WalletConnect automatically handles mobile deep linking through Thirdweb SDK
 const wallets = [
-  walletConnect(), // WalletConnect for QR code / mobile linking
+  createWallet("walletConnect"), // Mobile-optimized: auto-detects mobile wallets
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("com.bitget.web3"),
