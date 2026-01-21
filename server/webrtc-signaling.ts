@@ -472,7 +472,7 @@ export class EncryptedWebRTCSignaling {
         console.log('   To Socket ID:', callerSocketId);
         console.log('   By User:', accepterId);
         console.log('   Call ID:', data.callId);
-        console.log('   Plain Answer Included:', !!data.answer && !isEncrypted);
+        console.log('   Plain Answer Included:', !!data.answer);
         console.log('   Encrypted Answer Included:', !!encryptedAnswer);
         console.log('   Encrypted:', isEncrypted);
         
@@ -480,7 +480,7 @@ export class EncryptedWebRTCSignaling {
           callId: data.callId,
           byUserId: accepterId,
           encryptedAnswer: isEncrypted ? encryptedAnswer : undefined,
-          answer: !isEncrypted ? data.answer : undefined,
+          answer: data.answer, // CRITICAL: Always include plain answer for WebRTC handshake
           encrypted: isEncrypted
         });
         
@@ -530,6 +530,7 @@ export class EncryptedWebRTCSignaling {
               callId: data.callId,
               fromUserId: senderId,
               encryptedCandidate,
+              candidate: data.candidate, // CRITICAL: Always include plain candidate for WebRTC
               encrypted: true
             });
           } catch (error) {
