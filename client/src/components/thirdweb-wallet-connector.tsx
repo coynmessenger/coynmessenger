@@ -72,6 +72,9 @@ export default function ThirdwebWalletConnector({
       }}
       theme="dark"
       wallets={wallets}
+      walletConnect={{
+        projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
+      }}
       appMetadata={{
         name: "COYN Messenger",
         description: "Secure crypto messaging and wallet integration",
