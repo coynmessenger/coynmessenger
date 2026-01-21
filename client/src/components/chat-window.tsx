@@ -663,7 +663,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageData: { content: string; messageType: string }) => {
+    mutationFn: async (messageData: { content: string; messageType: string; replyToId?: number | null; replyToContent?: string | null; replyToSender?: string | null }) => {
       console.log("📡 Starting send message mutation");
       console.log("- Message data:", messageData);
       console.log("- Connected user ID:", connectedUserId);
@@ -759,6 +759,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           country: null,
           lastSeen: null
         },
+        replyToId: replyToMessage?.id || null,
+        replyToContent: replyToMessage?.content || null,
+        replyToSender: replyToMessage?.sender || null,
         cryptoAmount: null,
         cryptoCurrency: null,
         attachmentUrl: null,
@@ -1189,7 +1192,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     sendMessageMutation.mutate({
       content: messageContent,
-      messageType: "text"
+      messageType: "text",
+      replyToId: replyToMessage?.id || null,
+      replyToContent: replyToMessage?.content || null,
+      replyToSender: replyToMessage?.sender || null
     }, {
       onSettled: () => {
         console.log("📤 Send message mutation settled");
@@ -2076,32 +2082,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
                           {/* WhatsApp-style reply context */}
-                          {msg.content?.includes('@') && msg.content.includes(':') && (
+                          {msg.replyToId && (
                             <div className="bg-white/20 rounded-lg p-2 mb-2 border-l-4 border-white/40">
                               <div className="text-xs font-medium text-white/90 mb-1">
-                                {msg.content.split(':')[0].replace('@', '')}
+                                {msg.replyToSender}
                               </div>
                               <div className="text-xs text-white/70 line-clamp-2">
-                                {/* Find and display the original message from conversation history */}
-                                {(() => {
-                                  const replyToUser = msg.content?.split(':')[0].replace('@', '');
-                                  const originalMsg = messages.find(m => {
-                                    const effectiveName = (m.sender as any).effectiveDisplayName || getEffectiveDisplayName(m.sender);
-                                    return effectiveName === replyToUser && 
-                                      m.id !== msg.id &&
-                                      (m.timestamp != null && msg.timestamp != null && m.timestamp < msg.timestamp);
-                                  });
-                                  return originalMsg?.content || originalMsg?.cryptoAmount 
-                                    ? `${originalMsg.content || ''} ${originalMsg.cryptoAmount ? `${originalMsg.cryptoAmount} ${originalMsg.cryptoCurrency}` : ''}`.trim()
-                                    : "Previous message";
-                                })()}
+                                {msg.replyToContent || "Previous message"}
                               </div>
                             </div>
                           )}
                           <p className="text-sm font-medium break-words">
                             {highlightText(
-                              msg.content?.includes('@') && msg.content.includes(':') 
-                                ? msg.content.split(':').slice(1).join(':').trim()  // Show only the new message part
+                              msg.replyToId && msg.content?.includes('@') && msg.content.includes(':') 
+                                ? msg.content.split(':').slice(1).join(':').trim()
                                 : msg.content || "", 
                               searchQuery || ""
                             )}
@@ -2168,7 +2162,25 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
-                          <p className="text-sm break-words text-foreground">{highlightText(msg.content || "", searchQuery || "")}</p>
+                          {/* WhatsApp-style reply context for received messages */}
+                          {msg.replyToId && (
+                            <div className="bg-gray-100/80 dark:bg-slate-700/50 rounded-lg p-2 mb-2 border-l-4 border-gray-400/60 dark:border-slate-500/60">
+                              <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {msg.replyToSender}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                                {msg.replyToContent || "Previous message"}
+                              </div>
+                            </div>
+                          )}
+                          <p className="text-sm break-words text-foreground">
+                            {highlightText(
+                              msg.replyToId && msg.content?.includes('@') && msg.content.includes(':') 
+                                ? msg.content.split(':').slice(1).join(':').trim()
+                                : msg.content || "", 
+                              searchQuery || ""
+                            )}
+                          </p>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>

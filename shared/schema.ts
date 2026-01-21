@@ -49,6 +49,9 @@ export const messages = pgTable("messages", {
   senderId: integer("sender_id").notNull(),
   content: text("content"),
   messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share, attachment, gif
+  replyToId: integer("reply_to_id"), // ID of message being replied to
+  replyToContent: text("reply_to_content"), // Cached content of replied message
+  replyToSender: text("reply_to_sender"), // Cached sender name of replied message
   cryptoAmount: decimal("crypto_amount", { precision: 18, scale: 8 }),
   cryptoCurrency: text("crypto_currency"),
   audioFilePath: text("audio_file_path"), // for voice messages
