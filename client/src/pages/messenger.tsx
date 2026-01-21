@@ -15,6 +15,7 @@ const WalletModal = lazy(() => import("@/components/wallet-modal"));
 const WalletSidebar = lazy(() => import("@/components/wallet-sidebar"));
 const VideoCallModal = lazy(() => import("@/components/video-call-modal"));
 const VoiceCallModal = lazy(() => import("@/components/voice-call-modal"));
+const IncomingVoiceCallModal = lazy(() => import("@/components/incoming-voice-call-modal"));
 const SettingsModal = lazy(() => import("@/components/settings-modal"));
 import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
@@ -73,6 +74,7 @@ export default function MessengerPage() {
   const [selectedWalletCurrency, setSelectedWalletCurrency] = useState<string | undefined>();
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const [showIncomingVoiceModal, setShowIncomingVoiceModal] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; type: 'voice' | 'video'; callId: string } | null>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -375,9 +377,9 @@ export default function MessengerPage() {
               
               // Open the appropriate modal
               if (call.type === 'voice') {
-                console.log('🎙️ CRITICAL: Opening voice call modal for incoming call');
-                setIsVoiceCallOpen(true); // This was missing! Voice calls need modal too
-                console.log('🎙️ CRITICAL: Voice call modal should now be open');
+                console.log('🎙️ CRITICAL: Opening incoming voice call modal');
+                setShowIncomingVoiceModal(true);
+                console.log('🎙️ CRITICAL: Incoming voice call modal should now be open');
               } else if (call.type === 'video') {
                 console.log('📹 CRITICAL: Opening video call modal');
                 setIsVideoCallOpen(true);
@@ -395,7 +397,8 @@ export default function MessengerPage() {
             onCallEnded: (call) => {
               console.log('Global WebRTC call ended:', call);
               setIsVideoCallOpen(false);
-              setIsVoiceCallOpen(false); // Also close voice call modal
+              setIsVoiceCallOpen(false);
+              setShowIncomingVoiceModal(false);
               setIncomingCallData(null);
             }
           });
@@ -1059,6 +1062,50 @@ export default function MessengerPage() {
             initialCurrency={selectedWalletCurrency}
           />
         )}
+      </Suspense>
+      
+      {/* Incoming Voice Call Modal - Small popup for incoming calls */}
+      <Suspense fallback={null}>
+        <IncomingVoiceCallModal
+          isOpen={showIncomingVoiceModal}
+          onAnswer={() => {
+            console.log('📞 Answering incoming voice call');
+            setShowIncomingVoiceModal(false);
+            setIsVoiceCallOpen(true);
+          }}
+          onDecline={() => {
+            console.log('📞 Declining incoming voice call');
+            setShowIncomingVoiceModal(false);
+            const webrtc = getGlobalWebRTC();
+            if (webrtc && incomingCallData?.callId) {
+              webrtc.endCall(incomingCallData.callId);
+            }
+            setIncomingCallData(null);
+          }}
+          caller={
+            incomingCallData && incomingCallData.type === 'voice'
+              ? allUsers.find(u => u.id.toString() === incomingCallData.fromUserId) ||
+                { 
+                  id: parseInt(incomingCallData.fromUserId), 
+                  displayName: `User ${incomingCallData.fromUserId}`,
+                  signInName: `user_${incomingCallData.fromUserId}`,
+                  username: `user_${incomingCallData.fromUserId}`,
+                  walletAddress: `0x...${incomingCallData.fromUserId}`,
+                  profilePicture: null,
+                  isOnline: null,
+                  isSetup: null,
+                  lastSeen: null,
+                  fullName: null,
+                  addressLine1: null,
+                  addressLine2: null,
+                  city: null,
+                  state: null,
+                  zipCode: null,
+                  country: null
+                }
+              : undefined
+          }
+        />
       </Suspense>
       
       {/* Voice Call Modal */}
