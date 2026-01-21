@@ -6,9 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Image, Search, X, Loader2 } from "lucide-react";
 
-// Free GIF API endpoint (no API key required)
 const GIPHY_API_URL = 'https://api.giphy.com/v1/gifs';
-const GIPHY_API_KEY = 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh'; // Giphy's public beta key
+const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh';
 
 interface GifData {
   id: string;
