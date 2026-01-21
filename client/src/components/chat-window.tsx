@@ -180,14 +180,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [isSearching, setIsSearching] = useState(false);
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
-    messageData: (Message & { sender?: any }) | null;
     offsetX: number;
     isDragging: boolean;
     showReply: boolean;
     startX: number;
   }>({
     messageId: null,
-    messageData: null,
     offsetX: 0,
     isDragging: false,
     showReply: false,
@@ -1228,13 +1226,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   // Swipe-to-reply handlers
-  const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number, messageData: Message & { sender?: any }) => {
+  const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    // Swipe initiated - capture the full message data immediately
-    console.log('📱 Swipe started on message:', messageId, 'Content:', messageData.content?.substring(0, 30));
+    // Swipe initiated
     setSwipeState({
       messageId,
-      messageData,
       offsetX: 0,
       isDragging: true,
       showReply: false,
@@ -1259,11 +1255,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
     if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
       // Trigger reply to message with haptic-like feedback
-      // Use the stored messageData directly instead of looking it up
-      const message = swipeState.messageData;
-      console.log('📱 Swipe ended, using stored message:', message?.id, 'Content:', message?.content?.substring(0, 30));
+      const targetMessageId = swipeState.messageId;
+      const message = messages.find(m => m.id === targetMessageId);
+      // Reply triggered
       
-      if (message) {
+      if (message && message.id === targetMessageId) {
         // Clear any existing reply state first
         setReplyToMessage(null);
         
@@ -1302,7 +1298,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             sender: effectiveName
           };
           
-          console.log('✅ Setting reply to:', newReplyData);
+          
+          // Message details for debugging
           
           setReplyToMessage(newReplyData);
           
@@ -1318,7 +1315,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       
       setSwipeState({
         messageId: null,
-        messageData: null,
         offsetX: 0,
         isDragging: false,
         showReply: false,
@@ -1328,7 +1324,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       // Reset position with spring animation
       setSwipeState({
         messageId: null,
-        messageData: null,
         offsetX: 0,
         isDragging: false,
         showReply: false,
@@ -2079,14 +2074,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
                         onTouchStart={(e) => {
-                          handleSwipeStart(e, msg.id, msg);
+                          handleSwipeStart(e, msg.id);
                         }}
                         onTouchMove={handleSwipeMove}
                         onTouchEnd={() => {
                           handleSwipeEnd();
                         }}
                         onMouseDown={(e) => {
-                          handleSwipeStart(e, msg.id, msg);
+                          handleSwipeStart(e, msg.id);
                         }}
                         onMouseUp={() => {
                           if (swipeState.isDragging) {
@@ -2172,14 +2167,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
                         onTouchStart={(e) => {
-                          handleSwipeStart(e, msg.id, msg);
+                          handleSwipeStart(e, msg.id);
                         }}
                         onTouchMove={handleSwipeMove}
                         onTouchEnd={() => {
                           handleSwipeEnd();
                         }}
                         onMouseDown={(e) => {
-                          handleSwipeStart(e, msg.id, msg);
+                          handleSwipeStart(e, msg.id);
                         }}
                         onMouseUp={() => {
                           if (swipeState.isDragging) {

@@ -56,7 +56,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const hasScannedRef = useRef(false);
   
   const { toast } = useToast();
   
@@ -91,8 +90,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     if (scannerRef.current || isScanning) {
       return;
     }
-    
-    hasScannedRef.current = false;
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       toast({
@@ -116,9 +113,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           qrbox: { width: 250, height: 250 },
         },
         (decodedText) => {
-          if (hasScannedRef.current) return;
-          hasScannedRef.current = true;
-          
           const address = decodedText.trim();
           if (address.startsWith("0x") && address.length === 42) {
             setRecipientAddress(address);
