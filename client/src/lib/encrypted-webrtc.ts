@@ -663,6 +663,12 @@ export class EncryptedWebRTCService {
       // Set up peer connection event handlers
       this.setupPeerConnectionHandlers(call);
 
+      // CRITICAL: Notify UI of local stream for muting and recording
+      if (this.eventHandlers.onLocalStream) {
+        console.log('📤 AUDIO DEBUG: Delivering local stream to UI handler');
+        this.eventHandlers.onLocalStream(localStream);
+      }
+
       // Create and send offer
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
@@ -885,6 +891,12 @@ export class EncryptedWebRTCService {
       console.log('  ICE connection state:', peerConnection.iceConnectionState);
       console.log('  Signaling state:', peerConnection.signalingState);
       console.log('═══════════════════════════════════════════════════════');
+
+      // CRITICAL: Notify UI of local stream for muting and recording
+      if (this.eventHandlers.onLocalStream) {
+        console.log('📤 AUDIO DEBUG (ACCEPT): Delivering local stream to UI handler');
+        this.eventHandlers.onLocalStream(localStream);
+      }
 
       // Trigger call accepted event for UI to show connected state  
       if (this.eventHandlers.onCallAccepted) {

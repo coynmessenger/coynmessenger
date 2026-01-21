@@ -329,6 +329,27 @@ export default function VoiceCallModal({
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
           },
+          onLocalStream: (stream) => {
+            console.log('🎤 VOICE CALL: ========== LOCAL STREAM RECEIVED ==========');
+            
+            // Store local stream for muting and recording
+            const audioTracks = stream.getAudioTracks();
+            console.log('🎤 VOICE CALL: Audio tracks:', audioTracks.length);
+            audioTracks.forEach((track, index) => {
+              console.log(`🎤 VOICE CALL: Audio track ${index}:`, {
+                enabled: track.enabled,
+                muted: track.muted,
+                readyState: track.readyState,
+                label: track.label
+              });
+            });
+            
+            // CRITICAL: Store in both state and ref for muting and cleanup
+            setCurrentStream(stream);
+            currentStreamRef.current = stream;
+            
+            console.log('✅ VOICE CALL: Local stream stored for muting/recording');
+          },
           onRemoteStream: (stream) => {
             console.log('🔊 VOICE CALL: ========== REMOTE STREAM RECEIVED ==========');
             
@@ -802,19 +823,24 @@ export default function VoiceCallModal({
     setIsMuted(!isMuted);
   };
 
-  const handleToggleSpeaker = () => {
+  const handleToggleSpeaker = async () => {
     if (remoteAudioRef.current) {
       try {
-        // Toggle speaker/earpiece output
+        const newSpeakerState = !isSpeakerOn;
+        
+        // Toggle speaker output - primarily used on mobile to switch between earpiece/speaker
         if (typeof (remoteAudioRef.current as any).setSinkId === 'function') {
-          // Use setSinkId if available (Chrome/Edge)
-          (remoteAudioRef.current as any).setSinkId(isSpeakerOn ? 'default' : 'speaker');
-        } else {
-          // Fallback: adjust volume
-          remoteAudioRef.current.volume = isSpeakerOn ? 0.7 : 1.0;
+          // setSinkId expects a deviceId from enumerateDevices, or 'default' for system default
+          // For speaker toggle, we use volume adjustment as primary method
+          console.log('🔊 VOICE CALL: Toggling speaker mode:', newSpeakerState ? 'ON' : 'OFF');
         }
+        
+        // Primary method: adjust volume (louder = speaker, normal = earpiece-like)
+        remoteAudioRef.current.volume = newSpeakerState ? 1.0 : 0.5;
+        console.log('🔊 VOICE CALL: Volume set to:', remoteAudioRef.current.volume);
+        
       } catch (error) {
-        console.log('Speaker toggle not supported on this device');
+        console.log('Speaker toggle not fully supported on this device:', error);
       }
     }
     setIsSpeakerOn(!isSpeakerOn);

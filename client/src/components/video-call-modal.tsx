@@ -373,8 +373,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               });
             });
             
-            // Store local stream for state tracking
+            // Store local stream for state tracking and mute/video controls
             setLocalStream(stream);
+            setCurrentStream(stream);
+            currentStreamRef.current = stream;
             
             // Attach to local video element for self-view
             if (localVideoRef.current && videoTracks.length > 0) {
