@@ -43,6 +43,11 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Serve attached_assets for favicon and other static assets
 app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
 
+// Serve favicon.ico from attached_assets
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'attached_assets', 'coynresize_1760204738870.png'));
+});
+
 (async () => {
   try {
     const server = await registerRoutes(app);
