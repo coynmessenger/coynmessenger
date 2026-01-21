@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
-import { createWallet } from "thirdweb/wallets";
+import { createWallet, walletConnect } from "thirdweb/wallets";
 import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
 import { useEffect, lazy, Suspense } from "react";
 
@@ -37,9 +37,8 @@ const client = createThirdwebClient({
 });
 
 // Configure supported wallets for auto-reconnection
-// WalletConnect enables mobile wallet connections via deep linking
 const wallets = [
-  createWallet("walletConnect"), // Primary mobile wallet connector
+  walletConnect(), // WalletConnect for mobile wallet connections
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),  
   createWallet("com.bitget.web3"),
