@@ -116,16 +116,8 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           const address = decodedText.trim();
           if (address.startsWith("0x") && address.length === 42) {
             setRecipientAddress(address);
-            toast({
-              title: "Address Scanned",
-              description: "Wallet address captured successfully",
-            });
           } else {
             setRecipientAddress(decodedText);
-            toast({
-              title: "QR Scanned",
-              description: "Content captured from QR code",
-            });
           }
           stopQRScanner();
           setShowQRScanner(false);
