@@ -161,7 +161,7 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
             <section>
               <h3 className="text-lg font-semibold mb-3 text-primary">14. Contact Information</h3>
               <p>
-                For questions about these terms, please contact us at coynful@gmail.com or through our in-app support system.
+                For questions about these terms, please contact us at info@coynful.com or through our in-app support system.
               </p>
             </section>
 

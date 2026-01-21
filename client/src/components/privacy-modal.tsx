@@ -202,8 +202,8 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 For privacy-related questions or to exercise your rights, contact us at:
               </p>
               <ul className="list-none space-y-1">
-                <li>Email: coynful@gmail.com</li>
-                <li>Data Protection Officer: coynful@gmail.com</li>
+                <li>Email: info@coynful.com</li>
+                <li>Data Protection Officer: info@coynful.com</li>
                 <li>In-app support: Available through settings menu</li>
                 <li>Response time: Within 30 days for most requests</li>
               </ul>
