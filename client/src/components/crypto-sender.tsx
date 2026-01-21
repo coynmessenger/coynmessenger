@@ -9,26 +9,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useActiveWallet } from "thirdweb/react";
 import { sendTransaction, prepareTransaction } from "thirdweb";
 import { createThirdwebClient } from "thirdweb";
-import { defineChain } from "thirdweb/chains";
 import { apiRequest } from "@/lib/queryClient";
-
-// Define custom BSC chain with public RPC to avoid authentication issues
-const bsc = defineChain({
-  id: 56,
-  name: "BNB Smart Chain",
-  nativeCurrency: {
-    name: "BNB",
-    symbol: "BNB",
-    decimals: 18,
-  },
-  rpc: "https://bsc-dataseed.binance.org",
-  blockExplorers: [
-    {
-      name: "BscScan",
-      url: "https://bscscan.com",
-    },
-  ],
-});
+import { bsc } from "@/lib/bsc-chain";
 import { Coins, Plus } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";

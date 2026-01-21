@@ -1,26 +1,8 @@
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
-import { defineChain } from "thirdweb/chains";
+import { bsc } from "@/lib/bsc-chain";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
-
-// Define custom BSC chain with public RPC to avoid authentication issues
-const bsc = defineChain({
-  id: 56,
-  name: "BNB Smart Chain",
-  nativeCurrency: {
-    name: "BNB",
-    symbol: "BNB",
-    decimals: 18,
-  },
-  rpc: "https://bsc-dataseed.binance.org",
-  blockExplorers: [
-    {
-      name: "BscScan",
-      url: "https://bscscan.com",
-    },
-  ],
-});
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
