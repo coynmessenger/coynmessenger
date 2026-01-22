@@ -65,7 +65,7 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
                 onClick={() => setSelectedCategory(category as keyof typeof emojiCategories)}
                 className={`p-2 rounded-md transition-colors flex items-center justify-center ${
                   selectedCategory === category
-                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600"
+                    ? "bg-blue-50/50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
                     : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
                 }`}
                 title={category.charAt(0).toUpperCase() + category.slice(1)}
