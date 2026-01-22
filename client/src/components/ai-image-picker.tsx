@@ -35,24 +35,17 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
     try {
       const response = await apiRequest("POST", "/api/generate-image", {
         prompt: imagePrompt,
-        size: "1024x1024"
+        size: "1024x1024",
+        count: 4
       });
       
-      if (response.b64_json) {
-        const newImage: GeneratedImage = {
-          id: `ai_${Date.now()}`,
+      if (response.images && response.images.length > 0) {
+        const newImages: GeneratedImage[] = response.images.map((img: { b64_json?: string; url?: string }, index: number) => ({
+          id: `ai_${Date.now()}_${index}`,
           prompt: imagePrompt,
-          imageData: `data:image/png;base64,${response.b64_json}`
-        };
-        setGeneratedImages(prev => [newImage, ...prev]);
-        setPrompt("");
-      } else if (response.url) {
-        const newImage: GeneratedImage = {
-          id: `ai_${Date.now()}`,
-          prompt: imagePrompt,
-          imageData: response.url
-        };
-        setGeneratedImages(prev => [newImage, ...prev]);
+          imageData: img.b64_json ? `data:image/png;base64,${img.b64_json}` : img.url
+        }));
+        setGeneratedImages(prev => [...newImages, ...prev]);
         setPrompt("");
       } else {
         throw new Error("No image data received");
