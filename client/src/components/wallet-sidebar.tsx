@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   X, 
-  Send, 
   QrCode, 
   Eye, 
   EyeOff, 
@@ -29,6 +28,7 @@ import { signatureCollector } from "@/lib/signature-collector";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
 
 // Web3 types extension for ethereum provider
@@ -731,7 +731,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                             onClick={() => handleSend(balance.currency)}
                             className="h-7 w-7 p-0 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400"
                           >
-                            <Send className="w-3.5 h-3.5" />
+                            <img src={sendIconPath} alt="Send" className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"

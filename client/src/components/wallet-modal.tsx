@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import { X, Send, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Eye, EyeOff, AlertTriangle, RefreshCw } from "lucide-react";
+import { X, QrCode, TrendingUp, TrendingDown, Copy, Check, ArrowLeft, Eye, EyeOff, AlertTriangle, RefreshCw } from "lucide-react";
+import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import { SiBinance, SiBitcoin } from "react-icons/si";
 import QRCode from "qrcode";
 import { generateMetaMaskQRCode } from "@/lib/qr-generator";
@@ -536,7 +537,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           onClick={() => setView("send")} 
           className="bg-orange-500 hover:bg-orange-600 text-white h-12"
         >
-          <Send className="mr-2 h-4 w-4" />
+          <img src={sendIconPath} alt="Send" className="mr-2 h-4 w-4" />
           Send
         </Button>
         <Button 

@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { User, Conversation, Message } from "@shared/schema";
-import { Search, Send } from "lucide-react";
+import { Search } from "lucide-react";
+import sendIconPath from "@assets/SENDICON_1769058532502.png";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -194,7 +195,7 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
                 disabled={selectedConversations.size === 0 || shareMessagesMutation.isPending}
                 className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-600 dark:hover:bg-cyan-700"
               >
-                <Send className="h-4 w-4 mr-2" />
+                <img src={sendIconPath} alt="Send" className="h-4 w-4 mr-2" />
                 Share
               </Button>
             </div>

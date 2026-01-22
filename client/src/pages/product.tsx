@@ -32,7 +32,6 @@ import {
   Check,
   Clock,
   Package,
-  Send,
   MessageCircle,
   Search
 } from "lucide-react";
@@ -40,6 +39,7 @@ import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import { ProductShareModal } from "@/components/product-share-modal";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
 
 // Utility function to format prices with commas
@@ -1167,7 +1167,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Send className="h-4 w-4" />
+                <img src={sendIconPath} alt="Send" className="h-4 w-4" />
                 <span>Share Product</span>
                 {selectedConversations.size > 0 && (
                   <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">

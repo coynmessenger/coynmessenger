@@ -33,7 +33,8 @@ import { createThirdwebClient } from "thirdweb";
 import { bsc } from "@/lib/bsc-chain";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search, Sparkles } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search, Sparkles } from "lucide-react";
+import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
@@ -2677,7 +2678,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-blue-400 flex items-center">
-                  <Send className="h-4 w-4 mr-2" />
+                  <img src={sendIconPath} alt="Send" className="h-4 w-4 mr-2" />
                   Send COYN
                 </span>
                 <Button
@@ -2998,7 +2999,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             } text-white h-7 w-7 touch-manipulation shadow-lg transition-all duration-200 rounded-lg backdrop-blur-sm`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <Send className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
+            <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
           </Button>
         </form>
       </div>
