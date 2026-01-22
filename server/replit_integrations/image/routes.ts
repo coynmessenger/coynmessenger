@@ -54,9 +54,10 @@ export function registerImageRoutes(app: Express): void {
       })) || [];
 
       res.json({ images });
-    } catch (error) {
-      console.error("Error generating image:", error);
-      res.status(500).json({ error: "Failed to generate image" });
+    } catch (error: any) {
+      console.error("Error generating image:", error?.message || error);
+      console.error("Full error details:", JSON.stringify(error, null, 2));
+      res.status(500).json({ error: "Failed to generate image", details: error?.message });
     }
   });
 }
