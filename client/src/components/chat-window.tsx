@@ -1186,7 +1186,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         replyToContent: replyToMessage.content
       };
       // Include reply context in message for backend
-      messageContent = `@${replyToMessage.sender}: ${message}`;
+      const senderName = replyToMessage.sender.startsWith('@') ? replyToMessage.sender : `@${replyToMessage.sender}`;
+      messageContent = `${senderName}: ${message}`;
     }
 
     console.log("✅ About to send message with content:", messageContent);
