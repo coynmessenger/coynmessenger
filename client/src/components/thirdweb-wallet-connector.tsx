@@ -71,7 +71,9 @@ export default function ThirdwebWalletConnector({
           hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600
           text-gray-900 dark:text-white font-medium py-8 px-10 rounded-lg
           transition-all duration-200 shadow-md hover:shadow-lg
-          border-2 border-orange-500 dark:border-orange-400 flex items-center justify-center
+          border-2 border-orange-500 dark:border-orange-400
+          outline outline-2 outline-offset-2 outline-orange-500 dark:outline-orange-400
+          flex items-center justify-center
           touch-manipulation select-none
         `
       }}
