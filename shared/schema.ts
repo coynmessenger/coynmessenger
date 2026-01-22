@@ -48,7 +48,7 @@ export const messages = pgTable("messages", {
   conversationId: integer("conversation_id").notNull(),
   senderId: integer("sender_id").notNull(),
   content: text("content"),
-  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share, attachment, gif
+  messageType: text("message_type").notNull().default("text"), // text, crypto, system, voice, product_share, attachment, gif, ai_image
   replyToId: integer("reply_to_id"), // ID of message being replied to
   replyToContent: text("reply_to_content"), // Cached content of replied message
   replyToSender: text("reply_to_sender"), // Cached sender name of replied message
@@ -71,6 +71,9 @@ export const messages = pgTable("messages", {
   gifUrl: text("gif_url"), // GIF URL from GIPHY
   gifTitle: text("gif_title"), // GIF title/description
   gifId: text("gif_id"), // GIPHY ID for the GIF
+  // AI Image fields
+  aiImageData: text("ai_image_data"), // Base64 or URL of AI-generated image
+  aiImagePrompt: text("ai_image_prompt"), // Prompt used to generate the image
   // Blockchain transaction fields
   transactionHash: text("transaction_hash"), // Blockchain transaction hash for crypto transfers
   isStarred: boolean("is_starred").default(false),

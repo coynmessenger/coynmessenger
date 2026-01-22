@@ -24,6 +24,7 @@ import CallPermissionDialog from "@/components/call-permission-dialog";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
+import { AiImagePicker } from "@/components/ai-image-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
 import { useActiveWallet } from "thirdweb/react";
@@ -32,7 +33,7 @@ import { createThirdwebClient } from "thirdweb";
 import { bsc } from "@/lib/bsc-chain";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
-import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Plus, Send, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search, Sparkles } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
@@ -133,6 +134,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [showAiImagePicker, setShowAiImagePicker] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -778,6 +780,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         gifUrl: null,
         gifTitle: null,
         gifId: null,
+        aiImageData: null,
+        aiImagePrompt: null,
         transactionHash: null
       };
       
@@ -2509,6 +2513,90 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </div>
                   </div>
                 </div>
+              ) : msg.messageType === "ai_image" ? (
+                // AI-generated image message
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-4`} data-message-id={msg.id}>
+                  <div className="relative max-w-xs lg:max-w-md">
+                    {/* AI Image bubble */}
+                    <div 
+                      className={`
+                        rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
+                        ${msg.senderId === connectedUserId 
+                          ? 'bg-gradient-to-br from-purple-500/90 to-purple-600/90 text-white border-purple-400/50 rounded-br-md' 
+                          : 'bg-white/80 dark:bg-slate-800/80 text-foreground border-gray-200/50 dark:border-slate-600/50 rounded-tl-md'
+                        }
+                      `}
+                    >
+                      {/* AI Image Display */}
+                      {msg.aiImageData && (
+                        <div className="mb-2 w-full max-w-[200px] overflow-hidden">
+                          <div className="relative">
+                            <img 
+                              src={msg.aiImageData} 
+                              alt={msg.aiImagePrompt || "AI Generated Image"} 
+                              className="w-full h-auto max-h-48 object-cover rounded-lg cursor-pointer"
+                              loading="lazy"
+                              onClick={() => {
+                                setPreviewImage({ url: msg.aiImageData!, name: msg.aiImagePrompt || 'AI Generated Image' });
+                                setShowImagePreview(true);
+                              }}
+                            />
+                            <div className="absolute top-1 right-1 bg-purple-500/90 text-white text-[10px] px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                              <Sparkles className="h-2.5 w-2.5" />
+                              AI
+                            </div>
+                          </div>
+                          {msg.aiImagePrompt && (
+                            <div className="mt-2 text-xs opacity-75 line-clamp-2">
+                              {msg.aiImagePrompt}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Timestamp */}
+                      <div className={`text-xs ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`}>
+                        {formatTimestamp(msg.timestamp)}
+                      </div>
+                    </div>
+
+                    {/* Hover options */}
+                    <div className={`absolute -top-2 ${msg.senderId === connectedUserId ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleCopyMessage(msg)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleStarMessage(msg)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm"
+                      >
+                        <Star className={`h-3 w-3 ${msg.isStarred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleForwardMessage(msg)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm"
+                      >
+                        <Forward className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteMessage(msg.id)}
+                        className="h-7 w-7 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-red-50 dark:hover:bg-red-950/50 border border-gray-200/50 dark:border-slate-600/50 shadow-sm text-red-600 dark:text-red-400"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               ) : null}
             </div>
           ))}
@@ -2868,6 +2956,36 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             }}
             isOpen={showGifPicker}
             onOpenChange={setShowGifPicker}
+          />
+
+          {/* AI Image Picker */}
+          <AiImagePicker
+            onImageSelect={(image) => {
+              // Send AI-generated image as a message
+              apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
+                senderId: connectedUserId,
+                content: `AI Image: ${image.prompt}`,
+                messageType: "ai_image",
+                aiImageData: image.imageData,
+                aiImagePrompt: image.prompt
+              }).then(() => {
+                // Invalidate both messages and conversation list for UI updates
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/conversations", conversation.id, "messages"] 
+                });
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/conversations"] 
+                });
+              }).catch((error) => {
+                toast({
+                  title: "Error",
+                  description: "Failed to send AI image. Please try again.",
+                  variant: "destructive",
+                });
+              });
+            }}
+            isOpen={showAiImagePicker}
+            onOpenChange={setShowAiImagePicker}
           />
 
           <Button 
