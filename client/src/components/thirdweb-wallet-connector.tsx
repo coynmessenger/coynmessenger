@@ -3,7 +3,6 @@ import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "@/lib/bsc-chain";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
-import connectWalletImagePath from "@assets/connectwallet_1769059026451.png";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -64,20 +63,18 @@ export default function ThirdwebWalletConnector({
       connectButton={{
         label: (
           <div className="flex flex-col items-center">
-            <img 
-              src={connectWalletImagePath} 
-              alt="Connect Wallet" 
-              className="w-full h-auto max-w-[400px] object-contain"
-            />
+            <span className="text-lg font-semibold">Connect Wallet</span>
           </div>
         ),
         className: className || `
-          w-full h-full min-h-[120px] bg-transparent
-          hover:opacity-90 active:opacity-80
-          p-0 rounded-lg
-          transition-all duration-200 hover:scale-105
+          w-full h-full min-h-[56px] bg-white dark:bg-slate-800
+          hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600
+          text-gray-900 dark:text-white font-medium py-8 px-10 rounded-lg
+          transition-all duration-200 shadow-md hover:shadow-lg
+          border-2 border-orange-500 dark:border-orange-400
+          outline outline-2 outline-offset-2 outline-orange-500 dark:outline-orange-400
           flex items-center justify-center
-          touch-manipulation select-none cursor-pointer
+          touch-manipulation select-none
         `
       }}
       detailsButton={{
