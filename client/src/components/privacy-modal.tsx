@@ -222,11 +222,6 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
               </ul>
             </section>
 
-            <div className="mt-8 p-4 bg-muted rounded-lg">
-              <p className="text-xs text-muted-foreground">
-                Last updated: December 26, 2024
-              </p>
-            </div>
           </div>
         </ScrollArea>
 
