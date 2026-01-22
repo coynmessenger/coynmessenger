@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Search, Send, Check, MessageCircle } from 'lucide-react';
+import { Search, Check, MessageCircle } from 'lucide-react';
+import sendIconPath from "@assets/images_1769052216099.png";
 
 interface Product {
   ASIN: string;
@@ -215,7 +216,7 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Send className="h-4 w-4" />
+                <img src={sendIconPath} alt="Send" className="h-4 w-4" />
                 <span>Send</span>
               </div>
             )}

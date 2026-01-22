@@ -32,10 +32,10 @@ import {
   Check,
   Clock,
   Package,
-  Send,
   MessageCircle,
   Search
 } from "lucide-react";
+import sendIconPath from "@assets/images_1769052216099.png";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import { ProductShareModal } from "@/components/product-share-modal";
@@ -1167,7 +1167,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Send className="h-4 w-4" />
+                <img src={sendIconPath} alt="Send" className="h-4 w-4" />
                 <span>Share Product</span>
                 {selectedConversations.size > 0 && (
                   <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
