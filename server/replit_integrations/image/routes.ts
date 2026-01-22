@@ -41,10 +41,11 @@ export function registerImageRoutes(app: Express): void {
         return res.json({ images });
       }
 
+      // Replit's gpt-image-1 usually works best with n: 1
       const response = await openai.images.generate({
         model: "gpt-image-1",
         prompt,
-        n: imageCount,
+        n: 1, // Stick to 1 for better reliability
         size: size as "1024x1024" | "512x512" | "256x256",
       });
 
@@ -54,9 +55,10 @@ export function registerImageRoutes(app: Express): void {
       })) || [];
 
       res.json({ images });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating image:", error);
-      res.status(500).json({ error: "Failed to generate image" });
+      const errorMessage = error.response?.data?.error?.message || error.message || "Failed to generate image";
+      res.status(500).json({ error: errorMessage });
     }
   });
 }
