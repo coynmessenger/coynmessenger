@@ -7,24 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Wand2, X, Loader2, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
-import sunsetImage from "@assets/generated_images/mountain_sunset_scene.png";
-import spaceImage from "@assets/generated_images/cosmic_nebula_space_art.png";
-import cityImage from "@assets/generated_images/futuristic_neon_cityscape.png";
-import forestImage from "@assets/generated_images/sunlit_forest_scene.png";
-
 interface GeneratedImage {
   id: string;
   prompt: string;
   imageData: string;
-  isSample?: boolean;
 }
-
-const sampleImages: GeneratedImage[] = [
-  { id: "sample_sunset", prompt: "Beautiful sunset over mountains", imageData: sunsetImage, isSample: true },
-  { id: "sample_space", prompt: "Cosmic nebula with stars and planets", imageData: spaceImage, isSample: true },
-  { id: "sample_city", prompt: "Futuristic city skyline at night", imageData: cityImage, isSample: true },
-  { id: "sample_forest", prompt: "Serene forest with sunlight", imageData: forestImage, isSample: true },
-];
 
 interface AiImagePickerProps {
   onImageSelect: (image: { prompt: string; imageData: string }) => void;
@@ -38,17 +25,6 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const allImages = [...generatedImages, ...sampleImages];
-
-  const suggestedPrompts = [
-    { label: "Sunset", prompt: "beautiful sunset over mountains with orange and purple sky" },
-    { label: "Space", prompt: "cosmic nebula with stars and planets" },
-    { label: "City", prompt: "futuristic city skyline at night with neon lights" },
-    { label: "Nature", prompt: "serene forest with sunlight streaming through trees" },
-    { label: "Abstract", prompt: "colorful abstract art with geometric shapes" },
-    { label: "Ocean", prompt: "crystal clear ocean waves on tropical beach" },
-  ];
 
   const generateImage = async (imagePrompt: string) => {
     if (!imagePrompt.trim()) return;
@@ -97,11 +73,6 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
   const handleImageClick = (image: GeneratedImage) => {
     onImageSelect({ prompt: image.prompt, imageData: image.imageData });
     onOpenChange(false);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setPrompt(suggestion);
-    generateImage(suggestion);
   };
 
   const clearHistory = () => {
@@ -169,26 +140,6 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
             </form>
           </div>
 
-          {/* Quick Suggestions */}
-          {generatedImages.length === 0 && !loading && (
-            <div className="p-2 border-b border-gray-200 dark:border-slate-700">
-              <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">Quick ideas:</p>
-              <div className="flex flex-wrap gap-1">
-                {suggestedPrompts.map((suggestion) => (
-                  <Button
-                    key={suggestion.label}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSuggestionClick(suggestion.prompt)}
-                    className="h-7 text-xs px-2 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30"
-                  >
-                    {suggestion.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Loading State */}
           {loading && (
             <div className="flex-1 flex items-center justify-center">
@@ -223,14 +174,20 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
           {/* Generated Images Grid */}
           {!loading && !error && (
             <div className="flex-1 overflow-hidden">
-              <>
-                <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-slate-700">
-                  <p className="text-xs text-gray-500 dark:text-slate-400">
-                    {generatedImages.length > 0 
-                      ? `${generatedImages.length} generated + ${sampleImages.length} samples`
-                      : `${sampleImages.length} sample images`}
-                  </p>
-                  {generatedImages.length > 0 && (
+              {generatedImages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center p-4">
+                    <Sparkles className="h-12 w-12 text-purple-300 dark:text-purple-700 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">No images yet</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500">Describe what you want to create</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-slate-700">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      {generatedImages.length} image{generatedImages.length !== 1 ? 's' : ''} generated
+                    </p>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -240,36 +197,36 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
                       <Trash2 className="h-3 w-3 mr-1" />
                       Clear
                     </Button>
-                  )}
-                </div>
-                <ScrollArea className="h-[calc(100%-32px)]">
-                  <div className="grid grid-cols-2 gap-2 p-2">
-                    {allImages.map((image) => (
-                      <button
-                        key={image.id}
-                        onClick={() => handleImageClick(image)}
-                        className="relative aspect-square bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-200 hover:scale-105 group"
-                      >
-                        <img
-                          src={image.imageData}
-                          alt={image.prompt}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-end">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 w-full">
-                            <p className="text-xs text-white line-clamp-2">{image.prompt}</p>
-                          </div>
-                        </div>
-                        <div className="absolute top-1 right-1">
-                          <Badge variant="secondary" className={`text-[10px] px-1.5 py-0.5 text-white border-0 ${image.isSample ? 'bg-blue-500/90' : 'bg-purple-500/90'}`}>
-                            {image.isSample ? 'Sample' : 'AI'}
-                          </Badge>
-                        </div>
-                      </button>
-                    ))}
                   </div>
-                </ScrollArea>
-              </>
+                  <ScrollArea className="h-[calc(100%-32px)]">
+                    <div className="grid grid-cols-2 gap-2 p-2">
+                      {generatedImages.map((image) => (
+                        <button
+                          key={image.id}
+                          onClick={() => handleImageClick(image)}
+                          className="relative aspect-square bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-200 hover:scale-105 group"
+                        >
+                          <img
+                            src={image.imageData}
+                            alt={image.prompt}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-end">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 w-full">
+                              <p className="text-xs text-white line-clamp-2">{image.prompt}</p>
+                            </div>
+                          </div>
+                          <div className="absolute top-1 right-1">
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 bg-purple-500/90 text-white border-0">
+                              AI
+                            </Badge>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </>
+              )}
             </div>
           )}
         </div>
