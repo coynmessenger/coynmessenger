@@ -74,7 +74,7 @@ export default function ThirdwebWalletConnector({
           text-gray-900 dark:text-white font-medium py-8 px-10 rounded-lg
           transition-all duration-200 shadow-md hover:shadow-lg
           border-2 border-orange-500 dark:border-orange-400
-          outline outline-2 outline-offset-2 outline-orange-500 dark:outline-orange-400
+          ring-2 ring-orange-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900
           flex items-center justify-center
           touch-manipulation select-none
         `
