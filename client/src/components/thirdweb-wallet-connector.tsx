@@ -3,6 +3,7 @@ import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "@/lib/bsc-chain";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import cryptoWalletPath from "@assets/cryptowallet_1769059838820.png";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -62,7 +63,8 @@ export default function ThirdwebWalletConnector({
       }}
       connectButton={{
         label: (
-          <div className="flex flex-col items-center">
+          <div className="flex items-center gap-3">
+            <img src={cryptoWalletPath} alt="Wallet" className="h-8 w-8" />
             <span className="text-lg font-semibold">Connect Wallet</span>
           </div>
         ),
