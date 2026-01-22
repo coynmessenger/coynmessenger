@@ -303,7 +303,9 @@ export default function HomePage() {
           <img 
             src={coynfulLogoPath} 
             alt="Coynful" 
-            className="h-32 w-auto object-contain"
+            className="h-32 w-auto object-contain select-none"
+            onContextMenu={(e) => e.preventDefault()}
+            draggable={false}
           />
         </div>
       </header>
