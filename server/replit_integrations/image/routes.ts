@@ -48,7 +48,7 @@ export function registerImageRoutes(app: Express): void {
         size: size as "1024x1024" | "512x512" | "256x256",
       });
 
-      const images = response.data?.map((img) => ({
+      const images = response.data?.map((img: { url?: string; b64_json?: string }) => ({
         url: img.url,
         b64_json: img.b64_json,
       })) || [];
