@@ -2905,7 +2905,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }, 100);
               }}
               placeholder="Type a message..."
-              className="pr-8 sm:pr-10 h-7 sm:h-8 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-blue-500/60 dark:focus:border-blue-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm transition-all duration-200 rounded-lg focus:ring-1 focus:ring-blue-200/50 dark:focus:ring-blue-200/20"
+              className="pr-8 sm:pr-10 h-7 sm:h-8 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-blue-500/60 dark:focus:border-blue-500/60 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm transition-all duration-200 rounded-lg focus:ring-0 focus:outline-none"
             />
             
 
