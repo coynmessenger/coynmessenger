@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Send, X, Loader2, Trash2 } from "lucide-react";
+import { Sparkles, Wand2, X, Loader2, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface GeneratedImage {
@@ -148,7 +148,7 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Wand2 className="h-4 w-4" />
                 )}
               </Button>
             </form>
