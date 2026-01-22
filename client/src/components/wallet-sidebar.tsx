@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   X, 
+  Send, 
   QrCode, 
   Eye, 
   EyeOff, 
@@ -20,7 +21,6 @@ import {
   RefreshCw,
   Camera
 } from "lucide-react";
-import sendIconPath from "@assets/images_1769052216099.png";
 import { Html5Qrcode } from "html5-qrcode";
 import { SiBinance } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -731,7 +731,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                             onClick={() => handleSend(balance.currency)}
                             className="h-7 w-7 p-0 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400"
                           >
-                            <img src={sendIconPath} alt="Send" className="w-3.5 h-3.5" />
+                            <Send className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
