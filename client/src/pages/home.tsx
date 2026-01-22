@@ -338,7 +338,7 @@ export default function HomePage() {
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}
-                        className="w-full min-h-[56px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600 text-gray-900 dark:text-white font-medium py-4 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600 touch-manipulation select-none"
+                        className="w-full min-h-[56px] bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 active:bg-gray-600 dark:active:bg-gray-400 text-white font-medium py-4 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-500 dark:border-gray-500 touch-manipulation select-none"
                       />
                     </div>
                     
