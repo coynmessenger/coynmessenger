@@ -138,6 +138,13 @@ export default function ThirdwebWalletConnector({
         }
       }}
       onDisconnect={() => {
+        console.log('🔌 WALLET: Disconnecting wallet...');
+        console.log('🔌 WALLET: Setting userSignedOut flag');
+        localStorage.setItem('userSignedOut', 'true');
+        localStorage.removeItem('walletConnected');
+        localStorage.removeItem('connectedUser');
+        localStorage.removeItem('connectedUserId');
+        console.log('✅ WALLET: Disconnect complete, storage cleared');
         if (onDisconnect) {
           onDisconnect();
         }

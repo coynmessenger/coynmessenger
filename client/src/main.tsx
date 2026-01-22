@@ -2,6 +2,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+console.log('🚀 COYN Messenger: App initializing...');
+console.log('📋 COYN Messenger: Environment:', import.meta.env.MODE);
+console.log('📋 COYN Messenger: Build time:', new Date().toISOString());
+
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
