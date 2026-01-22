@@ -35,8 +35,9 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
     try {
       const response = await apiRequest("POST", "/api/generate-image", {
         prompt: imagePrompt,
-        size: "1024x1024",
-        count: 4
+        size: "512x512",
+        count: 2,
+        varied: true
       });
       
       if (response.images && response.images.length > 0) {
