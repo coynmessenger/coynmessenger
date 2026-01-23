@@ -24,7 +24,6 @@ import CallPermissionDialog from "@/components/call-permission-dialog";
 import ImagePreviewModal from "@/components/image-preview-modal";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
-import { AiImagePicker } from "@/components/ai-image-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
 import { useActiveWallet } from "thirdweb/react";
@@ -135,7 +134,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
-  const [showAiImagePicker, setShowAiImagePicker] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2958,36 +2956,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             }}
             isOpen={showGifPicker}
             onOpenChange={setShowGifPicker}
-          />
-
-          {/* AI Image Picker */}
-          <AiImagePicker
-            onImageSelect={(image) => {
-              // Send AI-generated image as a message
-              apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-                senderId: connectedUserId,
-                content: `AI Image: ${image.prompt}`,
-                messageType: "ai_image",
-                aiImageData: image.imageData,
-                aiImagePrompt: image.prompt
-              }).then(() => {
-                // Invalidate both messages and conversation list for UI updates
-                queryClient.invalidateQueries({ 
-                  queryKey: ["/api/conversations", conversation.id, "messages"] 
-                });
-                queryClient.invalidateQueries({ 
-                  queryKey: ["/api/conversations"] 
-                });
-              }).catch((error) => {
-                toast({
-                  title: "Error",
-                  description: "Failed to send AI image. Please try again.",
-                  variant: "destructive",
-                });
-              });
-            }}
-            isOpen={showAiImagePicker}
-            onOpenChange={setShowAiImagePicker}
           />
 
           <Button 
