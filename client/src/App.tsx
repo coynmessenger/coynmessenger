@@ -4,11 +4,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
 import { useEffect, lazy, Suspense } from "react";
+import { logger } from "@/lib/logger";
 
 import HomePage from "@/pages/home";
 import NotFound from "@/pages/not-found";
@@ -65,49 +67,34 @@ function Router() {
   );
 }
 
-function App() {
-  // GLOBAL WebRTC INITIALIZATION: Deferred to not block initial render
+function AppContent() {
+  const { user, isSignedOut } = useAuth();
+
   useEffect(() => {
+    if (isSignedOut || !user?.id) return;
+
     let isInitializing = false;
     
     const initGlobalWebRTC = async () => {
       if (isInitializing) return;
       
-      const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
-      if (userSignedOut) {
-        return;
-      }
-      
       try {
         isInitializing = true;
-        const storedUser = localStorage.getItem('connectedUser');
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          const userId = parsedUser.id;
-          
-          if (userId) {
-            await initializeGlobalWebRTC(userId.toString(), 1);
-          }
-        }
+        await initializeGlobalWebRTC(user.id.toString(), 1);
       } catch (error) {
-        console.log('WebRTC initialization failed:', error);
+        logger.error("WebRTC", "Initialization failed", error);
       } finally {
         isInitializing = false;
       }
     };
     
-    // Defer WebRTC initialization to allow page to render first
     const timeoutId = setTimeout(initGlobalWebRTC, 500);
     return () => clearTimeout(timeoutId);
-  }, []);
-
-  // Check if user has explicitly signed out to prevent autoconnect
-  const userSignedOut = typeof window !== 'undefined' && localStorage.getItem('userSignedOut') === 'true';
+  }, [user?.id, isSignedOut]);
 
   return (
     <ThirdwebProvider>
-      {/* AutoConnect component maintains wallet connection across all pages */}
-      {!userSignedOut && (
+      {!isSignedOut && (
         <AutoConnect
           client={client}
           wallets={wallets}
@@ -123,6 +110,14 @@ function App() {
         </ThemeProvider>
       </QueryClientProvider>
     </ThirdwebProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
