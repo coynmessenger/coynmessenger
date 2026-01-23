@@ -3,40 +3,37 @@ import { openai } from "./client";
 
 const styleVariations = [
   "in a realistic photographic style with natural lighting",
-  "in an artistic illustrated style with bold colors and creative interpretation"
+  "in an artistic illustrated style with bold colors",
+  "in a vibrant pop art style with bright neon colors",
+  "in a dreamy fantasy style with magical elements"
 ];
 
 export function registerImageRoutes(app: Express): void {
   app.post("/api/generate-image", async (req: Request, res: Response) => {
     try {
-      const { prompt, size = "512x512", count = 2, varied = true } = req.body;
+      const { prompt, size = "256x256", count = 4, varied = true } = req.body;
 
       if (!prompt) {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
-      const imageCount = Math.min(count, 2);
+      const imageCount = Math.min(count, 4);
       
-      if (varied && imageCount === 2) {
-        const [response1, response2] = await Promise.all([
+      if (varied && imageCount >= 2) {
+        const requests = styleVariations.slice(0, imageCount).map(style => 
           openai.images.generate({
             model: "gpt-image-1",
-            prompt: `${prompt} ${styleVariations[0]}`,
-            n: 1,
-            size: size as "1024x1024" | "512x512" | "256x256",
-          }),
-          openai.images.generate({
-            model: "gpt-image-1",
-            prompt: `${prompt} ${styleVariations[1]}`,
+            prompt: `${prompt} ${style}`,
             n: 1,
             size: size as "1024x1024" | "512x512" | "256x256",
           })
-        ]);
+        );
 
-        const images = [
-          { url: response1.data?.[0]?.url, b64_json: response1.data?.[0]?.b64_json },
-          { url: response2.data?.[0]?.url, b64_json: response2.data?.[0]?.b64_json }
-        ];
+        const responses = await Promise.all(requests);
+        const images = responses.map(response => ({
+          url: response.data?.[0]?.url,
+          b64_json: response.data?.[0]?.b64_json
+        }));
 
         return res.json({ images });
       }

@@ -35,8 +35,8 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
     try {
       const response = await apiRequest("POST", "/api/generate-image", {
         prompt: imagePrompt,
-        size: "512x512",
-        count: 2,
+        size: "256x256",
+        count: 4,
         varied: true
       });
       
@@ -97,7 +97,7 @@ export function AiImagePicker({ onImageSelect, isOpen, onOpenChange }: AiImagePi
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-gray-900 dark:text-slate-200 text-sm flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-500" />
-                AI Image Generator
+                Meta AI Generator
               </h3>
               <Button
                 variant="ghost"
