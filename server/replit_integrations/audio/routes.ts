@@ -11,11 +11,11 @@ export function registerAudioRoutes(app: Express): void {
         return res.status(400).json({ error: "Audio data (base64) is required" });
       }
 
-      let audioBuffer = Buffer.from(audio, "base64");
+      let audioBuffer: Buffer = Buffer.from(audio, "base64");
       
       // Convert WebM to WAV if needed (browser recordings are typically WebM)
       if (format === "webm") {
-        audioBuffer = await convertWebmToWav(audioBuffer);
+        audioBuffer = await convertWebmToWav(audioBuffer) as Buffer;
       }
 
       const transcript = await speechToText(audioBuffer, "wav");

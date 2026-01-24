@@ -24,6 +24,6 @@ export async function transcribeAudio(audioFilePath: string): Promise<{ text: st
       duration: estimatedDuration,
     };
   } catch (error) {
-    throw new Error("Failed to transcribe audio: " + error.message);
+    throw new Error("Failed to transcribe audio: " + (error instanceof Error ? error.message : String(error)));
   }
 }

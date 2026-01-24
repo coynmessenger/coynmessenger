@@ -18,11 +18,11 @@ export const chatStorage: IChatStorage = {
   },
 
   async getAllConversations() {
-    return db.select().from(conversations).orderBy(desc(conversations.createdAt));
+    return db.select().from(conversations).orderBy(desc(conversations.lastMessageAt));
   },
 
-  async createConversation(title: string) {
-    const [conversation] = await db.insert(conversations).values({ title }).returning();
+  async createConversation(_title: string) {
+    const [conversation] = await db.insert(conversations).values({}).returning();
     return conversation;
   },
 
@@ -32,11 +32,11 @@ export const chatStorage: IChatStorage = {
   },
 
   async getMessagesByConversation(conversationId: number) {
-    return db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt);
+    return db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.timestamp);
   },
 
-  async createMessage(conversationId: number, role: string, content: string) {
-    const [message] = await db.insert(messages).values({ conversationId, role, content }).returning();
+  async createMessage(conversationId: number, _role: string, content: string) {
+    const [message] = await db.insert(messages).values({ conversationId, senderId: 0, content, messageType: "text" }).returning();
     return message;
   },
 };

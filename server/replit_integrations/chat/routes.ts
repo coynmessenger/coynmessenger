@@ -69,10 +69,10 @@ export function registerChatRoutes(app: Express): void {
       await chatStorage.createMessage(conversationId, "user", content);
 
       // Get conversation history for context
-      const messages = await chatStorage.getMessagesByConversation(conversationId);
-      const chatMessages = messages.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
+      const messagesData = await chatStorage.getMessagesByConversation(conversationId);
+      const chatMessages = messagesData.map((m) => ({
+        role: (m.senderId === 0 ? "assistant" : "user") as "user" | "assistant",
+        content: m.content || "",
       }));
 
       // Set up SSE
