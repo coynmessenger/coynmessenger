@@ -5,6 +5,17 @@ import { Phone, PhoneOff, Video, VideoOff, Mic, MicOff, Volume2, VolumeX, Switch
 export type CallStatus = 'connecting' | 'ringing' | 'connected' | 'ended';
 export type CallType = 'voice' | 'video';
 
+function formatCallDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
 export function useCallTimer(isActive: boolean) {
   const [duration, setDuration] = useState(0);
 
@@ -28,20 +39,9 @@ export function useCallTimer(isActive: boolean) {
     setDuration(0);
   }, []);
 
-  const formatDuration = useCallback((seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }, []);
-
   return {
     duration,
-    formattedDuration: formatDuration(duration),
+    formattedDuration: formatCallDuration(duration),
     reset
   };
 }
@@ -52,20 +52,9 @@ interface CallTimerDisplayProps {
 }
 
 export function CallTimerDisplay({ duration, className = '' }: CallTimerDisplayProps) {
-  const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className={`font-mono text-lg font-semibold tabular-nums ${className}`} data-testid="call-timer">
-      {formatDuration(duration)}
+      {formatCallDuration(duration)}
     </div>
   );
 }
