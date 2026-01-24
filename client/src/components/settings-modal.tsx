@@ -1074,7 +1074,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
             <CardContent className="space-y-2 p-4 sm:p-6">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Version</span>
-                <span className="text-foreground">1.0.0</span>
+                <span className="text-foreground">1.2.5</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Network</span>
