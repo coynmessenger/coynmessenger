@@ -1418,7 +1418,40 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleContextMenu = (e: React.MouseEvent, message: Message) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    
+    // Menu dimensions (approximate)
+    const menuWidth = 160;
+    const menuHeight = 180;
+    
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate position, constraining to viewport
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Prevent menu from going off the right edge
+    if (x + menuWidth > viewportWidth) {
+      x = viewportWidth - menuWidth - 10;
+    }
+    
+    // Prevent menu from going off the bottom edge
+    if (y + menuHeight > viewportHeight) {
+      y = viewportHeight - menuHeight - 10;
+    }
+    
+    // Prevent menu from going off the left edge
+    if (x < 10) {
+      x = 10;
+    }
+    
+    // Prevent menu from going off the top edge
+    if (y < 10) {
+      y = 10;
+    }
+    
+    setContextMenuPosition({ x, y });
     setContextMenuMessage(message);
   };
 
