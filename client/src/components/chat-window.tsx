@@ -152,7 +152,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
   const [contextMenuMessage, setContextMenuMessage] = useState<Message | null>(null);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-  const [deletingMessageId, setDeletingMessageId] = useState<number | null>(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<{
     url: string;
@@ -1390,26 +1389,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
 
   const deleteMessage = async (messageId: number) => {
-    // Start the dissolve animation
-    setDeletingMessageId(messageId);
     setContextMenuMessage(null);
     
-    // Wait for animation to complete before deleting
-    setTimeout(async () => {
-      try {
-        await apiRequest("DELETE", `/api/messages/${messageId}`, {
-          userId: connectedUserId
-        });
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
-      } catch (error) {
-        toast({
-          title: "Failed to delete message",
-          description: "Please try again",
-          variant: "destructive"
-        });
-      }
-      setDeletingMessageId(null);
-    }, 500); // Match animation duration
+    try {
+      await apiRequest("DELETE", `/api/messages/${messageId}`, {
+        userId: connectedUserId
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+    } catch (error) {
+      toast({
+        title: "Failed to delete message",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleReplyCancel = () => {
@@ -2091,7 +2084,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.senderId === connectedUserId ? (
                   // Sent message (current user) - with swipe-to-reply
-                  <div className={`flex justify-end items-start space-x-3 mb-4 ${deletingMessageId === msg.id ? 'message-dissolve' : ''}`} data-message-id={msg.id}>
+                  <div className="flex justify-end items-start space-x-3 mb-4" data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
                       
                       {/* Swipeable message */}
@@ -2168,7 +2161,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 ) : (
                   // Received message - with swipe-to-reply
-                  <div className={`flex items-start space-x-3 mb-4 ${deletingMessageId === msg.id ? 'message-dissolve' : ''}`} data-message-id={msg.id}>
+                  <div className="flex items-start space-x-3 mb-4" data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender?.profilePicture || ""} />
                       <AvatarFallback>{msg.sender?.displayName?.charAt(0) || msg.sender?.username?.charAt(0) || "U"}</AvatarFallback>
