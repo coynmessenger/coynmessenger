@@ -392,9 +392,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMessage(messageId: number, userId: number): Promise<boolean> {
+    // First, get the message to check if user is part of the conversation
+    const [message] = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, messageId));
+    
+    if (!message) {
+      return false;
+    }
+
+    // Check if user is part of the conversation
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, message.conversationId));
+    
+    if (!conversation) {
+      return false;
+    }
+
+    // Allow deletion if user is a participant in the conversation
+    const isParticipant = conversation.participant1Id === userId || 
+                          conversation.participant2Id === userId;
+    
+    if (!isParticipant) {
+      return false;
+    }
+
+    // Delete the message
     const result = await db
       .delete(messages)
-      .where(and(eq(messages.id, messageId), eq(messages.senderId, userId)))
+      .where(eq(messages.id, messageId))
       .returning();
     
     return result.length > 0;
