@@ -1119,31 +1119,70 @@ mark:hover {
   }
 }
 
-/* Message dissolve/disintegrate animation for delete */
-@keyframes message-dissolve {
+/* Message dust/disintegration animation for delete - Thanos snap effect */
+@keyframes message-dust {
   0% {
     opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0px);
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px) grayscale(0);
+    clip-path: inset(0 0 0 0);
   }
-  30% {
-    opacity: 0.8;
-    transform: scale(1.02) translateY(-2px);
-    filter: blur(1px);
+  20% {
+    opacity: 0.9;
+    transform: scale(1.02) rotate(0.5deg);
+    filter: blur(0px) grayscale(0.2);
+  }
+  40% {
+    opacity: 0.7;
+    transform: scale(0.98) rotate(-0.5deg) translateX(5px);
+    filter: blur(1px) grayscale(0.4);
+    clip-path: polygon(0% 0%, 95% 5%, 100% 100%, 5% 95%);
   }
   60% {
     opacity: 0.4;
-    transform: scale(0.95) translateY(5px);
-    filter: blur(3px);
+    transform: scale(0.95) rotate(1deg) translateX(15px) translateY(-5px);
+    filter: blur(2px) grayscale(0.6);
+    clip-path: polygon(5% 10%, 90% 0%, 95% 85%, 10% 100%);
+  }
+  80% {
+    opacity: 0.15;
+    transform: scale(0.9) rotate(-1deg) translateX(30px) translateY(-10px);
+    filter: blur(4px) grayscale(0.8);
+    clip-path: polygon(15% 20%, 80% 5%, 85% 75%, 20% 90%);
   }
   100% {
     opacity: 0;
-    transform: scale(0.8) translateY(10px);
-    filter: blur(8px);
+    transform: scale(0.85) rotate(2deg) translateX(50px) translateY(-15px);
+    filter: blur(8px) grayscale(1);
+    clip-path: polygon(30% 30%, 70% 20%, 75% 60%, 35% 70%);
   }
 }
 
-.message-dissolve {
-  animation: message-dissolve 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.message-dust {
+  animation: message-dust 0.6s cubic-bezier(0.4, 0, 0.6, 1) forwards;
   pointer-events: none;
+  position: relative;
+}
+
+.message-dust::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(100, 100, 100, 0.1) 100%);
+  animation: dust-particles 0.6s ease-out forwards;
+}
+
+@keyframes dust-particles {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.3;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5) translateX(20px);
+  }
 }
