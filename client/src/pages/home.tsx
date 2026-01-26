@@ -43,115 +43,95 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount and when wallet state changes
+  // Check for existing authentication on mount only (not on focus/visibility changes)
   useEffect(() => {
-    let authCheckTimeout: NodeJS.Timeout;
+    const userSignedOut = localStorage.getItem('userSignedOut');
+    if (userSignedOut === 'true') {
+      console.log('🚫 User signed out, staying on homepage');
+      setIsConnected(false);
+      setConnectedUser(null);
+      return;
+    }
     
-    const checkAuthAndRedirect = () => {
-      const userSignedOut = localStorage.getItem('userSignedOut');
-      if (userSignedOut === 'true') {
-        console.log('🚫 User signed out, staying on homepage');
-        setIsConnected(false);
-        setConnectedUser(null);
-        return;
-      }
-      
-      const storedConnected = localStorage.getItem('walletConnected');
-      const storedUser = localStorage.getItem('connectedUser');
-      const userClickedHome = localStorage.getItem('userClickedHome');
-      
-      console.log('🔍 Checking authentication state:', {
-        storedConnected,
-        hasStoredUser: !!storedUser,
-        userClickedHome,
-        userOnHomepage: sessionStorage.getItem('userOnHomepage')
-      });
-      
-      // Update component state based on localStorage
-      if (storedConnected === 'true' && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
+    const storedConnected = localStorage.getItem('walletConnected');
+    const storedUser = localStorage.getItem('connectedUser');
+    const userClickedHome = localStorage.getItem('userClickedHome');
+    
+    console.log('🔍 Checking authentication state:', {
+      storedConnected,
+      hasStoredUser: !!storedUser,
+      userClickedHome,
+      userOnHomepage: sessionStorage.getItem('userOnHomepage')
+    });
+    
+    // Update component state based on localStorage
+    if (storedConnected === 'true' && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
+        
+        if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
+          // Update component state immediately
+          setIsConnected(true);
+          setConnectedUser(parsedUser);
           
-          if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
-            // Update component state immediately
-            setIsConnected(true);
-            setConnectedUser(parsedUser);
-            
-            // Don't redirect if user explicitly chose to stay on homepage  
-            if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-              console.log('👤 User explicitly navigated to homepage, staying on homepage');
-              sessionStorage.setItem('userOnHomepage', 'true');
-              return;
-            }
-            
-            console.log('✅ Authenticated user detected, redirecting to messenger...');
-            setLocation("/messenger");
+          // Don't redirect if user explicitly chose to stay on homepage  
+          if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
+            console.log('👤 User explicitly navigated to homepage, staying on homepage');
+            sessionStorage.setItem('userOnHomepage', 'true');
             return;
-          } else {
-            console.log('❌ User data incomplete, clearing storage');
-            localStorage.removeItem('walletConnected');
-            localStorage.removeItem('connectedUser');
-            localStorage.removeItem('connectedUserId');
-            setIsConnected(false);
-            setConnectedUser(null);
           }
-        } catch (error) {
-          console.log('❌ Error parsing user data:', error);
+          
+          console.log('✅ Authenticated user detected, redirecting to messenger...');
+          setLocation("/messenger");
+          return;
+        } else {
+          console.log('❌ User data incomplete, clearing storage');
           localStorage.removeItem('walletConnected');
           localStorage.removeItem('connectedUser');
           localStorage.removeItem('connectedUserId');
           setIsConnected(false);
           setConnectedUser(null);
         }
-      } else {
-        // No valid connection found
+      } catch (error) {
+        console.log('❌ Error parsing user data:', error);
+        localStorage.removeItem('walletConnected');
+        localStorage.removeItem('connectedUser');
+        localStorage.removeItem('connectedUserId');
         setIsConnected(false);
         setConnectedUser(null);
       }
-    };
-
-    // Initial check immediately
-    checkAuthAndRedirect();
-
-    // Listen for wallet connection events (when user returns from wallet app)
+    } else {
+      // No valid connection found
+      setIsConnected(false);
+      setConnectedUser(null);
+    }
+  }, [setLocation]);
+  
+  // Listen for storage changes from other tabs only (not focus/visibility)
+  useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
-        console.log('📱 MOBILE: Storage change detected, checking for wallet return...', e.key);
-        // Clear any pending timeout and schedule new check
-        clearTimeout(authCheckTimeout);
-        authCheckTimeout = setTimeout(checkAuthAndRedirect, 150);
-      }
-    };
-
-    // Listen for focus events (when user returns from wallet app)
-    const handleFocus = () => {
-      console.log('👁️ MOBILE: Window focus detected, checking for wallet return...');
-      // Clear any pending timeout and schedule new check
-      clearTimeout(authCheckTimeout);
-      authCheckTimeout = setTimeout(checkAuthAndRedirect, 150);
-    };
-
-    // Enhanced mobile support: Page Visibility API for iOS/Android wallet returns
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('📱 MOBILE: Page became visible (wallet app return), checking auth...');
-        clearTimeout(authCheckTimeout);
-        authCheckTimeout = setTimeout(checkAuthAndRedirect, 200);
+        console.log('📱 Storage change detected from another tab:', e.key);
+        // Only update local state, don't trigger navigation
+        if (e.key === 'userSignedOut' && e.newValue === 'true') {
+          setIsConnected(false);
+          setConnectedUser(null);
+        } else if (e.key === 'connectedUser' && e.newValue) {
+          try {
+            const parsedUser = JSON.parse(e.newValue);
+            setConnectedUser(parsedUser);
+            setIsConnected(true);
+          } catch {
+            // Ignore parse errors
+          }
+        }
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      clearTimeout(authCheckTimeout);
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [setLocation]);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const connectWalletMutation = useMutation({
     mutationFn: async ({ walletAddress }: { walletAddress: string }) => {
@@ -192,32 +172,9 @@ export default function HomePage() {
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
       
-      // IMMEDIATE REDIRECT to messenger - this is the primary path for auto-navigation
-      console.log('🎯 COYN: SUCCESS! Auto-navigating to messenger...');
-      console.log('🖥️ DESKTOP/📱 MOBILE: Universal auto-navigation starting...');
-      
-      // Use multiple strategies to ensure navigation works on both desktop and mobile
-      // Strategy 1: Immediate navigation
+      // Navigate to messenger using wouter's setLocation
+      console.log('🎯 COYN: SUCCESS! Navigating to messenger...');
       setLocation("/messenger");
-      
-      // Strategy 2: Backup navigation after short delay (for any platform-specific timing issues)
-      setTimeout(() => {
-        console.log('🔄 BACKUP: Ensuring navigation to messenger...');
-        if (window.location.pathname !== '/messenger') {
-          console.log('⚡ BACKUP: Navigation needed, redirecting to messenger...');
-          setLocation("/messenger");
-        } else {
-          console.log('✅ BACKUP: Already on messenger, navigation successful');
-        }
-      }, 150);
-      
-      // Strategy 3: Force navigation if still not on messenger (last resort)
-      setTimeout(() => {
-        if (window.location.pathname !== '/messenger') {
-          console.log('🚨 FORCE: Force navigation to messenger for desktop compatibility...');
-          window.location.href = '/messenger';
-        }
-      }, 300);
     },
   });
 
