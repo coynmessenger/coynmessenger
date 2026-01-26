@@ -18,6 +18,7 @@ import { io, Socket } from "socket.io-client";
 
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
+import LinkPreview, { extractUrls } from "@/components/link-preview";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import CallPermissionDialog from "@/components/call-permission-dialog";
@@ -2139,6 +2140,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                               searchQuery || ""
                             )}
                           </p>
+                          {/* Link previews for sent messages */}
+                          {msg.content && extractUrls(msg.content).slice(0, 1).map((url) => (
+                            <LinkPreview key={url} url={url} className="border-white/20" />
+                          ))}
                           <span className="text-xs text-primary-foreground/80 mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>
@@ -2220,6 +2225,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                               searchQuery || ""
                             )}
                           </p>
+                          {/* Link previews for received messages */}
+                          {msg.content && extractUrls(msg.content).slice(0, 1).map((url) => (
+                            <LinkPreview key={url} url={url} />
+                          ))}
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {formatTimestamp(msg.timestamp)}
                           </span>

@@ -1641,6 +1641,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Link preview endpoint - fetches metadata from URLs
+  app.get("/api/link-preview", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) {
+        return res.status(400).json({ error: "URL is required" });
+      }
+
+      // Validate URL
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(url);
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          return res.status(400).json({ error: "Invalid URL protocol" });
+        }
+      } catch {
+        return res.status(400).json({ error: "Invalid URL" });
+      }
+
+      // Fetch the page
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; LinkPreviewBot/1.0)',
+          'Accept': 'text/html'
+        }
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        return res.status(404).json({ error: "Could not fetch URL" });
+      }
+
+      const html = await response.text();
+      
+      // Extract metadata using regex (simple approach without external dependencies)
+      const getMetaContent = (property: string): string | null => {
+        const ogMatch = html.match(new RegExp(`<meta[^>]*property=["']${property}["'][^>]*content=["']([^"']*)["']`, 'i'));
+        if (ogMatch) return ogMatch[1];
+        const ogMatch2 = html.match(new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*property=["']${property}["']`, 'i'));
+        if (ogMatch2) return ogMatch2[1];
+        const nameMatch = html.match(new RegExp(`<meta[^>]*name=["']${property}["'][^>]*content=["']([^"']*)["']`, 'i'));
+        if (nameMatch) return nameMatch[1];
+        const nameMatch2 = html.match(new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*name=["']${property}["']`, 'i'));
+        return nameMatch2 ? nameMatch2[1] : null;
+      };
+
+      const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+      
+      const metadata = {
+        url: url,
+        title: getMetaContent('og:title') || getMetaContent('twitter:title') || (titleMatch ? titleMatch[1].trim() : null),
+        description: getMetaContent('og:description') || getMetaContent('twitter:description') || getMetaContent('description'),
+        image: getMetaContent('og:image') || getMetaContent('twitter:image'),
+        siteName: getMetaContent('og:site_name') || parsedUrl.hostname,
+        favicon: `https://www.google.com/s2/favicons?domain=${parsedUrl.hostname}&sz=64`
+      };
+
+      // Make image URL absolute if relative
+      if (metadata.image && !metadata.image.startsWith('http')) {
+        metadata.image = new URL(metadata.image, url).href;
+      }
+
+      res.json(metadata);
+    } catch (error: any) {
+      console.error("Link preview error:", error.message);
+      res.status(500).json({ error: "Failed to fetch link preview" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Initialize encrypted WebRTC signaling server
