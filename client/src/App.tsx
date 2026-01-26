@@ -98,7 +98,10 @@ function AppContent() {
         <AutoConnect
           client={client}
           wallets={wallets}
-          timeout={5000}
+          timeout={2000}
+          onConnect={(wallet) => {
+            console.log('✅ AutoConnect: Wallet reconnected');
+          }}
         />
       )}
       <QueryClientProvider client={queryClient}>
