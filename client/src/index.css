@@ -1118,3 +1118,32 @@ mark:hover {
     z-index: 9999 !important;
   }
 }
+
+/* Message dissolve/disintegrate animation for delete */
+@keyframes message-dissolve {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  30% {
+    opacity: 0.8;
+    transform: scale(1.02) translateY(-2px);
+    filter: blur(1px);
+  }
+  60% {
+    opacity: 0.4;
+    transform: scale(0.95) translateY(5px);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+    filter: blur(8px);
+  }
+}
+
+.message-dissolve {
+  animation: message-dissolve 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
