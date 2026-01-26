@@ -103,7 +103,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const connectedUserId = getConnectedUserId();
   
   // Check if this is a self-conversation (messaging yourself)
-  const isSelfConversation = connectedUserId === conversation.otherUser.id;
+  const isSelfConversation = conversation?.otherUser ? connectedUserId === conversation.otherUser.id : false;
 
   // Query for connected user data to get current display name
   const { data: connectedUser } = useQuery<User>({
@@ -227,7 +227,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Socket.IO connection for real-time messaging
   useEffect(() => {
-    if (!connectedUserId) return;
+    if (!connectedUserId || !conversation?.id) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}`;
@@ -628,6 +628,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Monitor new messages and trigger notifications
   useEffect(() => {
+    if (!conversation?.id) return;
+    
     if (messages.length > previousMessageCount && previousMessageCount > 0) {
       // Get the newest messages since last count
       const newMessages = messages.slice(previousMessageCount);
@@ -661,7 +663,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     }
     
     setPreviousMessageCount(messages.length);
-  }, [messages, connectedUserId, conversation.id, previousMessageCount]);
+  }, [messages, connectedUserId, conversation?.id, previousMessageCount]);
 
 
 
