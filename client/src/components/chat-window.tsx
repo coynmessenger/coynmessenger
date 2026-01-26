@@ -1401,11 +1401,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           userId: connectedUserId
         });
         queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
-        toast({
-          title: "Message deleted",
-          description: "The message has been deleted",
-          duration: 1500,
-        });
       } catch (error) {
         toast({
           title: "Failed to delete message",
