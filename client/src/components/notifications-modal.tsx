@@ -122,7 +122,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
         <DialogHeader className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Bell className="h-6 w-6 text-lime-1000" />
+              <Bell className="h-6 w-6 text-orange-500" />
               <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                 Notifications
               </DialogTitle>
@@ -155,7 +155,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
             <Switch
               checked={pushNotifications}
               onCheckedChange={handlePushNotificationsChange}
-              className="data-[state=checked]:bg-lime-1000"
+              className="data-[state=checked]:bg-orange-500"
             />
           </div>
 
@@ -172,7 +172,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
             <Switch
               checked={messagePreview}
               onCheckedChange={handleMessagePreviewChange}
-              className="data-[state=checked]:bg-lime-1000"
+              className="data-[state=checked]:bg-orange-500"
             />
           </div>
 
@@ -181,7 +181,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
             <Button 
               onClick={testNotification}
               variant="outline"
-              className="w-full border-lime-1000 text-lime-1000 hover:bg-lime-100 dark:hover:bg-lime-800/20"
+              className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
             >
               Test Notification
             </Button>
@@ -210,7 +210,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
               <Switch
                 checked={autoConnectWallet}
                 onCheckedChange={handleAutoConnectChange}
-                className="data-[state=checked]:bg-lime-1000"
+                className="data-[state=checked]:bg-orange-500"
               />
             </div>
           </div>

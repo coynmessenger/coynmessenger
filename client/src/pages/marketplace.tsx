@@ -94,7 +94,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-lime-1000 dark:text-cyan-400">Purchase with Crypto</DialogTitle>
+          <DialogTitle className="text-orange-500 dark:text-cyan-400">Purchase with Crypto</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
           <div className="flex space-x-4">
@@ -142,7 +142,7 @@ function PurchaseModal({ product, isOpen, onClose, cryptoRates }: PurchaseModalP
           <div className="flex space-x-3">
             <Button
               onClick={handlePurchase}
-              className="flex-1 bg-lime-1000 hover:bg-lime-500 text-white"
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
             >
               <CreditCard className="h-4 w-4 mr-2" />
               Pay {cryptoPrices[selectedCrypto]} {selectedCrypto}
@@ -535,10 +535,10 @@ export default function MarketplacePage() {
                 onClick={() => setShowWalletHover(!showWalletHover)}
                 variant="outline"
                 size="icon"
-                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-lime-300 dark:border-cyan-600"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-orange-200 dark:border-cyan-600"
                 title="View payment methods and balance"
               >
-                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-lime-1000 dark:text-cyan-400" />
+                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-orange-500 dark:text-cyan-400" />
               </Button>
             </div>
             <div className="flex items-center gap-2 sm:gap-2">
@@ -550,7 +550,7 @@ export default function MarketplacePage() {
               >
                 <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-lime-1000 text-white text-xs rounded-full h-5 w-5 sm:h-4 sm:w-4 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 sm:h-4 sm:w-4 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
@@ -579,7 +579,7 @@ export default function MarketplacePage() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-lime-1000 dark:focus:border-cyan-400 touch-manipulation"
+              className="pl-12 sm:pl-12 h-12 sm:h-10 text-base sm:text-base bg-white dark:bg-card border-2 border-gray-200 dark:border-slate-600 focus:border-orange-500 dark:focus:border-cyan-400 touch-manipulation"
             />
             {searchQuery && (
               <Button
@@ -655,7 +655,7 @@ export default function MarketplacePage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm text-muted-foreground">Active filters:</span>
               {searchQuery && (
-                <Badge variant="secondary" className="bg-lime-200 dark:bg-lime-800/20 text-lime-600 dark:text-lime-400">
+                <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
                   Search: "{searchQuery}"
                   <Button
                     onClick={() => setSearchQuery("")}
@@ -879,7 +879,7 @@ export default function MarketplacePage() {
                           </span>
                           <div className="flex flex-wrap gap-1">
                             {isMarketplaceProduct && (
-                              <Badge variant="secondary" className="text-xs bg-lime-200 dark:bg-lime-800/20 text-lime-600 dark:text-lime-400">
+                              <Badge variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
                                 ≈ {(parseFloat(item.price) / cryptoRates.COYN).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COYN
                               </Badge>
                             )}
@@ -904,7 +904,7 @@ export default function MarketplacePage() {
                               handleProductClick(item);
                             }
                           }}
-                          className="bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+                          className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
                           {isMarketplaceProduct ? 'Cart' : 'Contact'}
@@ -994,7 +994,7 @@ export default function MarketplacePage() {
       {showScrollTop && (
         <Button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 rounded-full w-12 h-12 shadow-lg bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+          className="fixed bottom-6 right-6 z-50 rounded-full w-12 h-12 shadow-lg bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
           size="icon"
         >
           <ArrowUp className="h-5 w-5" />

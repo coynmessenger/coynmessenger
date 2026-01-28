@@ -168,11 +168,11 @@ export default function CallPermissionDialog({
             <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 micPermission === "granted" ? "bg-green-500/20" : 
-                micPermission === "denied" ? "bg-red-500/20" : "bg-lime-1000/20"
+                micPermission === "denied" ? "bg-red-500/20" : "bg-orange-500/20"
               }`}>
                 <Mic className={`w-5 h-5 ${
                   micPermission === "granted" ? "text-green-400" : 
-                  micPermission === "denied" ? "text-red-400" : "text-lime-400"
+                  micPermission === "denied" ? "text-red-400" : "text-orange-400"
                 }`} />
               </div>
               <div className="flex-1">

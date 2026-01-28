@@ -131,7 +131,7 @@ export default function PurchaseHistoryPage() {
   }, {});
 
   return (
-    <div className="min-h-screen max-h-screen purchase-history-mobile bg-gradient-to-br from-gray-50 via-lime-100 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden flex flex-col">
+    <div className="min-h-screen max-h-screen purchase-history-mobile bg-gradient-to-br from-gray-50 via-orange-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden flex flex-col">
       {/* Header */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-slate-700/50 sticky top-0 z-40 flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
@@ -141,13 +141,13 @@ export default function PurchaseHistoryPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation("/marketplace")}
-                className="hover:bg-lime-200 dark:hover:bg-slate-700"
+                className="hover:bg-orange-100 dark:hover:bg-slate-700"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-lime-1000 dark:text-cyan-400" />
+                <FileText className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Purchase History</h1>
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function PurchaseHistoryPage() {
               variant="ghost"
               size="sm"
               onClick={() => setLocation("/")}
-              className="hover:bg-lime-200 dark:hover:bg-slate-700"
+              className="hover:bg-orange-100 dark:hover:bg-slate-700"
             >
               <Home className="h-4 w-4" />
             </Button>
@@ -170,12 +170,12 @@ export default function PurchaseHistoryPage() {
           <Card className="glass-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-lime-200 dark:bg-lime-800/20 rounded-lg">
-                  <Package className="h-5 w-5 text-lime-500 dark:text-lime-400" />
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                  <Package className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="text-xl font-bold text-lime-500 dark:text-lime-400">{purchases.length}</p>
+                  <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{purchases.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -271,7 +271,7 @@ export default function PurchaseHistoryPage() {
         {/* Purchase List */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-1000 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading purchase history...</p>
           </div>
         ) : filteredPurchases.length === 0 ? (
@@ -286,7 +286,7 @@ export default function PurchaseHistoryPage() {
               </p>
               <Button 
                 onClick={() => setLocation("/marketplace")}
-                className="bg-lime-1000 hover:bg-lime-500 text-white"
+                className="bg-orange-500 hover:bg-orange-600 text-white"
               >
                 Browse Marketplace
               </Button>
@@ -328,7 +328,7 @@ export default function PurchaseHistoryPage() {
                       </div>
                       
                       <div className="flex items-center justify-between mt-3">
-                        <span className="text-lg font-bold text-lime-500 dark:text-lime-400">
+                        <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
                           ${purchase.totalValue}
                         </span>
                         <Button
@@ -338,7 +338,7 @@ export default function PurchaseHistoryPage() {
                             setSelectedPurchase(purchase);
                             setShowDetails(true);
                           }}
-                          className="text-lime-500 dark:text-lime-400 border-lime-300 dark:border-lime-700 hover:bg-lime-100 dark:hover:bg-lime-800/20"
+                          className="text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                         >
                           View Details
                           <ChevronDown className="h-3 w-3 ml-1" />
@@ -357,7 +357,7 @@ export default function PurchaseHistoryPage() {
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto w-[calc(100vw-2rem)] md:w-auto m-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-lime-1000 dark:text-cyan-400" />
+                <FileText className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
                 Order Details
               </DialogTitle>
             </DialogHeader>

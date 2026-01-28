@@ -499,7 +499,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
     <div className="flex items-center justify-center mb-2">
       <div className="flex items-center space-x-1">
         <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-          checkoutStep === 'address' ? 'bg-lime-1000 text-white' : 
+          checkoutStep === 'address' ? 'bg-orange-500 text-white' : 
           ['review', 'payment'].includes(checkoutStep) ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
         }`}>
           {['review', 'payment'].includes(checkoutStep) ? <Check className="h-3 w-3" /> : '1'}
@@ -509,7 +509,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         <div className="w-4 h-px bg-gray-300"></div>
         
         <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-          checkoutStep === 'review' ? 'bg-lime-1000 text-white' :
+          checkoutStep === 'review' ? 'bg-orange-500 text-white' :
           checkoutStep === 'payment' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
         }`}>
           {checkoutStep === 'payment' ? <Check className="h-3 w-3" /> : '2'}
@@ -519,7 +519,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
         <div className="w-4 h-px bg-gray-300"></div>
         
         <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-          checkoutStep === 'payment' ? 'bg-lime-1000 text-white' : 'bg-gray-200 text-gray-600'
+          checkoutStep === 'payment' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'
         }`}>
           3
         </div>
@@ -584,12 +584,12 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                           
                           <div className="flex-1 min-w-0">
                             <h4 
-                              className="font-semibold text-foreground text-xs sm:text-sm mb-0.5 line-clamp-2 cursor-pointer hover:text-lime-1000 dark:hover:text-cyan-400 transition-colors"
+                              className="font-semibold text-foreground text-xs sm:text-sm mb-0.5 line-clamp-2 cursor-pointer hover:text-orange-500 dark:hover:text-cyan-400 transition-colors"
                               onClick={() => handleProductClick(item.id)}
                             >
                               {item.title}
                             </h4>
-                            <p className="text-sm sm:text-base font-bold text-lime-1000 dark:text-cyan-400 mb-1">
+                            <p className="text-sm sm:text-base font-bold text-orange-500 dark:text-cyan-400 mb-1">
                               ${item.price} each
                             </p>
                             
@@ -644,7 +644,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                   <div className="bg-muted/50 rounded-lg p-1.5 sm:p-2 space-y-0.5">
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground text-xs sm:text-sm">Total:</span>
-                      <span className="text-sm sm:text-base font-bold text-lime-1000 dark:text-cyan-400">
+                      <span className="text-sm sm:text-base font-bold text-orange-500 dark:text-cyan-400">
                         ${formatPrice(totalUSD)}
                       </span>
                     </div>
@@ -658,7 +658,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       setCheckoutStep('address');
                       setShowCheckoutModal(true);
                     }}
-                    className="w-full h-9 sm:h-10 bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold text-xs sm:text-sm"
+                    className="w-full h-9 sm:h-10 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-semibold text-xs sm:text-sm"
                   >
                     <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
                     Checkout
@@ -688,7 +688,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
             {checkoutStep === 'address' && (
               <div className="space-y-1">
                 <div className="flex items-center gap-1 mb-0.5">
-                  <MapPin className="h-3 w-3 text-lime-1000" />
+                  <MapPin className="h-3 w-3 text-orange-500" />
                   <h3 className="text-xs font-semibold text-foreground">Shipping Information</h3>
                 </div>
 
@@ -891,7 +891,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     <Separator />
                     <div className="flex justify-between font-bold">
                       <span>Total:</span>
-                      <span className="text-lime-1000">${formatPrice(calculateTotalWithExtras())} USD</span>
+                      <span className="text-orange-500">${formatPrice(calculateTotalWithExtras())} USD</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -909,7 +909,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
             {checkoutStep === 'payment' && (
               <div className="space-y-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Wallet className="h-5 w-5 text-lime-1000" />
+                  <Wallet className="h-5 w-5 text-orange-500" />
                   <h3 className="text-lg font-semibold text-foreground">Finalize Your Order</h3>
                 </div>
 
@@ -972,7 +972,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                       <Separator />
                       <div className="flex justify-between font-bold text-lg">
                         <span>Order Total:</span>
-                        <span className="text-lime-1000">${formatPrice(calculateTotalWithExtras())} USD</span>
+                        <span className="text-orange-500">${formatPrice(calculateTotalWithExtras())} USD</span>
                       </div>
                     </div>
 
@@ -999,7 +999,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                         variant={selectedCrypto === crypto ? "default" : "outline"}
                         className={`flex flex-col gap-2 h-auto py-4 ${
                           selectedCrypto === crypto 
-                            ? "bg-lime-1000 dark:bg-cyan-500 text-white" 
+                            ? "bg-orange-500 dark:bg-cyan-500 text-white" 
                             : "hover:bg-accent"
                         }`}
                         onClick={() => setSelectedCrypto(crypto as keyof typeof CRYPTO_RATES)}
@@ -1015,7 +1015,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
 
                 <div className="bg-accent/50 rounded-lg p-4 text-center">
                   <p className="text-sm text-muted-foreground mb-2">You will pay:</p>
-                  <p className="font-bold text-2xl text-lime-1000">
+                  <p className="font-bold text-2xl text-orange-500">
                     {convertToCrypto(calculateTotalWithExtras(), selectedCrypto)} {selectedCrypto}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -1047,7 +1047,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     <button
                       type="button"
                       onClick={() => setShowTermsModal(true)}
-                      className="text-lime-1000 hover:text-lime-500 underline"
+                      className="text-orange-500 hover:text-orange-600 underline"
                     >
                       Terms and Conditions
                     </button>
@@ -1055,7 +1055,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                     <button
                       type="button"
                       onClick={() => setShowPrivacyModal(true)}
-                      className="text-lime-1000 hover:text-lime-500 underline"
+                      className="text-orange-500 hover:text-orange-600 underline"
                     >
                       Privacy Policy
                     </button>
@@ -1090,7 +1090,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
               {checkoutStep !== 'payment' ? (
                 <Button
                   onClick={handleNextStep}
-                  className="flex-1 bg-lime-1000 hover:bg-lime-500 text-white h-10 text-sm"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white h-10 text-sm"
                 >
                   Continue
                   <ArrowRight className="h-3 w-3 ml-1" />
@@ -1099,7 +1099,7 @@ export default function ShoppingCartComponent({ isOpen, onClose }: ShoppingCartP
                 <Button
                   onClick={handleFinalizePurchase}
                   disabled={!agreedToTerms}
-                  className="flex-1 bg-lime-1000 hover:bg-lime-500 text-white disabled:opacity-50 h-10 text-sm"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 h-10 text-sm"
                 >
                   <Wallet className="h-3 w-3 mr-1" />
                   Complete Order

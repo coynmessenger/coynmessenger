@@ -1831,7 +1831,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           >
             <Avatar className="h-10 w-10">
               {conversation.isGroup ? (
-                <AvatarFallback className="bg-gradient-to-br from-lime-1000 to-lime-500 text-white">
+                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
                   <Users className="w-5 h-5" />
                 </AvatarFallback>
               ) : (
@@ -3098,7 +3098,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6">
                   <Button
                     onClick={handleAmountConfirm}
-                    className="w-full h-11 sm:h-12 bg-gradient-to-r from-lime-1000 to-lime-500 hover:from-lime-500 hover:to-lime-600 dark:from-lime-1000 dark:to-lime-500 dark:hover:from-lime-500 dark:hover:to-lime-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
+                    className="w-full h-11 sm:h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
                     disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
                   >
                     Continue
@@ -3187,7 +3187,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <Button
                     onClick={handleSendConfirm}
                     disabled={sendCryptoMutation.isPending}
-                    className="flex-1 h-12 bg-gradient-to-r from-lime-1000 to-lime-500 hover:from-lime-500 hover:to-lime-600 dark:from-lime-1000 dark:to-lime-500 dark:hover:from-lime-500 dark:hover:to-lime-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-500 dark:to-orange-600 dark:hover:from-orange-600 dark:hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {sendCryptoMutation.isPending ? (
                       <span className="flex items-center space-x-2">

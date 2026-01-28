@@ -148,13 +148,13 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
                 onClick={() => toggleConversationSelection(conversation.id)}
                 className={`flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-colors ${
                   selectedConversations.has(conversation.id)
-                    ? "bg-lime-200 dark:bg-cyan-900/30 border border-lime-400 dark:border-cyan-600"
+                    ? "bg-orange-100 dark:bg-cyan-900/30 border border-orange-300 dark:border-cyan-600"
                     : "hover:bg-gray-100 dark:hover:bg-slate-700"
                 }`}
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={conversation.otherUser.profilePicture || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-lime-400 to-lime-500 dark:from-cyan-400 dark:to-cyan-600 text-white text-xs font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white text-xs font-semibold">
                     {conversation.otherUser.displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -167,7 +167,7 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
                   </p>
                 </div>
                 {selectedConversations.has(conversation.id) && (
-                  <div className="w-4 h-4 bg-lime-1000 dark:bg-cyan-500 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-orange-500 dark:bg-cyan-500 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                 )}
@@ -193,7 +193,7 @@ export default function ShareModal({ isOpen, onClose, selectedMessages, currentC
               <Button
                 onClick={handleShare}
                 disabled={selectedConversations.size === 0 || shareMessagesMutation.isPending}
-                className="bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+                className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-600 dark:hover:bg-cyan-700"
               >
                 <img src={sendIconPath} alt="Send" className="h-4 w-4 mr-2" />
                 Share

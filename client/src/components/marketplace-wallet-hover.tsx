@@ -280,10 +280,10 @@ export default function MarketplaceWalletHover({
         animation: 'walletSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}
     >
-      <CardHeader className="pb-3 flex-shrink-0 bg-gradient-to-r from-lime-200 to-orange-150 dark:from-slate-800 dark:to-slate-750 border-b-2 border-lime-400 dark:border-slate-600">
+      <CardHeader className="pb-3 flex-shrink-0 bg-gradient-to-r from-orange-100 to-orange-150 dark:from-slate-800 dark:to-slate-750 border-b-2 border-orange-300 dark:border-slate-600">
         <CardTitle className="flex items-center justify-between text-foreground">
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            <CreditCard className="h-5 w-5 text-lime-500 dark:text-lime-400 flex-shrink-0" />
+            <CreditCard className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
             <span className="text-lg font-bold text-gray-900 dark:text-white truncate">Payment Methods</span>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -292,11 +292,11 @@ export default function MarketplaceWalletHover({
               size="sm"
               onClick={() => refreshBalancesMutation.mutate()}
               disabled={refreshBalancesMutation.isPending}
-              className="h-8 w-8 p-0 hover:bg-lime-300 dark:hover:bg-slate-700 transition-all duration-200 disabled:opacity-50"
+              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-slate-700 transition-all duration-200 disabled:opacity-50"
               title="Refresh wallet balances"
             >
               <RefreshCw 
-                className={`h-4 w-4 text-lime-500 dark:text-lime-400 ${
+                className={`h-4 w-4 text-orange-600 dark:text-orange-400 ${
                   refreshBalancesMutation.isPending 
                     ? 'animate-spin' 
                     : ''
@@ -307,7 +307,7 @@ export default function MarketplaceWalletHover({
               variant="ghost"
               size="sm"
               onClick={() => setIsBalanceVisible(!isBalanceVisible)}
-              className="h-8 w-8 p-0 hover:bg-lime-300 dark:hover:bg-slate-700 transition-all duration-200"
+              className="h-8 w-8 p-0 hover:bg-orange-200 dark:hover:bg-slate-700 transition-all duration-200"
               title={isBalanceVisible ? "Hide amounts" : "Show amounts"}
             >
               {isBalanceVisible ? (
@@ -343,7 +343,7 @@ export default function MarketplaceWalletHover({
         {/* Total Value */}
         <div className="text-center space-y-2 bg-gradient-to-br from-gray-100 to-gray-150 dark:from-slate-800 dark:to-slate-750 p-4 rounded-xl border-2 border-gray-200 dark:border-slate-600">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Available for purchases</p>
-          <p className="text-2xl font-bold text-lime-500 dark:text-lime-400">
+          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             {isBalanceVisible ? formatUSD(totalUSD) : "••••••"}
           </p>
           <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Total purchasing power</p>
@@ -415,7 +415,7 @@ export default function MarketplaceWalletHover({
               variant="ghost"
               size="sm"
               onClick={copyAddress}
-              className="h-8 px-2 text-lime-1000 hover:text-lime-500 flex-shrink-0"
+              className="h-8 px-2 text-orange-500 hover:text-orange-600 flex-shrink-0"
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -436,7 +436,7 @@ export default function MarketplaceWalletHover({
         <div className="space-y-3">
           <Button
             variant="default"
-            className="w-full h-12 bg-lime-500 hover:bg-lime-600 text-white font-bold border-2 border-lime-600 dark:border-lime-1000"
+            className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold border-2 border-orange-700 dark:border-orange-500"
             onClick={() => {
               onClose();
               onProceedToCheckout?.();

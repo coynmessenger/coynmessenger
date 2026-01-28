@@ -107,7 +107,7 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
                   <h4 className="text-sm font-medium text-foreground line-clamp-1">
                     {product.title}
                   </h4>
-                  <p className="text-sm font-semibold text-lime-500 dark:text-lime-400">
+                  <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">
                     ${formatPrice(product.price)}
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
                 placeholder="Search contacts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9 text-sm border-gray-200 dark:border-slate-700 focus:border-lime-1000 bg-white dark:bg-slate-900"
+                className="pl-10 h-9 text-sm border-gray-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-900"
               />
               <Search className="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
             </div>
@@ -139,13 +139,13 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
                     onClick={() => toggleConversationSelection(conversation.id)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${
                       selectedConversations.has(conversation.id)
-                        ? 'bg-lime-100 dark:bg-lime-800/20 ring-1 ring-lime-300 dark:ring-lime-700'
+                        ? 'bg-orange-50 dark:bg-orange-900/20 ring-1 ring-orange-200 dark:ring-orange-800'
                         : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'
                     }`}
                   >
                     <Avatar className="w-9 h-9">
                       <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
-                      <AvatarFallback className="bg-lime-1000 text-white text-xs font-medium">
+                      <AvatarFallback className="bg-orange-500 text-white text-xs font-medium">
                         {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
@@ -161,7 +161,7 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
                     </div>
                     <div className="flex-shrink-0">
                       {selectedConversations.has(conversation.id) ? (
-                        <div className="w-5 h-5 bg-lime-1000 rounded-full flex items-center justify-center shadow-sm">
+                        <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-sm">
                           <Check className="h-3 w-3 text-white" />
                         </div>
                       ) : (
@@ -186,8 +186,8 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
 
           {/* Selected Count - Compact */}
           {selectedConversations.size > 0 && (
-            <div className="px-6 py-2 bg-lime-100/50 dark:bg-lime-800/10 border-t border-lime-200 dark:border-lime-800/20">
-              <p className="text-xs font-medium text-lime-600 dark:text-lime-400 text-center">
+            <div className="px-6 py-2 bg-orange-50/50 dark:bg-orange-900/10 border-t border-orange-100 dark:border-orange-900/20">
+              <p className="text-xs font-medium text-orange-700 dark:text-orange-300 text-center">
                 {selectedConversations.size} selected
               </p>
             </div>
@@ -207,7 +207,7 @@ export function ProductShareModal({ isOpen, onClose, product, onShare, isSharing
           <Button
             onClick={handleShare}
             disabled={selectedConversations.size === 0 || isSharing}
-            className="flex-1 h-10 text-sm bg-lime-1000 hover:bg-lime-500 text-white shadow-sm"
+            className="flex-1 h-10 text-sm bg-orange-500 hover:bg-orange-600 text-white shadow-sm"
           >
             {isSharing ? (
               <div className="flex items-center gap-2">

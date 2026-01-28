@@ -32,18 +32,18 @@ export default function IncomingVoiceCallModal({
         <div className="p-6 space-y-5 text-center">
           <div className="flex justify-center">
             <div className="relative">
-              <Avatar className="w-20 h-20 border-3 border-lime-1000/50 shadow-lg animate-pulse">
+              <Avatar className="w-20 h-20 border-3 border-orange-500/50 shadow-lg animate-pulse">
                 <AvatarImage src={caller?.profilePicture || ""} />
                 <AvatarFallback className="bg-slate-700 text-2xl">
                   <UserAvatarIcon className="w-10 h-10 text-slate-400" />
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 rounded-full border-2 border-lime-400/60 animate-ping"></div>
+              <div className="absolute inset-0 rounded-full border-2 border-orange-400/60 animate-ping"></div>
             </div>
           </div>
 
           <div className="space-y-1">
-            <p className="text-lime-400 text-sm font-medium uppercase tracking-wide">
+            <p className="text-orange-400 text-sm font-medium uppercase tracking-wide">
               Incoming Voice Call
             </p>
             <h3 className="text-xl font-bold text-white truncate">

@@ -362,7 +362,7 @@ export default function ProductPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-lime-100/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800">
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
@@ -382,7 +382,7 @@ export default function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-lime-100/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50/30 to-cyan-50/30 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
           <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground mb-2">Product Not Found</h1>
@@ -439,7 +439,7 @@ export default function ProductPage() {
               >
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-lime-1000 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
@@ -507,7 +507,7 @@ export default function ProductPage() {
                     onClick={() => setCurrentImageIndex(index)}
                     className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
                       index === currentImageIndex
-                        ? "border-lime-1000 dark:border-cyan-400"
+                        ? "border-orange-500 dark:border-cyan-400"
                         : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
                     }`}
                   >
@@ -551,9 +551,9 @@ export default function ProductPage() {
             </div>
 
             {/* Price */}
-            <div className="bg-gradient-to-r from-lime-200/60 to-cyan-100/60 dark:from-slate-700/60 dark:to-slate-600/60 backdrop-blur-sm p-6 rounded-xl border border-lime-300/50 dark:border-cyan-600/50 shadow-lg">
+            <div className="bg-gradient-to-r from-orange-100/60 to-cyan-100/60 dark:from-slate-700/60 dark:to-slate-600/60 backdrop-blur-sm p-6 rounded-xl border border-orange-200/50 dark:border-cyan-600/50 shadow-lg">
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-4xl font-bold text-lime-500 dark:text-cyan-400">
+                <span className="text-4xl font-bold text-orange-600 dark:text-cyan-400">
                   ${formatPrice(product.price)}
                 </span>
                 <span className="text-lg text-muted-foreground">USD</span>
@@ -622,7 +622,7 @@ export default function ProductPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowAllReviews(true)}
-                    className="text-lime-500 dark:text-cyan-400 border-lime-300 dark:border-cyan-600 hover:bg-lime-100 dark:hover:bg-cyan-900/20"
+                    className="text-orange-600 dark:text-cyan-400 border-orange-200 dark:border-cyan-600 hover:bg-orange-50 dark:hover:bg-cyan-900/20"
                   >
                     View All
                   </Button>
@@ -720,7 +720,7 @@ export default function ProductPage() {
 
               <Button
                 onClick={handleAddToCart}
-                className="w-full bg-gradient-to-r from-lime-1000 to-lime-500 hover:from-lime-500 hover:to-lime-600 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                 size="lg"
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
@@ -765,7 +765,7 @@ export default function ProductPage() {
 
                   <div>
                     <Label>Amount Required</Label>
-                    <div className="text-2xl font-bold text-lime-500 dark:text-cyan-400">
+                    <div className="text-2xl font-bold text-orange-600 dark:text-cyan-400">
                       {requiredCrypto.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} {selectedCrypto}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -796,7 +796,7 @@ export default function ProductPage() {
                     <Button
                       onClick={handlePurchase}
                       disabled={!cryptoAmount || parseFloat(cryptoAmount) < requiredCrypto * 0.98}
-                      className="flex-1 bg-gradient-to-r from-lime-1000 to-lime-500 hover:from-lime-500 hover:to-lime-600 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-cyan-500 dark:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-cyan-700 text-white"
                     >
                       Confirm Purchase
                     </Button>
@@ -806,7 +806,7 @@ export default function ProductPage() {
 
               {purchaseStep === "processing" && (
                 <div className="text-center py-8">
-                  <div className="animate-spin h-8 w-8 border-2 border-lime-1000 dark:border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <div className="animate-spin h-8 w-8 border-2 border-orange-500 dark:border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"></div>
                   <h3 className="text-lg font-semibold mb-2">Processing Payment</h3>
                   <p className="text-muted-foreground">
                     Converting {selectedCrypto} to USD and processing your order...
@@ -867,7 +867,7 @@ export default function ProductPage() {
                   />
                 </div>
                 <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-1">{item.title}</h3>
-                <p className="font-bold text-lime-500 dark:text-cyan-400">${item.price}</p>
+                <p className="font-bold text-orange-600 dark:text-cyan-400">${item.price}</p>
               </CardContent>
             </Card>
           ))}
@@ -900,13 +900,13 @@ export default function ProductPage() {
 
       {/* All Reviews Modal */}
       <Dialog open={showAllReviews} onOpenChange={setShowAllReviews}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-lime-300/50 dark:border-cyan-600/50">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-orange-200/50 dark:border-cyan-600/50">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-foreground mb-4">
               Customer Reviews ({reviewsData.length})
             </DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto pr-2 space-y-4 max-h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-lime-400 dark:[&::-webkit-scrollbar-thumb]:bg-cyan-600 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <div className="overflow-y-auto pr-2 space-y-4 max-h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-orange-300 dark:[&::-webkit-scrollbar-thumb]:bg-cyan-600 [&::-webkit-scrollbar-thumb]:rounded-full">
             {reviewsData.map((review, index) => (
               <div key={index} className="p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-slate-700/50 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
@@ -942,7 +942,7 @@ export default function ProductPage() {
           <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-slate-700">
             <Button
               onClick={() => setShowAllReviews(false)}
-              className="bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
             >
               Close
             </Button>
@@ -1034,7 +1034,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4">
       {/* Product Preview Card */}
-      <div className="bg-gradient-to-r from-lime-100 to-pink-50 dark:from-orange-950/20 dark:to-pink-950/20 rounded-xl p-4 border border-lime-300/30 dark:border-lime-700/30">
+      <div className="bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-950/20 dark:to-pink-950/20 rounded-xl p-4 border border-orange-200/30 dark:border-orange-800/30">
         <div className="flex items-center gap-4">
           <div className="relative">
             <img
@@ -1042,14 +1042,14 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
               alt={product.title}
               className="w-16 h-16 object-cover rounded-lg shadow-md"
             />
-            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-lime-1000 to-pink-500 rounded-full p-1">
+            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full p-1">
               <Share className="h-3 w-3 text-white" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-foreground line-clamp-2 mb-1">{product.title}</h3>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-lime-500 dark:text-lime-400">${formatPrice(product.price)}</span>
+              <span className="text-lg font-bold text-orange-600 dark:text-orange-400">${formatPrice(product.price)}</span>
               <Badge variant="secondary" className="text-xs">{product.category}</Badge>
             </div>
           </div>
@@ -1069,7 +1069,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
             placeholder="Search your contacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 focus:border-lime-400 dark:focus:border-lime-1000"
+            className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 focus:border-orange-400 dark:focus:border-orange-500"
           />
           <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
         </div>
@@ -1085,13 +1085,13 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
                 onClick={() => toggleConversationSelection(conversation.id)}
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
                   selectedConversations.has(conversation.id)
-                    ? 'bg-gradient-to-r from-lime-200 to-pink-100 dark:from-lime-800/30 dark:to-pink-900/30 border-lime-400 dark:border-lime-500 shadow-md scale-[1.02]'
+                    ? 'bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30 border-orange-300 dark:border-orange-600 shadow-md scale-[1.02]'
                     : 'bg-white/70 dark:bg-slate-800/70 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/70 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
               >
                 <Avatar className="w-10 h-10 ring-2 ring-white dark:ring-slate-800">
                   <AvatarImage src={conversation.otherUser?.profilePicture || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-lime-1000 to-pink-500 text-white text-sm font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-pink-500 text-white text-sm font-semibold">
                     {conversation.otherUser?.displayName?.charAt(0) || conversation.otherUser?.username?.charAt(0) || '?'}
                   </AvatarFallback>
                 </Avatar>
@@ -1109,7 +1109,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
                   selectedConversations.has(conversation.id) ? 'scale-110' : 'scale-100'
                 }`}>
                   {selectedConversations.has(conversation.id) ? (
-                    <div className="w-6 h-6 bg-gradient-to-r from-lime-1000 to-pink-500 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center">
                       <Check className="h-4 w-4 text-white" />
                     </div>
                   ) : (
@@ -1134,8 +1134,8 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
 
       {/* Selected Count */}
       {selectedConversations.size > 0 && (
-        <div className="bg-gradient-to-r from-lime-200 to-pink-100 dark:from-lime-800/20 dark:to-pink-900/20 rounded-lg p-3 border border-lime-300/50 dark:border-lime-700/50">
-          <p className="text-sm font-medium text-lime-600 dark:text-lime-400 text-center">
+        <div className="bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 rounded-lg p-3 border border-orange-200/50 dark:border-orange-800/50">
+          <p className="text-sm font-medium text-orange-700 dark:text-orange-300 text-center">
             {selectedConversations.size} contact{selectedConversations.size > 1 ? 's' : ''} selected
           </p>
         </div>
@@ -1158,7 +1158,7 @@ function ProductShareModalContent({ product, onShare, onClose, isSharing }: Prod
           <Button
             onClick={handleShare}
             disabled={selectedConversations.size === 0 || isSharing}
-            className="flex-1 h-12 bg-gradient-to-r from-lime-1000 to-pink-500 hover:from-lime-500 hover:to-pink-600 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSharing ? (
               <div className="flex items-center gap-2">

@@ -85,12 +85,12 @@ export default function PWAInstallPrompt() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
-      <Card className="bg-white dark:bg-slate-800 border border-lime-300 dark:border-lime-700 shadow-lg">
+      <Card className="bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-800 shadow-lg">
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-lime-200 dark:bg-lime-800 rounded-lg flex items-center justify-center">
-                <Download className="w-5 h-5 text-lime-500 dark:text-lime-400" />
+              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                <Download className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
             
@@ -106,7 +106,7 @@ export default function PWAInstallPrompt() {
                 <Button
                   onClick={handleInstallClick}
                   size="sm"
-                  className="bg-lime-500 hover:bg-lime-600 text-white text-xs px-3 py-1 h-8"
+                  className="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-1 h-8"
                 >
                   <Download className="w-3 h-3 mr-1" />
                   Install

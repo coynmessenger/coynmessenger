@@ -110,7 +110,7 @@ export function AIChatAssistant({
       case 'professional': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
       case 'friendly': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'formal': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      default: return 'bg-lime-200 text-lime-700 dark:bg-lime-800 dark:text-lime-300';
+      default: return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
     }
   };
 
@@ -129,7 +129,7 @@ export function AIChatAssistant({
       <DialogContent className="glass-card max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-lime-1000" />
+            <Sparkles className="w-5 h-5 text-orange-500" />
             AI Chat Assistant
           </DialogTitle>
         </DialogHeader>
@@ -162,7 +162,7 @@ export function AIChatAssistant({
             ) : (
               <div className="space-y-3">
                 {suggestions.map((suggestion: AIMessageSuggestion, index: number) => (
-                  <Card key={index} className="border-2 hover:border-lime-400 transition-colors">
+                  <Card key={index} className="border-2 hover:border-orange-300 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
@@ -183,7 +183,7 @@ export function AIChatAssistant({
                           <Button
                             size="sm"
                             onClick={() => handleUseMessage(suggestion.message)}
-                            className="bg-lime-1000 hover:bg-lime-500 text-white"
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
                           >
                             Use
                           </Button>
@@ -216,7 +216,7 @@ export function AIChatAssistant({
               <Button
                 onClick={handleGenerateSmartReply}
                 disabled={smartReplyMutation.isPending}
-                className="w-full bg-lime-1000 hover:bg-lime-500 text-white"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
               >
                 {smartReplyMutation.isPending ? (
                   <>
@@ -233,13 +233,13 @@ export function AIChatAssistant({
             </div>
 
             {selectedSuggestion && (
-              <Card className="border-2 border-lime-400 bg-lime-100 dark:bg-lime-800/20">
+              <Card className="border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-4 h-4 text-lime-1000" />
-                        <span className="font-medium text-lime-600 dark:text-lime-400">
+                        <Sparkles className="w-4 h-4 text-orange-500" />
+                        <span className="font-medium text-orange-700 dark:text-orange-300">
                           Generated Reply
                         </span>
                       </div>
@@ -251,7 +251,7 @@ export function AIChatAssistant({
                       <Button
                         size="sm"
                         onClick={() => handleUseMessage(selectedSuggestion)}
-                        className="bg-lime-1000 hover:bg-lime-500 text-white"
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
                       >
                         Use
                       </Button>

@@ -72,7 +72,7 @@ export function CallStatusIndicator({ status, callType = 'voice', duration = 0, 
       case 'connecting':
         return 'text-yellow-400';
       case 'ringing':
-        return 'text-lime-400';
+        return 'text-orange-400';
       case 'connected':
         return 'text-green-400';
       case 'ended':
@@ -87,7 +87,7 @@ export function CallStatusIndicator({ status, callType = 'voice', duration = 0, 
       case 'connecting':
         return 'bg-yellow-400';
       case 'ringing':
-        return 'bg-lime-400';
+        return 'bg-orange-400';
       case 'connected':
         return 'bg-green-400';
       case 'ended':
@@ -115,7 +115,7 @@ export function CallStatusIndicator({ status, callType = 'voice', duration = 0, 
           <span className="flex items-center gap-1">
             {callType === 'video' ? 'Incoming Video Call' : 'Incoming Call'}
             <span className="flex gap-0.5">
-              <span className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-ping"></span>
+              <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-ping"></span>
             </span>
           </span>
         );
@@ -360,7 +360,7 @@ export function CallerInfo({ displayName, avatarUrl, callType, status, className
             className="w-24 h-24 rounded-full object-cover border-4 border-white/20"
           />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-lime-400 to-lime-500 flex items-center justify-center text-white text-3xl font-bold border-4 border-white/20">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white/20">
             {displayName.charAt(0).toUpperCase()}
           </div>
         )}

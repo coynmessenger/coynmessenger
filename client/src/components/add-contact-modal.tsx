@@ -205,7 +205,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
       <DialogContent className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-black dark:text-slate-50 max-w-md my-8 sm:my-16">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <UserPlus className="h-5 w-5 text-lime-1000 dark:text-cyan-400" />
+            <UserPlus className="h-5 w-5 text-orange-500 dark:text-cyan-400" />
             <span>Add New Contact</span>
           </DialogTitle>
         </DialogHeader>
@@ -257,7 +257,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
                     placeholder="0x1234567890abcdef1234567890abcdef12345678"
                     value={walletAddress}
                     onChange={handleInputChange}
-                    className={`pl-10 pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-lime-1000 dark:focus:border-cyan-500 ${
+                    className={`pl-10 pr-12 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white focus:border-orange-500 dark:focus:border-cyan-500 ${
                       validationError ? 'border-red-500 dark:border-red-400' : walletAddress.trim() && validateWalletAddress(walletAddress.trim()).isValid ? 'border-green-500 dark:border-green-400' : ''
                     }`}
                     required
@@ -285,7 +285,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
                 type="button"
                 variant="outline"
                 onClick={startScanner}
-                className="w-full border-lime-1000 dark:border-cyan-500 text-lime-1000 dark:text-cyan-400 hover:bg-lime-100 dark:hover:bg-cyan-500/10 flex items-center justify-center gap-2"
+                className="w-full border-orange-500 dark:border-cyan-500 text-orange-500 dark:text-cyan-400 hover:bg-orange-50 dark:hover:bg-cyan-500/10 flex items-center justify-center gap-2"
               >
                 <QrCode className="h-5 w-5" />
                 Scan QR Code
@@ -307,7 +307,7 @@ export default function AddContactModal({ isOpen, onClose }: AddContactModalProp
                 <Button
                   type="submit"
                   disabled={addContactMutation.isPending || !walletAddress.trim()}
-                  className="flex-1 bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-900"
                 >
                   {addContactMutation.isPending ? "Adding..." : "Add Contact"}
                 </Button>

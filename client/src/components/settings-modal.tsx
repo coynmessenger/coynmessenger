@@ -723,7 +723,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 <div className="relative">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={profilePicture} />
-                    <AvatarFallback className="bg-gradient-to-br from-lime-400 to-lime-500 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-lg">
+                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-lg">
                       {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -741,7 +741,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                     className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 bg-white dark:bg-slate-800 border-2 border-background"
                   >
                     {uploadingImage ? (
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-lime-1000 border-t-transparent" />
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
                     ) : (
                       <Camera className="h-3 w-3" />
                     )}
@@ -933,7 +933,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               <Button
                 onClick={handleSave}
                 disabled={updateUserMutation.isPending}
-                className="bg-lime-1000 hover:bg-lime-500 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
+                className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
               >
                 {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
