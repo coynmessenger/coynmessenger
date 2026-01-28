@@ -252,7 +252,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-lime-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
 
       {/* Header with Logo */}
       <header className="w-full p-4 sm:p-6">
@@ -358,7 +358,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <div key={index} className="text-center space-y-3 p-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 bg-gradient-to-br from-lime-1000 to-lime-500 rounded-lg flex items-center justify-center mx-auto">
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
@@ -393,7 +393,7 @@ export default function HomePage() {
           </div>
           
           {/* Copyright */}
-          <p className="flex items-center justify-center gap-1">© 2022-2030 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1">₡</a></p>
+          <p className="flex items-center justify-center gap-1">© 2022-2030 Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-lime-1000 hover:text-lime-500 transition-colors flex items-center gap-1">₡</a></p>
         </div>
       </footer>
 

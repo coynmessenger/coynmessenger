@@ -39,7 +39,7 @@ export default function ThirdwebWalletConnector({
   const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
   
   return (
-    <div className="p-1 rounded-xl border-2 border-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.3)]">
+    <div className="p-1 rounded-xl border-2 border-lime-1000 shadow-[0_0_0_3px_rgba(249,115,22,0.3)]">
       <ConnectButton
         client={client}
         autoConnect={!userSignedOut}
@@ -80,11 +80,11 @@ export default function ThirdwebWalletConnector({
         }}
       detailsButton={{
         className: `
-          bg-gradient-to-r from-orange-500 to-orange-600 
-          hover:from-orange-600 hover:to-orange-700 active:from-orange-700 active:to-orange-800
+          bg-gradient-to-r from-lime-1000 to-lime-500 
+          hover:from-lime-500 hover:to-lime-600 active:from-lime-600 active:to-lime-700
           text-white font-medium py-2 px-4 min-h-[44px] rounded-lg 
           transition-all duration-200 shadow-md hover:shadow-lg
-          border border-orange-400/20
+          border border-lime-400/20
           touch-manipulation select-none
         `
       }}

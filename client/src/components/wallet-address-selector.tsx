@@ -199,7 +199,7 @@ export default function WalletAddressSelector({
                         )}
                         {parseFloat(addressData.balances.coyn) > 0 && (
                           <div className="flex items-center space-x-1">
-                            <Coins className="h-3 w-3 text-orange-500" />
+                            <Coins className="h-3 w-3 text-lime-1000" />
                             <span>{formatBalance(addressData.balances.coyn, 'COYN')}</span>
                           </div>
                         )}

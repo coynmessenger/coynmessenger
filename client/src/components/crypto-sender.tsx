@@ -281,7 +281,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
             type="button"
             variant="ghost"
             size="icon"
-            className="text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-orange-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
+            className="text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-lime-400 h-8 w-8 sm:h-8 sm:w-8 touch-manipulation"
           >
             <Plus className="h-4 w-4 sm:h-4 sm:w-4" />
           </Button>
@@ -333,7 +333,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
                     onClick={setMaxAmount}
                     variant="outline"
                     size="sm"
-                    className="text-orange-600 border-orange-300 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-900/20"
+                    className="text-lime-500 border-lime-400 hover:bg-lime-100 dark:text-lime-400 dark:border-lime-500 dark:hover:bg-lime-800/20"
                   >
                     Max
                   </Button>
@@ -354,7 +354,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
                 <Button
                   onClick={() => setCryptoStep("confirm")}
                   disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
+                  className="flex-1 bg-lime-1000 hover:bg-lime-500"
                 >
                   Next
                 </Button>
@@ -382,7 +382,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
                 <Button
                   onClick={handleConfirmSend}
                   disabled={sendCryptoMutation.isPending}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
+                  className="flex-1 bg-lime-1000 hover:bg-lime-500"
                 >
                   {sendCryptoMutation.isPending ? "Sending..." : "Send"}
                 </Button>

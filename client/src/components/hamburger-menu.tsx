@@ -240,15 +240,15 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* Starred Messages Modal */}
       <Dialog open={showStarredMessages} onOpenChange={setShowStarredMessages}>
-        <DialogContent className="w-[90vw] sm:w-[500px] max-w-[500px] max-h-[80vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl mx-4 sm:mx-0">
-          <div className="p-6 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+        <DialogContent className="w-[90vw] sm:w-[500px] max-w-[500px] max-h-[80vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-lime-300/30 dark:border-lime-700/30 shadow-2xl rounded-2xl mx-4 sm:mx-0">
+          <div className="p-6 border-b border-lime-200 dark:border-lime-700 bg-gradient-to-r from-lime-100 to-yellow-50 dark:from-lime-800/20 dark:to-yellow-900/20">
             <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <Star className="h-5 w-5 text-orange-600 dark:text-orange-400 fill-current" />
+              <div className="p-2 bg-lime-200 dark:bg-lime-800 rounded-full">
+                <Star className="h-5 w-5 text-lime-500 dark:text-lime-400 fill-current" />
               </div>
               Starred Messages
               {starredMessages.length > 0 && (
-                <Badge variant="secondary" className="ml-auto bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                <Badge variant="secondary" className="ml-auto bg-lime-200 dark:bg-lime-800 text-lime-700 dark:text-lime-300">
                   {starredMessages.length}
                 </Badge>
               )}
@@ -258,8 +258,8 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           <div className="flex-1 overflow-y-auto p-6">
             {starredMessages.length === 0 ? (
               <div className="text-center py-12">
-                <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-full w-fit mx-auto mb-4">
-                  <Star className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                <div className="p-4 bg-lime-200 dark:bg-lime-800 rounded-full w-fit mx-auto mb-4">
+                  <Star className="h-8 w-8 text-lime-500 dark:text-lime-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No starred messages</h3>
                 <p className="text-gray-600 dark:text-gray-300">
@@ -271,12 +271,12 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                 {starredMessages.map((message) => (
                   <div 
                     key={message.id} 
-                    className="group p-4 bg-gradient-to-r from-white to-orange-50/30 dark:from-gray-900 dark:to-orange-900/10 rounded-xl border border-orange-100 dark:border-orange-800/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    className="group p-4 bg-gradient-to-r from-white to-lime-100/30 dark:from-gray-900 dark:to-lime-800/10 rounded-xl border border-lime-200 dark:border-lime-700/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10 ring-2 ring-orange-200 dark:ring-orange-800">
+                      <Avatar className="h-10 w-10 ring-2 ring-lime-300 dark:ring-lime-700">
                         <AvatarImage src={message.sender.profilePicture || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold">
+                        <AvatarFallback className="bg-gradient-to-br from-lime-1000 to-lime-500 text-white font-semibold">
                           {getEffectiveDisplayName(message.sender).charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -285,7 +285,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                           <span className="font-semibold text-gray-900 dark:text-white">
                             {getEffectiveDisplayName(message.sender)}
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-full">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-lime-200 dark:bg-lime-800 px-2 py-1 rounded-full">
                             {formatTimestamp(message.timestamp)}
                           </span>
                         </div>
@@ -293,7 +293,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                           {message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`}
                         </p>
                         {message.messageType === "crypto_transfer" && (
-                          <Badge variant="secondary" className="mt-3 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+                          <Badge variant="secondary" className="mt-3 bg-lime-200 dark:bg-lime-800 text-lime-700 dark:text-lime-300">
                             <MessageCircle className="h-3 w-3 mr-1" />
                             Crypto Transaction
                           </Badge>
@@ -302,11 +302,11 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="opacity-70 group-hover:opacity-100 p-2 h-9 w-9 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-full transition-all duration-200 hover:scale-110"
+                        className="opacity-70 group-hover:opacity-100 p-2 h-9 w-9 hover:bg-lime-200 dark:hover:bg-lime-800/30 rounded-full transition-all duration-200 hover:scale-110"
                         onClick={() => handleStarMessage(message)}
                         title="Unstar message"
                       >
-                        <Star className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
+                        <Star className="h-4 w-4 text-lime-1000 dark:text-lime-400 fill-current" />
                       </Button>
                     </div>
                   </div>
@@ -348,11 +348,11 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* Transaction History Modal */}
       <Dialog open={showTransactionHistory} onOpenChange={setShowTransactionHistory}>
-        <DialogContent className="w-[95vw] sm:w-[400px] h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-orange-200/30 dark:border-orange-800/30 shadow-2xl rounded-2xl">
-          <div className="p-3 border-b border-orange-100 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+        <DialogContent className="w-[95vw] sm:w-[400px] h-[85vh] p-0 overflow-hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-lime-300/30 dark:border-lime-700/30 shadow-2xl rounded-2xl">
+          <div className="p-3 border-b border-lime-200 dark:border-lime-700 bg-gradient-to-r from-lime-100 to-yellow-50 dark:from-lime-800/20 dark:to-yellow-900/20">
             <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-              <div className="p-1.5 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <Receipt className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <div className="p-1.5 bg-lime-200 dark:bg-lime-800 rounded-full">
+                <Receipt className="h-4 w-4 text-lime-500 dark:text-lime-400" />
               </div>
               Transaction History
             </DialogTitle>
@@ -360,8 +360,8 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
           <div className="flex-1 overflow-y-auto p-2">
             {transactionHistory.length === 0 ? (
               <div className="text-center py-8">
-                <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full w-fit mx-auto mb-3">
-                  <Receipt className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                <div className="p-3 bg-lime-200 dark:bg-lime-800 rounded-full w-fit mx-auto mb-3">
+                  <Receipt className="h-6 w-6 text-lime-500 dark:text-lime-400" />
                 </div>
                 <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">No transactions yet</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -373,12 +373,12 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                 {transactionHistory.map((transaction) => (
                   <div 
                     key={transaction.id} 
-                    className="group p-2.5 bg-gradient-to-r from-white to-orange-50/30 dark:from-gray-900 dark:to-orange-900/10 rounded-lg border border-orange-100 dark:border-orange-800/30 hover:shadow-md transition-all duration-200"
+                    className="group p-2.5 bg-gradient-to-r from-white to-lime-100/30 dark:from-gray-900 dark:to-lime-800/10 rounded-lg border border-lime-200 dark:border-lime-700/30 hover:shadow-md transition-all duration-200"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="h-8 w-8 ring-1 ring-orange-200 dark:ring-orange-800">
+                      <Avatar className="h-8 w-8 ring-1 ring-lime-300 dark:ring-lime-700">
                         <AvatarImage src={transaction.sender.profilePicture || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold text-xs">
+                        <AvatarFallback className="bg-gradient-to-br from-lime-1000 to-lime-500 text-white font-semibold text-xs">
                           {getEffectiveDisplayName(transaction.sender).charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -387,15 +387,15 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                           <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
                             {getEffectiveDisplayName(transaction.sender)}
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 px-1.5 py-0.5 rounded-full">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-lime-200 dark:bg-lime-800 px-1.5 py-0.5 rounded-full">
                             {formatTimestamp(transaction.timestamp)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                          <div className="text-sm font-bold text-lime-500 dark:text-lime-400">
                             {transaction.senderId === connectedUserId ? '-' : '+'}{transaction.cryptoAmount} {transaction.cryptoCurrency}
                           </div>
-                          <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs px-1.5 py-0.5">
+                          <Badge variant="secondary" className="bg-lime-200 dark:bg-lime-800 text-lime-700 dark:text-lime-300 text-xs px-1.5 py-0.5">
                             {transaction.senderId === connectedUserId ? 'Sent' : 'Received'}
                           </Badge>
                         </div>
@@ -440,7 +440,7 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
 
       {/* Delete Transaction Confirmation */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent className="bg-white dark:bg-black border border-orange-200/30 dark:border-orange-800/30 rounded-2xl">
+        <AlertDialogContent className="bg-white dark:bg-black border border-lime-300/30 dark:border-lime-700/30 rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
             <AlertDialogDescription>

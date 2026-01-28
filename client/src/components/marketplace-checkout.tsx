@@ -509,13 +509,13 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         {/* Step 1: Cart */}
         <div className="flex items-center">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-            currentStep === 'cart' ? 'bg-orange-500 text-white' : 
+            currentStep === 'cart' ? 'bg-lime-1000 text-white' : 
             currentStep === 'review' || currentStep === 'finalize' ? 'bg-green-500 text-white' : 
             'bg-gray-200 text-gray-600'
           }`}>
             {currentStep === 'review' || currentStep === 'finalize' ? <Check className="w-4 h-4" /> : '1'}
           </div>
-          <span className={`ml-2 text-sm font-medium ${currentStep === 'cart' ? 'text-orange-500' : 'text-gray-600'}`}>
+          <span className={`ml-2 text-sm font-medium ${currentStep === 'cart' ? 'text-lime-1000' : 'text-gray-600'}`}>
             Cart
           </span>
         </div>
@@ -525,13 +525,13 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         {/* Step 2: Review */}
         <div className="flex items-center">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-            currentStep === 'review' ? 'bg-orange-500 text-white' : 
+            currentStep === 'review' ? 'bg-lime-1000 text-white' : 
             currentStep === 'finalize' ? 'bg-green-500 text-white' : 
             'bg-gray-200 text-gray-600'
           }`}>
             {currentStep === 'finalize' ? <Check className="w-4 h-4" /> : '2'}
           </div>
-          <span className={`ml-2 text-sm font-medium ${currentStep === 'review' ? 'text-orange-500' : 'text-gray-600'}`}>
+          <span className={`ml-2 text-sm font-medium ${currentStep === 'review' ? 'text-lime-1000' : 'text-gray-600'}`}>
             Review
           </span>
         </div>
@@ -541,11 +541,11 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         {/* Step 3: Finalize */}
         <div className="flex items-center">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-            currentStep === 'finalize' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'
+            currentStep === 'finalize' ? 'bg-lime-1000 text-white' : 'bg-gray-200 text-gray-600'
           }`}>
             3
           </div>
-          <span className={`ml-2 text-sm font-medium ${currentStep === 'finalize' ? 'text-orange-500' : 'text-gray-600'}`}>
+          <span className={`ml-2 text-sm font-medium ${currentStep === 'finalize' ? 'text-lime-1000' : 'text-gray-600'}`}>
             Finalize
           </span>
         </div>
@@ -636,7 +636,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
                 <Separator />
                 <div className="flex justify-between font-bold text-lg sm:text-xl">
                   <span>Total:</span>
-                  <span className="text-orange-600">${formatPrice(calculateTotal())}</span>
+                  <span className="text-lime-500">${formatPrice(calculateTotal())}</span>
                 </div>
               </div>
             </Card>
@@ -651,7 +651,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
               </Button>
               <Button 
                 onClick={proceedToReview} 
-                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 h-12 sm:h-10 touch-manipulation font-semibold"
+                className="w-full sm:w-auto bg-lime-1000 hover:bg-lime-500 h-12 sm:h-10 touch-manipulation font-semibold"
               >
                 Proceed to Review
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -845,7 +845,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
               <span>${formatPrice(calculateTax())}</span>
             </div>
             <Separator />
-            <div className="flex justify-between font-semibold text-lg text-orange-600">
+            <div className="flex justify-between font-semibold text-lg text-lime-500">
               <span>Order Total:</span>
               <span>${formatPrice(calculateTotal())}</span>
             </div>
@@ -858,7 +858,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Cart
         </Button>
-        <Button onClick={proceedToFinalize} className="bg-orange-500 hover:bg-orange-600">
+        <Button onClick={proceedToFinalize} className="bg-lime-1000 hover:bg-lime-500">
           Continue to Payment
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -928,7 +928,7 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
             {shippingAddress.addressLine2 && <p>{shippingAddress.addressLine2}</p>}
             <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
             <p>{shippingAddress.country}</p>
-            <p className="text-orange-600 font-medium mt-2">
+            <p className="text-lime-500 font-medium mt-2">
               {shippingOption === 'express' ? 'Express Shipping (2-3 days)' : 'Standard Shipping (5-7 days)'}
             </p>
           </div>
@@ -959,21 +959,21 @@ export default function MarketplaceCheckout({ isOpen, onClose }: MarketplaceChec
         />
         <Label htmlFor="terms" className="text-sm leading-relaxed">
           I agree to the{" "}
-          <a href="#" className="text-orange-600 hover:underline">Terms and Conditions</a>
+          <a href="#" className="text-lime-500 hover:underline">Terms and Conditions</a>
           {" "}and{" "}
-          <a href="#" className="text-orange-600 hover:underline">Privacy Policy</a>.
+          <a href="#" className="text-lime-500 hover:underline">Privacy Policy</a>.
           By placing this order, I understand that payment will be processed in cryptocurrency.
         </Label>
       </div>
 
       {/* Final Order Summary */}
-      <Card className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+      <Card className="p-4 bg-gradient-to-r from-lime-100 to-lime-200 border-lime-300">
         <div className="space-y-2">
           <div className="flex justify-between font-semibold text-lg">
             <span>Final Total:</span>
-            <span className="text-orange-600">${formatPrice(calculateTotal())}</span>
+            <span className="text-lime-500">${formatPrice(calculateTotal())}</span>
           </div>
-          <div className="flex justify-between text-sm text-orange-700">
+          <div className="flex justify-between text-sm text-lime-600">
             <span>Crypto Amount:</span>
             <span>{convertToCrypto(calculateTotal())} {selectedCrypto}</span>
           </div>

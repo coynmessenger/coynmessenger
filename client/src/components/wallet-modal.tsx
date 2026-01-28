@@ -432,7 +432,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
             variant="ghost"
             size="sm"
             onClick={() => setShowBalance(!showBalance)}
-            className="h-10 w-10 sm:h-8 sm:w-8 p-0 hover:bg-orange-100 dark:hover:bg-slate-700"
+            className="h-10 w-10 sm:h-8 sm:w-8 p-0 hover:bg-lime-200 dark:hover:bg-slate-700"
           >
             {showBalance ? (
               <Eye className="h-4 w-4 text-slate-600 dark:text-slate-400" />
@@ -535,7 +535,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       <div className="grid grid-cols-2 gap-3">
         <Button 
           onClick={() => setView("send")} 
-          className="bg-orange-500 hover:bg-orange-600 text-white h-12"
+          className="bg-lime-1000 hover:bg-lime-500 text-white h-12"
         >
           <img src={sendIconPath} alt="Send" className="mr-2 h-4 w-4" />
           Send
@@ -543,7 +543,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
         <Button 
           onClick={() => setView("qr")} 
           variant="outline" 
-          className="border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 h-12"
+          className="border-lime-1000 text-lime-1000 hover:bg-lime-100 dark:hover:bg-lime-800/20 h-12"
         >
           <QrCode className="mr-2 h-4 w-4" />
           Receive
@@ -605,7 +605,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
                 variant="ghost"
                 size="sm"
                 onClick={() => setAmount(selectedBalance?.balance || "0")}
-                className="h-6 px-2 text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20"
+                className="h-6 px-2 text-lime-500 hover:bg-lime-100 dark:text-lime-400 dark:hover:bg-lime-800/20"
               >
                 Max
               </Button>
@@ -635,7 +635,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
         {/* Send Button */}
         <Button
           onClick={handleSend}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white h-12 mt-6"
+          className="w-full bg-lime-1000 hover:bg-lime-500 text-white h-12 mt-6"
           disabled={!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance || sendMutation.isPending}
         >
           {sendMutation.isPending ? (
@@ -712,7 +712,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
                 description: "Wallet address copied to clipboard",
               });
             }}
-            className="border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+            className="border-lime-1000 text-lime-1000 hover:bg-lime-100 dark:hover:bg-lime-800/20"
           >
             <Copy className="mr-2 h-4 w-4" />
             Copy Address
@@ -736,7 +736,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
       <Button
         onClick={handleClose}
-        className="w-full bg-orange-500 hover:bg-orange-600 text-white h-12"
+        className="w-full bg-lime-1000 hover:bg-lime-500 text-white h-12"
       >
         Done
       </Button>

@@ -21,7 +21,7 @@ interface WalletHoverProps {
 const getCurrencyIcon = (currency: string) => {
   switch (currency) {
     case "BTC": 
-      return <SiBitcoin className="w-6 h-6 text-orange-500" />;
+      return <SiBitcoin className="w-6 h-6 text-lime-1000" />;
     case "BNB": 
       return <SiBinance className="w-6 h-6 text-yellow-500" />;
     case "USDT": 
@@ -218,7 +218,7 @@ export default function WalletHover({ isVisible, onClose, anchorRef, onOpenSend,
         {/* Total Balance */}
         <div className="text-center space-y-1">
           <p className="text-sm text-muted-foreground">Total Balance</p>
-          <p className="text-2xl font-bold text-orange-500 dark:text-cyan-400">
+          <p className="text-2xl font-bold text-lime-1000 dark:text-cyan-400">
             {isBalanceVisible ? formatUSD(totalUSD.toString()) : "••••••"}
           </p>
         </div>

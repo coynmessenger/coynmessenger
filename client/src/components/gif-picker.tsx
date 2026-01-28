@@ -137,8 +137,8 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
           size="icon"
           className={`backdrop-blur-sm transition-all duration-300 rounded-xl h-8 w-8 sm:h-8 sm:w-8 touch-manipulation ${
             isOpen 
-              ? 'bg-orange-500 text-white shadow-md' 
-              : 'text-gray-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+              ? 'bg-lime-1000 text-white shadow-md' 
+              : 'text-gray-500 dark:text-slate-400 hover:text-lime-1000 dark:hover:text-lime-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
           }`}
         >
           <Image className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -167,7 +167,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
                 placeholder="Search GIFs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 pl-9 pr-4 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-orange-400 dark:focus:border-orange-400 rounded-lg"
+                className="h-9 pl-9 pr-4 text-sm bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-lime-400 dark:focus:border-lime-400 rounded-lg"
               />
             </div>
           </div>
@@ -184,7 +184,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
                     onClick={() => handleCategoryChange(category.id)}
                     className={`flex-shrink-0 h-8 w-8 p-0 text-xs font-medium transition-all duration-200 ${
                       selectedCategory === category.id
-                        ? "bg-orange-500 text-white hover:bg-orange-600"
+                        ? "bg-lime-1000 text-white hover:bg-lime-500"
                         : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700"
                     }`}
                     title={category.label}
@@ -201,7 +201,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="flex flex-col items-center space-y-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                  <Loader2 className="h-8 w-8 animate-spin text-lime-1000" />
                   <p className="text-sm text-gray-500 dark:text-slate-400">Loading GIFs...</p>
                 </div>
               </div>

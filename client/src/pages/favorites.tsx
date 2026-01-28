@@ -165,10 +165,10 @@ export default function FavoritesPage() {
                 onClick={() => setShowWalletHover(!showWalletHover)}
                 variant="outline"
                 size="icon"
-                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-orange-200 dark:border-cyan-600"
+                className="hover:bg-accent relative h-12 w-12 sm:h-9 sm:w-9 touch-manipulation bg-white/80 dark:bg-slate-800/80 border-lime-300 dark:border-cyan-600"
                 title="View payment methods and balance"
               >
-                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-orange-500 dark:text-cyan-400" />
+                <Wallet className="h-4 w-4 sm:h-3 sm:w-3 text-lime-1000 dark:text-cyan-400" />
               </Button>
               
               <Button
@@ -179,7 +179,7 @@ export default function FavoritesPage() {
               >
                 <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 sm:h-4 sm:w-4 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-lime-1000 text-white text-xs rounded-full h-5 w-5 sm:h-4 sm:w-4 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}

@@ -154,15 +154,15 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
       </DialogTrigger>
       <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] overflow-hidden flex flex-col bg-gradient-to-br from-white via-gray-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-2 border-white/20 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl">
         <DialogHeader className="flex-shrink-0 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-cyan-500/10 rounded-t-lg"></div>
-          <DialogTitle className="text-xl sm:text-3xl font-black bg-gradient-to-r from-orange-500 via-orange-600 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3 relative z-10 py-2">
+          <div className="absolute inset-0 bg-gradient-to-r from-lime-1000/10 via-transparent to-cyan-500/10 rounded-t-lg"></div>
+          <DialogTitle className="text-xl sm:text-3xl font-black bg-gradient-to-r from-lime-1000 via-lime-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3 relative z-10 py-2">
             <div className="relative">
-              <Gift className="h-7 w-7 text-orange-500 drop-shadow-sm" />
-              <div className="absolute inset-0 bg-orange-400 rounded-full blur-sm opacity-10 group-hover:opacity-30 transition-opacity duration-300"></div>
+              <Gift className="h-7 w-7 text-lime-1000 drop-shadow-sm" />
+              <div className="absolute inset-0 bg-lime-400 rounded-full blur-sm opacity-10 group-hover:opacity-30 transition-opacity duration-300"></div>
             </div>
             <span className="drop-shadow-sm">NFT Purchase Rewards</span>
           </DialogTitle>
-          <div className="h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent mt-2"></div>
+          <div className="h-px bg-gradient-to-r from-transparent via-lime-1000/50 to-transparent mt-2"></div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
@@ -172,7 +172,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
               <span className="hidden sm:inline">My Rewards</span>
               <span className="sm:hidden">Rewards</span>
               {unredeemedRewards.length > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-orange-500 text-white text-xs">
+                <Badge variant="secondary" className="ml-1 bg-lime-1000 text-white text-xs">
                   {unredeemedRewards.length}
                 </Badge>
               )}
@@ -192,10 +192,10 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
           <div className="flex-1 overflow-y-auto">
             <TabsContent value="rewards" className="space-y-4 mt-0">
               <div className="grid gap-4">
-                <Card className="glass-card border-orange-200 dark:border-orange-800">
+                <Card className="glass-card border-lime-300 dark:border-lime-700">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-orange-500" />
+                      <Trophy className="h-5 w-5 text-lime-1000" />
                       Reward Tiers
                     </CardTitle>
                   </CardHeader>
@@ -224,7 +224,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
 
                 {loadingRewards ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-1000 mx-auto"></div>
                     <p className="text-muted-foreground mt-2">Loading rewards...</p>
                   </div>
                 ) : unredeemedRewards.length === 0 ? (
@@ -271,7 +271,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
                               <Button
                                 onClick={() => redeemMutation.mutate(reward.id)}
                                 disabled={redeemMutation.isPending}
-                                className="bg-gradient-to-r from-orange-500 via-orange-600 to-cyan-500 hover:from-orange-600 hover:via-orange-700 hover:to-cyan-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                className="bg-gradient-to-r from-lime-1000 via-lime-500 to-cyan-500 hover:from-lime-500 hover:via-lime-600 hover:to-cyan-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                               >
                                 {redeemMutation.isPending ? (
                                   <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
             <TabsContent value="collection" className="space-y-4 mt-0">
               {loadingRewards ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-1000 mx-auto"></div>
                   <p className="text-muted-foreground mt-2">Loading collection...</p>
                 </div>
               ) : redeemedRewards.length === 0 ? (
@@ -387,7 +387,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
             <TabsContent value="purchases" className="space-y-4 mt-0">
               {loadingPurchases ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-1000 mx-auto"></div>
                   <p className="text-muted-foreground mt-2">Loading purchases...</p>
                 </div>
               ) : (purchases as Purchase[]).length === 0 ? (

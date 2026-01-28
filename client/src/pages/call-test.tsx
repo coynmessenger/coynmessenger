@@ -248,7 +248,7 @@ export default function CallTestPage() {
 
             {/* Incoming Call Alert */}
             {incomingCall && (
-              <Card className="bg-orange-500/20 border-orange-500">
+              <Card className="bg-lime-1000/20 border-lime-1000">
                 <CardContent className="p-4">
                   <h3 className="text-white font-bold mb-2">Incoming {incomingCall.type} call!</h3>
                   <p className="text-white/80 mb-4">From user: {incomingCall.fromUserId}</p>

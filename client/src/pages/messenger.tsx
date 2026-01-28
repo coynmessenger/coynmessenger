@@ -712,7 +712,7 @@ export default function MessengerPage() {
 
                                   {/* Unread message indicator */}
                                   {hasUnreadMessages && (
-                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-lime-1000 rounded-full flex items-center justify-center">
                                       <div className="w-2 h-2 bg-white rounded-full"></div>
                                     </div>
                                   )}
@@ -726,14 +726,14 @@ export default function MessengerPage() {
                                     </h3>
                                     {conversation.lastMessage && conversation.lastMessage.timestamp && (
                                       <span className={`text-xs ${
-                                        hasUnreadMessages ? 'text-orange-600 dark:text-orange-400 font-semibold' : 'text-muted-foreground'
+                                        hasUnreadMessages ? 'text-lime-500 dark:text-lime-400 font-semibold' : 'text-muted-foreground'
                                       }`}>
                                         {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                       </span>
                                     )}
                                   </div>
                                   <p className={`text-sm truncate ${
-                                    hasUnreadMessages ? 'text-orange-800 dark:text-orange-200 font-medium' : 'text-muted-foreground'
+                                    hasUnreadMessages ? 'text-lime-700 dark:text-lime-300 font-medium' : 'text-muted-foreground'
                                   }`}>
                                     {conversation.lastMessage?.content || "No messages yet"}
                                   </p>
@@ -899,7 +899,7 @@ export default function MessengerPage() {
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500"
+                className="w-full bg-gray-50 dark:bg-gray-50 border border-gray-300 dark:border-gray-300 rounded-lg px-4 py-2 text-black dark:text-black placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-lime-1000 dark:focus:border-lime-1000"
                 autoFocus
               />
               {searchQuery && (
@@ -961,15 +961,15 @@ export default function MessengerPage() {
                               // Clear notifications for this conversation when opened
                               clearNotificationsForConversation(conversation.id.toString());
                             }}
-                            className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
-                              hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
+                            className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-lime-1000 ${
+                              hasUnreadMessages ? 'bg-lime-100 dark:bg-lime-800/20 border-l-lime-1000' : ''
                             }`}
                           >
                             <div className="flex items-center space-x-3">
                               <div className="relative">
                                 <Avatar className="w-12 h-12">
                                   {conversation.isGroup ? (
-                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                    <AvatarFallback className="bg-gradient-to-br from-lime-1000 to-lime-500 text-white">
                                       <Users className="w-6 h-6" />
                                     </AvatarFallback>
                                   ) : (
@@ -987,7 +987,7 @@ export default function MessengerPage() {
 
                                 {/* Unread message indicator */}
                                 {hasUnreadMessages && (
-                                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-lime-1000 rounded-full flex items-center justify-center">
                                     <div className="w-2 h-2 bg-white rounded-full"></div>
                                   </div>
                                 )}
@@ -1001,14 +1001,14 @@ export default function MessengerPage() {
                                   </h3>
                                   {conversation.lastMessage && conversation.lastMessage.timestamp && (
                                     <span className={`text-xs ${
-                                      hasUnreadMessages ? 'text-orange-600 dark:text-orange-400 font-semibold' : 'text-muted-foreground'
+                                      hasUnreadMessages ? 'text-lime-500 dark:text-lime-400 font-semibold' : 'text-muted-foreground'
                                     }`}>
                                       {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                   )}
                                 </div>
                                 <p className={`text-sm truncate ${
-                                  hasUnreadMessages ? 'text-orange-800 dark:text-orange-200 font-medium' : 'text-muted-foreground'
+                                  hasUnreadMessages ? 'text-lime-700 dark:text-lime-300 font-medium' : 'text-muted-foreground'
                                 }`}>
                                   {conversation.lastMessage?.content || "No messages yet"}
                                 </p>

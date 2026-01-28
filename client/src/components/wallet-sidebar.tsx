@@ -559,20 +559,20 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       />
       
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-orange-200/20 dark:hover:shadow-orange-900/20 transition-shadow duration-500 overflow-hidden">
+      <div className="fixed right-0 top-0 h-full w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/50 z-50 shadow-2xl hover:shadow-lime-300/20 dark:hover:shadow-lime-800/20 transition-shadow duration-500 overflow-hidden">
         <div className="flex flex-col h-full overflow-y-auto">
           {/* Header */}
-          <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
+          <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-lime-100/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 blur-lg opacity-30 animate-pulse rounded-xl"></div>
-                  <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-300 relative z-10">
+                  <div className="absolute inset-0 bg-gradient-to-r from-lime-400 to-amber-400 blur-lg opacity-30 animate-pulse rounded-xl"></div>
+                  <div className="w-11 h-11 bg-gradient-to-br from-lime-1000 to-amber-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-300 relative z-10">
                     <Wallet className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap leading-tight">COYN Wallet</h2>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-lime-500 dark:from-slate-200 dark:to-lime-400 bg-clip-text text-transparent whitespace-nowrap leading-tight">COYN Wallet</h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap leading-tight">Portfolio Overview</p>
                 </div>
               </div>
@@ -590,7 +590,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   size="icon"
                   onClick={() => refreshBalancesMutation.mutate()}
                   disabled={refreshBalancesMutation.isPending}
-                  className="h-8 w-8 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors"
+                  className="h-8 w-8 text-gray-500 hover:text-lime-1000 dark:text-gray-400 dark:hover:text-lime-400 transition-colors"
                   title="Refresh blockchain balances"
                 >
                   <RefreshCw className={`h-4 w-4 ${refreshBalancesMutation.isPending ? 'animate-spin' : ''}`} />
@@ -609,7 +609,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
           {/* Total Balance */}
           <div className="p-6">
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-orange-200/50 dark:border-gray-600/50 shadow-lg">
+            <Card className="bg-gradient-to-br from-lime-100 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-lime-300/50 dark:border-gray-600/50 shadow-lg">
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Total Portfolio Value</p>
@@ -660,7 +660,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                             });
                           }
                         }}
-                        className="h-8 px-3 text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
+                        className="h-8 px-3 text-lime-1000 hover:text-lime-500 dark:text-lime-400 dark:hover:text-lime-400"
                       >
                         <Copy className="h-4 w-4 mr-1" />
                         Copy
@@ -693,7 +693,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   <RefreshCw 
                     className={`w-4 h-4 ${
                       refreshBalancesMutation.isPending 
-                        ? 'animate-spin text-orange-500 dark:text-orange-400' 
+                        ? 'animate-spin text-lime-1000 dark:text-lime-400' 
                         : 'text-gray-500 dark:text-gray-400'
                     }`} 
                     style={{
@@ -729,7 +729,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                             variant="ghost"
                             size="sm"
                             onClick={() => handleSend(balance.currency)}
-                            className="h-7 w-7 p-0 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400"
+                            className="h-7 w-7 p-0 text-gray-500 hover:text-lime-1000 dark:text-gray-400 dark:hover:text-lime-400"
                           >
                             <img src={sendIconPath} alt="Send" className="w-3.5 h-3.5" />
                           </Button>
@@ -740,7 +740,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                               setSelectedCurrency(balance.currency);
                               setShowQRModal(true);
                             }}
-                            className="h-7 w-7 p-0 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400"
+                            className="h-7 w-7 p-0 text-gray-500 hover:text-lime-1000 dark:text-gray-400 dark:hover:text-lime-400"
                           >
                             <QrCode className="w-3.5 h-3.5" />
                           </Button>
@@ -783,7 +783,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                     const maxBalance = walletBalances.find(b => b.currency === selectedCurrency)?.balance || "0";
                     setSendAmount(maxBalance);
                   }}
-                  className="px-3 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400"
+                  className="px-3 border-lime-300 hover:bg-lime-100 dark:border-lime-700 dark:hover:bg-lime-800/20 text-lime-500 dark:text-lime-400"
                 >
                   Max
                 </Button>
@@ -797,7 +797,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowQRScanner(true)}
-                  className="h-8 px-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                  className="h-8 px-2 text-lime-1000 hover:text-lime-500 hover:bg-lime-100 dark:hover:bg-lime-800/20"
                 >
                   <Camera className="w-4 h-4 mr-1" />
                   Scan QR
@@ -808,7 +808,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 placeholder="Enter full wallet address (0x...)"
                 value={recipientAddress}
                 onChange={(e) => setRecipientAddress(e.target.value)}
-                className="w-full min-h-[80px] p-3 text-sm font-mono bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-md resize-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 break-all"
+                className="w-full min-h-[80px] p-3 text-sm font-mono bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-md resize-none focus:ring-2 focus:ring-lime-1000/20 focus:border-lime-1000 break-all"
                 rows={3}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -819,7 +819,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
               <Button
                 onClick={handleConfirmSend}
                 disabled={sendCryptoMutation.isPending}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                className="flex-1 bg-gradient-to-r from-lime-1000 to-amber-500 hover:from-lime-500 hover:to-amber-600"
               >
                 {sendCryptoMutation.isPending ? "Sending..." : "Send"}
               </Button>

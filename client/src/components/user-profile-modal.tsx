@@ -119,7 +119,7 @@ export default function UserProfileModal({
                   @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
                 </p>
                 {isOwnProfile && (
-                  <Badge className="bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs">
+                  <Badge className="bg-lime-200 dark:bg-lime-800/20 text-lime-600 dark:text-lime-400 text-xs">
                     You
                   </Badge>
                 )}
@@ -159,7 +159,7 @@ export default function UserProfileModal({
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                      className="w-full h-10 sm:h-12 bg-lime-1000 hover:bg-lime-500 text-white font-medium"
                     >
                       <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       Message Yourself
@@ -172,7 +172,7 @@ export default function UserProfileModal({
                   {onSendMessage && (
                     <Button 
                       onClick={onSendMessage}
-                      className="w-full h-10 sm:h-12 bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                      className="w-full h-10 sm:h-12 bg-lime-1000 hover:bg-lime-500 text-white font-medium"
                     >
                       <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       Send Message
