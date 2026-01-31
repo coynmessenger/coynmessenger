@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { FileText, Shield, ShoppingBag, Lock, AlertTriangle, Scale, Gavel, Mail, X } from "lucide-react";
+import { FileText, Shield, ShoppingBag, Lock, AlertTriangle, Scale, Gavel, Mail } from "lucide-react";
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -14,19 +14,12 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
       <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] p-0 overflow-hidden bg-gradient-to-b from-background to-background/95 border-orange-200/20 dark:border-cyan-500/20 z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
         
         <div className="relative bg-gradient-to-r from-orange-500 via-orange-400 to-amber-500 dark:from-cyan-600 dark:via-cyan-500 dark:to-teal-500 p-6 pb-8">
-          <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
               <FileText className="h-8 w-8 text-white" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">Terms and Conditions</h2>
-              <p className="text-white/80 text-sm mt-1">Please read carefully before using our services</p>
             </div>
           </div>
         </div>

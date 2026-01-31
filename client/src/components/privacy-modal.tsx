@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Database, Share2, Lock, Clock, UserCheck, Cookie, Globe, Baby, Mail, Scale, X } from "lucide-react";
+import { ShieldCheck, Database, Share2, Lock, UserCheck, Cookie, Globe, Mail, Scale } from "lucide-react";
 
 interface PrivacyModalProps {
   isOpen: boolean;
@@ -14,19 +14,12 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
       <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] p-0 overflow-hidden bg-gradient-to-b from-background to-background/95 border-orange-200/20 dark:border-cyan-500/20 z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
         
         <div className="relative bg-gradient-to-r from-orange-500 via-orange-400 to-amber-500 dark:from-cyan-600 dark:via-cyan-500 dark:to-teal-500 p-6 pb-8">
-          <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
               <ShieldCheck className="h-8 w-8 text-white" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">Privacy Policy</h2>
-              <p className="text-white/80 text-sm mt-1">How we protect and handle your data</p>
             </div>
           </div>
         </div>
@@ -135,30 +128,13 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
               </div>
             </div>
 
-            <div className="group p-4 rounded-xl bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30 border border-slate-100 dark:border-slate-800/30 hover:shadow-md transition-all">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-slate-100 dark:bg-slate-900/50 rounded-lg group-hover:scale-110 transition-transform">
-                  <Clock className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-2">6. Data Retention</h3>
-                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Account info: While active + 7 years</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Transactions: 7 years</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Messages: 3 years</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Technical logs: 1 year</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
             <div className="group p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-100 dark:border-indigo-800/30 hover:shadow-md transition-all">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg group-hover:scale-110 transition-transform">
                   <UserCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-indigo-700 dark:text-indigo-300 mb-2">7. Your Privacy Rights</h3>
+                  <h3 className="text-base font-semibold text-indigo-700 dark:text-indigo-300 mb-2">6. Your Privacy Rights</h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>Access your data</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>Correct inaccuracies</li>
@@ -175,7 +151,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   <Cookie className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-orange-700 dark:text-orange-300 mb-2">8. Cookies & Tracking</h3>
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-orange-300 mb-2">7. Cookies & Tracking</h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Essential cookies</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Performance cookies</li>
@@ -192,26 +168,12 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   <Globe className="h-5 w-5 text-rose-600 dark:text-rose-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-rose-700 dark:text-rose-300 mb-2">9. Third-Party Services</h3>
+                  <h3 className="text-base font-semibold text-rose-700 dark:text-rose-300 mb-2">8. Third-Party Services</h3>
                   <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>Blockchain networks</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>Payment processors</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>E-commerce platforms</li>
                   </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="group p-4 rounded-xl bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-950/30 dark:to-fuchsia-950/30 border border-pink-100 dark:border-pink-800/30 hover:shadow-md transition-all">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-pink-100 dark:bg-pink-900/50 rounded-lg group-hover:scale-110 transition-transform">
-                  <Baby className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-pink-700 dark:text-pink-300 mb-2">10. Children's Privacy</h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Our services are not intended for users under 18 years of age. We do not knowingly collect personal information from children.
-                  </p>
                 </div>
               </div>
             </div>
@@ -222,7 +184,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   <Scale className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-emerald-700 dark:text-emerald-300 mb-2">11. Regulatory Compliance</h3>
+                  <h3 className="text-base font-semibold text-emerald-700 dark:text-emerald-300 mb-2">9. Regulatory Compliance</h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>GDPR</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>CCPA</li>
@@ -239,7 +201,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   <Mail className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">12. Contact Information</h3>
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">10. Contact Information</h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     For privacy-related questions, contact us at <span className="font-medium text-orange-600 dark:text-cyan-400">info@coynful.com</span> or through our in-app support. Response time: within 30 days.
                   </p>
