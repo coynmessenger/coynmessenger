@@ -1,6 +1,7 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { FileText, Shield, ShoppingBag, Lock, AlertTriangle, Scale, Gavel, Mail, X } from "lucide-react";
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -10,167 +11,200 @@ interface TermsModalProps {
 export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] bg-background border-border z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-foreground">
-            Terms and Conditions
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] p-0 overflow-hidden bg-gradient-to-b from-background to-background/95 border-orange-200/20 dark:border-cyan-500/20 z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
         
-        <ScrollArea className="h-[70vh] pr-4">
-          <div className="space-y-6 text-sm text-foreground leading-relaxed">
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">1. Acceptance of Terms</h3>
-              <p>
-                By accessing and using COYN Messenger and its integrated marketplace ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
-              </p>
-            </section>
+        <div className="relative bg-gradient-to-r from-orange-500 via-orange-400 to-amber-500 dark:from-cyan-600 dark:via-cyan-500 dark:to-teal-500 p-6 pb-8">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <FileText className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Terms and Conditions</h2>
+              <p className="text-white/80 text-sm mt-1">Please read carefully before using our services</p>
+            </div>
+          </div>
+        </div>
+        
+        <ScrollArea className="h-[60vh] px-6 py-4">
+          <div className="space-y-4">
+            
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-cyan-950/30 dark:to-teal-950/30 border border-orange-100 dark:border-cyan-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-orange-100 dark:bg-cyan-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <FileText className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">1. Acceptance of Terms</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    By accessing and using COYN Messenger and its integrated marketplace ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">2. Service Description</h3>
-              <p className="mb-3">
-                COYN Messenger is a cryptocurrency-integrated messaging platform that provides:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Real-time messaging and communication services</li>
-                <li>Cryptocurrency wallet integration and transactions</li>
-                <li>E-commerce marketplace with crypto payment options</li>
-                <li>Escrow services for secure transactions</li>
-                <li>Digital asset management tools</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-blue-700 dark:text-blue-300 mb-2">2. Service Description</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">COYN Messenger is a cryptocurrency-integrated messaging platform that provides:</p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Real-time messaging</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Crypto wallet integration</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>E-commerce marketplace</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Escrow services</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">3. User Accounts and Responsibilities</h3>
-              <p className="mb-3">
-                To use our services, you must:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Be at least 18 years of age or have parental consent</li>
-                <li>Provide accurate, current, and complete information</li>
-                <li>Maintain the security of your account credentials</li>
-                <li>Accept responsibility for all activities under your account</li>
-                <li>Comply with all applicable laws and regulations</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-100 dark:border-green-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-green-700 dark:text-green-300 mb-2">3. User Responsibilities</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">To use our services, you must:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Be at least 18 years of age</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Provide accurate information</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Maintain account security</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Comply with all applicable laws</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">4. Cryptocurrency and Financial Services</h3>
-              <p className="mb-3">
-                Our platform facilitates cryptocurrency transactions. You acknowledge that:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Cryptocurrency values are volatile and can fluctuate significantly</li>
-                <li>Transactions are irreversible once confirmed on the blockchain</li>
-                <li>We are not responsible for market losses or transaction fees</li>
-                <li>You are responsible for tax obligations related to crypto transactions</li>
-                <li>We do not provide financial, investment, or tax advice</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-100 dark:border-amber-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-amber-700 dark:text-amber-300 mb-2">4. Cryptocurrency Services</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">You acknowledge that:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Cryptocurrency values are volatile</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Transactions are irreversible</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>You are responsible for tax obligations</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>We do not provide financial advice</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">5. Marketplace and E-commerce</h3>
-              <p className="mb-3">
-                When using our integrated marketplace:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Product listings are sourced from third-party retailers</li>
-                <li>We act as an intermediary for transactions</li>
-                <li>Shipping and fulfillment are handled by merchant partners</li>
-                <li>Returns and refunds are subject to merchant policies</li>
-                <li>We are not responsible for product quality or delivery issues</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-100 dark:border-purple-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <ShoppingBag className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-purple-700 dark:text-purple-300 mb-2">5. Marketplace & E-commerce</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">When using our integrated marketplace:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Products are from third-party retailers</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>We act as an intermediary</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Returns subject to merchant policies</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">6. Escrow Services</h3>
-              <p className="mb-3">
-                Our escrow services provide secure transaction mediation:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Funds are held in secure smart contracts</li>
-                <li>Release conditions are predetermined by both parties</li>
-                <li>Dispute resolution may involve manual review</li>
-                <li>Escrow fees may apply to certain transactions</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30 border border-teal-100 dark:border-teal-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Lock className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-teal-700 dark:text-teal-300 mb-2">6. Escrow Services</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">Our escrow services provide secure transaction mediation:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>Funds held in secure smart contracts</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>Predetermined release conditions</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>Dispute resolution available</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">7. Prohibited Activities</h3>
-              <p className="mb-3">
-                You agree not to:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Use the service for illegal activities or money laundering</li>
-                <li>Attempt to hack, disrupt, or compromise system security</li>
-                <li>Create multiple accounts to circumvent restrictions</li>
-                <li>Engage in fraudulent or deceptive practices</li>
-                <li>Violate intellectual property rights</li>
-                <li>Harass, threaten, or abuse other users</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 border border-red-100 dark:border-red-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-red-700 dark:text-red-300 mb-2">7. Prohibited Activities</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">You agree not to:</p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-400 rounded-full"></span>Engage in illegal activities</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-400 rounded-full"></span>Attempt to hack systems</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-400 rounded-full"></span>Create multiple accounts</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-400 rounded-full"></span>Harass other users</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">8. Privacy and Data Protection</h3>
-              <p>
-                Your privacy is important to us. Please review our Privacy Policy, which governs how we collect, use, and protect your personal information. By using our service, you consent to our data practices as described in the Privacy Policy.
-              </p>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30 border border-slate-100 dark:border-slate-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-slate-100 dark:bg-slate-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Scale className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-2">8. Limitation of Liability</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    We provide the service "as is" without warranties. We are not liable for indirect, incidental, or consequential damages. Our total liability is limited to the amount paid for services.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">9. Limitation of Liability</h3>
-              <p className="mb-3">
-                To the maximum extent permitted by law:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>We provide the service "as is" without warranties</li>
-                <li>We are not liable for indirect, incidental, or consequential damages</li>
-                <li>Our total liability is limited to the amount paid for services</li>
-                <li>We are not responsible for third-party actions or services</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-100 dark:border-indigo-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Gavel className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-indigo-700 dark:text-indigo-300 mb-2">9. Governing Law</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    These terms are governed by the laws of the jurisdiction where our company is incorporated. Any disputes will be resolved through binding arbitration.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">10. Intellectual Property</h3>
-              <p>
-                All content, trademarks, and intellectual property on our platform are owned by us or our licensors. You may not copy, modify, or distribute our content without written permission.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">11. Termination</h3>
-              <p>
-                We reserve the right to terminate or suspend your account at any time for violations of these terms. Upon termination, your right to use the service ceases immediately.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">12. Changes to Terms</h3>
-              <p>
-                We may update these terms periodically. Continued use of the service after changes constitutes acceptance of the new terms. We will notify users of significant changes.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">13. Governing Law</h3>
-              <p>
-                These terms are governed by the laws of the jurisdiction where our company is incorporated. Any disputes will be resolved through binding arbitration.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">14. Contact Information</h3>
-              <p>
-                For questions about these terms, please contact us at info@coynful.com or through our in-app support system.
-              </p>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-cyan-950/30 dark:to-teal-950/30 border border-orange-100 dark:border-cyan-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-orange-100 dark:bg-cyan-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Mail className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">10. Contact Information</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    For questions about these terms, please contact us at <span className="font-medium text-orange-600 dark:text-cyan-400">info@coynful.com</span> or through our in-app support system.
+                  </p>
+                </div>
+              </div>
+            </div>
 
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end pt-4">
-          <Button onClick={onClose} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Close
+        <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+          <Button 
+            onClick={onClose} 
+            className="bg-gradient-to-r from-orange-500 to-amber-500 dark:from-cyan-600 dark:to-teal-600 hover:from-orange-600 hover:to-amber-600 dark:hover:from-cyan-700 dark:hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all"
+          >
+            I Understand
           </Button>
         </div>
       </DialogContent>

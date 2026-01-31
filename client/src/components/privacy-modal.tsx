@@ -1,6 +1,7 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { ShieldCheck, Database, Share2, Lock, Clock, UserCheck, Cookie, Globe, Baby, Mail, Scale, X } from "lucide-react";
 
 interface PrivacyModalProps {
   isOpen: boolean;
@@ -10,224 +11,251 @@ interface PrivacyModalProps {
 export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] bg-background border-border z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-foreground">
-            Privacy Policy
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] p-0 overflow-hidden bg-gradient-to-b from-background to-background/95 border-orange-200/20 dark:border-cyan-500/20 z-[60]" onPointerDownOutside={(e) => e.preventDefault()}>
         
-        <ScrollArea className="h-[70vh] pr-4">
-          <div className="space-y-6 text-sm text-foreground leading-relaxed">
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">1. Information We Collect</h3>
-              <p className="mb-3">
-                We collect information you provide directly to us and information automatically collected through your use of our services:
-              </p>
-              
-              <h4 className="font-semibold mb-2">Personal Information:</h4>
-              <ul className="list-disc pl-6 space-y-1 mb-3">
-                <li>Account registration details (username, email, profile information)</li>
-                <li>Wallet addresses and cryptocurrency transaction data</li>
-                <li>Shipping addresses and contact information for marketplace purchases</li>
-                <li>Communication content and message history</li>
-                <li>Identity verification documents when required</li>
-              </ul>
+        <div className="relative bg-gradient-to-r from-orange-500 via-orange-400 to-amber-500 dark:from-cyan-600 dark:via-cyan-500 dark:to-teal-500 p-6 pb-8">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <ShieldCheck className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Privacy Policy</h2>
+              <p className="text-white/80 text-sm mt-1">How we protect and handle your data</p>
+            </div>
+          </div>
+        </div>
+        
+        <ScrollArea className="h-[60vh] px-6 py-4">
+          <div className="space-y-4">
+            
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-blue-700 dark:text-blue-300 mb-2">1. Information We Collect</h3>
+                  
+                  <div className="mb-3">
+                    <h4 className="font-medium text-sm text-blue-600 dark:text-blue-400 mb-2">Personal Information:</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Account details</li>
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Wallet addresses</li>
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Shipping information</li>
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Message history</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-sm text-blue-600 dark:text-blue-400 mb-2">Technical Information:</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Device information</li>
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Usage data</li>
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Session tokens</li>
+                      <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Analytics</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-              <h4 className="font-semibold mb-2">Technical Information:</h4>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Device information (IP address, browser type, operating system)</li>
-                <li>Usage data and interaction patterns</li>
-                <li>Session information and authentication tokens</li>
-                <li>Performance analytics and error logs</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-100 dark:border-green-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-green-700 dark:text-green-300 mb-2">2. How We Use Your Information</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Provide messaging services</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Process crypto transactions</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Facilitate purchases</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Verify identity</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Improve services</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>Comply with regulations</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">2. How We Use Your Information</h3>
-              <p className="mb-3">
-                We use collected information to:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Provide and maintain our messaging and marketplace services</li>
-                <li>Process cryptocurrency transactions and escrow services</li>
-                <li>Facilitate e-commerce purchases and order fulfillment</li>
-                <li>Verify user identity and prevent fraud</li>
-                <li>Improve our services and develop new features</li>
-                <li>Comply with legal obligations and regulatory requirements</li>
-                <li>Send important service notifications and updates</li>
-                <li>Provide customer support and resolve technical issues</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-100 dark:border-purple-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Share2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-purple-700 dark:text-purple-300 mb-2">3. Information Sharing</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">We may share your information with:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Payment processors for transactions</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>E-commerce partners for fulfillment</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Legal authorities when required</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">3. Information Sharing and Disclosure</h3>
-              <p className="mb-3">
-                We may share your information in the following circumstances:
-              </p>
-              
-              <h4 className="font-semibold mb-2">Service Providers:</h4>
-              <ul className="list-disc pl-6 space-y-1 mb-3">
-                <li>Payment processors for cryptocurrency transactions</li>
-                <li>E-commerce partners for product fulfillment</li>
-                <li>Cloud service providers for data storage and processing</li>
-                <li>Analytics providers for service improvement</li>
-              </ul>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-100 dark:border-amber-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-amber-700 dark:text-amber-300 mb-2">4. Blockchain & Cryptocurrency</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">Important considerations:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Blockchain transactions are public and immutable</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Wallet addresses may be linked to identity</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Transaction history is permanent</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-              <h4 className="font-semibold mb-2">Legal Requirements:</h4>
-              <ul className="list-disc pl-6 space-y-1 mb-3">
-                <li>To comply with applicable laws and regulations</li>
-                <li>In response to valid legal requests from authorities</li>
-                <li>To protect our rights, property, or safety</li>
-                <li>To prevent fraud or security threats</li>
-              </ul>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30 border border-teal-100 dark:border-teal-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-teal-700 dark:text-teal-300 mb-2">5. Data Security</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>End-to-end encryption</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>Secure data storage</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>Multi-factor auth</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-teal-400 rounded-full"></span>Security audits</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-              <h4 className="font-semibold mb-2">Business Transfers:</h4>
-              <p>
-                In connection with mergers, acquisitions, or asset sales, your information may be transferred as part of the business assets.
-              </p>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30 border border-slate-100 dark:border-slate-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-slate-100 dark:bg-slate-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Clock className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-2">6. Data Retention</h3>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Account info: While active + 7 years</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Transactions: 7 years</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Messages: 3 years</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>Technical logs: 1 year</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">4. Cryptocurrency and Blockchain Data</h3>
-              <p className="mb-3">
-                Important considerations regarding cryptocurrency transactions:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Blockchain transactions are publicly visible and immutable</li>
-                <li>Wallet addresses may be linked to your identity</li>
-                <li>Transaction history is permanently recorded on blockchain networks</li>
-                <li>We may monitor transactions for compliance and security purposes</li>
-                <li>Cryptocurrency exchanges may require identity verification</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-100 dark:border-indigo-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <UserCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-indigo-700 dark:text-indigo-300 mb-2">7. Your Privacy Rights</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>Access your data</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>Correct inaccuracies</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>Request deletion</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>Data portability</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">5. Data Security</h3>
-              <p className="mb-3">
-                We implement comprehensive security measures to protect your information:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>End-to-end encryption for messaging communications</li>
-                <li>Secure storage of sensitive data with industry-standard encryption</li>
-                <li>Multi-factor authentication and access controls</li>
-                <li>Regular security audits and vulnerability assessments</li>
-                <li>Secure smart contracts for escrow and transaction processing</li>
-                <li>Incident response procedures for security breaches</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-100 dark:border-orange-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Cookie className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-orange-300 mb-2">8. Cookies & Tracking</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Essential cookies</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Performance cookies</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Preference cookies</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Local storage</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">6. Data Retention</h3>
-              <p className="mb-3">
-                We retain your information for different periods based on data type:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Account information: While your account is active plus 7 years</li>
-                <li>Transaction records: 7 years for compliance purposes</li>
-                <li>Communication logs: 3 years or as required by law</li>
-                <li>Technical logs: 1 year for security and troubleshooting</li>
-                <li>Marketing preferences: Until you withdraw consent</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 border border-rose-100 dark:border-rose-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-rose-100 dark:bg-rose-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Globe className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-rose-700 dark:text-rose-300 mb-2">9. Third-Party Services</h3>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>Blockchain networks</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>Payment processors</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>E-commerce platforms</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">7. Your Privacy Rights</h3>
-              <p className="mb-3">
-                Depending on your jurisdiction, you may have the following rights:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Access to your personal information we hold</li>
-                <li>Correction of inaccurate or incomplete data</li>
-                <li>Deletion of your personal information (subject to legal requirements)</li>
-                <li>Portability of your data to another service</li>
-                <li>Restriction of processing in certain circumstances</li>
-                <li>Objection to processing based on legitimate interests</li>
-                <li>Withdrawal of consent for optional data processing</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-950/30 dark:to-fuchsia-950/30 border border-pink-100 dark:border-pink-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-pink-100 dark:bg-pink-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Baby className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-pink-700 dark:text-pink-300 mb-2">10. Children's Privacy</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    Our services are not intended for users under 18 years of age. We do not knowingly collect personal information from children.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">8. Cookies and Tracking Technologies</h3>
-              <p className="mb-3">
-                We use various technologies to collect information:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Essential cookies for authentication and security</li>
-                <li>Performance cookies for analytics and optimization</li>
-                <li>Preference cookies to remember your settings</li>
-                <li>Local storage for application functionality</li>
-                <li>Web beacons for email communication tracking</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 border border-emerald-100 dark:border-emerald-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Scale className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-emerald-700 dark:text-emerald-300 mb-2">11. Regulatory Compliance</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>GDPR</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>CCPA</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>PIPEDA</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>AML/KYC</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">9. Third-Party Services</h3>
-              <p className="mb-3">
-                Our platform integrates with third-party services that have their own privacy policies:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Cryptocurrency networks and blockchain explorers</li>
-                <li>Payment processors and financial institutions</li>
-                <li>E-commerce platforms and shipping providers</li>
-                <li>Analytics and monitoring services</li>
-                <li>Cloud infrastructure providers</li>
-              </ul>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">10. International Data Transfers</h3>
-              <p>
-                Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for international transfers, including standard contractual clauses and adequacy decisions.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">11. Children's Privacy</h3>
-              <p>
-                Our services are not intended for users under 18 years of age. We do not knowingly collect personal information from children. If we become aware of such collection, we will delete the information immediately.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">12. Changes to This Privacy Policy</h3>
-              <p>
-                We may update this privacy policy periodically to reflect changes in our practices or legal requirements. We will notify you of material changes through the platform or email. Continued use after changes indicates acceptance of the updated policy.
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">13. Contact Information</h3>
-              <p className="mb-3">
-                For privacy-related questions or to exercise your rights, contact us at:
-              </p>
-              <ul className="list-none space-y-1">
-                <li>Email: info@coynful.com</li>
-                <li>Data Protection Officer: info@coynful.com</li>
-                <li>In-app support: Available through settings menu</li>
-                <li>Response time: Within 30 days for most requests</li>
-              </ul>
-            </section>
-
-            <section>
-              <h3 className="text-lg font-semibold mb-3 text-primary">14. Regulatory Compliance</h3>
-              <p className="mb-3">
-                We comply with applicable privacy laws including:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>General Data Protection Regulation (GDPR)</li>
-                <li>California Consumer Privacy Act (CCPA)</li>
-                <li>Personal Information Protection and Electronic Documents Act (PIPEDA)</li>
-                <li>Anti-money laundering (AML) and know your customer (KYC) regulations</li>
-              </ul>
-            </section>
+            <div className="group p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-cyan-950/30 dark:to-teal-950/30 border border-orange-100 dark:border-cyan-800/30 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-orange-100 dark:bg-cyan-900/50 rounded-lg group-hover:scale-110 transition-transform">
+                  <Mail className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">12. Contact Information</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    For privacy-related questions, contact us at <span className="font-medium text-orange-600 dark:text-cyan-400">info@coynful.com</span> or through our in-app support. Response time: within 30 days.
+                  </p>
+                </div>
+              </div>
+            </div>
 
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end pt-4">
-          <Button onClick={onClose} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Close
+        <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+          <Button 
+            onClick={onClose} 
+            className="bg-gradient-to-r from-orange-500 to-amber-500 dark:from-cyan-600 dark:to-teal-600 hover:from-orange-600 hover:to-amber-600 dark:hover:from-cyan-700 dark:hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all"
+          >
+            I Understand
           </Button>
         </div>
       </DialogContent>
