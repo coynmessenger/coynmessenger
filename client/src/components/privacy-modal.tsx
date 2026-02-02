@@ -191,8 +191,6 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   <h3 className="text-base font-semibold text-emerald-700 dark:text-emerald-300 mb-2">9. Regulatory Compliance</h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>GDPR</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>CCPA</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>PIPEDA</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>AML/KYC</li>
                   </ul>
                 </div>
@@ -207,7 +205,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">10. Contact Information</h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    For privacy-related questions, contact us at <span className="font-medium text-orange-600 dark:text-cyan-400">info@coynful.com</span> or through our in-app support. Response time: within 30 days.
+                    For privacy-related questions, contact us at <span className="font-medium text-orange-600 dark:text-cyan-400">info@coynful.com</span> or through our in-app support.
                   </p>
                 </div>
               </div>
