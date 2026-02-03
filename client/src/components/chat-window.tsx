@@ -2508,11 +2508,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             className="w-full h-auto max-h-32 object-cover rounded-lg"
                             loading="lazy"
                           />
-                          {msg.gifTitle && (
-                            <div className="mt-2 text-xs opacity-75">
-                              {msg.gifTitle}
-                            </div>
-                          )}
                         </div>
                       )}
                       
