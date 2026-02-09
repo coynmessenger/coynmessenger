@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,7 +9,7 @@ import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense, ComponentType } from "react";
 import { logger } from "@/lib/logger";
 
 import HomePage from "@/pages/home";
@@ -50,17 +50,31 @@ const wallets = [
   createWallet("com.trustwallet.app"),
 ];
 
+function ProtectedRoute({ component: Component }: { component: ComponentType }) {
+  const { user, isConnected, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <PageLoader />;
+  }
+  
+  if (!isConnected || !user) {
+    return <Redirect to="/" />;
+  }
+  
+  return <Component />;
+}
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/" component={HomePage} />
-        <Route path="/messenger" component={MessengerPage} />
-        <Route path="/marketplace" component={MarketplacePage} />
+        <Route path="/messenger">{() => <ProtectedRoute component={MessengerPage} />}</Route>
+        <Route path="/marketplace">{() => <ProtectedRoute component={MarketplacePage} />}</Route>
         <Route path="/product/:asin" component={ProductPage} />
-        <Route path="/favorites" component={FavoritesPage} />
-        <Route path="/purchase-history" component={PurchaseHistoryPage} />
-        <Route path="/call-test" component={CallTestPage} />
+        <Route path="/favorites">{() => <ProtectedRoute component={FavoritesPage} />}</Route>
+        <Route path="/purchase-history">{() => <ProtectedRoute component={PurchaseHistoryPage} />}</Route>
+        <Route path="/call-test">{() => <ProtectedRoute component={CallTestPage} />}</Route>
         <Route component={NotFound} />
       </Switch>
     </Suspense>
