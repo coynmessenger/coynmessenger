@@ -1,5 +1,70 @@
 import { Request, Response, NextFunction } from 'express';
 
+const buildCspHeader = (): string => {
+  const directives = [
+    "default-src 'self'",
+
+    [
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "https://*.thirdweb.com",
+      "https://*.walletconnect.com",
+      "https://*.replit.dev",
+    ].join(' '),
+
+    [
+      "style-src 'self' 'unsafe-inline'",
+      "https://fonts.googleapis.com",
+    ].join(' '),
+
+    [
+      "img-src 'self' data: blob:",
+      "https://*.giphy.com",
+      "https://m.media-amazon.com",
+      "https://*.thirdweb.com",
+      "https://*.walletconnect.com",
+      "https:",
+    ].join(' '),
+
+    [
+      "font-src 'self' data:",
+      "https://fonts.gstatic.com",
+    ].join(' '),
+
+    [
+      "connect-src 'self'",
+      "wss:",
+      "https://api.giphy.com",
+      "https://*.thirdweb.com",
+      "https://*.walletconnect.com",
+      "https://*.walletconnect.org",
+      "https://bsc-dataseed.binance.org",
+      "https://bsc-dataseed1.binance.org",
+      "https://bscscan.com",
+      "https://*.replit.dev",
+      "https://*.repl.co",
+      "https://*.replit.app",
+      "https:",
+    ].join(' '),
+
+    [
+      "frame-src 'self'",
+      "https://*.thirdweb.com",
+      "https://*.walletconnect.com",
+      "https://*.walletconnect.org",
+    ].join(' '),
+
+    "media-src 'self' blob: data:",
+    "worker-src 'self' blob:",
+    "child-src 'self' blob: https://*.thirdweb.com https://*.walletconnect.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+  ];
+
+  return directives.join('; ');
+};
+
 // Security headers middleware
 export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -10,21 +75,7 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.thirdweb.com; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-      "img-src 'self' data: blob: https:; " +
-      "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' wss: https:; " +
-      "media-src 'self' blob:; " +
-      "frame-src 'self' https://*.thirdweb.com https://*.walletconnect.com https://*.walletconnect.org; " +
-      "object-src 'none'; " +
-      "base-uri 'self';"
-    );
-  }
+  res.setHeader('Content-Security-Policy', buildCspHeader());
 
   next();
 };
