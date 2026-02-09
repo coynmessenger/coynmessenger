@@ -15,6 +15,7 @@ import { blockchainService } from "./blockchain";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 import { requireAuth } from "./middleware/security";
 
+import { sanitizeText, sanitizeDisplayName, sanitizeUrl, sanitizeEmail, sanitizeNumericString } from "./sanitize";
 import { healthCheck, readinessCheck, livenessCheck } from "./health";
 import { registerAudioRoutes } from "./replit_integrations/audio";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
@@ -266,13 +267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Find or create user by wallet address
   app.post("/api/users/find-or-create", async (req, res) => {
     try {
-      const { walletAddress, displayName } = req.body;
-      
-      
-      
-      
-      
-      
+      const { walletAddress, displayName: rawDisplayName } = req.body;
+      const displayName = sanitizeDisplayName(rawDisplayName);
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -445,8 +441,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid sender ID" });
       }
 
-      // Validate content for text messages
-      if (req.body.messageType === 'text' && (!req.body.content || req.body.content.trim() === '')) {
+      // Sanitize content first, then validate
+      const sanitizedContent = sanitizeText(req.body.content);
+      
+      if (req.body.messageType === 'text' && !sanitizedContent) {
         return res.status(400).json({ message: "Message content is required" });
       }
 
@@ -459,26 +457,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messageData = {
         conversationId,
         senderId: actualSenderId,
-        content: req.body.content || null,
+        content: sanitizedContent,
         messageType: req.body.messageType || "text",
         replyToId: req.body.replyToId || null,
-        replyToContent: req.body.replyToContent || null,
-        replyToSender: req.body.replyToSender || null,
-        cryptoAmount: req.body.cryptoAmount || null,
-        cryptoCurrency: req.body.cryptoCurrency || null,
-        audioFilePath: req.body.audioFilePath || null,
-        transcription: req.body.transcription || null,
+        replyToContent: sanitizeText(req.body.replyToContent),
+        replyToSender: sanitizeDisplayName(req.body.replyToSender),
+        cryptoAmount: sanitizeNumericString(req.body.cryptoAmount),
+        cryptoCurrency: sanitizeText(req.body.cryptoCurrency),
+        audioFilePath: sanitizeUrl(req.body.audioFilePath),
+        transcription: sanitizeText(req.body.transcription),
         audioDuration: req.body.audioDuration || null,
         productId: req.body.productId || null,
-        productTitle: req.body.productTitle || null,
+        productTitle: sanitizeText(req.body.productTitle),
         productPrice: req.body.productPrice || null,
-        productImage: req.body.productImage || null,
-        attachmentUrl: req.body.attachmentUrl || null,
-        attachmentType: req.body.attachmentType || null,
-        attachmentName: req.body.attachmentName || null,
+        productImage: sanitizeUrl(req.body.productImage),
+        attachmentUrl: sanitizeUrl(req.body.attachmentUrl),
+        attachmentType: sanitizeText(req.body.attachmentType),
+        attachmentName: sanitizeText(req.body.attachmentName),
         attachmentSize: req.body.attachmentSize || null,
-        gifUrl: req.body.gifUrl || null,
-        gifTitle: req.body.gifTitle || null,
+        gifUrl: sanitizeUrl(req.body.gifUrl),
+        gifTitle: sanitizeText(req.body.gifTitle),
         gifId: req.body.gifId || null
       };
 
@@ -589,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messageData = {
         conversationId,
         senderId,
-        content: req.body.content || null, // Optional text content with the file
+        content: sanitizeText(req.body.content),
         messageType: "attachment" as const,
         attachmentUrl,
         attachmentType,
@@ -769,7 +767,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency via chat
   app.post("/api/wallet/send", async (req, res) => {
     try {
-      const { toUserId, currency, amount, conversationId, fromUserId, transactionHash, isBlockchainTransaction, senderAddress, recipientAddress } = req.body;
+      const { toUserId, currency: rawCurrency, amount, conversationId, fromUserId, transactionHash: rawTxHash, isBlockchainTransaction, senderAddress, recipientAddress } = req.body;
+      const currency = sanitizeText(rawCurrency);
+      const transactionHash = sanitizeText(rawTxHash);
       // Get actual authenticated user ID
       const actualFromUserId = fromUserId || (req as any).session?.userId || 5;
 
@@ -870,9 +870,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency via wallet sidebar to external address
   app.post("/api/wallet/send-external", async (req, res) => {
     try {
-      const { currency, amount, address, userId } = req.body;
-      
-      
+      const { currency: rawCurrency, amount, address, userId } = req.body;
+      const currency = sanitizeText(rawCurrency);
 
       if (!currency || !amount || !address) {
         return res.status(400).json({ message: "Missing required fields: currency, amount, address" });
@@ -1025,7 +1024,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add contact
   app.post("/api/contacts", async (req, res) => {
     try {
-      const { walletAddress, displayName } = req.body;
+      const { walletAddress, displayName: rawDisplayName } = req.body;
+      const displayName = sanitizeDisplayName(rawDisplayName);
       
       if (!walletAddress) {
         return res.status(400).json({ message: "Wallet address is required" });
@@ -1066,7 +1066,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const [key, value] of Object.entries(req.body)) {
         if (allowedFields.includes(key)) {
-          updates[key] = value;
+          if (key === 'email') {
+            updates[key] = sanitizeEmail(value as string);
+          } else if (key === 'profilePicture') {
+            updates[key] = sanitizeUrl(value as string);
+          } else {
+            updates[key] = sanitizeDisplayName(value as string);
+          }
         }
       }
 
@@ -1165,7 +1171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new group chat
   app.post("/api/groups", async (req, res) => {
     try {
-      const { groupName, memberIds } = req.body;
+      const { groupName: rawGroupName, memberIds } = req.body;
+      const groupName = sanitizeText(rawGroupName);
       const createdBy = 5; // Current user
       
       if (!groupName || !memberIds || memberIds.length < 1) {
@@ -1303,7 +1310,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Share product to conversations
   app.post("/api/messages/share-product", async (req, res) => {
     try {
-      const { conversationIds, productId, productTitle, productPrice, productImage, userId } = req.body;
+      const { conversationIds, productId, productTitle: rawTitle, productPrice, productImage: rawImage, userId } = req.body;
+      const productTitle = sanitizeText(rawTitle);
+      const productImage = sanitizeUrl(rawImage);
       
       if (!conversationIds || conversationIds.length === 0 || !productId || !productTitle || !userId) {
         return res.status(400).json({ message: "Missing required product information or user ID" });
