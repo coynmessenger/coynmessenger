@@ -6,8 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Image, Search, X, Loader2 } from "lucide-react";
 
-const GIPHY_API_URL = 'https://api.giphy.com/v1/gifs';
-const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh';
+const GIPHY_PROXY_URL = '/api/giphy';
 
 interface GifData {
   id: string;
@@ -57,14 +56,11 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
       let url = "";
       
       if (query.trim()) {
-        // Search for specific GIFs
-        url = `${GIPHY_API_URL}/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20&rating=pg`;
+        url = `${GIPHY_PROXY_URL}/search?q=${encodeURIComponent(query)}&limit=20`;
       } else if (category === "trending") {
-        // Get trending GIFs
-        url = `${GIPHY_API_URL}/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=pg`;
+        url = `${GIPHY_PROXY_URL}/trending?limit=20`;
       } else {
-        // Get category-specific GIFs
-        url = `${GIPHY_API_URL}/search?api_key=${GIPHY_API_KEY}&q=${category}&limit=20&rating=pg`;
+        url = `${GIPHY_PROXY_URL}/search?q=${encodeURIComponent(category)}&limit=20`;
       }
 
       const response = await fetch(url);

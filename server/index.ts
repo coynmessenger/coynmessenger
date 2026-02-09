@@ -9,8 +9,8 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(securityHeaders);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -27,7 +27,11 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+
+      const sensitiveRoutes = ['/api/wallet', '/api/user', '/api/users'];
+      const isSensitive = sensitiveRoutes.some(r => path.startsWith(r));
+
+      if (capturedJsonResponse && !isSensitive) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
@@ -42,9 +46,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from uploads directory
 import path from 'path';
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+  setHeaders: (res, filePath) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    const ext = path.extname(filePath).toLowerCase();
+    const inlineTypes = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm', '.mp3', '.wav', '.ogg'];
+    if (!inlineTypes.includes(ext)) {
+      res.setHeader('Content-Disposition', 'attachment');
+    }
+  }
+}));
 
 // Serve attached_assets for favicon and other static assets
 app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));

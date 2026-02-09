@@ -20,6 +20,7 @@ import { healthCheck, readinessCheck, livenessCheck } from "./health";
 import { registerAudioRoutes } from "./replit_integrations/audio";
 import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { registerGoogleDriveRoutes } from "./replit_integrations/google-drive";
+import { globalLimiter, authLimiter, messageLimiter, uploadLimiter, walletLimiter, searchLimiter } from "./middleware/rate-limit";
 
 // Configure multer for avatar uploads
 const upload = multer({
@@ -73,8 +74,8 @@ const attachmentUpload = multer({
   fileFilter: (req, file, cb) => {
     // Allow all common file types
     const allowedTypes = [
-      // Images
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+      // Images (SVG excluded - can contain embedded scripts)
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       // Videos
       'video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm',
       // Documents
@@ -109,6 +110,8 @@ function getEffectiveDisplayName(user: any): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.use(globalLimiter);
+
   // Health check endpoints
   app.get('/health', healthCheck);
   app.get('/health/ready', readinessCheck);
@@ -119,8 +122,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerImageRoutes(app);
   registerGoogleDriveRoutes(app);
 
-  // Serve uploaded files
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // GIPHY proxy - keeps API key server-side
+  const GIPHY_API_KEY = process.env.GIPHY_API_KEY || process.env.VITE_GIPHY_API_KEY || '';
+  app.get("/api/giphy/trending", searchLimiter, async (req, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const response = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=${limit}&rating=pg`);
+      const data = await response.json();
+      res.json(data);
+    } catch {
+      res.status(500).json({ message: "Failed to fetch GIFs" });
+    }
+  });
+
+  app.get("/api/giphy/search", searchLimiter, async (req, res) => {
+    try {
+      const q = sanitizeText(req.query.q as string || '');
+      if (!q) return res.status(400).json({ message: "Search query is required" });
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${limit}&rating=pg`);
+      const data = await response.json();
+      res.json(data);
+    } catch {
+      res.status(500).json({ message: "Failed to search GIFs" });
+    }
+  });
 
   // Initialize database
   await initializeDatabase();
@@ -265,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Find or create user by wallet address
-  app.post("/api/users/find-or-create", async (req, res) => {
+  app.post("/api/users/find-or-create", authLimiter, async (req, res) => {
     try {
       const { walletAddress, displayName: rawDisplayName } = req.body;
       const displayName = sanitizeDisplayName(rawDisplayName);
@@ -423,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send a message
-  app.post("/api/conversations/:id/messages", async (req, res) => {
+  app.post("/api/conversations/:id/messages", messageLimiter, async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
       if (isNaN(conversationId)) {
@@ -561,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload attachment and send message
-  app.post("/api/conversations/:id/messages/attachment", attachmentUpload.single('file'), async (req, res) => {
+  app.post("/api/conversations/:id/messages/attachment", uploadLimiter, attachmentUpload.single('file'), async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
       // Use senderId from request body (current connected user)
@@ -686,7 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Refresh wallet balances with real-time blockchain data
-  app.post("/api/wallet/balances/refresh", async (req, res) => {
+  app.post("/api/wallet/balances/refresh", walletLimiter, async (req, res) => {
     try {
       const { userId } = req.body;
       
@@ -765,7 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send cryptocurrency via chat
-  app.post("/api/wallet/send", async (req, res) => {
+  app.post("/api/wallet/send", walletLimiter, async (req, res) => {
     try {
       const { toUserId, currency: rawCurrency, amount, conversationId, fromUserId, transactionHash: rawTxHash, isBlockchainTransaction, senderAddress, recipientAddress } = req.body;
       const currency = sanitizeText(rawCurrency);
@@ -868,7 +894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send cryptocurrency via wallet sidebar to external address
-  app.post("/api/wallet/send-external", async (req, res) => {
+  app.post("/api/wallet/send-external", walletLimiter, async (req, res) => {
     try {
       const { currency: rawCurrency, amount, address, userId } = req.body;
       const currency = sanitizeText(rawCurrency);
@@ -1105,7 +1131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload profile picture
-  app.post("/api/user/upload-avatar", upload.single('profileImage'), async (req: any, res) => {
+  app.post("/api/user/upload-avatar", uploadLimiter, upload.single('profileImage'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
