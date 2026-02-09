@@ -1,8 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { securityHeaders, corsOptions } from "./middleware/security";
 
 const app = express();
+
+app.use(cors(corsOptions));
+app.use(securityHeaders);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
