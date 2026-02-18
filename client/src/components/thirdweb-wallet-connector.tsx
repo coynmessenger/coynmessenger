@@ -51,7 +51,7 @@ export default function ThirdwebWalletConnector({
           showThirdwebBranding: false,
           welcomeScreen: {
             title: "Connect to COYN Messenger",
-            subtitle: "Secure crypto messaging on BSC network"
+            subtitle: "Your device may ask to open your wallet app — tap Open to continue"
           },
         }}
         theme="dark"
