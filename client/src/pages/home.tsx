@@ -172,9 +172,9 @@ export default function HomePage() {
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
       
-      // Navigate to messenger using wouter's setLocation
-      console.log('🎯 COYN: SUCCESS! Navigating to messenger...');
-      setLocation("/messenger");
+      // Full page reload to messenger so everything initializes cleanly
+      console.log('🎯 COYN: SUCCESS! Redirecting to messenger...');
+      window.location.href = "/messenger";
     },
   });
 
