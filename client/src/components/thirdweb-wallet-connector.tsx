@@ -12,17 +12,21 @@ const client = createThirdwebClient({
 // Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-// Enhanced wallet configuration for optimal mobile experience
-// WalletConnect automatically handles mobile deep linking through Thirdweb SDK
-const wallets = [
-  createWallet("walletConnect"), // Mobile-optimized: auto-detects mobile wallets
-  createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
-  createWallet("com.bitget.web3"),
-  createWallet("io.rabby"),
-  createWallet("io.zerion.wallet"),
-  createWallet("com.trustwallet.app"),
-];
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+const wallets = isMobile
+  ? [
+      createWallet("walletConnect"),
+    ]
+  : [
+      createWallet("walletConnect"),
+      createWallet("io.metamask"),
+      createWallet("com.coinbase.wallet"),
+      createWallet("com.bitget.web3"),
+      createWallet("io.rabby"),
+      createWallet("io.zerion.wallet"),
+      createWallet("com.trustwallet.app"),
+    ];
 
 interface ThirdwebWalletConnectorProps {
   onConnect?: (address: string) => void;
@@ -51,7 +55,7 @@ export default function ThirdwebWalletConnector({
           showThirdwebBranding: false,
           welcomeScreen: {
             title: "Connect to COYN Messenger",
-            subtitle: "Your device may ask to open your wallet app — tap Open to continue"
+            subtitle: "Secure crypto messaging on BSC network"
           },
         }}
         theme="dark"
