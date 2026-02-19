@@ -351,123 +351,50 @@ export default function VoiceCallModal({
             console.log('✅ VOICE CALL: Local stream stored for muting/recording');
           },
           onRemoteStream: (stream) => {
-            console.log('🔊 VOICE CALL: ========== REMOTE STREAM RECEIVED ==========');
-            
-            // Validate stream has active audio tracks
-            const audioTracks = stream.getAudioTracks();
-            console.log('🔊 VOICE CALL: Stream active:', stream.active);
-            console.log('🔊 VOICE CALL: Audio tracks:', audioTracks.length, 'tracks');
-            audioTracks.forEach((track, index) => {
-              console.log(`🔊 VOICE CALL: Audio track ${index}:`, {
-                enabled: track.enabled,
-                muted: track.muted,
-                readyState: track.readyState,
-                label: track.label
-              });
+            console.log('🔊 VOICE CALL: REMOTE STREAM RECEIVED', {
+              active: stream.active,
+              audioTracks: stream.getAudioTracks().length
             });
-            
-            // Ensure all audio tracks are enabled
-            audioTracks.forEach(track => {
-              if (!track.enabled) {
-                console.log('🔧 VOICE CALL: Enabling disabled audio track');
-                track.enabled = true;
-              }
+
+            stream.getAudioTracks().forEach(track => {
+              if (!track.enabled) track.enabled = true;
             });
-            
-            // CRITICAL: Attach stream to audio element and play IMMEDIATELY
+
             const audioEl = remoteAudioRef.current;
-            if (audioEl) {
-              console.log('🔊 VOICE CALL: Attaching stream to audio element');
-              
-              // Stop any previous stream
-              if (audioEl.srcObject) {
-                console.log('🔊 VOICE CALL: Clearing previous srcObject');
-              }
-              
-              // Set the stream source
-              audioEl.srcObject = stream;
-              
-              // CRITICAL: Configure audio element for maximum compatibility
-              audioEl.volume = 1.0; // Maximum volume
-              audioEl.muted = false; // Ensure not muted
-              audioEl.defaultMuted = false;
-              
-              // AGGRESSIVE MULTI-STRATEGY AUDIO PLAYBACK
-              const attemptPlayback = async (attempt: number): Promise<boolean> => {
-                console.log(`🔊 VOICE CALL: Playback attempt #${attempt}...`);
-                console.log('🔊 VOICE CALL: Audio element state:', {
-                  paused: audioEl.paused,
-                  muted: audioEl.muted,
-                  volume: audioEl.volume,
-                  readyState: audioEl.readyState,
-                  srcObject: !!audioEl.srcObject,
-                  currentTime: audioEl.currentTime
-                });
-                
-                try {
-                  // CRITICAL: Do NOT call load() on srcObject streams - it resets the stream!
-                  // Just ensure srcObject is set and call play()
-                  if (!audioEl.srcObject) {
-                    console.warn('⚠️ VOICE CALL: No srcObject set, cannot play');
-                    return false;
-                  }
-                  await audioEl.play();
-                  console.log('✅ VOICE CALL: ========== AUDIO PLAYBACK STARTED ==========');
-                  return true;
-                } catch (err: any) {
-                  console.error(`❌ VOICE CALL: Attempt #${attempt} failed:`, err.name, err.message);
-                  return false;
-                }
-              };
-              
-              // Strategy 1: Immediate play
-              attemptPlayback(1).then(async (success) => {
-                if (!success) {
-                  // Strategy 2: Wait for canplay event
-                  audioEl.addEventListener('canplay', async () => {
-                    console.log('🔊 VOICE CALL: canplay event fired');
-                    const played = await attemptPlayback(2);
-                    if (!played) {
-                      pendingAudioPlaybackRef.current = stream;
-                    }
-                  }, { once: true });
-                  
-                  // Strategy 3: Delayed retry with user gesture flag
-                  if (userGestureReceivedRef.current) {
-                    setTimeout(() => attemptPlayback(3), 300);
-                    setTimeout(() => attemptPlayback(4), 800);
-                  }
-                  
-                  // Strategy 4: Retry on loadedmetadata
-                  audioEl.addEventListener('loadedmetadata', () => {
-                    console.log('🔊 VOICE CALL: loadedmetadata fired');
-                    if (audioEl.paused) {
-                      attemptPlayback(5);
-                    }
-                  }, { once: true });
-                }
-              });
-              
-              // Monitor track state changes
-              audioTracks.forEach(track => {
-                track.onended = () => {
-                  console.error('❌ VOICE CALL: Audio track ended!');
-                };
-                track.onmute = () => {
-                  console.warn('🔇 VOICE CALL: Audio track muted');
-                };
-                track.onunmute = () => {
-                  console.log('🔊 VOICE CALL: Audio track unmuted');
-                };
-              });
-              
-              // Add error handler
-              audioEl.onerror = (err) => {
-                console.error('❌ VOICE CALL: Audio element error:', err);
-              };
-            } else {
+            if (!audioEl) {
               console.error('❌ VOICE CALL: No audio element ref available!');
+              return;
             }
+
+            audioEl.srcObject = stream;
+            audioEl.volume = 1.0;
+            audioEl.muted = false;
+            audioEl.defaultMuted = false;
+
+            const tryPlay = async (label: string) => {
+              try {
+                if (!audioEl.srcObject) return;
+                if (!audioEl.paused) return;
+                await audioEl.play();
+                console.log(`✅ VOICE (${label}): Audio playback started`);
+                pendingAudioPlaybackRef.current = null;
+              } catch (err: any) {
+                console.warn(`⚠️ VOICE (${label}): play() failed:`, err.name);
+                pendingAudioPlaybackRef.current = stream;
+              }
+            };
+
+            tryPlay('immediate');
+
+            setTimeout(() => tryPlay('retry-100ms'), 100);
+            setTimeout(() => tryPlay('retry-500ms'), 500);
+            setTimeout(() => tryPlay('retry-1500ms'), 1500);
+
+            audioEl.addEventListener('canplay', () => tryPlay('canplay'), { once: true });
+
+            audioEl.onerror = (err) => {
+              console.error('❌ VOICE CALL: Audio element error:', err);
+            };
           }
         });
       }
@@ -745,28 +672,47 @@ export default function VoiceCallModal({
         console.log('📞 INCOMING CALL: Starting accept call process...');
         setCallStatus("connecting");
         
-        // Stop ringtone when call is accepted
         ringtoneService.stopRingtone();
         
-        // Check if we already have the media stream from the incoming call preparation
         const tempStream = incomingStreamRef.current;
         if (tempStream) {
           console.log('✅ ACCEPT: Using pre-authorized microphone stream');
-          // Clean up the temporary reference
           incomingStreamRef.current = null;
         }
         
-        // Mark that user has made a gesture (clicked accept button)
         userGestureReceivedRef.current = true;
-        console.log('👆 VOICE ACCEPT: User gesture received (button click)');
+
+        try {
+          const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioCtx) {
+            const ctx = new AudioCtx();
+            await ctx.resume();
+            ctx.close();
+            console.log('✅ ACCEPT: AudioContext resumed via user gesture');
+          }
+        } catch (e) {
+          console.warn('⚠️ ACCEPT: AudioContext resume failed:', e);
+        }
+
+        if (remoteAudioRef.current) {
+          try {
+            await remoteAudioRef.current.play();
+          } catch (_) {}
+          remoteAudioRef.current.pause();
+        }
         
         console.log('📞 ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
         console.log('✅ ACCEPT: Call accepted successfully');
         
-        // Retry any pending audio playback (autoplay might have been blocked)
-        // Note: If remote stream hasn't arrived yet, retry will happen when stream arrives and checks userGestureReceivedRef
-        await retryPendingAudioPlayback();
+        if (remoteAudioRef.current && remoteAudioRef.current.srcObject && remoteAudioRef.current.paused) {
+          try {
+            await remoteAudioRef.current.play();
+            console.log('✅ ACCEPT: Audio playback started after acceptCall');
+          } catch (e) {
+            console.warn('⚠️ ACCEPT: Post-accept play() failed:', e);
+          }
+        }
         
         setCallStatus("connected");
         

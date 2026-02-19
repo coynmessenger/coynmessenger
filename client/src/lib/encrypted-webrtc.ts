@@ -965,128 +965,46 @@ export class EncryptedWebRTCService {
     // Cache peer connection for type safety (architect recommendation)
     const peerConnection = call.peerConnection;
 
-    // Enhanced desktop stream handling with audio track integrity monitoring
     peerConnection.ontrack = (event) => {
-      console.log('🎧 AUDIO DEBUG: ========== ONTRACK EVENT FIRED ==========');
-      console.log('🎧 AUDIO DEBUG: Event:', {
+      console.log('🎧 ONTRACK EVENT FIRED:', {
         streamCount: event.streams.length,
         trackKind: event.track.kind,
-        trackId: event.track.id,
-        trackLabel: event.track.label,
         trackEnabled: event.track.enabled,
         trackMuted: event.track.muted,
         trackReadyState: event.track.readyState
       });
-      
-      console.log('📞 DESKTOP: Received remote stream with tracks:', event.streams[0].getTracks().length);
-      call.remoteStream = event.streams[0];
-      
-      // Log if handler is available
-      if (this.eventHandlers.onRemoteStream) {
-        console.log('✅ STREAM SETUP: Handler available, delivering stream immediately');
-      } else {
-        console.log('📦 STREAM SETUP: No handler yet, stream buffered in call.remoteStream');
-      }
-      
-      // Check transceiver direction (architect recommendation)
-      const transceivers = peerConnection.getTransceivers();
-      console.log('🔀 AUDIO DEBUG: Transceivers:', transceivers.map(t => ({
-        direction: t.direction,
-        currentDirection: t.currentDirection,
-        trackKind: t.receiver?.track?.kind
-      })));
-      
-      // Audio track integrity monitoring
-      event.streams[0].getAudioTracks().forEach((track, index) => {
-        console.log(`🎤 TRACK MONITOR: Audio track ${index} received:`, {
-          id: track.id,
-          enabled: track.enabled,
-          muted: track.muted,
-          readyState: track.readyState,
-          label: track.label
-        });
-        
-        // Ensure track is enabled
+
+      const stream = event.streams[0] || new MediaStream([event.track]);
+      call.remoteStream = stream;
+
+      stream.getAudioTracks().forEach((track) => {
         if (!track.enabled) {
-          console.warn('⚠️ TRACK MONITOR: Audio track was disabled, enabling it');
           track.enabled = true;
         }
-        
-        // Monitor track state changes
-        track.onended = () => {
-          console.error('❌ TRACK MONITOR: Audio track ended unexpectedly!', {
-            trackId: track.id,
-            label: track.label,
-            readyState: track.readyState
-          });
-        };
-        
-        track.onmute = () => {
-          console.warn('🔇 TRACK MONITOR: Audio track muted', {
-            trackId: track.id,
-            label: track.label,
-            enabled: track.enabled
-          });
-        };
-        
+
         track.onunmute = () => {
-          console.log('🔊 TRACK MONITOR: Audio track unmuted', {
-            trackId: track.id,
-            label: track.label,
-            enabled: track.enabled
-          });
+          console.log('🔊 TRACK: Audio track unmuted - re-delivering stream');
+          if (this.eventHandlers.onRemoteStream) {
+            this.eventHandlers.onRemoteStream(stream);
+          }
         };
-        
-        // Log track settings if available
-        if (track.getSettings) {
-          const settings = track.getSettings();
-          console.log('🎤 TRACK MONITOR: Audio track settings:', {
-            sampleRate: settings.sampleRate,
-            channelCount: settings.channelCount,
-            echoCancellation: settings.echoCancellation,
-            noiseSuppression: settings.noiseSuppression,
-            autoGainControl: settings.autoGainControl
-          });
-        }
+
+        track.onended = () => {
+          console.error('❌ TRACK: Audio track ended unexpectedly');
+        };
       });
-      
-      // Video track monitoring
-      event.streams[0].getVideoTracks().forEach((track, index) => {
-        console.log(`📹 TRACK MONITOR: Video track ${index} received:`, {
-          enabled: track.enabled,
-          muted: track.muted,
-          readyState: track.readyState,
-          label: track.label
-        });
-        
-        // Ensure track is enabled
+
+      stream.getVideoTracks().forEach((track) => {
         if (!track.enabled) {
-          console.warn('⚠️ TRACK MONITOR: Video track was disabled, enabling it');
           track.enabled = true;
         }
-        
-        // Monitor video track state changes
-        track.onended = () => {
-          console.warn('⚠️ TRACK MONITOR: Video track ended', {
-            trackId: track.id,
-            label: track.label
-          });
-        };
-        
-        // Log video track settings
-        if (track.getSettings) {
-          const settings = track.getSettings();
-          console.log('📹 TRACK MONITOR: Video track settings:', {
-            width: settings.width,
-            height: settings.height,
-            frameRate: settings.frameRate,
-            facingMode: settings.facingMode
-          });
-        }
       });
-      
+
       if (this.eventHandlers.onRemoteStream) {
-        this.eventHandlers.onRemoteStream(event.streams[0]);
+        console.log('✅ STREAM: Delivering remote stream to handler');
+        this.eventHandlers.onRemoteStream(stream);
+      } else {
+        console.log('📦 STREAM: No handler yet, stream buffered in call.remoteStream');
       }
     };
 
@@ -1123,6 +1041,10 @@ export class EncryptedWebRTCService {
       
       if (state === 'connected') {
         console.log('✅ CLIENT: WebRTC connection established successfully!');
+        if (call.remoteStream && this.eventHandlers.onRemoteStream) {
+          console.log('🔊 CLIENT: Re-delivering remote stream on connection established');
+          this.eventHandlers.onRemoteStream(call.remoteStream);
+        }
       } else if (state === 'failed') {
         console.error('❌ CLIENT: WebRTC connection failed - likely NAT/firewall issue');
         console.log('💡 TIP: Check TURN server configuration and firewall settings');
@@ -1195,36 +1117,10 @@ export class EncryptedWebRTCService {
           
         case 'connected':
           console.log('✅ ICE MONITOR: ICE connection established!');
-          
-          // Detect if TURN server is being used
-          try {
-            const stats = await call.peerConnection?.getStats();
-            if (stats) {
-              stats.forEach((report: any) => {
-                if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-                  const localCandidateId = report.localCandidateId;
-                  const remoteCandidateId = report.remoteCandidateId;
-                  
-                  stats.forEach((candidateReport: any) => {
-                    if (candidateReport.id === localCandidateId || candidateReport.id === remoteCandidateId) {
-                      if (candidateReport.candidateType === 'relay') {
-                        console.log('🔄 ICE MONITOR: Using TURN server (relay)!', {
-                          protocol: candidateReport.protocol,
-                          relayProtocol: candidateReport.relayProtocol,
-                          address: candidateReport.address
-                        });
-                      } else if (candidateReport.candidateType === 'srflx') {
-                        console.log('🌐 ICE MONITOR: Using STUN server (server reflexive)');
-                      } else if (candidateReport.candidateType === 'host') {
-                        console.log('🏠 ICE MONITOR: Using direct connection (host)');
-                      }
-                    }
-                  });
-                }
-              });
-            }
-          } catch (err) {
-            console.warn('⚠️ ICE MONITOR: Could not get connection stats:', err);
+
+          if (call.remoteStream && this.eventHandlers.onRemoteStream) {
+            console.log('🔊 ICE MONITOR: Re-delivering remote stream after ICE connected');
+            this.eventHandlers.onRemoteStream(call.remoteStream);
           }
           break;
           

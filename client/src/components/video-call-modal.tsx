@@ -476,73 +476,32 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               }
             }
             
-            // Step 4.2b: Attach audio stream to audio element (for speaker output)
             const audioEl = remoteAudioRef.current;
             if (audioEl) {
-              console.log('🔊 VIDEO CALL: ========== ATTACHING REMOTE AUDIO ==========');
               audioEl.srcObject = stream;
-              
-              // CRITICAL: Configure audio element for maximum compatibility
               audioEl.volume = 1.0;
               audioEl.muted = false;
               audioEl.defaultMuted = false;
-              
-              // AGGRESSIVE MULTI-STRATEGY AUDIO PLAYBACK
-              const attemptPlayback = async (attempt: number): Promise<boolean> => {
-                console.log(`🔊 VIDEO CALL: Playback attempt #${attempt}...`);
-                console.log('🔊 VIDEO CALL: Audio element state:', {
-                  paused: audioEl.paused,
-                  muted: audioEl.muted,
-                  volume: audioEl.volume,
-                  readyState: audioEl.readyState,
-                  srcObject: !!audioEl.srcObject,
-                  currentTime: audioEl.currentTime
-                });
-                
+
+              const tryPlay = async (label: string) => {
                 try {
-                  // CRITICAL: Do NOT call load() on srcObject streams - it resets the stream!
-                  // Just ensure srcObject is set and call play()
-                  if (!audioEl.srcObject) {
-                    console.warn('⚠️ VIDEO CALL: No srcObject set, cannot play');
-                    return false;
-                  }
+                  if (!audioEl.srcObject) return;
+                  if (!audioEl.paused) return;
                   await audioEl.play();
-                  console.log('✅ VIDEO CALL: ========== AUDIO PLAYBACK STARTED ==========');
-                  return true;
+                  console.log(`✅ VIDEO (${label}): Audio playback started`);
+                  pendingAudioPlaybackRef.current = null;
                 } catch (err: any) {
-                  console.error(`❌ VIDEO CALL: Attempt #${attempt} failed:`, err.name, err.message);
-                  return false;
+                  console.warn(`⚠️ VIDEO (${label}): play() failed:`, err.name);
+                  pendingAudioPlaybackRef.current = stream;
                 }
               };
-              
-              // Strategy 1: Immediate play
-              attemptPlayback(1).then(async (success) => {
-                if (!success) {
-                  // Strategy 2: Wait for canplay event
-                  audioEl.addEventListener('canplay', async () => {
-                    console.log('🔊 VIDEO CALL: canplay event fired');
-                    const played = await attemptPlayback(2);
-                    if (!played) {
-                      pendingAudioPlaybackRef.current = stream;
-                    }
-                  }, { once: true });
-                  
-                  // Strategy 3: Delayed retry with user gesture flag
-                  if (userGestureReceivedRef.current) {
-                    setTimeout(() => attemptPlayback(3), 300);
-                    setTimeout(() => attemptPlayback(4), 800);
-                  }
-                  
-                  // Strategy 4: Retry on loadedmetadata
-                  audioEl.addEventListener('loadedmetadata', () => {
-                    console.log('🔊 VIDEO CALL: loadedmetadata fired');
-                    if (audioEl.paused) {
-                      attemptPlayback(5);
-                    }
-                  }, { once: true });
-                }
-              });
-              
+
+              tryPlay('immediate');
+              setTimeout(() => tryPlay('retry-100ms'), 100);
+              setTimeout(() => tryPlay('retry-500ms'), 500);
+              setTimeout(() => tryPlay('retry-1500ms'), 1500);
+              audioEl.addEventListener('canplay', () => tryPlay('canplay'), { once: true });
+
               audioEl.onerror = (err) => {
                 console.error('❌ VIDEO CALL: Audio element error:', err);
               };
