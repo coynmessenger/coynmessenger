@@ -12,15 +12,25 @@ const client = createThirdwebClient({
 // Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-const wallets = [
-  createWallet("walletConnect"),
-  createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
-  createWallet("com.bitget.web3"),
-  createWallet("io.rabby"),
-  createWallet("io.zerion.wallet"),
-  createWallet("com.trustwallet.app"),
-];
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+const wallets = isMobile
+  ? [
+      createWallet("io.metamask"),
+      createWallet("com.trustwallet.app"),
+      createWallet("com.coinbase.wallet"),
+      createWallet("com.bitget.web3"),
+      createWallet("io.zerion.wallet"),
+    ]
+  : [
+      createWallet("walletConnect"),
+      createWallet("io.metamask"),
+      createWallet("com.coinbase.wallet"),
+      createWallet("com.bitget.web3"),
+      createWallet("io.rabby"),
+      createWallet("io.zerion.wallet"),
+      createWallet("com.trustwallet.app"),
+    ];
 
 interface ThirdwebWalletConnectorProps {
   onConnect?: (address: string) => void;
