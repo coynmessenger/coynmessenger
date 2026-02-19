@@ -462,21 +462,28 @@ export class EncryptedWebRTCSignaling {
           console.log('   Using unencrypted answer');
         }
 
-        // Notify caller that call was accepted
-        const callerSocketId = call.participants[0].socketId;
+        const callerId = call.participants[0].userId;
+        const storedCallerSocketId = call.participants[0].socketId;
+        const currentCallerSocketId = this.userSockets.get(callerId) || storedCallerSocketId;
+        
+        if (currentCallerSocketId !== storedCallerSocketId) {
+          console.log('⚠️ ACCEPT FLOW: Caller socket changed since call initiation');
+          console.log('   Old socket:', storedCallerSocketId, '→ New socket:', currentCallerSocketId);
+          call.participants[0].socketId = currentCallerSocketId;
+        }
         
         console.log('\n════════════════════════════════════════════════════════');
         console.log('📞 ACCEPT FLOW: [4/4] SENDING CALL-ACCEPTED TO CALLER');
         console.log('════════════════════════════════════════════════════════');
         console.log('   Event: call-accepted');
-        console.log('   To Socket ID:', callerSocketId);
+        console.log('   To Socket ID:', currentCallerSocketId);
         console.log('   By User:', accepterId);
         console.log('   Call ID:', data.callId);
         console.log('   Plain Answer Included:', !!data.answer);
         console.log('   Encrypted Answer Included:', !!encryptedAnswer);
         console.log('   Encrypted:', isEncrypted);
         
-        this.io.to(callerSocketId).emit('call-accepted', {
+        this.io.to(currentCallerSocketId).emit('call-accepted', {
           callId: data.callId,
           byUserId: accepterId,
           encryptedAnswer: isEncrypted ? encryptedAnswer : undefined,
@@ -613,12 +620,12 @@ export class EncryptedWebRTCSignaling {
         console.log('✅ END CALL: Call found');
         console.log('   Participants:', call.participants.length);
 
-        // Notify all other participants
         let notifiedCount = 0;
         call.participants.forEach(participant => {
-          if (participant.socketId !== socket.id) {
-            console.log('   Notifying participant:', participant.userId, 'at socket:', participant.socketId);
-            this.io.to(participant.socketId).emit('call-ended', {
+          if (participant.userId !== userId) {
+            const currentSocketId = this.userSockets.get(participant.userId) || participant.socketId;
+            console.log('   Notifying participant:', participant.userId, 'at socket:', currentSocketId);
+            this.io.to(currentSocketId).emit('call-ended', {
               callId: data.callId,
               endedBy: userId,
               reason: 'user-ended'

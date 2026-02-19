@@ -35,44 +35,33 @@ export class EncryptedWebRTCService {
   private eventHandlers: CallEventHandlers = {};
   private isInitialized = false;
 
-  // Enhanced WebRTC configuration optimized for reliable P2P connections
   private rtcConfiguration: RTCConfiguration = {
     iceServers: [
-      // Primary STUN servers - Google (reliable and global)
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
-      
-      // Cloudflare STUN servers for better global reach
       { urls: 'stun:stun.cloudflare.com:3478' },
-      
-      // Additional STUN servers for redundancy
-      { urls: 'stun:stun.nextcloud.com:443' },
-      
-      // Primary TURN servers - OpenRelay (reliable public service)
       {
         urls: [
           'turn:openrelay.metered.ca:80',
           'turn:openrelay.metered.ca:443',
-          'turn:openrelay.metered.ca:443?transport=tcp'
+          'turn:openrelay.metered.ca:443?transport=tcp',
+          'turns:openrelay.metered.ca:443?transport=tcp'
         ],
         username: 'openrelayproject',
         credential: 'openrelayproject'
       },
-      
-      // Additional reliable TURN service
       {
         urls: [
           'turn:relay.metered.ca:80',
           'turn:relay.metered.ca:443',
-          'turn:relay.metered.ca:443?transport=tcp'
+          'turn:relay.metered.ca:443?transport=tcp',
+          'turns:relay.metered.ca:443?transport=tcp'
         ],
         username: 'e8dd65b92c62d3e36c0c5abd',
         credential: 'DVMv35H9V9TcsGwa'
       }
     ],
-    iceCandidatePoolSize: 10, // Optimized for performance vs resource usage
+    iceCandidatePoolSize: 5,
     iceTransportPolicy: 'all',
     bundlePolicy: 'max-bundle',
     rtcpMuxPolicy: 'require'
@@ -170,9 +159,15 @@ export class EncryptedWebRTCService {
     
     
     this.socket = io(socketUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
+      upgrade: true,
       forceNew: false,
       path: '/socket.io/',
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
     });
     
 
@@ -458,10 +453,8 @@ export class EncryptedWebRTCService {
     });
   }
 
-  // Initialize the service with user authentication
   async initialize(userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Check if already properly initialized for this user
       if (this.isInitialized && 
           this.localUserId === userId && 
           this.socket?.connected && 
@@ -469,11 +462,37 @@ export class EncryptedWebRTCService {
         resolve();
         return;
       }
-      
-      // Cleanup any existing connection before creating new one
-      this.cleanup();
-      
-      // Create fresh socket connection only when necessary
+
+      if (this.socket?.connected && this.localUserId === userId) {
+        console.log('Socket connected but not fully initialized, re-authenticating...');
+        this.socket.emit('authenticate', { userId });
+        const timeout = setTimeout(() => {
+          reject(new Error('Re-authentication timeout'));
+        }, 15000);
+        this.socket.once('authenticated', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+        return;
+      }
+
+      const hadActiveCalls = this.activeCalls.size > 0;
+      if (hadActiveCalls) {
+        console.warn(`⚠️ Re-initializing with ${this.activeCalls.size} active calls - preserving call state`);
+      }
+      const preservedCalls = new Map(this.activeCalls);
+
+      if (this.socket) {
+        if (this.socket.connected) {
+          this.socket.disconnect();
+        }
+        this.socket = null;
+      }
+      this.isInitialized = false;
+      this.localUserId = null;
+      this.publicKey = null;
+      this.activeCalls.clear();
+
       this.initializeSocket();
 
       console.log(`Authenticating user ${userId} with WebRTC signaling server`);
@@ -481,10 +500,18 @@ export class EncryptedWebRTCService {
       const timeout = setTimeout(() => {
         console.error(`Authentication timeout for user ${userId}`);
         reject(new Error('Authentication timeout'));
-      }, 30000); // Increased to 30 seconds for better stability
+      }, 30000);
 
       this.socket!.once('authenticated', (data) => {
         clearTimeout(timeout);
+        if (hadActiveCalls) {
+          preservedCalls.forEach((call, id) => {
+            if (call.peerConnection?.connectionState !== 'closed') {
+              this.activeCalls.set(id, call);
+            }
+          });
+          console.log(`Restored ${this.activeCalls.size} active calls after re-init`);
+        }
         resolve();
       });
 
@@ -495,7 +522,6 @@ export class EncryptedWebRTCService {
 
       this.socket!.on('disconnect', (reason) => {
         console.log(`Disconnected from encrypted WebRTC signaling server, reason:`, reason);
-        // Don't auto-reinitialize on disconnect to prevent loops
         this.isInitialized = false;
       });
 
@@ -1069,6 +1095,16 @@ export class EncryptedWebRTCService {
         }, 10000); // Give 10 more seconds for ICE to recover
       } else if (state === 'disconnected') {
         console.warn('⚠️ CLIENT: WebRTC connection disconnected');
+        setTimeout(() => {
+          if (call.peerConnection?.connectionState === 'disconnected') {
+            console.log('🔄 CLIENT: Connection still disconnected, restarting ICE...');
+            try {
+              call.peerConnection.restartIce();
+            } catch (e) {
+              console.error('❌ CLIENT: ICE restart failed:', e);
+            }
+          }
+        }, 3000);
       }
     };
 
@@ -1139,7 +1175,17 @@ export class EncryptedWebRTCService {
           
         case 'disconnected':
           console.warn('⚠️ ICE MONITOR: ICE connection temporarily disconnected');
-          console.log('💡 ICE MONITOR: Attempting to reconnect...');
+          console.log('💡 ICE MONITOR: Will attempt ICE restart if not recovered...');
+          setTimeout(() => {
+            if (call.peerConnection?.iceConnectionState === 'disconnected') {
+              console.log('🔄 ICE MONITOR: Still disconnected, restarting ICE...');
+              try {
+                call.peerConnection.restartIce();
+              } catch (e) {
+                console.error('❌ ICE MONITOR: ICE restart failed:', e);
+              }
+            }
+          }, 3000);
           break;
           
         case 'closed':

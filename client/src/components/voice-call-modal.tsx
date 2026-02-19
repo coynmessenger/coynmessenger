@@ -550,93 +550,76 @@ export default function VoiceCallModal({
       }
     }
 
-    // Initiate encrypted WebRTC call for outgoing calls (only once)
-    // CRITICAL: Request microphone permission IMMEDIATELY when outgoing call starts
     if (callType === "outgoing" && webrtcService.current && user && !encryptedCallId && isOpen) {
-      // Force reset and set the flag
       if (callInitiatedRef.current) {
         callInitiatedRef.current = false;
       }
       
       if (!callInitiatedRef.current) {
-        callInitiatedRef.current = true; // Prevent multiple calls
-        console.log('📞 OUTGOING CALL: ✅ Starting call initiation with immediate microphone permission request');
+        callInitiatedRef.current = true;
+        console.log('📞 OUTGOING CALL: Starting call initiation');
         
         setCallStatus("connecting");
         
-        // IMMEDIATELY request microphone permission before initiating call
-        console.log('🎤 OUTGOING CALL: Requesting microphone permission immediately...');
-        microphoneService.requestPermissionWithFallback()
-          .then((permissionResult) => {
-            if (permissionResult.success) {
-              console.log('✅ OUTGOING CALL: Microphone permission granted');
-              // Store the stream for later use
-              if (permissionResult.stream) {
-                incomingStreamRef.current = permissionResult.stream;
-              }
-            } else {
-              console.warn('⚠️ OUTGOING CALL: Microphone permission request failed, will retry during call');
-            }
-          })
-          .catch((err) => {
-            console.warn('⚠️ OUTGOING CALL: Microphone permission error:', err);
-          });
-        
         const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
         if (currentUser.id) {
-        // Wait for WebRTC service to be fully initialized
-        webrtcService.current.initialize(currentUser.id.toString())
-          .then(() => {
-            if (webrtcService.current) {
-              return webrtcService.current.initiateCall(user.id.toString(), 'voice');
-            }
-            throw new Error('WebRTC service not available');
-          })
-          .then((callId) => {
-            console.log('📞 OUTGOING CALL: Call initiated successfully, ID:', callId);
-            setEncryptedCallId(callId);
-            setCallStatus("ringing");
-            
-            // Add timeout to automatically end call if no response after 30 seconds
-            setTimeout(() => {
-              if (callStatus === "ringing") {
-                console.log('📞 OUTGOING CALL: Call timeout - no response after 30 seconds');
-                setCallStatus("ended");
-                setTimeout(() => onClose(), 1500);
+          microphoneService.requestPermissionWithFallback()
+            .then((permissionResult) => {
+              if (!permissionResult.success) {
+                throw new Error(permissionResult.error?.message || 'Microphone access denied');
               }
-            }, 30000);
-          })
-          .catch((error) => {
-            console.error('📞 DEEP TEST: ❌ Call initiation failed:', error);
-            
-            // CRITICAL FIX: Reset the call initiated ref on error
-            callInitiatedRef.current = false;
-            
-            setCallStatus("ended");
-            
-            // Show user-friendly error messages
-            let errorMessage = 'Failed to start call';
-            if (error.message.includes('Microphone access denied')) {
-              errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings and try again.';
-            } else if (error.message.includes('No microphone found')) {
-              errorMessage = 'No microphone found. Please connect a microphone and try again.';
-            } else if (error.message.includes('already in use')) {
-              errorMessage = 'Microphone is already in use by another application. Please close other apps using the microphone and try again.';
-            }
-            
-            // Show toast notification
-            import("@/hooks/use-toast").then(({ toast }) => {
-              toast({
-                title: "Call Failed",
-                description: errorMessage,
-                variant: "destructive",
+              console.log('✅ OUTGOING CALL: Microphone permission granted');
+              return webrtcService.current!.initialize(currentUser.id.toString());
+            })
+            .then(() => {
+              if (webrtcService.current) {
+                return webrtcService.current.initiateCall(user.id.toString(), 'voice');
+              }
+              throw new Error('WebRTC service not available');
+            })
+            .then((callId) => {
+              console.log('📞 OUTGOING CALL: Call initiated successfully, ID:', callId);
+              setEncryptedCallId(callId);
+              setCallStatus("ringing");
+              
+              setTimeout(() => {
+                if (callStatus === "ringing") {
+                  console.log('📞 OUTGOING CALL: Call timeout - no response after 30 seconds');
+                  setCallStatus("ended");
+                  setTimeout(() => onClose(), 1500);
+                }
+              }, 30000);
+            })
+            .catch((error) => {
+              console.error('📞 OUTGOING CALL: Call initiation failed:', error);
+              
+              callInitiatedRef.current = false;
+              
+              setCallStatus("ended");
+              
+              let errorMessage = 'Failed to start call';
+              if (error.message.includes('denied') || error.message.includes('Denied')) {
+                errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings and try again.';
+              } else if (error.message.includes('No microphone found') || error.message.includes('not found')) {
+                errorMessage = 'No microphone found. Please connect a microphone and try again.';
+              } else if (error.message.includes('already in use')) {
+                errorMessage = 'Microphone is already in use by another application. Please close other apps using the microphone and try again.';
+              } else if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+                errorMessage = 'Connection timed out. Please check your internet connection and try again.';
+              }
+              
+              import("@/hooks/use-toast").then(({ toast }) => {
+                toast({
+                  title: "Call Failed",
+                  description: errorMessage,
+                  variant: "destructive",
+                });
               });
+              
+              if (onCallEnd) onCallEnd();
             });
-            
-            if (onCallEnd) onCallEnd();
-          });
         } else {
-          console.error('📞 DEEP TEST: ❌ No current user found');
+          console.error('📞 OUTGOING CALL: No current user found');
           callInitiatedRef.current = false;
           setCallStatus("ended");
           if (onCallEnd) onCallEnd();
