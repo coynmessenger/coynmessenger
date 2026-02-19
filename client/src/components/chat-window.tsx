@@ -2491,6 +2491,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="relative max-w-xs lg:max-w-md">
                     {/* GIF bubble */}
                     <div 
+                      onContextMenu={(e) => handleContextMenu(e, msg)}
                       className={`
                         rounded-2xl p-2 shadow-lg backdrop-blur-xl border max-w-xs w-fit overflow-hidden
                         ${msg.senderId === connectedUserId 
@@ -2505,8 +2506,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <img 
                             src={msg.gifUrl} 
                             alt={msg.gifTitle || "GIF"} 
-                            className="w-full h-auto max-h-32 object-cover rounded-lg"
+                            className="w-full h-auto max-h-32 object-cover rounded-lg pointer-events-none select-none"
                             loading="lazy"
+                            draggable={false}
                           />
                         </div>
                       )}
