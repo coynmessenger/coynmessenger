@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mic, Volume2, Phone, Video, Loader2, AlertCircle, CheckCircle, Camera, X } from "lucide-react";
+import { Mic, Volume2, Phone, Video, Loader2, AlertCircle, CheckCircle, Camera, X, ShieldCheck } from "lucide-react";
 import { microphoneService } from "@/lib/microphone-service";
 import { permissionService } from "@/lib/permission-service";
 
@@ -31,12 +31,10 @@ export default function CallPermissionDialog({
     setError(null);
 
     try {
-      // Step 1: Request microphone (and camera for video calls)
       console.log(`🎤 PERMISSION DIALOG: Requesting ${callType} permissions...`);
       
       let result;
       if (callType === "video") {
-        // For video calls, request both camera and microphone
         result = await permissionService.requestCameraPermission();
         if (result.success) {
           setCameraPermission("granted");
@@ -47,7 +45,6 @@ export default function CallPermissionDialog({
           setMicPermission("denied");
         }
       } else {
-        // For voice calls, only request microphone
         result = await microphoneService.requestPermissionWithFallback();
         if (result.success) {
           setMicPermission("granted");
@@ -58,38 +55,27 @@ export default function CallPermissionDialog({
       }
 
       if (result.success) {
-        // Step 2: Enable speaker audio by playing a silent audio context
-        // This user gesture unlocks audio autoplay
         try {
           const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
           await audioContext.resume();
-          
-          // Play a very short silent sound to fully unlock audio
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
-          gainNode.gain.value = 0; // Silent
+          gainNode.gain.value = 0;
           oscillator.connect(gainNode);
           gainNode.connect(audioContext.destination);
           oscillator.start();
           oscillator.stop(audioContext.currentTime + 0.001);
-          
           setSpeakerEnabled(true);
           console.log("✅ PERMISSION DIALOG: Speaker audio unlocked");
-          
-          // Small delay to show success state
           await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // All permissions granted - proceed with call
           onPermissionGranted();
         } catch (audioErr) {
           console.warn("⚠️ PERMISSION DIALOG: Could not unlock audio context:", audioErr);
-          // Still proceed - audio might work anyway
           setSpeakerEnabled(true);
           onPermissionGranted();
         }
       } else {
         console.error("❌ PERMISSION DIALOG: Permission denied");
-        // Handle different error property names from different services
         const errorMsg = (result as any).errorMessage || (result as any).error?.message || 
           (callType === "video" 
             ? "Camera and microphone access was denied. Please allow access in your browser settings."
@@ -116,139 +102,136 @@ export default function CallPermissionDialog({
     onClose();
   };
 
+  const accentColor = callType === "video" ? "blue" : "green";
+
+  const getStatusIcon = (status: "pending" | "granted" | "denied") => {
+    if (status === "granted") return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+    if (status === "denied") return <AlertCircle className="w-4 h-4 text-red-400" />;
+    return <div className="w-4 h-4 rounded-full border-2 border-slate-500" />;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700 text-white">
-        <DialogTitle className="text-xl font-semibold text-center flex items-center justify-center gap-2">
-          {callType === "video" ? (
-            <Video className="w-6 h-6 text-blue-400" />
-          ) : (
-            <Phone className="w-6 h-6 text-green-400" />
-          )}
-          {callType === "video" ? "Video" : "Voice"} Call Permissions
-        </DialogTitle>
-        
-        <DialogDescription className="text-center text-slate-300">
-          To call {calleeName}, we need access to your microphone
-          {callType === "video" && " and camera"} so you can be heard{callType === "video" && " and seen"}.
-        </DialogDescription>
+      <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-700/50 text-white overflow-hidden rounded-2xl gap-0">
+        <button
+          onClick={handleCancel}
+          className="absolute right-4 top-4 z-10 rounded-full p-1 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
 
-        <div className="space-y-4 py-4">
-          {/* Permission Status Items */}
-          <div className="space-y-3">
-            {/* Camera Permission - Only for video calls */}
+        <div className={`relative px-6 pt-8 pb-6 text-center bg-gradient-to-b ${callType === "video" ? "from-blue-600/15 to-transparent" : "from-emerald-600/15 to-transparent"}`}>
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 ${callType === "video" ? "bg-blue-500/20 shadow-lg shadow-blue-500/10" : "bg-emerald-500/20 shadow-lg shadow-emerald-500/10"}`}>
+            {callType === "video" ? (
+              <Video className="w-8 h-8 text-blue-400" />
+            ) : (
+              <Phone className="w-8 h-8 text-emerald-400" />
+            )}
+          </div>
+          <DialogTitle className="text-lg font-semibold text-white mb-1">
+            {callType === "video" ? "Video" : "Voice"} Call
+          </DialogTitle>
+          <DialogDescription className="text-sm text-slate-400">
+            Grant access to call <span className="text-slate-200 font-medium">{calleeName}</span>
+          </DialogDescription>
+        </div>
+
+        <div className="px-6 pb-2">
+          <div className="space-y-2">
             {callType === "video" && (
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  cameraPermission === "granted" ? "bg-green-500/20" : 
-                  cameraPermission === "denied" ? "bg-red-500/20" : "bg-blue-500/20"
+              <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                cameraPermission === "granted" ? "bg-emerald-500/10 border border-emerald-500/20" :
+                cameraPermission === "denied" ? "bg-red-500/10 border border-red-500/20" :
+                "bg-slate-800/60 border border-slate-700/50"
+              }`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  cameraPermission === "granted" ? "bg-emerald-500/20" :
+                  cameraPermission === "denied" ? "bg-red-500/20" : "bg-blue-500/15"
                 }`}>
-                  <Camera className={`w-5 h-5 ${
-                    cameraPermission === "granted" ? "text-green-400" : 
+                  <Camera className={`w-4.5 h-4.5 ${
+                    cameraPermission === "granted" ? "text-emerald-400" :
                     cameraPermission === "denied" ? "text-red-400" : "text-blue-400"
                   }`} />
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium">Camera</div>
-                  <div className="text-sm text-slate-400">
-                    {cameraPermission === "granted" ? "Access granted" : 
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-white">Camera</div>
+                  <div className="text-xs text-slate-400">
+                    {cameraPermission === "granted" ? "Access granted" :
                      cameraPermission === "denied" ? "Access denied" : "Required for video"}
                   </div>
                 </div>
-                {cameraPermission === "granted" && (
-                  <CheckCircle className="w-5 h-5 text-green-400" />
-                )}
-                {cameraPermission === "denied" && (
-                  <AlertCircle className="w-5 h-5 text-red-400" />
-                )}
+                {getStatusIcon(cameraPermission)}
               </div>
             )}
 
-            {/* Microphone Permission */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                micPermission === "granted" ? "bg-green-500/20" : 
-                micPermission === "denied" ? "bg-red-500/20" : "bg-orange-500/20"
+            <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+              micPermission === "granted" ? "bg-emerald-500/10 border border-emerald-500/20" :
+              micPermission === "denied" ? "bg-red-500/10 border border-red-500/20" :
+              "bg-slate-800/60 border border-slate-700/50"
+            }`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                micPermission === "granted" ? "bg-emerald-500/20" :
+                micPermission === "denied" ? "bg-red-500/20" : "bg-amber-500/15"
               }`}>
-                <Mic className={`w-5 h-5 ${
-                  micPermission === "granted" ? "text-green-400" : 
-                  micPermission === "denied" ? "text-red-400" : "text-orange-400"
+                <Mic className={`w-4.5 h-4.5 ${
+                  micPermission === "granted" ? "text-emerald-400" :
+                  micPermission === "denied" ? "text-red-400" : "text-amber-400"
                 }`} />
               </div>
-              <div className="flex-1">
-                <div className="font-medium">Microphone</div>
-                <div className="text-sm text-slate-400">
-                  {micPermission === "granted" ? "Access granted" : 
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-white">Microphone</div>
+                <div className="text-xs text-slate-400">
+                  {micPermission === "granted" ? "Access granted" :
                    micPermission === "denied" ? "Access denied" : "Required for speaking"}
                 </div>
               </div>
-              {micPermission === "granted" && (
-                <CheckCircle className="w-5 h-5 text-green-400" />
-              )}
-              {micPermission === "denied" && (
-                <AlertCircle className="w-5 h-5 text-red-400" />
-              )}
+              {getStatusIcon(micPermission)}
             </div>
 
-            {/* Speaker Status */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                speakerEnabled ? "bg-green-500/20" : "bg-purple-500/20"
+            <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+              speakerEnabled ? "bg-emerald-500/10 border border-emerald-500/20" :
+              "bg-slate-800/60 border border-slate-700/50"
+            }`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                speakerEnabled ? "bg-emerald-500/20" : "bg-violet-500/15"
               }`}>
-                <Volume2 className={`w-5 h-5 ${speakerEnabled ? "text-green-400" : "text-purple-400"}`} />
+                <Volume2 className={`w-4.5 h-4.5 ${speakerEnabled ? "text-emerald-400" : "text-violet-400"}`} />
               </div>
-              <div className="flex-1">
-                <div className="font-medium">Speaker</div>
-                <div className="text-sm text-slate-400">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-white">Speaker</div>
+                <div className="text-xs text-slate-400">
                   {speakerEnabled ? "Audio enabled" : "For hearing the caller"}
                 </div>
               </div>
-              {speakerEnabled && (
-                <CheckCircle className="w-5 h-5 text-green-400" />
-              )}
+              {speakerEnabled ? getStatusIcon("granted") : getStatusIcon("pending")}
             </div>
           </div>
 
-          {/* Error Message */}
           {error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
               <div className="flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-medium">Permission Required</div>
-                  <div className="mt-1">{error}</div>
-                </div>
+                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-red-300 leading-relaxed">{error}</div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            className="flex-1 h-12 border-slate-600 text-slate-300 hover:bg-slate-800 font-medium"
-            data-testid="permission-cancel-btn"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Cancel
-          </Button>
-          
+        <div className="px-6 pb-5 pt-4 space-y-3">
           <Button
             onClick={handleRequestPermissions}
             disabled={isRequesting}
-            className={`flex-1 h-12 font-medium ${
-              callType === "video" 
-                ? "bg-blue-600 hover:bg-blue-700" 
-                : "bg-green-600 hover:bg-green-700"
+            className={`w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all ${
+              callType === "video"
+                ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-blue-600/25"
+                : "bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-600/25"
             } text-white`}
             data-testid="permission-allow-btn"
           >
             {isRequesting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Requesting...
+                Requesting Access...
               </>
             ) : micPermission === "denied" || cameraPermission === "denied" ? (
               <>
@@ -257,20 +240,25 @@ export default function CallPermissionDialog({
               </>
             ) : (
               <>
-                {callType === "video" ? (
-                  <Video className="w-4 h-4 mr-2" />
-                ) : (
-                  <Phone className="w-4 h-4 mr-2" />
-                )}
-                Allow & Start {callType === "video" ? "Video" : "Voice"} Call
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Allow & Start Call
               </>
             )}
           </Button>
-        </div>
 
-        <p className="text-xs text-center text-slate-500 mt-2">
-          Your browser will ask for permission. Click "Allow" to proceed.
-        </p>
+          <Button
+            variant="ghost"
+            onClick={handleCancel}
+            className="w-full h-10 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 font-medium text-sm"
+            data-testid="permission-cancel-btn"
+          >
+            Cancel
+          </Button>
+
+          <p className="text-[11px] text-center text-slate-500 leading-relaxed">
+            Your browser will prompt for permission. Tap <span className="text-slate-400">"Allow"</span> to proceed.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );
