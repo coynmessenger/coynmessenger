@@ -1339,13 +1339,38 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   // Message action handlers
   const handleCopyMessage = (message: Message) => {
-    const textToCopy = message.content || `${message.cryptoAmount} ${message.cryptoCurrency}`;
+    let textToCopy = message.content || '';
+    if (message.messageType === 'gif' && message.gifUrl) {
+      textToCopy = message.gifUrl;
+    } else if (!textToCopy && message.cryptoAmount) {
+      textToCopy = `${message.cryptoAmount} ${message.cryptoCurrency}`;
+    }
     navigator.clipboard.writeText(textToCopy);
     toast({
-      title: "Message copied",
-      description: "Message copied to clipboard",
+      title: message.messageType === 'gif' ? "GIF link copied" : "Message copied",
+      description: message.messageType === 'gif' ? "GIF URL copied to clipboard" : "Message copied to clipboard",
       duration: 1500,
     });
+    setContextMenuMessage(null);
+  };
+
+  const handleSaveGif = async (message: Message) => {
+    if (!message.gifUrl) return;
+    try {
+      const response = await fetch(message.gifUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${message.gifTitle || 'gif'}.gif`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "GIF saved", description: "GIF downloaded successfully", duration: 1500 });
+    } catch {
+      toast({ title: "Save failed", description: "Could not download the GIF", variant: "destructive", duration: 2000 });
+    }
     setContextMenuMessage(null);
   };
 
@@ -2506,7 +2531,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <img 
                             src={msg.gifUrl} 
                             alt={msg.gifTitle || "GIF"} 
-                            className="w-full h-auto max-h-32 object-cover rounded-lg pointer-events-none select-none"
+                            className="w-full h-auto max-h-32 object-cover rounded-lg select-none"
                             loading="lazy"
                             draggable={false}
                           />
@@ -2677,8 +2702,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
           >
             <Copy className="h-4 w-4" />
-            <span>Copy</span>
+            <span>{contextMenuMessage.messageType === 'gif' ? 'Copy GIF Link' : 'Copy'}</span>
           </button>
+
+          {contextMenuMessage.messageType === 'gif' && contextMenuMessage.gifUrl && (
+            <button
+              onClick={() => {
+                handleSaveGif(contextMenuMessage);
+              }}
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
+            >
+              <Download className="h-4 w-4" />
+              <span>Save GIF</span>
+            </button>
+          )}
           
           <button
             onClick={() => {
