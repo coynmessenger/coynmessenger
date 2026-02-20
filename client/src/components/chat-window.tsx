@@ -1449,37 +1449,29 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     e.preventDefault();
     e.stopPropagation();
     
-    // Menu dimensions (approximate)
-    const menuWidth = 160;
-    const menuHeight = 180;
+    const menuWidth = 170;
+    const itemHeight = 40;
+    const baseItems = 4;
+    const gifExtraItems = message.messageType === 'gif' && message.gifUrl ? 1 : 0;
+    const menuPadding = 16;
+    const menuHeight = (baseItems + gifExtraItems) * itemHeight + menuPadding;
     
-    // Get viewport dimensions
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const vp = window.visualViewport;
+    const viewportWidth = vp ? vp.width : window.innerWidth;
+    const viewportHeight = vp ? vp.height + vp.offsetTop : window.innerHeight;
     
-    // Calculate position, constraining to viewport
     let x = e.clientX;
     let y = e.clientY;
     
-    // Prevent menu from going off the right edge
-    if (x + menuWidth > viewportWidth) {
-      x = viewportWidth - menuWidth - 10;
+    if (x + menuWidth > viewportWidth - 8) {
+      x = viewportWidth - menuWidth - 8;
     }
+    if (x < 8) x = 8;
     
-    // Prevent menu from going off the bottom edge
-    if (y + menuHeight > viewportHeight) {
-      y = viewportHeight - menuHeight - 10;
+    if (y + menuHeight > viewportHeight - 8) {
+      y = y - menuHeight - 4;
     }
-    
-    // Prevent menu from going off the left edge
-    if (x < 10) {
-      x = 10;
-    }
-    
-    // Prevent menu from going off the top edge
-    if (y < 10) {
-      y = 10;
-    }
+    if (y < 8) y = 8;
     
     setContextMenuPosition({ x, y });
     setContextMenuMessage(message);
