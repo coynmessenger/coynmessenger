@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mic, Volume2, Phone, Video, Loader2, AlertCircle, CheckCircle, Camera, X, ShieldCheck } from "lucide-react";
+import { Mic, Volume2, Phone, Video, Loader2, AlertCircle, CheckCircle, Camera, ShieldCheck } from "lucide-react";
 import { microphoneService } from "@/lib/microphone-service";
 import { permissionService } from "@/lib/permission-service";
 
@@ -110,14 +110,7 @@ export default function CallPermissionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-[#1a1a2e] via-[#16162a] to-[#111127] border border-orange-500/20 text-white overflow-hidden rounded-2xl gap-0 shadow-2xl shadow-orange-500/5">
-        <button
-          onClick={handleCancel}
-          className="absolute right-4 top-4 z-10 rounded-full p-1 text-slate-500 hover:text-white hover:bg-slate-700/50 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
+      <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-[#1a1a2e] via-[#16162a] to-[#111127] border border-orange-500/20 text-white overflow-hidden rounded-2xl gap-0 shadow-2xl shadow-orange-500/5 [&>button[class*='absolute']]:hidden">
         <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-500/10 to-transparent">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-500/15 shadow-lg shadow-orange-500/10 border border-orange-500/20">
             {callType === "video" ? (
