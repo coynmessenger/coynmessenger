@@ -102,37 +102,35 @@ export default function CallPermissionDialog({
     onClose();
   };
 
-  const accentColor = callType === "video" ? "blue" : "green";
-
   const getStatusIcon = (status: "pending" | "granted" | "denied") => {
-    if (status === "granted") return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+    if (status === "granted") return <CheckCircle className="w-4 h-4 text-orange-400" />;
     if (status === "denied") return <AlertCircle className="w-4 h-4 text-red-400" />;
-    return <div className="w-4 h-4 rounded-full border-2 border-slate-500" />;
+    return <div className="w-4 h-4 rounded-full border-2 border-slate-600" />;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-700/50 text-white overflow-hidden rounded-2xl gap-0">
+      <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-[#1a1a2e] via-[#16162a] to-[#111127] border border-orange-500/20 text-white overflow-hidden rounded-2xl gap-0 shadow-2xl shadow-orange-500/5">
         <button
           onClick={handleCancel}
-          className="absolute right-4 top-4 z-10 rounded-full p-1 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+          className="absolute right-4 top-4 z-10 rounded-full p-1 text-slate-500 hover:text-white hover:bg-slate-700/50 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
-        <div className={`relative px-6 pt-8 pb-6 text-center bg-gradient-to-b ${callType === "video" ? "from-blue-600/15 to-transparent" : "from-emerald-600/15 to-transparent"}`}>
-          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 ${callType === "video" ? "bg-blue-500/20 shadow-lg shadow-blue-500/10" : "bg-emerald-500/20 shadow-lg shadow-emerald-500/10"}`}>
+        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-500/10 to-transparent">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-500/15 shadow-lg shadow-orange-500/10 border border-orange-500/20">
             {callType === "video" ? (
-              <Video className="w-8 h-8 text-blue-400" />
+              <Video className="w-8 h-8 text-orange-400" />
             ) : (
-              <Phone className="w-8 h-8 text-emerald-400" />
+              <Phone className="w-8 h-8 text-orange-400" />
             )}
           </div>
           <DialogTitle className="text-lg font-semibold text-white mb-1">
             {callType === "video" ? "Video" : "Voice"} Call
           </DialogTitle>
           <DialogDescription className="text-sm text-slate-400">
-            Grant access to call <span className="text-slate-200 font-medium">{calleeName}</span>
+            Grant access to call <span className="text-orange-300 font-medium">{calleeName}</span>
           </DialogDescription>
         </div>
 
@@ -140,17 +138,17 @@ export default function CallPermissionDialog({
           <div className="space-y-2">
             {callType === "video" && (
               <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                cameraPermission === "granted" ? "bg-emerald-500/10 border border-emerald-500/20" :
+                cameraPermission === "granted" ? "bg-orange-500/10 border border-orange-500/20" :
                 cameraPermission === "denied" ? "bg-red-500/10 border border-red-500/20" :
-                "bg-slate-800/60 border border-slate-700/50"
+                "bg-white/5 border border-white/10"
               }`}>
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                  cameraPermission === "granted" ? "bg-emerald-500/20" :
-                  cameraPermission === "denied" ? "bg-red-500/20" : "bg-blue-500/15"
+                  cameraPermission === "granted" ? "bg-orange-500/20" :
+                  cameraPermission === "denied" ? "bg-red-500/20" : "bg-orange-500/10"
                 }`}>
-                  <Camera className={`w-4.5 h-4.5 ${
-                    cameraPermission === "granted" ? "text-emerald-400" :
-                    cameraPermission === "denied" ? "text-red-400" : "text-blue-400"
+                  <Camera className={`w-[18px] h-[18px] ${
+                    cameraPermission === "granted" ? "text-orange-400" :
+                    cameraPermission === "denied" ? "text-red-400" : "text-orange-400/70"
                   }`} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -165,17 +163,17 @@ export default function CallPermissionDialog({
             )}
 
             <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-              micPermission === "granted" ? "bg-emerald-500/10 border border-emerald-500/20" :
+              micPermission === "granted" ? "bg-orange-500/10 border border-orange-500/20" :
               micPermission === "denied" ? "bg-red-500/10 border border-red-500/20" :
-              "bg-slate-800/60 border border-slate-700/50"
+              "bg-white/5 border border-white/10"
             }`}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                micPermission === "granted" ? "bg-emerald-500/20" :
-                micPermission === "denied" ? "bg-red-500/20" : "bg-amber-500/15"
+                micPermission === "granted" ? "bg-orange-500/20" :
+                micPermission === "denied" ? "bg-red-500/20" : "bg-orange-500/10"
               }`}>
-                <Mic className={`w-4.5 h-4.5 ${
-                  micPermission === "granted" ? "text-emerald-400" :
-                  micPermission === "denied" ? "text-red-400" : "text-amber-400"
+                <Mic className={`w-[18px] h-[18px] ${
+                  micPermission === "granted" ? "text-orange-400" :
+                  micPermission === "denied" ? "text-red-400" : "text-orange-400/70"
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
@@ -189,13 +187,13 @@ export default function CallPermissionDialog({
             </div>
 
             <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-              speakerEnabled ? "bg-emerald-500/10 border border-emerald-500/20" :
-              "bg-slate-800/60 border border-slate-700/50"
+              speakerEnabled ? "bg-orange-500/10 border border-orange-500/20" :
+              "bg-white/5 border border-white/10"
             }`}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                speakerEnabled ? "bg-emerald-500/20" : "bg-violet-500/15"
+                speakerEnabled ? "bg-orange-500/20" : "bg-orange-500/10"
               }`}>
-                <Volume2 className={`w-4.5 h-4.5 ${speakerEnabled ? "text-emerald-400" : "text-violet-400"}`} />
+                <Volume2 className={`w-[18px] h-[18px] ${speakerEnabled ? "text-orange-400" : "text-orange-400/70"}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-white">Speaker</div>
@@ -221,11 +219,7 @@ export default function CallPermissionDialog({
           <Button
             onClick={handleRequestPermissions}
             disabled={isRequesting}
-            className={`w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all ${
-              callType === "video"
-                ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-blue-600/25"
-                : "bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-600/25"
-            } text-white`}
+            className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 shadow-orange-600/25 text-white"
             data-testid="permission-allow-btn"
           >
             {isRequesting ? (
@@ -249,14 +243,14 @@ export default function CallPermissionDialog({
           <Button
             variant="ghost"
             onClick={handleCancel}
-            className="w-full h-10 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 font-medium text-sm"
+            className="w-full h-10 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 font-medium text-sm"
             data-testid="permission-cancel-btn"
           >
             Cancel
           </Button>
 
           <p className="text-[11px] text-center text-slate-500 leading-relaxed">
-            Your browser will prompt for permission. Tap <span className="text-slate-400">"Allow"</span> to proceed.
+            Your browser will prompt for permission. Tap <span className="text-orange-400/70">"Allow"</span> to proceed.
           </p>
         </div>
       </DialogContent>
