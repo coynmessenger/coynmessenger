@@ -1451,7 +1451,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     
     const menuWidth = 170;
     const itemHeight = 40;
-    const baseItems = 4;
+    const baseItems = message.messageType === 'gif' ? 3 : 4;
     const gifExtraItems = message.messageType === 'gif' && message.gifUrl ? 1 : 0;
     const menuPadding = 16;
     const menuHeight = (baseItems + gifExtraItems) * itemHeight + menuPadding;
@@ -2652,15 +2652,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           }}
           onClick={closeContextMenu}
         >
-          <button
-            onClick={() => {
-              handleCopyMessage(contextMenuMessage);
-            }}
-            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
-          >
-            <Copy className="h-4 w-4" />
-            <span>{contextMenuMessage.messageType === 'gif' ? 'Copy GIF Link' : 'Copy'}</span>
-          </button>
+          {contextMenuMessage.messageType !== 'gif' && (
+            <button
+              onClick={() => {
+                handleCopyMessage(contextMenuMessage);
+              }}
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center space-x-2"
+            >
+              <Copy className="h-4 w-4" />
+              <span>Copy</span>
+            </button>
+          )}
 
           {contextMenuMessage.messageType === 'gif' && contextMenuMessage.gifUrl && (
             <button
