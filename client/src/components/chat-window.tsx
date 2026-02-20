@@ -2544,44 +2544,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       </div>
                     </div>
 
-                    {/* Hover dropdown menu */}
-                    <div className={`absolute -top-1 ${msg.senderId === connectedUserId ? '-left-8' : '-right-8'} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-slate-400 dark:text-slate-400 hover:text-slate-300 dark:hover:text-slate-300 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-600 border border-gray-200/50 dark:border-slate-600/50 shadow-sm rounded-full"
-                          >
-                            <MoreVertical className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align={msg.senderId === connectedUserId ? 'start' : 'end'} className="min-w-[140px]">
-                          <DropdownMenuItem onClick={() => handleCopyMessage(msg)} className="flex items-center space-x-2 cursor-pointer">
-                            <Copy className="h-4 w-4" />
-                            <span>Copy GIF Link</span>
-                          </DropdownMenuItem>
-                          {msg.gifUrl && (
-                            <DropdownMenuItem onClick={() => handleSaveGif(msg)} className="flex items-center space-x-2 cursor-pointer">
-                              <Download className="h-4 w-4" />
-                              <span>Save GIF</span>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleStarMessage(msg)} className="flex items-center space-x-2 cursor-pointer">
-                            <Star className={`h-4 w-4 ${msg.isStarred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                            <span>{msg.isStarred ? 'Unstar' : 'Star'}</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleForwardMessage(msg)} className="flex items-center space-x-2 cursor-pointer">
-                            <Forward className="h-4 w-4" />
-                            <span>Forward</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => deleteMessage(msg.id)} className="flex items-center space-x-2 cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400">
-                            <Trash2 className="h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
                   </div>
                 </div>
               ) : msg.messageType === "ai_image" ? (
