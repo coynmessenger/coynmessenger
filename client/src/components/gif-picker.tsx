@@ -133,8 +133,8 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
           size="icon"
           className={`backdrop-blur-sm transition-all duration-300 rounded-xl h-8 w-8 sm:h-8 sm:w-8 touch-manipulation ${
             isOpen 
-              ? 'bg-orange-500 text-white shadow-md' 
-              : 'text-gray-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+              ? 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-200 shadow-md' 
+              : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
           }`}
         >
           <Image className="h-3 w-3 sm:h-4 sm:w-4" />
