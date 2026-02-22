@@ -82,54 +82,54 @@ export default function UserProfileModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-[#1a1a2e] via-[#16162a] to-[#111127] border border-orange-500/20 text-white overflow-hidden rounded-2xl gap-0 shadow-2xl shadow-orange-500/5 [&>button[class*='absolute']]:hidden">
+        <DialogContent className="sm:max-w-[380px] p-0 bg-white border border-gray-200 text-gray-900 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>User Profile</DialogTitle>
             <DialogDescription>View user profile information and manage contact options</DialogDescription>
           </DialogHeader>
 
-          <div className="relative px-6 pt-8 pb-5 text-center bg-gradient-to-b from-orange-500/10 to-transparent">
+          <div className="relative px-6 pt-8 pb-5 text-center bg-gradient-to-b from-orange-50 to-transparent">
             <div className="relative inline-block mb-4">
-              <Avatar className="h-20 w-20 border-2 border-orange-500/30 shadow-lg shadow-orange-500/10">
+              <Avatar className="h-20 w-20 border-2 border-orange-200 shadow-lg shadow-orange-100">
                 <AvatarImage src={user.profilePicture || ""} />
-                <AvatarFallback className="bg-[#1e1e3a]">
-                  <UserAvatarIcon className="w-10 h-10 text-slate-400" />
+                <AvatarFallback className="bg-gray-100">
+                  <UserAvatarIcon className="w-10 h-10 text-gray-400" />
                 </AvatarFallback>
               </Avatar>
               {user.isOnline && (
-                <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-[#1a1a2e] rounded-full" />
+                <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full" />
               )}
             </div>
             
-            <h3 className="text-lg font-semibold text-white mb-0.5">
+            <h3 className="text-lg font-semibold text-gray-900 mb-0.5">
               {getEffectiveDisplayName(user)}
             </h3>
-            <p className="text-sm text-slate-400 mb-2">
+            <p className="text-sm text-gray-500 mb-2">
               @{user.walletAddress ? user.walletAddress.slice(-6) : 'unknown'}
             </p>
             {isOwnProfile && (
-              <span className="inline-block text-xs px-2.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
+              <span className="inline-block text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-600 border border-orange-200">
                 You
               </span>
             )}
             {user.isOnline && !isOwnProfile && (
-              <span className="inline-block text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+              <span className="inline-block text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
                 Online
               </span>
             )}
           </div>
 
           <div className="px-6 pb-2">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-500/10">
-                <Wallet className="w-[18px] h-[18px] text-orange-400/70" />
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50">
+                <Wallet className="w-[18px] h-[18px] text-orange-400" />
               </div>
-              <code className="flex-1 text-xs font-mono text-slate-300 break-all leading-relaxed">
+              <code className="flex-1 text-xs font-mono text-gray-600 break-all leading-relaxed">
                 {user.walletAddress}
               </code>
               <button
                 onClick={copyWalletAddress}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-white/5 transition-colors"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-orange-500 hover:bg-orange-50 transition-colors"
               >
                 <Copy className="h-4 w-4" />
               </button>
@@ -142,7 +142,7 @@ export default function UserProfileModal({
                 {onSendMessage && (
                   <Button 
                     onClick={onSendMessage}
-                    className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 shadow-orange-600/25 text-white"
+                    className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Message Yourself
@@ -154,7 +154,7 @@ export default function UserProfileModal({
                 {onSendMessage && (
                   <Button 
                     onClick={onSendMessage}
-                    className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 shadow-orange-600/25 text-white"
+                    className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Send Message
@@ -167,7 +167,7 @@ export default function UserProfileModal({
                       <Button 
                         onClick={onStartCall}
                         variant="ghost"
-                        className="h-11 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 hover:text-white font-medium text-sm"
+                        className="h-11 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium text-sm"
                       >
                         <Phone className="h-4 w-4 mr-2" />
                         Call
@@ -177,7 +177,7 @@ export default function UserProfileModal({
                       <Button 
                         onClick={onStartVideoCall}
                         variant="ghost"
-                        className="h-11 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 hover:text-white font-medium text-sm"
+                        className="h-11 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium text-sm"
                       >
                         <Video className="h-4 w-4 mr-2" />
                         Video
@@ -190,7 +190,7 @@ export default function UserProfileModal({
                   <Button 
                     onClick={handleDeleteContactClick}
                     variant="ghost"
-                    className="w-full h-11 rounded-xl bg-red-500/5 border border-red-500/15 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium text-sm"
+                    className="w-full h-11 rounded-xl bg-red-50 border border-red-200 text-red-500 hover:bg-red-100 hover:text-red-600 font-medium text-sm"
                   >
                     <UserMinus className="h-4 w-4 mr-2" />
                     Delete Contact
@@ -201,8 +201,8 @@ export default function UserProfileModal({
 
             {user.lastSeen && (
               <div className="flex items-center justify-center gap-1.5 pt-2">
-                <Clock className="w-3 h-3 text-slate-500" />
-                <p className="text-[11px] text-slate-500">
+                <Clock className="w-3 h-3 text-gray-400" />
+                <p className="text-[11px] text-gray-400">
                   Last seen: {new Date(user.lastSeen).toLocaleString()}
                 </p>
               </div>
@@ -212,33 +212,33 @@ export default function UserProfileModal({
       </Dialog>
 
       <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-        <DialogContent className="sm:max-w-[380px] p-0 bg-gradient-to-b from-[#1a1a2e] via-[#16162a] to-[#111127] border border-red-500/20 text-white overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+        <DialogContent className="sm:max-w-[380px] p-0 bg-white border border-gray-200 text-gray-900 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Delete Contact</DialogTitle>
             <DialogDescription>Confirm deletion of contact and conversation history</DialogDescription>
           </DialogHeader>
           
-          <div className="relative px-6 pt-8 pb-5 text-center bg-gradient-to-b from-red-500/10 to-transparent">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-red-500/15 shadow-lg shadow-red-500/10 border border-red-500/20">
-              <AlertTriangle className="w-8 h-8 text-red-400" />
+          <div className="relative px-6 pt-8 pb-5 text-center bg-gradient-to-b from-red-50 to-transparent">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-red-100 shadow-lg shadow-red-100 border border-red-200">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-1">Delete Contact</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Are you sure you want to delete <span className="text-red-300 font-medium">{getEffectiveDisplayName(user)}</span>? This will also remove your conversation history.
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Delete Contact</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Are you sure you want to delete <span className="text-red-500 font-medium">{getEffectiveDisplayName(user)}</span>? This will also remove your conversation history.
             </p>
           </div>
 
           <div className="px-6 pb-5 pt-2 space-y-2">
             <Button
               onClick={handleConfirmDelete}
-              className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-600/25 text-white"
+              className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg bg-gradient-to-r from-red-500 to-red-400 hover:from-red-400 hover:to-red-300 shadow-red-300/30 text-white"
             >
               Delete Contact
             </Button>
             <Button
               onClick={handleCancelDelete}
               variant="ghost"
-              className="w-full h-10 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 font-medium text-sm"
+              className="w-full h-10 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 font-medium text-sm"
             >
               Cancel
             </Button>
