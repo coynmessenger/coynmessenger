@@ -105,7 +105,7 @@ export default function CallPermissionDialog({
   const getStatusIcon = (status: "pending" | "granted" | "denied") => {
     if (status === "granted") return <CheckCircle className="w-4 h-4 text-orange-400" />;
     if (status === "denied") return <AlertCircle className="w-4 h-4 text-red-400" />;
-    return <div className="w-4 h-4 rounded-full border-2 border-slate-600" />;
+    return null;
   };
 
   return (
