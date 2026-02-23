@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera, Settings, LogOut, Trash2 } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera, Settings, LogOut, Trash2, X } from "lucide-react";
 import type { User } from "@shared/schema";
 import { NotificationService } from "@/lib/notification-service";
 
@@ -691,297 +691,333 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     }
   };
 
+  const tabs = [
+    { id: "profile", label: "Profile", icon: UserIcon },
+    { id: "preferences", label: "Preferences", icon: Palette },
+    { id: "account", label: "Account", icon: Shield },
+  ];
+
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[420px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden max-h-[85vh] overflow-y-auto">
-        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-100 dark:bg-orange-900/50 shadow-lg shadow-orange-200/50 dark:shadow-orange-900/30 border border-orange-200 dark:border-orange-700">
-            <Settings className="w-8 h-8 text-orange-500" />
-          </div>
+      <DialogContent className="sm:max-w-[420px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden max-h-[85vh] flex flex-col">
+        <div className="relative px-6 pt-6 pb-4 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="absolute right-3 top-3 h-8 w-8 rounded-full p-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 z-10"
+          >
+            <X className="h-4 w-4" />
+          </Button>
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Settings</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Manage your account and preferences</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage your account and preferences</p>
+
+          <div className="flex mt-4 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === tab.id
+                    ? "bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="px-6 pb-2 space-y-4">
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Avatar className="h-14 w-14">
-                  <AvatarImage src={profilePicture} />
-                  <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-bold text-lg">
-                    {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  onClick={triggerImageUpload}
-                  disabled={uploadingImage}
-                  variant="ghost"
-                  size="sm"
-                  className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full p-0 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600"
-                >
-                  {uploadingImage ? (
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-                  ) : (
-                    <Camera className="h-3 w-3 text-gray-600 dark:text-gray-300" />
-                  )}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{displayName || 'Unknown User'}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="displayName" className="text-xs font-medium text-gray-700 dark:text-gray-300">Display Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm"
-                  placeholder="Your display name"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="walletAddress" className="text-xs font-medium text-gray-700 dark:text-gray-300">Wallet Address</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="walletAddress"
-                    value={walletAddress}
-                    readOnly
-                    className="bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 flex-1 h-10 rounded-lg text-sm font-mono"
-                  />
+        <div className="flex-1 overflow-y-auto px-6 pb-5">
+          {activeTab === "profile" && (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center py-2">
+                <div className="relative mb-3">
+                  <Avatar className="h-20 w-20 ring-4 ring-orange-100 dark:ring-orange-900/50">
+                    <AvatarImage src={profilePicture} />
+                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-bold text-2xl">
+                      {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                   <Button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(walletAddress);
-                      toast({
-                        title: "Copied to clipboard",
-                        description: "Wallet address copied successfully",
-                      });
-                    }}
+                    onClick={triggerImageUpload}
+                    disabled={uploadingImage}
                     variant="ghost"
                     size="sm"
-                    className="h-10 w-10 p-0 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 bg-orange-500 hover:bg-orange-600 border-2 border-white dark:border-gray-900 shadow-md"
                   >
-                    <Copy className="h-4 w-4" />
+                    {uploadingImage ? (
+                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Camera className="h-3.5 w-3.5 text-white" />
+                    )}
                   </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{displayName || 'Unknown User'}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="displayName" className="text-xs font-medium text-gray-700 dark:text-gray-300">Display Name</Label>
+                  <Input
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                    placeholder="Your display name"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="walletAddress" className="text-xs font-medium text-gray-700 dark:text-gray-300">Wallet Address</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="walletAddress"
+                      value={walletAddress}
+                      readOnly
+                      className="bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 flex-1 h-10 rounded-xl text-xs font-mono"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(walletAddress);
+                        toast({
+                          title: "Copied to clipboard",
+                          description: "Wallet address copied successfully",
+                        });
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="h-10 w-10 p-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-200 dark:hover:border-orange-700 text-gray-500 dark:text-gray-400 hover:text-orange-500 transition-colors"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {showShipping && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-3">
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Shipping Address</p>
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="fullName" className="text-xs text-gray-600 dark:text-gray-400">Full Name</Label>
-                    <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm" />
+              {showShipping && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                      <Info className="w-3.5 h-3.5 text-orange-500" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Shipping Address</span>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="address1" className="text-xs text-gray-600 dark:text-gray-400">Address Line 1</Label>
-                    <Input id="address1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="123 Main Street" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="address2" className="text-xs text-gray-600 dark:text-gray-400">Address Line 2 (Optional)</Label>
-                    <Input id="address2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Apt, Suite, Unit, etc." className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="city" className="text-xs text-gray-600 dark:text-gray-400">City</Label>
-                    <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="New York" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="country" className="text-xs text-gray-600 dark:text-gray-400">Country</Label>
-                    <Select value={country} onValueChange={(value) => { setCountry(value); setState(""); }}>
-                      <SelectTrigger className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm">
-                        <SelectValue placeholder="Select your country" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        {COUNTRIES.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="state" className="text-xs text-gray-600 dark:text-gray-400">State/Province</Label>
-                    {country && STATES_PROVINCES[country] ? (
-                      <Select value={state} onValueChange={(value) => setState(value)}>
-                        <SelectTrigger className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm">
-                          <SelectValue placeholder="Select state/province" />
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="fullName" className="text-xs text-gray-600 dark:text-gray-400">Full Name</Label>
+                      <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="address1" className="text-xs text-gray-600 dark:text-gray-400">Address Line 1</Label>
+                      <Input id="address1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="123 Main Street" className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="address2" className="text-xs text-gray-600 dark:text-gray-400">Address Line 2 (Optional)</Label>
+                      <Input id="address2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Apt, Suite, Unit, etc." className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="city" className="text-xs text-gray-600 dark:text-gray-400">City</Label>
+                        <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="New York" className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="zipCode" className="text-xs text-gray-600 dark:text-gray-400">ZIP Code</Label>
+                        <Input id="zipCode" value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="10001" className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="country" className="text-xs text-gray-600 dark:text-gray-400">Country</Label>
+                      <Select value={country} onValueChange={(value) => { setCountry(value); setState(""); }}>
+                        <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm">
+                          <SelectValue placeholder="Select your country" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                          {STATES_PROVINCES[country].map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    ) : (
-                      <Input id="state" value={state} onChange={(e) => setState(e.target.value)} placeholder="State, Province, or Region" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm" />
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="zipCode" className="text-xs text-gray-600 dark:text-gray-400">ZIP/Postal Code</Label>
-                    <Input id="zipCode" value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="10001" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="state" className="text-xs text-gray-600 dark:text-gray-400">State/Province</Label>
+                      {country && STATES_PROVINCES[country] ? (
+                        <Select value={state} onValueChange={(value) => setState(value)}>
+                          <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm">
+                            <SelectValue placeholder="Select state/province" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                            {STATES_PROVINCES[country].map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input id="state" value={state} onChange={(e) => setState(e.target.value)} placeholder="State, Province, or Region" className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-xl text-sm focus:bg-white dark:focus:bg-gray-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" />
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <Button
-              onClick={handleSave}
-              disabled={updateUserMutation.isPending}
-              className="w-full h-10 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-lg shadow-orange-300/30 text-white"
-            >
-              {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
+              <Button
+                onClick={handleSave}
+                disabled={updateUserMutation.isPending}
+                className="w-full h-11 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-lg shadow-orange-300/30 text-white mt-2"
+              >
+                {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          )}
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
-                <Palette className="w-4 h-4 text-orange-500" />
+          {activeTab === "preferences" && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                    <Palette className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Appearance</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">Theme</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Choose your preferred theme</p>
+                  </div>
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger className="w-28 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-9 rounded-lg text-sm">
+                      <SelectValue>
+                        <div className="flex items-center">
+                          {getThemeIcon()}
+                          <span className="ml-2 capitalize">{theme}</span>
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                      <SelectItem value="light">
+                        <div className="flex items-center">
+                          <Sun className="h-4 w-4 mr-2 text-orange-500" />
+                          Light
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="dark">
+                        <div className="flex items-center">
+                          <Moon className="h-4 w-4 mr-2 text-gray-500" />
+                          Dark
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Appearance</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Theme</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Choose your preferred theme</p>
-              </div>
-              <Select value={theme} onValueChange={setTheme}>
-                <SelectTrigger className="w-28 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 h-9 rounded-lg text-sm">
-                  <SelectValue>
-                    <div className="flex items-center">
-                      {getThemeIcon()}
-                      <span className="ml-2 capitalize">{theme}</span>
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                  <SelectItem value="light">
-                    <div className="flex items-center">
-                      <Sun className="h-4 w-4 mr-2 text-orange-500" />
-                      Light
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="dark">
-                    <div className="flex items-center">
-                      <Moon className="h-4 w-4 mr-2 text-gray-500" />
-                      Dark
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
-                <Bell className="w-4 h-4 text-orange-500" />
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                    <Bell className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">Push Notifications</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Receive notifications for new messages</p>
+                  </div>
+                  <Switch
+                    checked={notifications}
+                    onCheckedChange={handleNotificationChange}
+                  />
+                </div>
+                <Separator className="bg-gray-200 dark:bg-gray-700" />
+                <div className="flex items-center justify-between py-1">
+                  <div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">Message Preview</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Show message content in notifications</p>
+                  </div>
+                  <Switch
+                    checked={messagePreview}
+                    onCheckedChange={handleMessagePreviewChange}
+                  />
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</span>
             </div>
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Push Notifications</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Receive notifications for new messages</p>
-              </div>
-              <Switch
-                checked={notifications}
-                onCheckedChange={handleNotificationChange}
-              />
-            </div>
-            <Separator className="bg-gray-200 dark:bg-gray-700" />
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Message Preview</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Show message content in notifications</p>
-              </div>
-              <Switch
-                checked={messagePreview}
-                onCheckedChange={handleMessagePreviewChange}
-              />
-            </div>
-          </div>
+          )}
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
-                <Shield className="w-4 h-4 text-orange-500" />
+          {activeTab === "account" && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                    <Shield className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Privacy & Security</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">Auto-connect Wallet</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Automatically connect to COYN network</p>
+                  </div>
+                  <Switch
+                    checked={autoConnect}
+                    onCheckedChange={handleAutoConnectChange}
+                  />
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Privacy & Security</span>
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Auto-connect Wallet</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Automatically connect to COYN network</p>
-              </div>
-              <Switch
-                checked={autoConnect}
-                onCheckedChange={handleAutoConnectChange}
-              />
-            </div>
-            <Separator className="bg-gray-200 dark:bg-gray-700" />
-            <Button 
-              onClick={() => setShowClearDataConfirm(true)}
-              variant="ghost" 
-              className="w-full h-10 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium text-sm justify-start gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear All Data
-            </Button>
-          </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
-                <Info className="w-4 h-4 text-orange-500" />
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                    <Info className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">About</span>
+                </div>
+                <div className="flex justify-between text-sm py-1">
+                  <span className="text-gray-500 dark:text-gray-400">Version</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">1.2.5</span>
+                </div>
+                <div className="flex justify-between text-sm py-1">
+                  <span className="text-gray-500 dark:text-gray-400">Network</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">COYN Network</span>
+                </div>
+                <div className="flex justify-between text-sm py-1">
+                  <span className="text-gray-500 dark:text-gray-400">Build</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">Production</span>
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">About</span>
-            </div>
-            <div className="flex justify-between text-sm py-1">
-              <span className="text-gray-500 dark:text-gray-400">Version</span>
-              <span className="text-gray-900 dark:text-gray-100 font-medium">1.2.5</span>
-            </div>
-            <div className="flex justify-between text-sm py-1">
-              <span className="text-gray-500 dark:text-gray-400">Network</span>
-              <span className="text-gray-900 dark:text-gray-100 font-medium">COYN Network</span>
-            </div>
-            <div className="flex justify-between text-sm py-1">
-              <span className="text-gray-500 dark:text-gray-400">Build</span>
-              <span className="text-gray-900 dark:text-gray-100 font-medium">Production</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="px-6 pb-5 pt-3 space-y-2">
-          <Button 
-            onClick={handleSignOut}
-            className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-red-500 to-red-400 hover:from-red-400 hover:to-red-300 shadow-red-300/30 text-white"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="w-full h-10 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium text-sm"
-          >
-            Close
-          </Button>
+              <div className="space-y-2 pt-2">
+                <Button 
+                  onClick={handleSignOut}
+                  variant="ghost"
+                  className="w-full h-11 rounded-xl font-medium text-sm text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-800/50 transition-colors justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+                <Button 
+                  onClick={() => setShowClearDataConfirm(true)}
+                  variant="ghost" 
+                  className="w-full h-10 rounded-xl text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium text-xs justify-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Clear All Data
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
