@@ -39,6 +39,8 @@ export class EncryptedWebRTCService {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
       { urls: 'stun:stun.cloudflare.com:3478' },
       {
         urls: [
@@ -696,7 +698,10 @@ export class EncryptedWebRTCService {
       }
 
       // Create and send offer
-      const offer = await peerConnection.createOffer();
+      const offer = await peerConnection.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: type === 'video',
+      });
       await peerConnection.setLocalDescription(offer);
 
       // Send encrypted call invitation

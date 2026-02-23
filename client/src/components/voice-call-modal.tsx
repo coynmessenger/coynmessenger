@@ -659,9 +659,14 @@ export default function VoiceCallModal({
         
         const tempStream = incomingStreamRef.current;
         if (tempStream) {
-          console.log('✅ ACCEPT: Using pre-authorized microphone stream');
+          console.log('✅ ACCEPT: Stopping pre-authorized microphone stream to free mic');
+          tempStream.getTracks().forEach(track => track.stop());
           incomingStreamRef.current = null;
         }
+        
+        // Clear any cached stream in permissionService so acceptCall gets a fresh one
+        const { permissionService } = await import("@/lib/permission-service");
+        permissionService.clearCachedStream('microphone');
         
         userGestureReceivedRef.current = true;
 
