@@ -317,7 +317,7 @@ export default function HomePage() {
                         Connected to COYN Network
                       </h3>
                       <p className="text-sm text-gray-700 dark:text-foreground mb-2">
-                        Welcome to COYN, {connectedUser?.displayName}!
+                        Welcome to COYN, {connectedUser?.displayName}
                       </p>
                       <p className="text-[11px] text-gray-400 dark:text-muted-foreground font-mono truncate max-w-full px-2 overflow-hidden" title={connectedUser?.walletAddress}>
                         {connectedUser?.walletAddress}
