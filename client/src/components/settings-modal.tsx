@@ -715,18 +715,18 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
           </DialogHeader>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage your account and preferences</p>
 
-          <div className="flex mt-4 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 gap-1">
+          <div className="flex mt-4 bg-gray-100 dark:bg-gray-800 rounded-xl p-1.5 gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    ? "bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-md ring-1 ring-orange-200/50 dark:ring-orange-500/20"
+                    : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50"
                 }`}
               >
-                <tab.icon className="w-3.5 h-3.5" />
+                <tab.icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? "text-orange-500" : ""}`} />
                 {tab.label}
               </button>
             ))}
