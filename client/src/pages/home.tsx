@@ -308,18 +308,18 @@ export default function HomePage() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center space-y-6">
-                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                      <Check className="h-8 w-8 text-green-500" />
+                  <div className="text-center space-y-5">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-400/20 to-green-500/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                      <Check className="h-7 w-7 text-green-500" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
+                      <h3 className="text-lg font-bold text-green-600 dark:text-green-400 mb-1">
                         Connected to COYN Network
                       </h3>
-                      <p className="text-black dark:text-foreground mb-2">
+                      <p className="text-sm text-gray-700 dark:text-foreground mb-2">
                         Welcome to COYN, {connectedUser?.displayName}!
                       </p>
-                      <p className="text-xs text-gray-600 dark:text-muted-foreground font-mono break-all px-4">
+                      <p className="text-[11px] text-gray-400 dark:text-muted-foreground font-mono truncate max-w-full px-2 overflow-hidden" title={connectedUser?.walletAddress}>
                         {connectedUser?.walletAddress}
                       </p>
 
