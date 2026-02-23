@@ -110,19 +110,19 @@ export default function CallPermissionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[380px] p-0 bg-white border border-gray-200 text-gray-900 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
-        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 to-transparent">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-100 shadow-lg shadow-orange-200/50 border border-orange-200">
+      <DialogContent className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-100 dark:bg-orange-900/50 shadow-lg shadow-orange-200/50 dark:shadow-orange-900/30 border border-orange-200 dark:border-orange-700">
             {callType === "video" ? (
               <Video className="w-8 h-8 text-orange-500" />
             ) : (
               <Phone className="w-8 h-8 text-orange-500" />
             )}
           </div>
-          <DialogTitle className="text-lg font-semibold text-gray-900 mb-1">
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
             {callType === "video" ? "Video" : "Voice"} Call
           </DialogTitle>
-          <DialogDescription className="text-sm text-gray-500">
+          <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
             Grant access to call <span className="text-orange-600 font-medium">{calleeName}</span>
           </DialogDescription>
         </div>
@@ -131,13 +131,13 @@ export default function CallPermissionDialog({
           <div className="space-y-2">
             {callType === "video" && (
               <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                cameraPermission === "granted" ? "bg-orange-50 border border-orange-200" :
-                cameraPermission === "denied" ? "bg-red-50 border border-red-200" :
-                "bg-gray-50 border border-gray-200"
+                cameraPermission === "granted" ? "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700" :
+                cameraPermission === "denied" ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" :
+                "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
               }`}>
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                  cameraPermission === "granted" ? "bg-orange-100" :
-                  cameraPermission === "denied" ? "bg-red-100" : "bg-orange-50"
+                  cameraPermission === "granted" ? "bg-orange-100 dark:bg-orange-900/40" :
+                  cameraPermission === "denied" ? "bg-red-100" : "bg-orange-50 dark:bg-orange-900/30"
                 }`}>
                   <Camera className={`w-[18px] h-[18px] ${
                     cameraPermission === "granted" ? "text-orange-500" :
@@ -145,8 +145,8 @@ export default function CallPermissionDialog({
                   }`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900">Camera</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Camera</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {cameraPermission === "granted" ? "Access granted" :
                      cameraPermission === "denied" ? "Access denied" : "Required for video"}
                   </div>
@@ -156,13 +156,13 @@ export default function CallPermissionDialog({
             )}
 
             <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-              micPermission === "granted" ? "bg-orange-50 border border-orange-200" :
-              micPermission === "denied" ? "bg-red-50 border border-red-200" :
-              "bg-gray-50 border border-gray-200"
+              micPermission === "granted" ? "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700" :
+              micPermission === "denied" ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" :
+              "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
             }`}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                micPermission === "granted" ? "bg-orange-100" :
-                micPermission === "denied" ? "bg-red-100" : "bg-orange-50"
+                micPermission === "granted" ? "bg-orange-100 dark:bg-orange-900/40" :
+                micPermission === "denied" ? "bg-red-100" : "bg-orange-50 dark:bg-orange-900/30"
               }`}>
                 <Mic className={`w-[18px] h-[18px] ${
                   micPermission === "granted" ? "text-orange-500" :
@@ -170,8 +170,8 @@ export default function CallPermissionDialog({
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900">Microphone</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Microphone</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   {micPermission === "granted" ? "Access granted" :
                    micPermission === "denied" ? "Access denied" : "Required for speaking"}
                 </div>
@@ -180,17 +180,17 @@ export default function CallPermissionDialog({
             </div>
 
             <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-              speakerEnabled ? "bg-orange-50 border border-orange-200" :
-              "bg-gray-50 border border-gray-200"
+              speakerEnabled ? "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700" :
+              "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
             }`}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                speakerEnabled ? "bg-orange-100" : "bg-orange-50"
+                speakerEnabled ? "bg-orange-100 dark:bg-orange-900/40" : "bg-orange-50 dark:bg-orange-900/30"
               }`}>
                 <Volume2 className={`w-[18px] h-[18px] ${speakerEnabled ? "text-orange-500" : "text-orange-400"}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900">Speaker</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Speaker</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   {speakerEnabled ? "Audio enabled" : "For hearing the caller"}
                 </div>
               </div>
@@ -199,10 +199,10 @@ export default function CallPermissionDialog({
           </div>
 
           {error && (
-            <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200">
+            <div className="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-red-600 leading-relaxed">{error}</div>
+                <div className="text-xs text-red-600 dark:text-red-400 leading-relaxed">{error}</div>
               </div>
             </div>
           )}
@@ -236,13 +236,13 @@ export default function CallPermissionDialog({
           <Button
             variant="ghost"
             onClick={handleCancel}
-            className="w-full h-10 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 font-medium text-sm"
+            className="w-full h-10 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium text-sm"
             data-testid="permission-cancel-btn"
           >
             Cancel
           </Button>
 
-          <p className="text-[11px] text-center text-gray-400 leading-relaxed">
+          <p className="text-[11px] text-center text-gray-400 dark:text-gray-500 leading-relaxed">
             Your browser will prompt for permission. Tap <span className="text-orange-500">"Allow"</span> to proceed.
           </p>
         </div>

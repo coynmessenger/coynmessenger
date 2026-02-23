@@ -190,168 +190,161 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-slate-50 max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-cyan-400" />
-              <span>Profile Settings</span>
-            </div>
-            {!isEditing && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsEditing(true)}
-                className="text-slate-400 hover:text-cyan-400"
-              >
-                <Edit3 className="h-4 w-4" />
-              </Button>
-            )}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Profile Picture */}
-          <div className="flex flex-col items-center space-y-4">
-            <Avatar className="h-20 w-20">
+      <DialogContent className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent">
+          <div className="flex flex-col items-center">
+            <Avatar className="h-20 w-20 mb-3 ring-4 ring-orange-100 dark:ring-orange-900/50">
               <AvatarImage src={isEditing ? profilePicture : user.profilePicture || ""} />
-              <AvatarFallback className="text-2xl">
+              <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-bold text-2xl">
                 {(isEditing ? displayName : user.displayName).charAt(0)}
               </AvatarFallback>
             </Avatar>
-            
-            {isEditing && (
-              <div className="w-full space-y-4">
-                {/* Upload Method Toggle */}
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={uploadMethod === 'file' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setUploadMethod('file')}
-                    className={uploadMethod === 'file' ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900' : 'border-slate-600 hover:bg-slate-700'}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    Upload Photo
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={uploadMethod === 'url' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setUploadMethod('url')}
-                    className={uploadMethod === 'url' ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900' : 'border-slate-600 hover:bg-slate-700'}
-                  >
-                    URL
-                  </Button>
-                </div>
-
-                {uploadMethod === 'file' ? (
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">
-                      Choose Profile Picture
-                    </Label>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={triggerFileSelect}
-                      disabled={uploadImageMutation.isPending}
-                      className="w-full border-slate-600 hover:bg-slate-700 min-h-[44px]"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploadImageMutation.isPending ? 'Uploading...' : 'Select Image from Device'}
-                    </Button>
-                    <p className="text-xs text-slate-400 text-center">
-                      JPEG, PNG, or GIF • Max 5MB
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="profilePicture" className="text-slate-300">
-                      Profile Picture URL
-                    </Label>
-                    <Input
-                      id="profilePicture"
-                      type="url"
-                      placeholder="https://example.com/avatar.jpg"
-                      value={profilePicture}
-                      onChange={(e) => setProfilePicture(e.target.value)}
-                      className="bg-slate-700 border-slate-600 focus:border-cyan-500"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Display Name */}
-          <div className="space-y-2">
-            <Label htmlFor="displayName" className="text-slate-300">
-              Display Name
-            </Label>
-            {isEditing ? (
-              <Input
-                id="displayName"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="bg-slate-700 border-slate-600 focus:border-cyan-500"
-                placeholder="Your display name"
-              />
-            ) : (
-              <div className="p-3 bg-slate-700 rounded-md text-slate-200">
-                {user.displayName}
-              </div>
-            )}
-          </div>
-
-          {/* Wallet Address (Read-only) */}
-          <div className="space-y-2">
-            <Label className="text-slate-300">Wallet Address</Label>
-            <div className="p-3 bg-slate-700 rounded-md text-slate-400 font-mono text-sm break-all">
-              {user.walletAddress}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
-            {isEditing ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="flex-1 border-slate-600 hover:bg-slate-700"
-                  disabled={updateProfileMutation.isPending}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={updateProfileMutation.isPending || !displayName.trim()}
-                  className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {updateProfileMutation.isPending ? "Saving..." : "Save"}
-                </Button>
-              </>
-            ) : (
+            {!isEditing && (
               <Button
-                onClick={onClose}
-                className="flex-1 bg-slate-600 hover:bg-slate-500"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-xs font-medium"
               >
-                Close
+                <Edit3 className="h-3 w-3 mr-1" />
+                Edit Profile
               </Button>
             )}
           </div>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Profile</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Your account details</p>
+        </div>
+
+        <div className="px-6 pb-2 space-y-3">
+          {isEditing && (
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setUploadMethod('file')}
+                  className={uploadMethod === 'file' 
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-sm' 
+                    : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}
+                >
+                  <Camera className="h-3.5 w-3.5 mr-1.5" />
+                  Upload Photo
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setUploadMethod('url')}
+                  className={uploadMethod === 'url' 
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-sm' 
+                    : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}
+                >
+                  URL
+                </Button>
+              </div>
+
+              {uploadMethod === 'file' ? (
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={triggerFileSelect}
+                    disabled={uploadImageMutation.isPending}
+                    className="w-full h-10 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm"
+                  >
+                    <Upload className="h-4 w-4 mr-2 text-orange-500" />
+                    {uploadImageMutation.isPending ? 'Uploading...' : 'Select Image from Device'}
+                  </Button>
+                  <p className="text-[11px] text-gray-400 text-center">
+                    JPEG, PNG, or GIF • Max 5MB
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label htmlFor="profilePicture" className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Profile Picture URL
+                  </Label>
+                  <Input
+                    id="profilePicture"
+                    type="url"
+                    placeholder="https://example.com/avatar.jpg"
+                    value={profilePicture}
+                    onChange={(e) => setProfilePicture(e.target.value)}
+                    className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="displayName" className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Display Name
+              </Label>
+              {isEditing ? (
+                <Input
+                  id="displayName"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 h-10 rounded-lg text-sm"
+                  placeholder="Your display name"
+                />
+              ) : (
+                <div className="p-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                  {user.displayName}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Wallet Address</Label>
+              <div className="p-2.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
+                {user.walletAddress}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 pb-5 pt-3 space-y-2">
+          {isEditing ? (
+            <>
+              <Button
+                onClick={handleSave}
+                disabled={updateProfileMutation.isPending || !displayName.trim()}
+                className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleCancel}
+                disabled={updateProfileMutation.isPending}
+                className="w-full h-10 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium text-sm"
+              >
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              className="w-full h-10 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium text-sm"
+            >
+              Close
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useTheme } from "@/lib/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera } from "lucide-react";
+import { Moon, Sun, Monitor, User as UserIcon, Bell, Shield, Palette, Info, Copy, Upload, Camera, Settings, LogOut, Trash2 } from "lucide-react";
 import type { User } from "@shared/schema";
 import { NotificationService } from "@/lib/notification-service";
 
@@ -694,433 +694,324 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-foreground flex items-center">
-            <UserIcon className="h-5 w-5 mr-2" />
-            Settings
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[420px] p-0 bg-white border border-gray-200 text-gray-900 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden max-h-[85vh] overflow-y-auto">
+        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 to-transparent">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-100 shadow-lg shadow-orange-200/50 border border-orange-200">
+            <Settings className="w-8 h-8 text-orange-500" />
+          </div>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900 mb-1">Settings</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500">Manage your account and preferences</p>
+        </div>
 
-        <div className="space-y-4 sm:space-y-6">
-          {/* Profile Settings */}
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
-              <CardTitle className="text-black dark:text-slate-100 flex items-center">
-                <UserIcon className="h-4 w-4 mr-2" />
-                {showShipping ? "Profile & Shipping Information" : "Profile Information"}
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-slate-400">
-                {showShipping 
-                  ? "Update your personal information and shipping address for marketplace purchases"
-                  : "Update your personal information and preferences"
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-              {/* Profile Picture Section */}
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={profilePicture} />
-                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 dark:from-cyan-400 dark:to-cyan-600 text-white font-bold text-lg">
-                      {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  {/* Debug info */}
-                  {profilePicture && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      Current: {profilePicture.substring(profilePicture.lastIndexOf('/') + 1)}
-                    </div>
+        <div className="px-6 pb-2 space-y-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Avatar className="h-14 w-14">
+                  <AvatarImage src={profilePicture} />
+                  <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-bold text-lg">
+                    {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  onClick={triggerImageUpload}
+                  disabled={uploadingImage}
+                  variant="ghost"
+                  size="sm"
+                  className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full p-0 bg-white border border-gray-200 shadow-sm hover:bg-gray-50"
+                >
+                  {uploadingImage ? (
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+                  ) : (
+                    <Camera className="h-3 w-3 text-gray-600" />
                   )}
-                  <Button
-                    onClick={triggerImageUpload}
-                    disabled={uploadingImage}
-                    variant="outline"
-                    size="sm"
-                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 bg-white dark:bg-slate-800 border-2 border-background"
-                  >
-                    {uploadingImage ? (
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-                    ) : (
-                      <Camera className="h-3 w-3" />
-                    )}
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-black dark:text-foreground">{displayName || 'Unknown User'}</h3>
-                  <p className="text-sm text-gray-600 dark:text-muted-foreground">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
-                  <Button
-                    onClick={triggerImageUpload}
-                    disabled={uploadingImage}
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    {uploadingImage ? "Uploading..." : "Change Picture"}
-                  </Button>
-                </div>
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
               </div>
-              
-              <Separator />
-              
-              {/* Basic Profile */}
-              <div className="space-y-4">
-                <h4 className="text-md font-medium text-foreground">Basic Information</h4>
-                <div className="space-y-2">
-                  <Label htmlFor="displayName" className="text-foreground">Display Name</Label>
-                  <Input
-                    id="displayName"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    placeholder="Your display name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="walletAddress" className="text-foreground">Wallet Address</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="walletAddress"
-                      value={walletAddress}
-                      readOnly
-                      className="bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(walletAddress);
-                        toast({
-                          title: "Copied to clipboard",
-                          description: "Wallet address copied successfully",
-                        });
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-300 dark:border-slate-600"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Your wallet address cannot be changed for security reasons</p>
-                </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-gray-900 truncate">{displayName || 'Unknown User'}</h3>
+                <p className="text-xs text-gray-500 truncate">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
               </div>
+            </div>
 
-              {/* Mailing Address Section - Only show on marketplace */}
-              {showShipping && (
-                <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
-                  <h4 className="text-md font-medium text-foreground mb-3">Shipping Address</h4>
-                  <p className="text-sm text-muted-foreground mb-4">Add your shipping address for marketplace purchases</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-foreground">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="John Doe"
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    />
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="displayName" className="text-xs font-medium text-gray-700">Display Name</Label>
+                <Input
+                  id="displayName"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm"
+                  placeholder="Your display name"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="walletAddress" className="text-xs font-medium text-gray-700">Wallet Address</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="walletAddress"
+                    value={walletAddress}
+                    readOnly
+                    className="bg-gray-100 border-gray-200 text-gray-500 flex-1 h-10 rounded-lg text-sm font-mono"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(walletAddress);
+                      toast({
+                        title: "Copied to clipboard",
+                        description: "Wallet address copied successfully",
+                      });
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 p-0 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {showShipping && (
+              <div className="border-t border-gray-200 pt-3 space-y-3">
+                <p className="text-xs font-medium text-gray-700">Shipping Address</p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fullName" className="text-xs text-gray-600">Full Name</Label>
+                    <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm" />
                   </div>
-                  
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="address1" className="text-foreground">Address Line 1</Label>
-                    <Input
-                      id="address1"
-                      value={addressLine1}
-                      onChange={(e) => setAddressLine1(e.target.value)}
-                      placeholder="123 Main Street"
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="address1" className="text-xs text-gray-600">Address Line 1</Label>
+                    <Input id="address1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="123 Main Street" className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm" />
                   </div>
-                  
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="address2" className="text-foreground">Address Line 2 (Optional)</Label>
-                    <Input
-                      id="address2"
-                      value={addressLine2}
-                      onChange={(e) => setAddressLine2(e.target.value)}
-                      placeholder="Apt, Suite, Unit, etc."
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="address2" className="text-xs text-gray-600">Address Line 2 (Optional)</Label>
+                    <Input id="address2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Apt, Suite, Unit, etc." className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm" />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="city" className="text-foreground">City</Label>
-                    <Input
-                      id="city"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="New York"
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="city" className="text-xs text-gray-600">City</Label>
+                    <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="New York" className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm" />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="country" className="text-foreground">Country</Label>
-                    <Select 
-                      value={country} 
-                      onValueChange={(value) => {
-                        setCountry(value);
-                        setState(""); // Reset state when country changes
-                      }}
-                    >
-                      <SelectTrigger className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="country" className="text-xs text-gray-600">Country</Label>
+                    <Select value={country} onValueChange={(value) => { setCountry(value); setState(""); }}>
+                      <SelectTrigger className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm">
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {COUNTRIES.map((country) => (
-                          <SelectItem key={country.code} value={country.code}>
-                            {country.name}
-                          </SelectItem>
+                      <SelectContent className="max-h-60 bg-white border-gray-200">
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="state" className="text-foreground">State/Province</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="state" className="text-xs text-gray-600">State/Province</Label>
                     {country && STATES_PROVINCES[country] ? (
-                      <Select 
-                        value={state} 
-                        onValueChange={(value) => setState(value)}
-                      >
-                        <SelectTrigger className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
+                      <Select value={state} onValueChange={(value) => setState(value)}>
+                        <SelectTrigger className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm">
                           <SelectValue placeholder="Select state/province" />
                         </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                          {STATES_PROVINCES[country].map((state) => (
-                            <SelectItem key={state} value={state}>
-                              {state}
-                            </SelectItem>
+                        <SelectContent className="max-h-60 bg-white border-gray-200">
+                          {STATES_PROVINCES[country].map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Input
-                        id="state"
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        placeholder="State, Province, or Region"
-                        className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                      />
+                      <Input id="state" value={state} onChange={(e) => setState(e.target.value)} placeholder="State, Province, or Region" className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm" />
                     )}
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="zipCode" className="text-foreground">ZIP/Postal Code</Label>
-                    <Input
-                      id="zipCode"
-                      value={zipCode}
-                      onChange={(e) => setZipCode(e.target.value)}
-                      placeholder="10001"
-                      className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="zipCode" className="text-xs text-gray-600">ZIP/Postal Code</Label>
+                    <Input id="zipCode" value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="10001" className="bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm" />
                   </div>
                 </div>
-                </div>
-              )}
+              </div>
+            )}
 
-              <Button
-                onClick={handleSave}
-                disabled={updateUserMutation.isPending}
-                className="bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white"
-              >
-                {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardContent>
-          </Card>
+            <Button
+              onClick={handleSave}
+              disabled={updateUserMutation.isPending}
+              className="w-full h-10 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-lg shadow-orange-300/30 text-white"
+            >
+              {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
 
-          {/* Appearance Settings */}
-          <Card className="bg-card border-border">
-            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
-              <CardTitle className="text-foreground flex items-center">
-                <Palette className="h-4 w-4 mr-2" />
-                Appearance
-              </CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Customize how the app looks and feels
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-foreground">Theme</Label>
-                  <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
-                </div>
-                <Select value={theme} onValueChange={setTheme}>
-                  <SelectTrigger className="w-32 bg-input border-border">
-                    <SelectValue>
-                      <div className="flex items-center">
-                        {getThemeIcon()}
-                        <span className="ml-2 capitalize">{theme}</span>
-                      </div>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="light" className="text-foreground">
-                      <div className="flex items-center">
-                        <Sun className="h-4 w-4 mr-2" />
-                        Light
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="dark" className="text-foreground">
-                      <div className="flex items-center">
-                        <Moon className="h-4 w-4 mr-2" />
-                        Dark
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50">
+                <Palette className="w-4 h-4 text-orange-500" />
               </div>
-            </CardContent>
-          </Card>
+              <span className="text-sm font-medium text-gray-900">Appearance</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-700">Theme</p>
+                <p className="text-xs text-gray-500">Choose your preferred theme</p>
+              </div>
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger className="w-28 bg-white border-gray-200 text-gray-900 h-9 rounded-lg text-sm">
+                  <SelectValue>
+                    <div className="flex items-center">
+                      {getThemeIcon()}
+                      <span className="ml-2 capitalize">{theme}</span>
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="light">
+                    <div className="flex items-center">
+                      <Sun className="h-4 w-4 mr-2 text-orange-500" />
+                      Light
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dark">
+                    <div className="flex items-center">
+                      <Moon className="h-4 w-4 mr-2 text-gray-500" />
+                      Dark
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-          {/* Notifications Settings */}
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
-              <CardTitle className="text-black dark:text-slate-100 flex items-center">
-                <Bell className="h-4 w-4 mr-2" />
-                Notifications
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-slate-400">
-                Control how you receive notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-foreground">Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">Receive notifications for new messages</p>
-                </div>
-                <Switch
-                  checked={notifications}
-                  onCheckedChange={handleNotificationChange}
-                />
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50">
+                <Bell className="w-4 h-4 text-orange-500" />
               </div>
-              <Separator className="bg-slate-600" />
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-foreground">Message Preview</Label>
-                  <p className="text-sm text-muted-foreground">Show message content in notifications</p>
-                </div>
-                <Switch
-                  checked={messagePreview}
-                  onCheckedChange={handleMessagePreviewChange}
-                />
+              <span className="text-sm font-medium text-gray-900">Notifications</span>
+            </div>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="text-sm text-gray-700">Push Notifications</p>
+                <p className="text-xs text-gray-500">Receive notifications for new messages</p>
               </div>
-            </CardContent>
-          </Card>
+              <Switch
+                checked={notifications}
+                onCheckedChange={handleNotificationChange}
+              />
+            </div>
+            <Separator className="bg-gray-200" />
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="text-sm text-gray-700">Message Preview</p>
+                <p className="text-xs text-gray-500">Show message content in notifications</p>
+              </div>
+              <Switch
+                checked={messagePreview}
+                onCheckedChange={handleMessagePreviewChange}
+              />
+            </div>
+          </div>
 
-          {/* Privacy & Security */}
-          <Card className="bg-slate-600/30 border-slate-500">
-            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
-              <CardTitle className="text-black dark:text-slate-100 flex items-center">
-                <Shield className="h-4 w-4 mr-2" />
-                Privacy & Security
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-slate-400">
-                Manage your privacy and security preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-foreground">Auto-connect Wallet</Label>
-                  <p className="text-sm text-muted-foreground">Automatically connect to COYN network</p>
-                </div>
-                <Switch
-                  checked={autoConnect}
-                  onCheckedChange={handleAutoConnectChange}
-                />
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50">
+                <Shield className="w-4 h-4 text-orange-500" />
               </div>
-              <Separator className="bg-slate-600" />
-              <div className="space-y-2">
-                <Button 
-                  onClick={() => setShowClearDataConfirm(true)}
-                  variant="outline" 
-                  className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                >
-                  Clear All Data
-                </Button>
-                <Button 
-                  onClick={handleSignOut}
-                  variant="outline" 
-                  className="w-full border-border text-foreground hover:bg-muted"
-                >
-                  Sign Out
-                </Button>
+              <span className="text-sm font-medium text-gray-900">Privacy & Security</span>
+            </div>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="text-sm text-gray-700">Auto-connect Wallet</p>
+                <p className="text-xs text-gray-500">Automatically connect to COYN network</p>
               </div>
-            </CardContent>
-          </Card>
+              <Switch
+                checked={autoConnect}
+                onCheckedChange={handleAutoConnectChange}
+              />
+            </div>
+            <Separator className="bg-gray-200" />
+            <Button 
+              onClick={() => setShowClearDataConfirm(true)}
+              variant="ghost" 
+              className="w-full h-10 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 font-medium text-sm justify-start gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear All Data
+            </Button>
+          </div>
 
-          {/* About */}
-          <Card className="bg-slate-600/30 border-slate-500">
-            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-6">
-              <CardTitle className="text-black dark:text-slate-100 flex items-center">
-                <Info className="h-4 w-4 mr-2" />
-                About
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 p-4 sm:p-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Version</span>
-                <span className="text-foreground">1.2.5</span>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-orange-50">
+                <Info className="w-4 h-4 text-orange-500" />
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Network</span>
-                <span className="text-foreground">COYN Network</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Build</span>
-                <span className="text-foreground">Production</span>
-              </div>
-            </CardContent>
-          </Card>
+              <span className="text-sm font-medium text-gray-900">About</span>
+            </div>
+            <div className="flex justify-between text-sm py-1">
+              <span className="text-gray-500">Version</span>
+              <span className="text-gray-900 font-medium">1.2.5</span>
+            </div>
+            <div className="flex justify-between text-sm py-1">
+              <span className="text-gray-500">Network</span>
+              <span className="text-gray-900 font-medium">COYN Network</span>
+            </div>
+            <div className="flex justify-between text-sm py-1">
+              <span className="text-gray-500">Build</span>
+              <span className="text-gray-900 font-medium">Production</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-end pt-3 sm:pt-4">
-          <Button onClick={onClose} variant="outline" className="border-border text-foreground">
+        <div className="px-6 pb-5 pt-3 space-y-2">
+          <Button 
+            onClick={handleSignOut}
+            className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-red-500 to-red-400 hover:from-red-400 hover:to-red-300 shadow-red-300/30 text-white"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="w-full h-10 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 font-medium text-sm"
+          >
             Close
           </Button>
         </div>
       </DialogContent>
     </Dialog>
 
-    {/* Clear All Data Confirmation Dialog */}
     <Dialog open={showClearDataConfirm} onOpenChange={setShowClearDataConfirm}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-destructive">⚠️ Clear All Data</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              This action will permanently delete ALL of your data including:
-            </p>
-            <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-2">
-              <li>Your user account and profile</li>
-              <li>All conversations and messages</li>
-              <li>All wallet balances and transaction history</li>
-              <li>Purchase history and favorites</li>
-              <li>All settings and preferences</li>
-            </ul>
-            <p className="text-sm font-semibold text-destructive">
-              This action cannot be undone!
-            </p>
+      <DialogContent className="sm:max-w-[380px] p-0 bg-white border border-gray-200 text-gray-900 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+        <div className="relative px-6 pt-8 pb-4 text-center bg-gradient-to-b from-red-50 to-transparent">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3 bg-red-100 shadow-lg shadow-red-200/50 border border-red-200">
+            <Trash2 className="w-7 h-7 text-red-500" />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="confirmText" className="text-sm font-medium">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900">Clear All Data</DialogTitle>
+          </DialogHeader>
+        </div>
+        <div className="px-6 pb-2 space-y-3">
+          <p className="text-sm text-gray-500">
+            This will permanently delete ALL of your data:
+          </p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
+            <p className="text-xs text-red-600">• Your user account and profile</p>
+            <p className="text-xs text-red-600">• All conversations and messages</p>
+            <p className="text-xs text-red-600">• All wallet balances and transaction history</p>
+            <p className="text-xs text-red-600">• Purchase history and favorites</p>
+            <p className="text-xs text-red-600">• All settings and preferences</p>
+          </div>
+          <p className="text-xs font-semibold text-red-500 text-center">
+            This action cannot be undone!
+          </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="confirmText" className="text-xs font-medium text-gray-700">
               Type "DELETE ALL MY DATA" to confirm:
             </Label>
             <Input
@@ -1128,28 +1019,28 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
               value={clearDataConfirmText}
               onChange={(e) => setClearDataConfirmText(e.target.value)}
               placeholder="DELETE ALL MY DATA"
-              className="font-mono"
+              className="font-mono bg-white border-gray-200 text-gray-900 h-10 rounded-lg text-sm"
             />
           </div>
-          
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowClearDataConfirm(false);
-                setClearDataConfirmText("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleClearAllData}
-              disabled={clearDataConfirmText !== "DELETE ALL MY DATA" || clearAllDataMutation.isPending}
-            >
-              {clearAllDataMutation.isPending ? "Clearing..." : "Delete Everything"}
-            </Button>
-          </div>
+        </div>
+        <div className="px-6 pb-5 pt-3 space-y-2">
+          <Button
+            onClick={handleClearAllData}
+            disabled={clearDataConfirmText !== "DELETE ALL MY DATA" || clearAllDataMutation.isPending}
+            className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-red-500 to-red-400 hover:from-red-400 hover:to-red-300 shadow-red-300/30 text-white disabled:opacity-50"
+          >
+            {clearAllDataMutation.isPending ? "Clearing..." : "Delete Everything"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setShowClearDataConfirm(false);
+              setClearDataConfirmText("");
+            }}
+            className="w-full h-10 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 font-medium text-sm"
+          >
+            Cancel
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

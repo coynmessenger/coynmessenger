@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Bell, Shield, X } from 'lucide-react';
+import { Bell, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface NotificationsModalProps {
@@ -118,94 +118,81 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] sm:w-[90vw] max-w-md mx-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-        <DialogHeader className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="h-6 w-6 text-orange-500" />
-              <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                Notifications
-              </DialogTitle>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+      <DialogContent className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+        <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-100 dark:bg-orange-900/50 shadow-lg shadow-orange-200/50 dark:shadow-orange-900/30 border border-orange-200 dark:border-orange-700">
+            <Bell className="w-8 h-8 text-orange-500" />
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+            Notifications
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
             Control how you receive notifications
-          </p>
-        </DialogHeader>
+          </DialogDescription>
+        </div>
 
-        <div className="space-y-6 mt-6">
-          {/* Push Notifications */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white">
-                Push <span className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-sm">Notifications</span>
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Receive notifications for new messages
-              </p>
-            </div>
-            <Switch
-              checked={pushNotifications}
-              onCheckedChange={handlePushNotificationsChange}
-              className="data-[state=checked]:bg-orange-500"
-            />
-          </div>
-
-          {/* Message Preview */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white">
-                Message <span className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-sm">Preview</span>
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                <span className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-sm">Show</span> message content in notifications
-              </p>
-            </div>
-            <Switch
-              checked={messagePreview}
-              onCheckedChange={handleMessagePreviewChange}
-              className="data-[state=checked]:bg-orange-500"
-            />
-          </div>
-
-          {/* Test Notification Button */}
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-            <Button 
-              onClick={testNotification}
-              variant="outline"
-              className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-            >
-              Test Notification
-            </Button>
-          </div>
-
-          {/* Privacy & Security Section */}
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 space-y-4">
-            <div className="flex items-center gap-3">
-              <Shield className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h3 className="font-medium text-gray-900 dark:text-white">Privacy & Security</h3>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Manage your privacy and security preferences
-            </p>
-            
-            {/* Auto-connect Wallet */}
-            <div className="flex items-center justify-between pt-2">
+        <div className="px-6 pb-2">
+          <div className="space-y-2">
+            {/* Push Notifications */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                <Bell className="w-[18px] h-[18px] text-orange-400" />
+              </div>
               <div className="flex-1">
-                <h4 className="font-medium text-gray-900 dark:text-white text-sm">
-                  Auto-connect Wallet
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                  Automatically connect your wallet when opening the app
-                </p>
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Push Notifications</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Receive notifications for new messages
+                </div>
+              </div>
+              <Switch
+                checked={pushNotifications}
+                onCheckedChange={handlePushNotificationsChange}
+                className="data-[state=checked]:bg-orange-500"
+              />
+            </div>
+
+            {/* Message Preview */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                <Bell className="w-[18px] h-[18px] text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Message Preview</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Show message content in notifications
+                </div>
+              </div>
+              <Switch
+                checked={messagePreview}
+                onCheckedChange={handleMessagePreviewChange}
+                className="data-[state=checked]:bg-orange-500"
+              />
+            </div>
+
+            {/* Test Notification Button */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                <Bell className="w-[18px] h-[18px] text-orange-400" />
+              </div>
+              <Button 
+                onClick={testNotification}
+                variant="outline"
+                className="flex-1 border-0 bg-transparent hover:bg-transparent text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 font-medium text-sm p-0 h-auto justify-start"
+              >
+                Test Notification
+              </Button>
+            </div>
+
+            {/* Privacy & Security Section */}
+            <div className="mt-2 flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-orange-900/30">
+                <Shield className="w-[18px] h-[18px] text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Privacy & Security</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Auto-connect wallet on app open
+                </div>
               </div>
               <Switch
                 checked={autoConnectWallet}
@@ -214,6 +201,23 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
               />
             </div>
           </div>
+        </div>
+
+        <div className="px-6 pb-5 pt-4 space-y-3">
+          <Button
+            onClick={onClose}
+            className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
+          >
+            Done
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="w-full h-10 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium text-sm"
+          >
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
