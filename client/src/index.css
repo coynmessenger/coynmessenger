@@ -902,11 +902,18 @@ mark:hover {
 @keyframes modal-enter {
   0% {
     opacity: 0;
-    transform: scale(0.9) translateY(-20px);
+    transform: scale(0.85) translateY(30px);
+    filter: blur(4px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-2px);
+    filter: blur(0px);
   }
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
+    filter: blur(0px);
   }
 }
 
@@ -914,19 +921,40 @@ mark:hover {
   0% {
     opacity: 1;
     transform: scale(1) translateY(0);
+    filter: blur(0px);
   }
   100% {
     opacity: 0;
-    transform: scale(0.9) translateY(-20px);
+    transform: scale(0.88) translateY(40px);
+    filter: blur(3px);
   }
 }
 
+@keyframes overlay-enter {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes overlay-exit {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .animate-modal-enter {
-  animation: modal-enter 0.3s ease-out forwards;
+  animation: modal-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-modal-exit {
-  animation: modal-exit 0.2s ease-in forwards;
+  animation: modal-exit 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+
+.animate-overlay-enter {
+  animation: overlay-enter 0.3s ease-out forwards;
+}
+
+.animate-overlay-exit {
+  animation: overlay-exit 0.3s ease-in forwards;
 }
 
 /* Smooth fade animations */

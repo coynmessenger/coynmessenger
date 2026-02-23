@@ -964,8 +964,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     setTimeout(() => {
       onClose();
       setIsAnimating(false);
-      isEndingRef.current = false; // Reset for next call
-    }, 1200); // 1000ms for status display + 200ms for exit animation
+      isEndingRef.current = false;
+    }, 800);
   };
 
   const handleHideCall = () => {
@@ -1159,7 +1159,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           setTimeout(() => {
             onClose();
             setIsAnimating(false);
-          }, 200);
+          }, 350);
         }
       }
     }}>

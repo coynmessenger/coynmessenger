@@ -798,25 +798,26 @@ export default function VoiceCallModal({
     setCallStatus("ended");
     if (onCallEnd) onCallEnd();
     
+    setAnimationType('exit');
+    setIsAnimating(true);
+    
     setTimeout(() => {
       onClose();
-      isEndingRef.current = false; // Reset for next call
-    }, 1000);
+      setIsAnimating(false);
+      isEndingRef.current = false;
+    }, 400);
   };
   
   const handleCloseModal = () => {
-    // If call is active, just hide the modal without ending the call
     if (isCallActive && callStatus === "connected") {
       if (onHide) onHide();
     } else {
-      // If call is not active or not connected, trigger exit animation then end call
       setAnimationType('exit');
       setIsAnimating(true);
       
       setTimeout(() => {
         handleEndCall();
-        setIsAnimating(false);
-      }, 200);
+      }, 350);
     }
   };
 
