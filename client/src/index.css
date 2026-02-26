@@ -250,7 +250,6 @@ button[data-connect-wallet]:active {
   
   /* Chat container adjustments for keyboard */
   .chat-container {
-    height: 100vh;
     height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -258,9 +257,7 @@ button[data-connect-wallet]:active {
   }
   
   .chat-container.mobile-keyboard-aware {
-    height: 100vh;
     height: 100dvh;
-    height: calc(var(--vh, 1vh) * 100);
   }
   
   .chat-container.keyboard-open {

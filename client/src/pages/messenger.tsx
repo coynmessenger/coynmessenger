@@ -584,7 +584,7 @@ export default function MessengerPage() {
   }, [socket, conversations]); // Trigger when socket is connected AND conversations are loaded
 
   return (
-    <div className="flex h-screen watercolor-bg bg-background text-foreground relative">
+    <div className="flex h-[100dvh] watercolor-bg bg-background text-foreground relative">
       {/* Watercolor Background Overlay */}
       <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark -z-10"></div>
       
@@ -600,7 +600,7 @@ export default function MessengerPage() {
         Your browser does not support the audio element.
       </audio>
       {/* Desktop Header - only visible on large screens */}
-      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-screen">
+      <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-[100dvh]">
         <div className="bg-card border-b border-border p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
@@ -843,7 +843,7 @@ export default function MessengerPage() {
       </div>
 
       {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col w-full h-screen">
+      <div className="lg:hidden flex flex-col w-full h-[100dvh]">
         {/* Mobile Navigation */}
         <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
           <div className="flex items-center justify-between p-4">

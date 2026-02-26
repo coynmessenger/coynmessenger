@@ -1820,7 +1820,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   }, [searchQuery, searchResults]);
 
   return (
-    <div className="flex flex-col h-screen bg-background chat-container">
+    <div className="flex flex-col h-[100dvh] bg-background chat-container">
       {/* Chat Header */}
       <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
