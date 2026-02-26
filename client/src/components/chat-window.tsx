@@ -1300,13 +1300,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           // Message details for debugging
           
           setReplyToMessage(newReplyData);
-          
-          // Add visual feedback similar to WhatsApp
-          toast({
-            title: "Replying to " + effectiveName,
-            description: "Message ready for reply",
-            duration: 1500,
-          });
         }, 50);
       }
       // Reset swipe state with smooth animation
