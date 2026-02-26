@@ -43,24 +43,28 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount — always redirect if valid user data exists
+  // Check for existing authentication on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('connectedUser');
     const storedConnected = localStorage.getItem('walletConnected');
     const userSignedOut = localStorage.getItem('userSignedOut');
+    const userClickedHome = localStorage.getItem('userClickedHome');
 
-    // If valid user data exists in storage, it always takes priority and we go to messenger.
-    // The userSignedOut flag only blocks redirect when there is NO user data present.
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser?.id || parsedUser?.walletAddress) {
-          // Valid user — clear any stale sign-out flag and redirect
-          localStorage.removeItem('userSignedOut');
-          localStorage.removeItem('userClickedHome');
-          sessionStorage.removeItem('userOnHomepage');
           setIsConnected(true);
           setConnectedUser(parsedUser);
+
+          // User intentionally navigated to homepage — stay here
+          if (userClickedHome === 'true') {
+            console.log('👤 User navigated to homepage intentionally, staying');
+            return;
+          }
+
+          // stale userSignedOut flag but valid session — clear flag and go to messenger
+          localStorage.removeItem('userSignedOut');
           console.log('✅ Authenticated user detected, redirecting to messenger...');
           window.location.href = '/messenger';
           return;
@@ -68,13 +72,11 @@ export default function HomePage() {
       } catch {
         // Corrupted data — fall through to clear it
       }
-      // Data was corrupted
       localStorage.removeItem('walletConnected');
       localStorage.removeItem('connectedUser');
       localStorage.removeItem('connectedUserId');
     }
 
-    // No valid stored session — respect userSignedOut flag
     if (userSignedOut === 'true') {
       console.log('🚫 User signed out and no session found, staying on homepage');
     }
@@ -86,12 +88,15 @@ export default function HomePage() {
   useEffect(() => {
     if (!activeWallet) return;
 
-    // Don't auto-redirect if the user explicitly signed out and has no session
     const userSignedOut = localStorage.getItem('userSignedOut');
+    const userClickedHome = localStorage.getItem('userClickedHome');
     const storedUser = localStorage.getItem('connectedUser');
     const storedConnected = localStorage.getItem('walletConnected');
 
-    // If there's a connected wallet AND stored user data, always go to messenger
+    // User intentionally navigated home — don't auto-redirect
+    if (userClickedHome === 'true') return;
+
+    // If there's a connected wallet AND stored user data, go to messenger
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
