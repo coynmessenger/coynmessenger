@@ -11,7 +11,7 @@ import { sendTransaction, prepareTransaction } from "thirdweb";
 import { createThirdwebClient } from "thirdweb";
 import { apiRequest } from "@/lib/queryClient";
 import { bsc } from "@/lib/bsc-chain";
-import { Coins, Plus } from "lucide-react";
+import { Coins, Plus, X } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import type { WalletBalance } from "@shared/schema";
@@ -308,87 +308,128 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       </Popover>
 
       <Dialog open={showCryptoModal} onOpenChange={setShowCryptoModal}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {getCryptoIcon(selectedCrypto)}
-              Send {selectedCrypto}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {cryptoStep === "amount" && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0.00"
-                    value={cryptoAmount}
-                    onChange={(e) => setCryptoAmount(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={setMaxAmount}
-                    variant="outline"
-                    size="sm"
-                    className="text-orange-600 border-orange-300 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-900/20"
-                  >
-                    Max
-                  </Button>
+        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible">
+          <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                {getCryptoIcon(selectedCrypto)}
+                Send {selectedCrypto}
+              </DialogTitle>
+              <button 
+                onClick={() => setShowCryptoModal(false)}
+                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {cryptoStep === "amount" && (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="amount" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Amount to send
+                    </Label>
+                    <div className="relative group">
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="0.00"
+                        value={cryptoAmount}
+                        onChange={(e) => setCryptoAmount(e.target.value)}
+                        className="h-14 pl-4 pr-20 text-lg font-medium border-2 border-gray-200 dark:border-gray-800 focus:border-orange-500 dark:focus:border-orange-500 transition-all bg-white/50 dark:bg-gray-950/50 rounded-xl"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <Button
+                          onClick={setMaxAmount}
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 px-3 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold text-xs uppercase"
+                        >
+                          Max
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center px-1">
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Available Balance
+                      </p>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white">
+                        {getMaxBalance(selectedCrypto)} {selectedCrypto}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Recipient
+                    </Label>
+                    <div className="p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/50">
+                      <p className="text-sm font-mono text-gray-600 dark:text-gray-300 break-all text-center">
+                        Secure Transfer Active
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 pt-2">
+                    <Button
+                      onClick={() => setCryptoStep("confirm")}
+                      disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
+                      className="h-12 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+                    >
+                      Continue
+                    </Button>
+                    <Button
+                      onClick={() => setShowCryptoModal(false)}
+                      variant="ghost"
+                      className="h-12 w-full text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">
-                  Available: {getMaxBalance(selectedCrypto)} {selectedCrypto}
-                </p>
-              </div>
+              )}
               
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setShowCryptoModal(false)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => setCryptoStep("confirm")}
-                  disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
-                >
-                  Next
-                </Button>
-              </div>
+              {cryptoStep === "confirm" && (
+                <div className="space-y-6 text-center">
+                  <div className="py-8 space-y-4">
+                    <div className="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slow">
+                      {getCryptoIcon(selectedCrypto)}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-3xl font-black text-gray-900 dark:text-white">
+                        {cryptoAmount}
+                      </p>
+                      <p className="text-sm font-bold text-orange-500 uppercase tracking-widest">
+                        {selectedCrypto}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 px-4">
+                      You are sending assets over the secure COYN network. This action cannot be undone.
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 pt-2">
+                    <Button
+                      onClick={handleConfirmSend}
+                      disabled={sendCryptoMutation.isPending}
+                      className="h-12 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+                    >
+                      {sendCryptoMutation.isPending ? "Processing..." : "Confirm & Send"}
+                    </Button>
+                    <Button
+                      onClick={() => setCryptoStep("amount")}
+                      variant="ghost"
+                      className="h-12 w-full text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
+                    >
+                      Back to Amount
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-          
-          {cryptoStep === "confirm" && (
-            <div className="space-y-4">
-              <div className="text-center space-y-2">
-                <p className="text-lg font-semibold">{cryptoAmount} {selectedCrypto}</p>
-                <p className="text-sm text-gray-600 dark:text-slate-400">
-                  Confirm this transaction
-                </p>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setCryptoStep("amount")}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleConfirmSend}
-                  disabled={sendCryptoMutation.isPending}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
-                >
-                  {sendCryptoMutation.isPending ? "Sending..." : "Send"}
-                </Button>
-              </div>
-            </div>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
