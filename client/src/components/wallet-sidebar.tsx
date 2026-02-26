@@ -667,7 +667,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                       </Button>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                      <code className="text-xs font-mono text-gray-800 dark:text-gray-200 leading-relaxed break-all">
+                      <code className="block text-xs font-mono text-gray-800 dark:text-gray-200 truncate">
                         {(() => {
                           const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
                           return currentUser?.walletAddress || 'No wallet connected';
