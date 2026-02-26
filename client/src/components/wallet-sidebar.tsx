@@ -760,17 +760,11 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
                 {selectedCurrency && currencyConfig[selectedCurrency]?.icon}
                 Send {selectedCurrency}
               </DialogTitle>
-              <button
-                onClick={() => setShowSendModal(false)}
-                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
             </div>
 
             <div className="p-5 space-y-5">
@@ -821,16 +815,14 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                     Scan QR
                   </button>
                 </div>
-                <div className="relative">
-                  <textarea
-                    id="address"
-                    placeholder="Enter full wallet address (0x...)"
-                    value={recipientAddress}
-                    onChange={(e) => setRecipientAddress(e.target.value)}
-                    className="w-full p-3 text-sm font-mono bg-gray-50 dark:bg-gray-950/50 border-2 border-gray-200 dark:border-gray-800 focus:border-orange-500 dark:focus:border-orange-500 rounded-xl resize-none outline-none transition-all break-all placeholder:text-gray-400"
-                    rows={2}
-                  />
-                </div>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Enter full wallet address (0x...)"
+                  value={recipientAddress}
+                  onChange={(e) => setRecipientAddress(e.target.value)}
+                  className="h-12 px-3 text-sm font-mono border-2 border-gray-200 dark:border-gray-800 focus:border-orange-500 dark:focus:border-orange-500 transition-all bg-gray-50 dark:bg-gray-950/50 rounded-xl"
+                />
                 <p className="text-xs text-gray-400">
                   Paste the complete wallet address or scan a QR code
                 </p>
