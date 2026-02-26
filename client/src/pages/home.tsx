@@ -43,71 +43,78 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount only (not on focus/visibility changes)
+  // Check for existing authentication on mount — always redirect if valid user data exists
   useEffect(() => {
-    const userSignedOut = localStorage.getItem('userSignedOut');
-    if (userSignedOut === 'true') {
-      console.log('🚫 User signed out, staying on homepage');
-      setIsConnected(false);
-      setConnectedUser(null);
-      return;
-    }
-    
-    const storedConnected = localStorage.getItem('walletConnected');
     const storedUser = localStorage.getItem('connectedUser');
-    const userClickedHome = localStorage.getItem('userClickedHome');
-    
-    console.log('🔍 Checking authentication state:', {
-      storedConnected,
-      hasStoredUser: !!storedUser,
-      userClickedHome,
-      userOnHomepage: sessionStorage.getItem('userOnHomepage')
-    });
-    
-    // Update component state based on localStorage
+    const storedConnected = localStorage.getItem('walletConnected');
+    const userSignedOut = localStorage.getItem('userSignedOut');
+
+    // If valid user data exists in storage, it always takes priority and we go to messenger.
+    // The userSignedOut flag only blocks redirect when there is NO user data present.
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
-        
-        if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
-          // Update component state immediately
+        if (parsedUser?.id || parsedUser?.walletAddress) {
+          // Valid user — clear any stale sign-out flag and redirect
+          localStorage.removeItem('userSignedOut');
+          localStorage.removeItem('userClickedHome');
+          sessionStorage.removeItem('userOnHomepage');
           setIsConnected(true);
           setConnectedUser(parsedUser);
-          
-          // Don't redirect if user explicitly chose to stay on homepage  
-          if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-            console.log('👤 User explicitly navigated to homepage, staying on homepage');
-            sessionStorage.setItem('userOnHomepage', 'true');
-            return;
-          }
-          
           console.log('✅ Authenticated user detected, redirecting to messenger...');
-          setLocation("/messenger");
+          window.location.href = '/messenger';
           return;
-        } else {
-          console.log('❌ User data incomplete, clearing storage');
-          localStorage.removeItem('walletConnected');
-          localStorage.removeItem('connectedUser');
-          localStorage.removeItem('connectedUserId');
-          setIsConnected(false);
-          setConnectedUser(null);
         }
-      } catch (error) {
-        console.log('❌ Error parsing user data:', error);
-        localStorage.removeItem('walletConnected');
-        localStorage.removeItem('connectedUser');
-        localStorage.removeItem('connectedUserId');
-        setIsConnected(false);
-        setConnectedUser(null);
+      } catch {
+        // Corrupted data — fall through to clear it
       }
-    } else {
-      // No valid connection found
-      setIsConnected(false);
-      setConnectedUser(null);
+      // Data was corrupted
+      localStorage.removeItem('walletConnected');
+      localStorage.removeItem('connectedUser');
+      localStorage.removeItem('connectedUserId');
     }
+
+    // No valid stored session — respect userSignedOut flag
+    if (userSignedOut === 'true') {
+      console.log('🚫 User signed out and no session found, staying on homepage');
+    }
+    setIsConnected(false);
+    setConnectedUser(null);
   }, [setLocation]);
   
+  // Watch for Thirdweb autoConnect firing asynchronously after mount
+  useEffect(() => {
+    if (!activeWallet) return;
+
+    // Don't auto-redirect if the user explicitly signed out and has no session
+    const userSignedOut = localStorage.getItem('userSignedOut');
+    const storedUser = localStorage.getItem('connectedUser');
+    const storedConnected = localStorage.getItem('walletConnected');
+
+    // If there's a connected wallet AND stored user data, always go to messenger
+    if (storedConnected === 'true' && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser?.id || parsedUser?.walletAddress) {
+          console.log('✅ Wallet autoConnected with valid session, redirecting to messenger...');
+          localStorage.removeItem('userSignedOut');
+          window.location.href = '/messenger';
+          return;
+        }
+      } catch { /* ignore */ }
+    }
+
+    // Wallet connected but no stored session — authenticate via API if not explicitly signed out
+    if (userSignedOut !== 'true' && !connectWalletMutation.isPending) {
+      const account = (activeWallet as any).getAccount?.();
+      const address = account?.address;
+      if (address && !storedUser) {
+        console.log('🔗 Wallet autoConnected without session, authenticating...');
+        connectWalletMutation.mutate({ walletAddress: address });
+      }
+    }
+  }, [activeWallet]);
+
   // Listen for storage changes from other tabs only (not focus/visibility)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
