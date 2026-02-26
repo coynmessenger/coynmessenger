@@ -1146,24 +1146,6 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   }
 
   return (
-    <>
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) {
-        if (callStatus === "connected") {
-          // If call is connected, hide instead of closing
-          handleHideCall();
-        } else {
-          // If not connected, trigger exit animation then close
-          setAnimationType('exit');
-          setIsAnimating(true);
-          
-          setTimeout(() => {
-            onClose();
-            setIsAnimating(false);
-          }, 350);
-        }
-      }
-  return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
         if (callStatus === "connected") {
@@ -1317,5 +1299,4 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
     </Dialog>
   );
-}
 }

@@ -1064,8 +1064,9 @@ export default function VoiceCallModal({
             <div className="w-full max-w-[280px]">
               {callStatus === "ringing" && callType === "incoming" ? (
                 <IncomingCallControls 
-                  onAccept={handleAcceptCall} 
-                  onDecline={handleDeclineCall} 
+                  onAnswer={handleAcceptCall} 
+                  onDecline={handleEndCall}
+                  callType="voice"
                 />
               ) : callStatus === "connected" ? (
                 <ActiveCallControls 
@@ -1073,9 +1074,10 @@ export default function VoiceCallModal({
                   onToggleMute={handleToggleMute}
                   onEndCall={handleEndCall}
                   onSwitchToVideo={onSwitchToVideo}
+                  callType="voice"
                 />
               ) : (
-                <ConnectingCallControls onCancel={handleEndCall} />
+                <ConnectingCallControls onEndCall={handleEndCall} />
               )}
             </div>
           </div>
@@ -1086,5 +1088,4 @@ export default function VoiceCallModal({
       </DialogContent>
     </Dialog>
   );
-}
 }

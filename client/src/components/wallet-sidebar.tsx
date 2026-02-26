@@ -757,75 +757,102 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       {/* Send Modal */}
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
-        <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              {selectedCurrency && currencyConfig[selectedCurrency]?.icon}
-              <span>Send {selectedCurrency}</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="amount">Amount</Label>
-              <div className="flex space-x-2">
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={sendAmount}
-                  onChange={(e) => setSendAmount(e.target.value)}
-                  className="flex-1 bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const maxBalance = walletBalances.find(b => b.currency === selectedCurrency)?.balance || "0";
-                    setSendAmount(maxBalance);
-                  }}
-                  className="px-3 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400"
-                >
-                  Max
-                </Button>
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <Label htmlFor="address">Recipient Address</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowQRScanner(true)}
-                  className="h-8 px-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                >
-                  <Camera className="w-4 h-4 mr-1" />
-                  Scan QR
-                </Button>
-              </div>
-              <textarea
-                id="address"
-                placeholder="Enter full wallet address (0x...)"
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-                className="w-full min-h-[80px] p-3 text-sm font-mono bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-md resize-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 break-all"
-                rows={3}
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Paste the complete wallet address or scan a QR code
-              </p>
-            </div>
-            <div className="flex space-x-3 pt-4">
-              <Button
-                onClick={handleConfirmSend}
-                disabled={sendCryptoMutation.isPending}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+          <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                {selectedCurrency && currencyConfig[selectedCurrency]?.icon}
+                Send {selectedCurrency}
+              </DialogTitle>
+              <button
+                onClick={() => setShowSendModal(false)}
+                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
-                {sendCryptoMutation.isPending ? "Sending..." : "Send"}
-              </Button>
-              <Button variant="outline" onClick={() => setShowSendModal(false)} className="flex-1">
-                Cancel
-              </Button>
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {/* Amount */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Amount
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder="0.00000"
+                    value={sendAmount}
+                    onChange={(e) => setSendAmount(e.target.value)}
+                    className="h-14 pl-4 pr-24 text-lg font-medium border-2 border-gray-200 dark:border-gray-800 focus:border-orange-500 dark:focus:border-orange-500 transition-all bg-white/50 dark:bg-gray-950/50 rounded-xl"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const maxBalance = walletBalances.find(b => b.currency === selectedCurrency)?.balance || "0";
+                        setSendAmount(maxBalance);
+                      }}
+                      className="h-9 px-3 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold text-xs uppercase"
+                    >
+                      Max
+                    </Button>
+                    <span className="text-xs font-bold text-gray-400 pr-1">{selectedCurrency}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recipient Address */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Recipient Address
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowQRScanner(true)}
+                    className="flex items-center gap-1 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    Scan QR
+                  </button>
+                </div>
+                <div className="relative">
+                  <textarea
+                    id="address"
+                    placeholder="Enter full wallet address (0x...)"
+                    value={recipientAddress}
+                    onChange={(e) => setRecipientAddress(e.target.value)}
+                    className="w-full p-3 text-sm font-mono bg-gray-50 dark:bg-gray-950/50 border-2 border-gray-200 dark:border-gray-800 focus:border-orange-500 dark:focus:border-orange-500 rounded-xl resize-none outline-none transition-all break-all placeholder:text-gray-400"
+                    rows={2}
+                  />
+                </div>
+                <p className="text-xs text-gray-400">
+                  Paste the complete wallet address or scan a QR code
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col gap-3 pt-1">
+                <Button
+                  onClick={handleConfirmSend}
+                  disabled={sendCryptoMutation.isPending}
+                  className="h-12 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+                >
+                  {sendCryptoMutation.isPending ? "Sending..." : "Send"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowSendModal(false)}
+                  className="h-12 w-full text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
@@ -833,38 +860,48 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       {/* QR Modal */}
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
-        <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <QrCode className="w-5 h-5" />
-              <span>Receive {selectedCurrency}</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 text-center">
-            <div className="bg-white p-4 rounded-lg inline-block mx-auto">
-              {qrCodeUrl ? (
-                <img src={qrCodeUrl} alt="Wallet QR Code" className="w-48 h-48" />
-              ) : (
-                <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-500">Generating QR...</span>
-                </div>
-              )}
+        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+          <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                <QrCode className="w-4 h-4 text-orange-500" />
+                Receive {selectedCurrency}
+              </DialogTitle>
+              <button
+                onClick={() => setShowQRModal(false)}
+                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Your {selectedCurrency} address:</p>
-              <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <code className="flex-1 text-xs font-mono text-gray-800 dark:text-gray-200 break-all">
-                  {user?.walletAddress}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => user?.walletAddress && copyToClipboard(user.walletAddress)}
-                  className="h-8 w-8 p-0"
-                  disabled={!user?.walletAddress}
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
+            <div className="p-5 space-y-4 text-center">
+              <div className="bg-white dark:bg-white p-4 rounded-2xl inline-block mx-auto shadow-inner">
+                {qrCodeUrl ? (
+                  <img src={qrCodeUrl} alt="Wallet QR Code" className="w-48 h-48" />
+                ) : (
+                  <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <span className="text-gray-400 text-sm">Generating...</span>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Your {selectedCurrency} address
+                </p>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800">
+                  <code className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all text-left">
+                    {user?.walletAddress}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => user?.walletAddress && copyToClipboard(user.walletAddress)}
+                    className="h-8 w-8 p-0 flex-shrink-0 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                    disabled={!user?.walletAddress}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -878,38 +915,46 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         }
         setShowQRScanner(open);
       }}>
-        <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Camera className="w-5 h-5" />
-              <span>Scan Wallet QR Code</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '300px' }}>
-              <div id="qr-reader" className="w-full" />
-              {!isScanning && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
-                  <div className="text-center text-white">
-                    <Camera className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Initializing camera...</p>
-                  </div>
-                </div>
-              )}
+        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+          <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                <Camera className="w-4 h-4 text-orange-500" />
+                Scan Wallet QR Code
+              </DialogTitle>
+              <button
+                onClick={() => { stopQRScanner(); setShowQRScanner(false); }}
+                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
             </div>
-            <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-              Point your camera at a wallet QR code to scan
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                stopQRScanner();
-                setShowQRScanner(false);
-              }}
-              className="w-full"
-            >
-              Cancel
-            </Button>
+            <div className="p-5 space-y-4">
+              <div className="relative bg-gray-950 rounded-xl overflow-hidden" style={{ minHeight: '280px' }}>
+                <div id="qr-reader" className="w-full" />
+                {!isScanning && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center text-white/80">
+                      <Camera className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm">Initializing camera...</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-center text-gray-500 dark:text-gray-400">
+                Point your camera at a wallet QR code to scan
+              </p>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  stopQRScanner();
+                  setShowQRScanner(false);
+                }}
+                className="h-12 w-full text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
