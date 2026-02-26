@@ -3,15 +3,11 @@ import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDisconnect, useActiveWallet } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-react";
+import { MessageCircle, Check, Users, Lock, Globe, Zap, Shield } from "lucide-react";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
 import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
-import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
-import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
@@ -43,7 +39,6 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount only (not on focus/visibility changes)
   useEffect(() => {
     const userSignedOut = localStorage.getItem('userSignedOut');
     if (userSignedOut === 'true') {
@@ -57,36 +52,19 @@ export default function HomePage() {
     const storedUser = localStorage.getItem('connectedUser');
     const userClickedHome = localStorage.getItem('userClickedHome');
     
-    console.log('🔍 Checking authentication state:', {
-      storedConnected,
-      hasStoredUser: !!storedUser,
-      userClickedHome,
-      userOnHomepage: sessionStorage.getItem('userOnHomepage')
-    });
-    
-    // Update component state based on localStorage
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log('🔍 Parsed user:', { id: parsedUser?.id, hasWalletAddress: !!parsedUser?.walletAddress });
-        
         if (parsedUser?.id || parsedUser?.address || parsedUser?.walletAddress) {
-          // Update component state immediately
           setIsConnected(true);
           setConnectedUser(parsedUser);
-          
-          // Don't redirect if user explicitly chose to stay on homepage  
           if (userClickedHome === 'true' || sessionStorage.getItem('userOnHomepage') === 'true') {
-            console.log('👤 User explicitly navigated to homepage, staying on homepage');
             sessionStorage.setItem('userOnHomepage', 'true');
             return;
           }
-          
-          console.log('✅ Authenticated user detected, redirecting to messenger...');
           setLocation("/messenger");
           return;
         } else {
-          console.log('❌ User data incomplete, clearing storage');
           localStorage.removeItem('walletConnected');
           localStorage.removeItem('connectedUser');
           localStorage.removeItem('connectedUserId');
@@ -94,7 +72,6 @@ export default function HomePage() {
           setConnectedUser(null);
         }
       } catch (error) {
-        console.log('❌ Error parsing user data:', error);
         localStorage.removeItem('walletConnected');
         localStorage.removeItem('connectedUser');
         localStorage.removeItem('connectedUserId');
@@ -102,18 +79,14 @@ export default function HomePage() {
         setConnectedUser(null);
       }
     } else {
-      // No valid connection found
       setIsConnected(false);
       setConnectedUser(null);
     }
   }, [setLocation]);
   
-  // Listen for storage changes from other tabs only (not focus/visibility)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
-        console.log('📱 Storage change detected from another tab:', e.key);
-        // Only update local state, don't trigger navigation
         if (e.key === 'userSignedOut' && e.newValue === 'true') {
           setIsConnected(false);
           setConnectedUser(null);
@@ -123,12 +96,11 @@ export default function HomePage() {
             setConnectedUser(parsedUser);
             setIsConnected(true);
           } catch {
-            // Ignore parse errors
+            // ignore
           }
         }
       }
     };
-
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
@@ -142,57 +114,40 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
-      console.log('✅ COYN: User authenticated successfully!', { userId: user.id, walletAddress: user.walletAddress });
-      
-      // Clean up any competing states first
       localStorage.removeItem('pendingWalletConnection');
       localStorage.removeItem('walletConnectionAttempt');
       localStorage.removeItem('walletRedirectState');
-      localStorage.removeItem('explicitWalletConnection'); // Clean up the connection flag
-      localStorage.removeItem('userSignedOut'); // Clear sign out flag on successful connection
-      localStorage.removeItem('userClickedHome'); // Clear any homepage preference
-      sessionStorage.removeItem('userOnHomepage'); // Clear any homepage session flag
+      localStorage.removeItem('explicitWalletConnection');
+      localStorage.removeItem('userSignedOut');
+      localStorage.removeItem('userClickedHome');
+      sessionStorage.removeItem('userOnHomepage');
       
-      // Store connection state
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
       localStorage.setItem('connectedUserId', user.id.toString());
       
-      // Update cache and state
       queryClient.setQueryData(["/api/user"], user);
       queryClient.setQueryData(["/api/user", user.id], user);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       
-      // Update component state
       setConnectedUser(user);
       setIsConnected(true);
       
-      // Clean URL
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
       
-      // Full page reload to messenger so everything initializes cleanly
-      console.log('🎯 COYN: SUCCESS! Redirecting to messenger...');
       window.location.href = "/messenger";
     },
   });
 
   const handleSignOut = async () => {
     try {
-      // First disconnect the thirdweb wallet
-      console.log('🔌 Disconnecting thirdweb wallet...');
-      if (activeWallet) {
-        await disconnect(activeWallet);
-      }
+      if (activeWallet) await disconnect(activeWallet);
     } catch (error) {
       console.error('Error disconnecting thirdweb wallet:', error);
     }
-    
-    // Set explicit sign out flag
     localStorage.setItem('userSignedOut', 'true');
-    
-    // Clear ALL localStorage items
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
     localStorage.removeItem('connectedUserId');
@@ -201,172 +156,169 @@ export default function HomePage() {
     localStorage.removeItem('theme');
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
-    
-    // Clear session storage
     sessionStorage.clear();
-    
-    // Reset state
     setIsConnected(false);
     setConnectedUser(null);
-    
-    // Force page refresh
     window.location.reload();
   };
 
   const handleThirdwebConnect = (address: string) => {
-    console.log('🔗 COYN: Wallet approved! Address received:', address);
-    console.log('🚀 COYN: Starting user authentication and AUTO-NAVIGATION to messenger...');
-    
-    // Clear ALL navigation flags that might prevent redirect since user is explicitly connecting
     localStorage.removeItem('userSignedOut');
     localStorage.removeItem('userClickedHome');
     sessionStorage.removeItem('userOnHomepage');
-    
-    // Mark that this is an explicit wallet connection for immediate redirect
     localStorage.setItem('explicitWalletConnection', 'true');
-    
-    console.log('🎯 COYN: User flags cleared, proceeding with authentication and auto-navigation...');
     connectWalletMutation.mutate({ walletAddress: address });
   };
 
   const handleThirdwebDisconnect = () => {
-    console.log('🔌 Thirdweb wallet disconnected');
-    // Clear wallet connection state
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
     localStorage.removeItem('connectedUserId');
-    
-    // Reset component state
     setIsConnected(false);
     setConnectedUser(null);
-    
-    // Clear query cache
     queryClient.clear();
   };
 
   const features = [
     { icon: MessageCircle, title: "Real-time Messaging", description: "Instant Web3 communication" },
-    { icon: Users, title: "Wallet Integration", description: "Send crypto directly in chats" },
-    { icon: Lock, title: "Secure & Private", description: "Decentralized end-to-end encryption" },
-    { icon: Globe, title: "Global Network", description: "Chat with friends internationally" }
+    { icon: Users, title: "Wallet Integration", description: "Send crypto in chats" },
+    { icon: Shield, title: "Encrypted Calls", description: "Secure voice & video" },
+    { icon: Globe, title: "Global Network", description: "Chat internationally" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-[100dvh] watercolor-bg bg-background text-foreground flex flex-col relative">
+      {/* Same watercolor overlay as messenger */}
+      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark -z-10" />
 
-      {/* Header with Logo */}
-      <header className="w-full p-4 sm:p-6">
-        <div className="flex justify-center">
-          <img 
-            src={coynfulLogoPath} 
-            alt="Coynful" 
-            className="h-32 w-auto object-contain select-none"
-            onContextMenu={(e) => e.preventDefault()}
-            draggable={false}
-          />
-        </div>
+      {/* Header */}
+      <header className="w-full pt-8 pb-2 px-4 flex justify-center">
+        <img
+          src={coynfulLogoPath}
+          alt="Coynful"
+          className="h-28 sm:h-36 w-auto object-contain select-none drop-shadow-lg"
+          onContextMenu={(e) => e.preventDefault()}
+          draggable={false}
+        />
       </header>
 
-      {/* Main Content - Centered Layout */}
-      <main 
-        className="flex-1 flex flex-col items-center justify-start px-4 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${backgroundImagePath})` }}
-      >
-        {/* Connection Card - Positioned directly under logo */}
-        <div className="w-full max-w-md mx-auto mb-8">
-            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
-              <CardHeader className="text-center space-y-4 pb-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center">
+      {/* Main */}
+      <main className="flex-1 flex flex-col items-center px-4 pb-8">
+
+        {/* Connect Card */}
+        <div className="w-full max-w-sm mx-auto mt-4 mb-8">
+          <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl">
+
+            {/* Card header stripe */}
+            <div className="h-1 w-full bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600" />
+
+            <div className="p-6">
+              {/* COYN coin + title */}
+              <div className="flex flex-col items-center gap-3 mb-6">
+                <img
+                  src={coynCoinPath}
+                  alt="COYN"
+                  className="w-16 h-16 object-contain drop-shadow-md"
+                  onContextMenu={(e) => e.preventDefault()}
+                  draggable={false}
+                />
+                <div className="text-center">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
                     COYN Messenger
-                  </h3>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {!isConnected || !connectedUser ? (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Choose your preferred wallet to connect
-                      </p>
-                    </div>
-
-                    {/* Thirdweb Wallet Connection - Mobile Optimized */}
-                    <div className="flex justify-center mobile-wallet-connector">
-                      <ThirdwebWalletConnector
-                        onConnect={handleThirdwebConnect}
-                        onDisconnect={handleThirdwebDisconnect}
-                        className="w-full min-h-[56px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600 text-gray-900 dark:text-white font-medium py-4 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600 touch-manipulation select-none"
-                      />
-                    </div>
-                    
-                    {connectWalletMutation.isPending && (
-                      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                        ✅ Wallet connected successfully - user can now click to enter messenger
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center space-y-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-400/20 to-green-500/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                      <Check className="h-7 w-7 text-green-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-green-600 dark:text-green-400 mb-1">
-                        Connected to COYN Network
-                      </h3>
-                      <p className="text-sm text-gray-700 dark:text-foreground mb-2">
-                        Welcome to COYN, {connectedUser?.displayName}
-                      </p>
-                      <p className="text-[11px] text-gray-400 dark:text-muted-foreground font-mono truncate max-w-full px-2 overflow-hidden" title={connectedUser?.walletAddress}>
-                        {connectedUser?.walletAddress}
-                      </p>
-
-                      <div className="space-y-3 mt-6">
-                        <Button
-                          onClick={() => setLocation("/messenger")}
-                          className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
-                        >
-                          <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                          Open Messenger
-                        </Button>
-                        <Button
-                          onClick={handleSignOut}
-                          variant="outline"
-                          className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
-                        >
-                          Sign Out
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Supporting BNB Smartchain Assets */}
-                <div className="border-t border-border pt-4">
-                  <p className="text-center text-muted-foreground text-sm">
-                    Supporting BNB Smartchain Assets
+                  </h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Web3 messaging on BNB Smart Chain
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-        </div>
-        
-        {/* Features Section - Moved to bottom */}
-        <div className="w-full max-w-6xl mx-auto mt-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="text-center space-y-3 p-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
-                  <feature.icon className="h-6 w-6 text-white" />
+              </div>
+
+              {!isConnected || !connectedUser ? (
+                <div className="space-y-4">
+                  <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    Connect your wallet to get started
+                  </p>
+
+                  <div className="flex justify-center mobile-wallet-connector">
+                    <ThirdwebWalletConnector
+                      onConnect={handleThirdwebConnect}
+                      onDisconnect={handleThirdwebDisconnect}
+                      className="w-full min-h-[52px] bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-orange-500/30 touch-manipulation select-none"
+                    />
+                  </div>
+
+                  {/* Supported wallets hint */}
+                  <p className="text-center text-xs text-gray-400 dark:text-gray-500">
+                    MetaMask · Trust · Coinbase · WalletConnect + more
+                  </p>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                  {feature.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  {feature.description}
-                </p>
+              ) : (
+                <div className="space-y-4">
+                  {/* Connected state */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-green-500/15 dark:bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/30">
+                      <Check className="h-6 w-6 text-green-500" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                        Wallet Connected
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
+                        Welcome, {connectedUser?.displayName || "User"}
+                      </p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-1 truncate max-w-[220px]">
+                        {connectedUser?.walletAddress}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => setLocation("/messenger")}
+                    className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold rounded-xl h-12 shadow-lg hover:shadow-orange-500/30 transition-all duration-200 touch-manipulation"
+                  >
+                    <MessageCircle className="mr-2 h-5 w-5" />
+                    Open Messenger
+                  </Button>
+
+                  <Button
+                    onClick={handleSignOut}
+                    variant="ghost"
+                    className="w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 transition-all duration-200 touch-manipulation"
+                  >
+                    Sign Out
+                  </Button>
+                </div>
+              )}
+
+              {/* BNB chain badge */}
+              <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-1.5">
+                <Zap className="w-3 h-3 text-orange-500" />
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  Powered by BNB Smart Chain
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature tiles */}
+        <div className="w-full max-w-lg mx-auto">
+          <div className="grid grid-cols-2 gap-3">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-3 p-4 rounded-xl border border-gray-200/70 dark:border-gray-700/60 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm"
+              >
+                <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <feature.icon className="h-4.5 w-4.5 text-white" style={{ width: '18px', height: '18px' }} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -374,39 +326,39 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400 space-y-4">
-          {/* Terms and Privacy Links */}
-          <div className="flex items-center justify-center space-x-6">
+      <footer className="w-full py-4 px-4 border-t border-gray-200/60 dark:border-gray-800/60 bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm">
+        <div className="max-w-lg mx-auto flex flex-col items-center gap-2 text-center">
+          <div className="flex items-center gap-4 text-sm">
             <button
               onClick={() => setShowTermsModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Terms
             </button>
+            <span className="text-gray-300 dark:text-gray-700">·</span>
             <button
               onClick={() => setShowPrivacyModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Privacy
             </button>
           </div>
-          
-          {/* Copyright */}
-          <p className="flex items-center justify-center gap-1">Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1">₡</a></p>
+          <p className="text-xs text-gray-400 dark:text-gray-600 flex items-center gap-1">
+            Powered by{" "}
+            <a
+              href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-500 hover:text-orange-400 transition-colors"
+            >
+              ₡ COYN
+            </a>
+          </p>
         </div>
       </footer>
 
-      {/* Modals */}
-      <TermsModal 
-        isOpen={showTermsModal} 
-        onClose={() => setShowTermsModal(false)} 
-      />
-      <PrivacyModal 
-        isOpen={showPrivacyModal} 
-        onClose={() => setShowPrivacyModal(false)} 
-      />
-      
+      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+      <PrivacyModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} />
       <PWAInstallPrompt />
     </div>
   );
