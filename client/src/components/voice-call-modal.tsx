@@ -8,6 +8,7 @@ import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { microphoneService } from "@/lib/microphone-service";
 import { tryPlayMedia } from "@/utils/media";
+import { X } from "lucide-react";
 import { 
   IncomingCallControls, 
   ActiveCallControls, 
@@ -992,132 +993,98 @@ export default function VoiceCallModal({
   }
 
   return (
-    <>
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
-        ref={dragRef}
-        className={`w-[90vw] max-w-sm bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 text-center rounded-3xl shadow-2xl select-none touch-manipulation ${
-          isAnimating 
-            ? animationType === 'enter' 
-              ? 'animate-modal-enter' 
-              : 'animate-modal-exit'
-            : ''
-        }`}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
+        className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible"
         style={{
           position: 'fixed',
           left: `${position.x}px`,
           top: `${position.y}px`,
-          transform: 'none',
           margin: 0,
-          touchAction: 'none'
+          transform: 'none',
+        }}
+        onPointerDownCapture={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('button') || target.closest('[role="button"]')) {
+            return;
+          }
         }}
       >
-        <DialogTitle className="sr-only">Voice Call with {user.displayName}</DialogTitle>
+        <div 
+          ref={dragRef}
+          className={`
+            relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800
+            bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl
+            ${isAnimating ? (animationType === 'enter' ? 'animate-modal-enter' : 'animate-modal-exit') : ''}
+          `}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+              <DialogTitle className="text-sm font-semibold text-gray-900 dark:text-white">
+                {callStatus === "connecting" ? "Connecting..." : 
+                 callStatus === "ringing" ? (callType === "incoming" ? "Incoming Call" : "Calling...") : 
+                 callStatus === "connected" ? "Voice Call" : "Call Ended"}
+              </DialogTitle>
+            </div>
+            <button 
+              onClick={handleCloseModal}
+              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
 
-        <div className="p-8 space-y-8">
-          {/* User Avatar */}
-          <div className="flex justify-center">
-            <div className="relative">
-              <Avatar className={`w-32 h-32 border-4 border-white/20 shadow-xl ${
-                callStatus === "connecting" || callStatus === "ringing" ? "animate-loading-pulse" : ""
-              }`}>
-                <AvatarImage src={user.profilePicture || ""} />
-                <AvatarFallback className="bg-slate-700 text-4xl">
-                  <UserAvatarIcon className="w-16 h-16 text-slate-400" />
+          <div className="p-8 flex flex-col items-center">
+            {/* User Info */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full animate-pulse" />
+              <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-xl relative z-10">
+                <AvatarImage src={user?.profilePicture || ""} alt={user?.displayName || "User"} />
+                <AvatarFallback className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-2xl">
+                  {user?.displayName?.[0] || <UserAvatarIcon className="w-12 h-12" />}
                 </AvatarFallback>
               </Avatar>
-              
-              {/* Animated loading rings for connecting state */}
-              {callStatus === "connecting" && (
-                <>
-                  <div className="absolute inset-0 rounded-full border-4 border-yellow-400/40 animate-ping"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-yellow-400/60 animate-pulse animation-delay-200"></div>
-                  <div className="absolute inset-[-8px] rounded-full border-2 border-yellow-400/20 animate-spin animation-delay-500"></div>
-                </>
-              )}
-              
-              {/* Pulsing ring for ringing state */}
-              {callStatus === "ringing" && (
-                <>
-                  <div className="absolute inset-0 rounded-full border-4 border-blue-400/60 animate-pulse"></div>
-                  <div className="absolute inset-[-8px] rounded-full border-2 border-blue-400/40 animate-ping"></div>
-                </>
-              )}
-              
-              {/* Connected state animation */}
-              {callStatus === "connected" && (
-                <div className="absolute inset-0 rounded-full border-4 border-green-400/60 animate-pulse"></div>
-              )}
             </div>
-          </div>
 
-          {/* User Info */}
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
-            <div className={`text-lg font-medium ${getStatusColor()}`}>
-              {getStatusText()}
-            </div>
-          </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+              {user?.displayName || user?.signInName || "User"}
+            </h2>
+            
+            <p className="text-sm font-medium text-orange-500 mb-8">
+              {callStatus === "connected" ? formattedDuration : 
+               callStatus === "ringing" ? "Ringing..." : 
+               callStatus === "connecting" ? "Connecting secured line..." : "Call ended"}
+            </p>
 
-          {/* Call Controls - Using Modular Components */}
-          {callStatus !== "ended" && (
-            <>
-              {/* Active Call Controls - When connected */}
-              {callStatus === "connected" && (
-                <ActiveCallControls
-                  onEndCall={handleEndCall}
-                  onToggleMute={handleToggleMute}
-                  onToggleSpeaker={handleToggleSpeaker}
-                  onSwitchToVideo={onSwitchToVideo ? () => {
-                    if (onCallEnd) onCallEnd();
-                    onSwitchToVideo();
-                    onClose();
-                  } : undefined}
+            {/* Controls */}
+            <div className="w-full max-w-[280px]">
+              {callStatus === "ringing" && callType === "incoming" ? (
+                <IncomingCallControls 
+                  onAccept={handleAcceptCall} 
+                  onDecline={handleDeclineCall} 
+                />
+              ) : callStatus === "connected" ? (
+                <ActiveCallControls 
                   isMuted={isMuted}
-                  isSpeakerOn={isSpeakerOn}
-                  callType="voice"
+                  onToggleMute={handleToggleMute}
+                  onEndCall={handleEndCall}
+                  onSwitchToVideo={onSwitchToVideo}
                 />
+              ) : (
+                <ConnectingCallControls onCancel={handleEndCall} />
               )}
+            </div>
+          </div>
 
-              {/* Connecting/Outgoing Call Controls */}
-              {callStatus !== "connected" && !(callType === "incoming" && callStatus === "ringing") && (
-                <ConnectingCallControls onEndCall={handleEndCall} />
-              )}
-
-              {/* Incoming Call Controls - Answer/Decline */}
-              {callType === "incoming" && callStatus === "ringing" && (
-                <IncomingCallControls
-                  onAnswer={handleAcceptCall}
-                  onDecline={handleEndCall}
-                  callType="voice"
-                />
-              )}
-            </>
-          )}
+          {/* Hidden Audio Element */}
+          <audio ref={remoteAudioRef} autoPlay playsInline />
         </div>
       </DialogContent>
-      
     </Dialog>
-      
-    {/* Hidden audio element for remote stream - OUTSIDE Dialog for portal compatibility */}
-    {/* CRITICAL: Use opacity:0 instead of visibility:hidden - some browsers pause audio with visibility:hidden */}
-    <audio 
-      ref={remoteAudioRef} 
-      autoPlay 
-      playsInline
-      data-testid="voice-call-remote-audio"
-      style={{ 
-        position: 'fixed',
-        top: '-9999px',
-        left: '-9999px',
-        width: '1px',
-        height: '1px',
-        opacity: 0,
-        pointerEvents: 'none'
-      }}
-    />
-    </>
   );
+}
 }

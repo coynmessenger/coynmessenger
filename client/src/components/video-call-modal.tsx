@@ -8,6 +8,7 @@ import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { permissionService } from "@/lib/permission-service";
 import { tryPlayMedia } from "@/utils/media";
+import { X } from "lucide-react";
 import { 
   IncomingCallControls, 
   ActiveCallControls, 
@@ -1162,296 +1163,159 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           }, 350);
         }
       }
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        if (callStatus === "connected") {
+          handleHideCall();
+        } else {
+          setAnimationType('exit');
+          setIsAnimating(true);
+          
+          setTimeout(() => {
+            onClose();
+            setIsAnimating(false);
+          }, 350);
+        }
+      }
     }}>
       <DialogContent 
-        ref={dragRef}
-        className={`w-[95vw] max-w-2xl bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 p-0 rounded-3xl shadow-2xl overflow-hidden select-none touch-manipulation ${
-          isAnimating 
-            ? animationType === 'enter' 
-              ? 'animate-modal-enter' 
-              : 'animate-modal-exit'
-            : ''
-        }`}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
+        className="p-0 border-none bg-transparent shadow-none max-w-2xl w-[95vw] overflow-visible"
         style={{
           position: 'fixed',
           left: `${position.x}px`,
           top: `${position.y}px`,
-          transform: 'none',
           margin: 0,
-          touchAction: 'none'
+          transform: 'none',
+        }}
+        onPointerDownCapture={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('button') || target.closest('[role="button"]')) {
+            return;
+          }
         }}
       >
-        <DialogTitle className="sr-only">Video Call with {user.displayName}</DialogTitle>
-        
-        {/* Video Area - Always shows the other person (Chris) */}
-        <div className="relative aspect-video bg-slate-800">
-          {/* Loading overlay for connecting/ringing states */}
-          {(callStatus === "connecting" || callStatus === "ringing") && (
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm z-10 flex items-center justify-center">
-              <div className="flex space-x-2">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce animation-delay-200"></div>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce animation-delay-500"></div>
-              </div>
+        <div 
+          ref={dragRef}
+          className={`
+            relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800
+            bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl
+            ${isAnimating ? (animationType === 'enter' ? 'animate-modal-enter' : 'animate-modal-exit') : ''}
+          `}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+              <DialogTitle className="text-sm font-semibold text-gray-900 dark:text-white">
+                {callStatus === "connecting" ? "Connecting Video..." : 
+                 callStatus === "ringing" ? (callType === "incoming" ? "Incoming Video Call" : "Calling...") : 
+                 callStatus === "connected" ? "Video Call" : "Call Ended"}
+              </DialogTitle>
             </div>
-          )}
-          
-          {callStatus === "connected" ? (
-            // Other person's video feed - STEP 4.2: Remote video element
-            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 relative">
-              {/* Remote video element */}
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className={`w-full h-full object-cover ${remoteVideoEnabled ? 'block' : 'hidden'}`}
-                data-testid="video-remote-stream"
-              />
-              
-              {/* Fallback avatar when remote video is not available */}
-              {!remoteVideoEnabled && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
-                      <AvatarImage src={user.profilePicture || ""} />
-                      <AvatarFallback className="bg-slate-700 text-2xl">
-                        <UserAvatarIcon className="w-12 h-12 text-slate-400" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-white/60 text-sm">{user.displayName}</div>
-                    <div className="text-white/40 text-xs">Camera off</div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Name overlay when video is showing */}
-              {remoteVideoEnabled && (
-                <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                  <span className="text-white text-sm">{user.displayName}</span>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Connecting/Ringing state - show other person's avatar with animations
-            <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-              <div className="text-center space-y-6">
-                <div className="relative">
-                  <Avatar className={`w-32 h-32 mx-auto border-4 border-white/20 shadow-xl ${
-                    callStatus === "connecting" || callStatus === "ringing" ? "animate-loading-pulse" : ""
-                  }`}>
-                    <AvatarImage src={user.profilePicture || ""} />
-                    <AvatarFallback className="bg-slate-700 text-4xl">
-                      <UserAvatarIcon className="w-16 h-16 text-slate-400" />
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  {/* Animated loading rings for connecting state */}
-                  {callStatus === "connecting" && (
-                    <>
-                      <div className="absolute inset-0 rounded-full border-4 border-yellow-400/40 animate-ping"></div>
-                      <div className="absolute inset-0 rounded-full border-4 border-yellow-400/60 animate-pulse animation-delay-200"></div>
-                      <div className="absolute inset-[-8px] rounded-full border-2 border-yellow-400/20 animate-spin animation-delay-500"></div>
-                    </>
-                  )}
-                  
-                  {/* Pulsing ring for ringing state */}
-                  {callStatus === "ringing" && (
-                    <>
-                      <div className="absolute inset-0 rounded-full border-4 border-blue-400/60 animate-pulse"></div>
-                      <div className="absolute inset-[-8px] rounded-full border-2 border-blue-400/40 animate-ping"></div>
-                    </>
-                  )}
-                </div>
-                
-                {/* Status text with animated dots */}
-                <div className={`text-lg font-medium ${getStatusColor()}`}>
-                  {getStatusText()}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Self view (small preview) - YOUR camera with actual video */}
-          {/* Show during: connected state, ringing state (both incoming/outgoing when camera is ready), or connecting with stream */}
-          {((callStatus === "connected" && !isSelfViewExpanded) || 
-            ((callStatus === "ringing" || callStatus === "connecting") && (localStream || incomingStreamRef.current))) && (
-            <div 
-              className={`absolute ${callStatus !== "connected" ? "bottom-4 right-4" : "top-4 right-4"} w-32 h-24 bg-slate-700 rounded-lg border-2 ${callStatus !== "connected" ? "border-green-400/60" : "border-white/20"} overflow-hidden cursor-pointer hover:border-white/40 transition-all duration-300 hover:scale-105 z-20`}
-              onClick={() => callStatus === "connected" && setIsSelfViewExpanded(true)}
-              title={callStatus === "connected" ? "Click to expand your view" : "Your camera preview"}
-              data-testid="video-self-view-small"
+            <button 
+              onClick={handleHideCall}
+              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              {/* Local video element for self-view */}
-              {!isVideoOff && (localStream || incomingStreamRef.current) ? (
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover transform scale-x-[-1]"
-                  data-testid="video-local-stream-small"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-white/40 text-xs">You</div>
-                    {isVideoOff && <div className="text-red-400/80 text-xs mt-1">Camera off</div>}
-                  </div>
-                </div>
-              )}
-              
-              {/* Camera ready indicator for pre-connected calls */}
-              {callStatus !== "connected" && (localStream || incomingStreamRef.current) && (
-                <div className="absolute top-1 left-1 bg-green-500/80 rounded-full px-1.5 py-0.5">
-                  <span className="text-white text-[10px] font-medium">Ready</span>
-                </div>
-              )}
-            </div>
-          )}
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
 
-          {/* Expanded self view (full screen) - YOUR camera with actual video */}
-          {callStatus === "connected" && isSelfViewExpanded && (
-            <div 
-              className="absolute inset-0 cursor-pointer z-20"
-              onClick={() => setIsSelfViewExpanded(false)}
-              title="Click to return to normal view"
-              data-testid="video-self-view-expanded"
-            >
-              {/* Expanded local video */}
-              {!isVideoOff && localStream ? (
-                <video
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover transform scale-x-[-1]"
-                  ref={(el) => {
-                    if (el && localStream) {
-                      el.srcObject = localStream;
-                    }
-                  }}
-                  data-testid="video-local-stream-expanded"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <div className="text-white text-2xl font-medium">Your Camera</div>
-                    <div className="text-red-400 text-lg">Camera is off</div>
-                    <div className="text-white/60 text-sm">Click anywhere to return</div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Label overlay for expanded view */}
-              {!isVideoOff && localStream && (
-                <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                  <span className="text-white text-sm">You (expanded) - Click to minimize</span>
-                </div>
-              )}
-              
-              {/* Small remote user preview in corner when local is expanded */}
-              <div className="absolute bottom-4 right-4 w-32 h-24 bg-slate-800 rounded-lg border-2 border-white/20 overflow-hidden">
-                {remoteVideoEnabled && remoteStream ? (
+          <div className="p-0">
+            {/* Video Area */}
+            <div className="relative aspect-video bg-gray-100 dark:bg-gray-950 overflow-hidden">
+              {callStatus === "connected" ? (
+                <div className="w-full h-full relative">
                   <video
+                    ref={remoteVideoRef}
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover"
-                    ref={(el) => {
-                      if (el && remoteStream) {
-                        el.srcObject = remoteStream;
-                      }
-                    }}
+                    className={`w-full h-full object-cover ${remoteVideoEnabled ? 'block' : 'hidden'}`}
+                  />
+                  {!remoteVideoEnabled && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+                      <Avatar className="w-24 h-24 border-4 border-white/20">
+                        <AvatarImage src={user?.profilePicture || ""} />
+                        <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-2xl">
+                          <UserAvatarIcon className="w-12 h-12 text-gray-400" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
+                  <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md rounded-full px-3 py-1">
+                    <span className="text-white text-xs font-medium">{user?.displayName}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="relative mb-4">
+                      <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full animate-pulse" />
+                      <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-800 shadow-xl relative z-10 mx-auto">
+                        <AvatarImage src={user?.profilePicture || ""} />
+                        <AvatarFallback className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-4xl">
+                          {user?.displayName?.[0] || <UserAvatarIcon className="w-16 h-16" />}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className={`text-lg font-medium ${getStatusColor()}`}>
+                      {getStatusText()}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Self view preview */}
+              {(localStream || incomingStreamRef.current) && (
+                <div className="absolute top-4 right-4 w-32 h-24 bg-gray-900 rounded-xl border-2 border-white/20 shadow-xl overflow-hidden z-20">
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover transform scale-x-[-1]"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Controls Area */}
+            <div className="p-6 bg-white dark:bg-gray-900 flex flex-col items-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                {user?.displayName || user?.signInName || "User"}
+              </h2>
+
+              <div className="w-full max-w-md">
+                {callStatus === "ringing" && callType === "incoming" ? (
+                  <IncomingCallControls 
+                    onAnswer={handleAcceptCall} 
+                    onDecline={handleEndCall}
+                    callType="video"
+                  />
+                ) : callStatus === "connected" ? (
+                  <ActiveCallControls 
+                    onEndCall={handleEndCall}
+                    onToggleMute={handleToggleMute}
+                    onToggleVideo={handleToggleVideo}
+                    onSwitchCamera={handleSwitchCamera}
+                    isMuted={isMuted}
+                    isVideoOff={isVideoOff}
+                    callType="video"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-                    <Avatar className="w-12 h-12 border-2 border-white/20">
-                      <AvatarImage src={user.profilePicture || ""} />
-                      <AvatarFallback className="bg-slate-700 text-xs">
-                        <UserAvatarIcon className="w-6 h-6 text-slate-400" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
+                  <ConnectingCallControls onEndCall={handleEndCall} />
                 )}
               </div>
             </div>
-          )}
-
-          {/* Status overlay */}
-          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${
-                callStatus === "connected" ? "bg-green-400" : "bg-yellow-400"
-              } animate-pulse`}></div>
-              <span className={`text-sm font-medium ${getStatusColor()}`}>
-                {getStatusText()}
-              </span>
-            </div>
           </div>
-        </div>
-
-        {/* User Info & Controls */}
-        <div className="p-6 space-y-6">
-          {/* User Name */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white">{user.displayName}</h2>
-          </div>
-
-          {/* Call Controls - Using Modular Components */}
-          {callStatus !== "ended" && (
-            <>
-              {/* Active Call Controls - When connected */}
-              {callStatus === "connected" && (
-                <ActiveCallControls
-                  onEndCall={handleEndCall}
-                  onToggleMute={handleToggleMute}
-                  onToggleVideo={handleToggleVideo}
-                  onSwitchCamera={handleSwitchCamera}
-                  isMuted={isMuted}
-                  isVideoOff={isVideoOff}
-                  callType="video"
-                />
-              )}
-
-              {/* Connecting/Outgoing Call Controls */}
-              {callStatus !== "connected" && !(callType === "incoming" && callStatus === "ringing") && (
-                <ConnectingCallControls onEndCall={handleEndCall} />
-              )}
-
-              {/* Incoming Call Controls - Answer/Decline */}
-              {callType === "incoming" && callStatus === "ringing" && (
-                <IncomingCallControls
-                  onAnswer={handleAcceptCall}
-                  onDecline={handleEndCall}
-                  callType="video"
-                />
-              )}
-            </>
-          )}
         </div>
       </DialogContent>
       
+      <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
     </Dialog>
-      
-    {/* Hidden audio element for remote stream - OUTSIDE Dialog for portal compatibility */}
-    {/* CRITICAL: Use opacity:0 instead of visibility:hidden - some browsers pause audio with visibility:hidden */}
-    <audio 
-      ref={remoteAudioRef} 
-      autoPlay 
-      playsInline
-      data-testid="video-call-remote-audio"
-      style={{ 
-        position: 'fixed',
-        top: '-9999px',
-        left: '-9999px',
-        width: '1px',
-        height: '1px',
-        opacity: 0,
-        pointerEvents: 'none'
-      }}
-    />
-    </>
   );
+}
 }
