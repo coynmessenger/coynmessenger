@@ -21,9 +21,9 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             </div>
             <button 
               onClick={onClose}
-              className="p-2 bg-white/20 hover:bg-white/30 rounded-xl backdrop-blur-sm transition-colors"
+              className="p-1.5 bg-white/15 hover:bg-white/30 rounded-full transition-colors active:scale-95"
             >
-              <X className="h-5 w-5 text-white" />
+              <X className="h-4 w-4 text-white" />
             </button>
           </div>
         </div>
