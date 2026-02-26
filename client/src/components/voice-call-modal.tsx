@@ -806,7 +806,7 @@ export default function VoiceCallModal({
       onClose();
       setIsAnimating(false);
       isEndingRef.current = false;
-    }, 400);
+    }, 300);
   };
   
   const handleCloseModal = () => {
@@ -818,7 +818,7 @@ export default function VoiceCallModal({
       
       setTimeout(() => {
         handleEndCall();
-      }, 350);
+      }, 300);
     }
   };
 
@@ -996,6 +996,7 @@ export default function VoiceCallModal({
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
         hideCloseButton
+        noAnimation
         className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible"
         style={{
           position: 'fixed',
