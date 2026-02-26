@@ -1132,9 +1132,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Reset crypto modal
   const resetCryptoModal = () => {
     setShowCryptoModal(false);
-    setCryptoStep("amount");
-    setCryptoAmount("");
-    setSelectedCrypto("");
+    setTimeout(() => {
+      setCryptoStep("amount");
+      setCryptoAmount("");
+      setSelectedCrypto("");
+    }, 350);
   };
 
   const deleteMessageMutation = useMutation({
