@@ -407,9 +407,6 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                             {transaction.senderId === connectedUserId ? 'Sent' : 'Received'}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-1">
-                          {transaction.content}
-                        </p>
                         {/* BSCScan transaction link */}
                         {transaction.transactionHash && (transaction.cryptoCurrency === 'BNB' || transaction.cryptoCurrency === 'USDT' || transaction.cryptoCurrency === 'COYN') && (
                           <div className="mt-2">
