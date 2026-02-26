@@ -3206,17 +3206,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         isOpen={showUserProfile}
         onClose={() => setShowUserProfile(false)}
         user={conversation.otherUser}
-        onStartCall={() => {
-          setShowUserProfile(false);
-          setShowVoiceCall(true);
-        }}
-        onStartVideoCall={() => {
-          setShowUserProfile(false);
-          setShowVideoCall(true);
-        }}
         onSendMessage={() => {
           setShowUserProfile(false);
-          // Focus on message input - can be enhanced later
         }}
         onDeleteContact={() => {
           setShowUserProfile(false);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Copy, MessageCircle, Phone, Video, UserMinus, AlertTriangle, Wallet, Clock } from "lucide-react";
+import { Copy, MessageCircle, UserMinus, AlertTriangle, Wallet, Clock } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -25,8 +25,6 @@ interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: User;
-  onStartCall?: () => void;
-  onStartVideoCall?: () => void;
   onSendMessage?: () => void;
   onDeleteContact?: () => void;
 }
@@ -35,8 +33,6 @@ export default function UserProfileModal({
   isOpen, 
   onClose, 
   user, 
-  onStartCall,
-  onStartVideoCall,
   onSendMessage,
   onDeleteContact 
 }: UserProfileModalProps) {
@@ -161,30 +157,6 @@ export default function UserProfileModal({
                   </Button>
                 )}
                 
-                {(onStartCall || onStartVideoCall) && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {onStartCall && (
-                      <Button 
-                        onClick={onStartCall}
-                        variant="ghost"
-                        className="h-11 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 font-medium text-sm"
-                      >
-                        <Phone className="h-4 w-4 mr-2" />
-                        Call
-                      </Button>
-                    )}
-                    {onStartVideoCall && (
-                      <Button 
-                        onClick={onStartVideoCall}
-                        variant="ghost"
-                        className="h-11 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 font-medium text-sm"
-                      >
-                        <Video className="h-4 w-4 mr-2" />
-                        Video
-                      </Button>
-                    )}
-                  </div>
-                )}
                 
                 {onDeleteContact && (
                   <Button 
