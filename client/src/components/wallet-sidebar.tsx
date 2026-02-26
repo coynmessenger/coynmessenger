@@ -757,14 +757,17 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       {/* Send Modal */}
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+        <DialogContent hideCloseButton className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
             {/* Header */}
-            <div className="flex items-center p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
                 {selectedCurrency && currencyConfig[selectedCurrency]?.icon}
                 Send {selectedCurrency}
               </DialogTitle>
+              <button onClick={() => setShowSendModal(false)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
             </div>
 
             <div className="p-5 space-y-5">
@@ -852,13 +855,16 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       {/* QR Modal */}
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+        <DialogContent hideCloseButton className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
-            <div className="flex items-center p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
                 <QrCode className="w-4 h-4 text-orange-500" />
                 Receive {selectedCurrency}
               </DialogTitle>
+              <button onClick={() => setShowQRModal(false)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
             </div>
             <div className="p-5 space-y-4 text-center">
               <div className="bg-white dark:bg-white p-4 rounded-2xl inline-block mx-auto shadow-inner">
@@ -901,13 +907,16 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         }
         setShowQRScanner(open);
       }}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+        <DialogContent hideCloseButton className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
-            <div className="flex items-center p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
                 <Camera className="w-4 h-4 text-orange-500" />
                 Scan Wallet QR Code
               </DialogTitle>
+              <button onClick={() => { stopQRScanner(); setShowQRScanner(false); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
             </div>
             <div className="p-5 space-y-4">
               <div className="relative bg-gray-950 rounded-xl overflow-hidden" style={{ minHeight: '280px' }}>

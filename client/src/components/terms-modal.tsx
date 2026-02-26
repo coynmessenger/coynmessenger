@@ -10,7 +10,7 @@ interface TermsModalProps {
 export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] p-0 gap-0 overflow-hidden bg-gradient-to-b from-background to-background/95 border-orange-200/20 dark:border-cyan-500/20 z-[60] [&>button]:hidden rounded-t-lg" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent hideCloseButton className="w-[95vw] sm:w-[85vw] max-w-4xl max-h-[95vh] p-0 gap-0 overflow-hidden bg-gradient-to-b from-background to-background/95 border-orange-200/20 dark:border-cyan-500/20 z-[60] rounded-t-lg" onPointerDownOutside={(e) => e.preventDefault()}>
         <div className="relative bg-gradient-to-r from-orange-500 via-orange-400 to-amber-500 dark:from-cyan-600 dark:via-cyan-500 dark:to-teal-500 p-6 pb-8 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

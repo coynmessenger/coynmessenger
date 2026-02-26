@@ -700,7 +700,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[420px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden max-h-[85vh] flex flex-col">
+      <DialogContent hideCloseButton className="sm:max-w-[420px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl max-h-[85vh] flex flex-col">
         <div className="relative px-6 pt-6 pb-4 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent flex-shrink-0">
           <Button
             variant="ghost"
@@ -1023,7 +1023,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     </Dialog>
 
     <Dialog open={showClearDataConfirm} onOpenChange={setShowClearDataConfirm}>
-      <DialogContent className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+      <DialogContent hideCloseButton className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl">
         <div className="relative px-6 pt-8 pb-4 text-center bg-gradient-to-b from-red-50 dark:from-red-950/30 to-transparent">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3 bg-red-100 dark:bg-red-900/50 shadow-lg shadow-red-200/50 dark:shadow-red-900/30 border border-red-200 dark:border-red-800">
             <Trash2 className="w-7 h-7 text-red-500" />
