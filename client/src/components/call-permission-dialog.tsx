@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mic, Volume2, Phone, Video, Loader2, AlertCircle, CheckCircle, Camera, ShieldCheck } from "lucide-react";
+import { Mic, Volume2, Phone, Video, Loader2, AlertCircle, CheckCircle, Camera, ShieldCheck, RefreshCw } from "lucide-react";
 import { microphoneService } from "@/lib/microphone-service";
 import { permissionService } from "@/lib/permission-service";
 
@@ -25,6 +25,21 @@ export default function CallPermissionDialog({
   const [cameraPermission, setCameraPermission] = useState<"pending" | "granted" | "denied">("pending");
   const [speakerEnabled, setSpeakerEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const autoRequestedRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !autoRequestedRef.current) {
+      autoRequestedRef.current = true;
+      handleRequestPermissions();
+    }
+    if (!isOpen) {
+      autoRequestedRef.current = false;
+    }
+  }, [isOpen]);
+
+  const handleTryAgain = () => {
+    window.location.reload();
+  };
 
   const handleRequestPermissions = async () => {
     setIsRequesting(true);
@@ -76,10 +91,9 @@ export default function CallPermissionDialog({
         }
       } else {
         console.error("❌ PERMISSION DIALOG: Permission denied");
-        const errorMsg = (result as any).errorMessage || (result as any).error?.message || 
-          (callType === "video" 
-            ? "Camera and microphone access was denied. Please allow access in your browser settings."
-            : "Microphone access was denied. Please allow microphone access in your browser settings.");
+        const errorMsg = callType === "video" 
+          ? "Camera and microphone access was denied. Tap \"Refresh & Try Again\" — the page will reload and ask for permission once more."
+          : "Microphone access was denied. Tap \"Refresh & Try Again\" — the page will reload and ask for permission once more.";
         setError(errorMsg);
       }
     } catch (err: any) {
@@ -88,7 +102,7 @@ export default function CallPermissionDialog({
       if (callType === "video") {
         setCameraPermission("denied");
       }
-      setError(err.message || "Failed to access required devices. Please check your browser settings.");
+      setError("Failed to access required devices. Tap \"Refresh & Try Again\" to reload and re-prompt for permissions.");
     } finally {
       setIsRequesting(false);
     }
@@ -110,7 +124,7 @@ export default function CallPermissionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl [&>button[class*='absolute']]:hidden">
+      <DialogContent hideCloseButton className="sm:max-w-[380px] p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 overflow-hidden rounded-2xl gap-0 shadow-2xl">
         <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-orange-50 dark:from-orange-950/30 to-transparent">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-orange-100 dark:bg-orange-900/50 shadow-lg shadow-orange-200/50 dark:shadow-orange-900/30 border border-orange-200 dark:border-orange-700">
             {callType === "video" ? (
@@ -209,29 +223,35 @@ export default function CallPermissionDialog({
         </div>
 
         <div className="px-6 pb-5 pt-4 space-y-3">
-          <Button
-            onClick={handleRequestPermissions}
-            disabled={isRequesting}
-            className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
-            data-testid="permission-allow-btn"
-          >
-            {isRequesting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Requesting Access...
-              </>
-            ) : micPermission === "denied" || cameraPermission === "denied" ? (
-              <>
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Try Again
-              </>
-            ) : (
-              <>
-                <ShieldCheck className="w-4 h-4 mr-2" />
-                Allow & Start Call
-              </>
-            )}
-          </Button>
+          {micPermission === "denied" || cameraPermission === "denied" ? (
+            <Button
+              onClick={handleTryAgain}
+              className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
+              data-testid="permission-allow-btn"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh & Try Again
+            </Button>
+          ) : (
+            <Button
+              onClick={handleRequestPermissions}
+              disabled={isRequesting}
+              className="w-full h-12 rounded-xl font-semibold text-sm shadow-lg transition-all bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 shadow-orange-300/30 text-white"
+              data-testid="permission-allow-btn"
+            >
+              {isRequesting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Requesting Access...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Allow & Start Call
+                </>
+              )}
+            </Button>
+          )}
 
           <Button
             variant="ghost"
@@ -243,7 +263,10 @@ export default function CallPermissionDialog({
           </Button>
 
           <p className="text-[11px] text-center text-gray-400 dark:text-gray-500 leading-relaxed">
-            Your browser will prompt for permission. Tap <span className="text-orange-500">"Allow"</span> to proceed.
+            {micPermission === "denied" || cameraPermission === "denied"
+              ? <>Refreshing the page lets your browser prompt again. Tap <span className="text-orange-500">"Allow"</span> when prompted.</>
+              : <>Your browser will prompt for permission. Tap <span className="text-orange-500">"Allow"</span> to proceed.</>
+            }
           </p>
         </div>
       </DialogContent>
