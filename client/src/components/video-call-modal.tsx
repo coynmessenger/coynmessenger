@@ -113,6 +113,14 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // Prevent multiple end operations
   const isEndingRef = useRef(false);
   
+  // Ref to track current callStatus inside timeouts (avoids stale closure)
+  const callStatusRef = useRef(callStatus);
+  
+  // Keep callStatusRef in sync with callStatus state
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+  }, [callStatus]);
+
   // Keep stream refs in sync with state
   useEffect(() => {
     localStreamRef.current = localStream;
@@ -723,7 +731,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               
               // Add 45-second auto-timeout for incoming calls
               setTimeout(() => {
-                if (callStatus === "ringing") {
+                if (callStatusRef.current === "ringing") {
                   console.log('📹 INCOMING VIDEO CALL: Call timeout - no answer after 45 seconds');
                   ringtoneService.stopRingtone();
                   setCallStatus("ended");
@@ -820,17 +828,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         console.log('✅ VIDEO ACCEPT: Call accepted successfully');
         
         // Retry any pending audio playback (autoplay might have been blocked)
-        // Note: If remote stream hasn't arrived yet, retry will happen when stream arrives and checks userGestureReceivedRef
         await retryPendingAudioPlayback();
-        
-        setCallStatus("connected");
-        
-        // Start recording for incoming accepted call
-        if (localStreamRef.current) {
-          callRecording.startRecording(localStreamRef.current);
-        }
-        
-        if (onCallStart) onCallStart();
       } catch (error: any) {
         console.error('❌ VIDEO ACCEPT: Failed to accept call:', error);
         setCallStatus("ended");

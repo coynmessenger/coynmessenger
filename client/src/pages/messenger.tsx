@@ -91,7 +91,6 @@ export default function MessengerPage() {
   
   // Track WebRTC initialization to prevent loops
   const [globalWebRTCInitialized, setGlobalWebRTCInitialized] = useState(false);
-  const [webRTCInitializationAttempts, setWebRTCInitializationAttempts] = useState(0);
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -109,59 +108,7 @@ export default function MessengerPage() {
 
   const connectedUserId = getConnectedUserId();
 
-  // UNIVERSAL WebRTC INITIALIZATION: Runs immediately when user is authenticated
-  useEffect(() => {
-    if (connectedUserId) {
-      console.log('🚀 UNIVERSAL: Immediate WebRTC initialization for user:', connectedUserId);
-      
-      const initializeWebRTCUniversal = async () => {
-        try {
-          // Reset state and force fresh initialization
-          setGlobalWebRTCInitialized(false);
-          setWebRTCInitializationAttempts(0);
-          
-          console.log('🚀 UNIVERSAL: Starting guaranteed WebRTC initialization...');
-          await initializeGlobalWebRTC(connectedUserId.toString(), 3);
-          setGlobalWebRTCInitialized(true);
-          console.log('🚀 UNIVERSAL: WebRTC initialization complete for user:', connectedUserId);
-          
-          // Set up universal call handlers
-          setGlobalWebRTCHandlers({
-            onIncomingCall: (call) => {
-              console.log('📞 UNIVERSAL: Incoming call received:', call);
-              setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
-              if (call.type === 'voice') {
-                setIsVoiceCallOpen(true);
-              } else {
-                setIsVideoCallOpen(true);
-              }
-            },
-            onCallAccepted: (call) => {
-              console.log('✅ UNIVERSAL: Call accepted:', call);
-            },
-            onCallEnded: (call) => {
-              console.log('🔚 UNIVERSAL: Call ended:', call);
-              setIsVideoCallOpen(false);
-              setIsVoiceCallOpen(false);
-              setIncomingCallData(null);
-            }
-          });
-          
-        } catch (error) {
-          console.error('❌ UNIVERSAL: WebRTC initialization failed for user:', connectedUserId, error);
-          // Retry once more if it failed
-          if (webRTCInitializationAttempts < 1) {
-            console.log('🔄 UNIVERSAL: Retrying WebRTC initialization...');
-            setWebRTCInitializationAttempts(1);
-            setTimeout(() => initializeWebRTCUniversal(), 2000);
-          }
-        }
-      };
-      
-      // Initialize immediately, no delays
-      initializeWebRTCUniversal();
-    }
-  }, [connectedUserId]); // Only depend on connectedUserId to trigger once per user
+
 
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user", connectedUserId],
