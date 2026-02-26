@@ -1162,7 +1162,8 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       }
     }}>
       <DialogContent 
-        className="p-0 border-none bg-transparent shadow-none max-w-2xl w-[95vw] overflow-visible [&>button[class*='absolute']]:hidden"
+        hideCloseButton
+        className="p-0 border-none bg-transparent shadow-none max-w-2xl w-[95vw] overflow-visible"
         style={{
           position: 'fixed',
           left: `${position.x}px`,

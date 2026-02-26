@@ -995,7 +995,8 @@ export default function VoiceCallModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent 
-        className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible [&>button[class*='absolute']]:hidden"
+        hideCloseButton
+        className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible"
         style={{
           position: 'fixed',
           left: `${position.x}px`,
