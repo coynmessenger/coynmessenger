@@ -4,6 +4,7 @@ import { createWallet } from "thirdweb/wallets";
 import { bsc } from "@/lib/bsc-chain";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import cryptoWalletPath from "@assets/cryptowallet_1769059838820.png";
+import { MessageSquare } from "lucide-react";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
@@ -61,6 +62,39 @@ export default function ThirdwebWalletConnector({
             title: "Connect to COYN Messenger",
             subtitle: "Secure crypto messaging on BSC network"
           },
+        }}
+        detailsModal={{
+          footer({ close }) {
+            return (
+              <div style={{ padding: "8px 16px 4px" }}>
+                <button
+                  onClick={() => {
+                    close();
+                    window.location.href = '/messenger';
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(249,115,22,0.12)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                >
+                  <MessageSquare size={18} style={{ color: "#f97316", flexShrink: 0 }} />
+                  <span>Go to Messenger</span>
+                </button>
+              </div>
+            );
+          }
         }}
         theme="dark"
         wallets={wallets}
