@@ -8,7 +8,7 @@ packages = ["ffmpeg", "opencv"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
+build = ["bash", "-c", "npm install && npm run build"]
 run = ["node", "dist/index.js"]
 
 [[ports]]
