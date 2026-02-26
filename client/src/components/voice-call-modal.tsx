@@ -8,7 +8,7 @@ import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { microphoneService } from "@/lib/microphone-service";
 import { tryPlayMedia } from "@/utils/media";
-import { X } from "lucide-react";
+import { X, Lock } from "lucide-react";
 import { 
   IncomingCallControls, 
   ActiveCallControls, 
@@ -1014,18 +1014,31 @@ export default function VoiceCallModal({
         <div 
           ref={dragRef}
           className={`
-            relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800
-            bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl
+            relative w-full overflow-hidden rounded-2xl shadow-2xl
+            bg-gradient-to-b from-gray-900 via-gray-950 to-black
             ${isAnimating ? (animationType === 'enter' ? 'animate-modal-enter' : 'animate-modal-exit') : ''}
           `}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >
+          {/* Ambient background glow */}
+          <div className={`absolute inset-0 transition-opacity duration-1000 ${
+            callStatus === "connected" ? "opacity-100" : "opacity-60"
+          }`}>
+            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl ${
+              callStatus === "connected" ? "bg-green-500/10" :
+              callStatus === "ringing" ? "bg-orange-500/15" : "bg-blue-500/10"
+            }`} />
+          </div>
+
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+          <div className="relative flex items-center justify-between px-4 pt-4 pb-2">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-              <DialogTitle className="text-sm font-semibold text-gray-900 dark:text-white">
+              <div className={`w-2 h-2 rounded-full animate-pulse ${
+                callStatus === "connected" ? "bg-green-400" :
+                callStatus === "ringing" ? "bg-orange-400" : "bg-blue-400"
+              }`} />
+              <DialogTitle className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 {callStatus === "connecting" ? "Connecting..." : 
                  callStatus === "ringing" ? (callType === "incoming" ? "Incoming Call" : "Calling...") : 
                  callStatus === "connected" ? "Voice Call" : "Call Ended"}
@@ -1033,36 +1046,76 @@ export default function VoiceCallModal({
             </div>
             <button 
               onClick={handleCloseModal}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+              className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-4 h-4 text-gray-400" />
             </button>
           </div>
 
-          <div className="p-8 flex flex-col items-center">
-            {/* User Info */}
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full animate-pulse" />
-              <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-xl relative z-10">
+          {/* Main content */}
+          <div className="relative px-6 pb-8 pt-4 flex flex-col items-center">
+            {/* Avatar with animated rings */}
+            <div className="relative mb-6 flex items-center justify-center">
+              {/* Outer ring - ringing state */}
+              {callStatus === "ringing" && (
+                <>
+                  <div className="absolute w-36 h-36 rounded-full border-2 border-orange-400/30 animate-ping" style={{ animationDuration: '1.5s' }} />
+                  <div className="absolute w-44 h-44 rounded-full border border-orange-400/15 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.3s' }} />
+                </>
+              )}
+              {/* Connected glow ring */}
+              {callStatus === "connected" && (
+                <div className="absolute w-36 h-36 rounded-full bg-green-500/15 animate-pulse" />
+              )}
+              <Avatar className="w-28 h-28 border-4 border-white/10 shadow-2xl relative z-10">
                 <AvatarImage src={user?.profilePicture || ""} alt={user?.displayName || "User"} />
-                <AvatarFallback className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-2xl">
-                  {user?.displayName?.[0] || <UserAvatarIcon className="w-12 h-12" />}
+                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-700 text-white text-3xl font-bold">
+                  {user?.displayName?.[0]?.toUpperCase() || <UserAvatarIcon className="w-14 h-14 text-white/80" />}
                 </AvatarFallback>
               </Avatar>
             </div>
 
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+            {/* Name */}
+            <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">
               {user?.displayName || user?.signInName || "User"}
             </h2>
-            
-            <p className="text-sm font-medium text-orange-500 mb-8">
-              {callStatus === "connected" ? formattedDuration : 
-               callStatus === "ringing" ? "Ringing..." : 
-               callStatus === "connecting" ? "Connecting secured line..." : "Call ended"}
-            </p>
+
+            {/* Status / Timer */}
+            <div className="mb-1">
+              {callStatus === "connected" ? (
+                <p className="text-2xl font-mono font-semibold text-green-400 tabular-nums">
+                  {formattedDuration}
+                </p>
+              ) : callStatus === "ringing" ? (
+                <p className="text-sm text-orange-400 font-medium">
+                  {callType === "incoming" ? "Incoming voice call..." : "Ringing..."}
+                </p>
+              ) : callStatus === "connecting" ? (
+                <p className="text-sm text-blue-400 font-medium flex items-center gap-1">
+                  Securing connection
+                  <span className="flex gap-0.5 ml-1">
+                    <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400">Call ended · {formattedDuration}</p>
+              )}
+            </div>
+
+            {/* Encrypted badge */}
+            {(callStatus === "connected" || callStatus === "ringing") && (
+              <div className="flex items-center gap-1 text-gray-500 text-xs mb-8">
+                <Lock className="w-3 h-3" />
+                <span>End-to-end encrypted</span>
+              </div>
+            )}
+            {callStatus === "connecting" && <div className="mb-8" />}
+            {callStatus === "ended" && <div className="mb-8" />}
 
             {/* Controls */}
-            <div className="w-full max-w-[280px]">
+            <div className="w-full max-w-[300px]">
               {callStatus === "ringing" && callType === "incoming" ? (
                 <IncomingCallControls 
                   onAnswer={handleAcceptCall} 
@@ -1072,7 +1125,9 @@ export default function VoiceCallModal({
               ) : callStatus === "connected" ? (
                 <ActiveCallControls 
                   isMuted={isMuted}
+                  isSpeakerOn={isSpeakerOn}
                   onToggleMute={handleToggleMute}
+                  onToggleSpeaker={handleToggleSpeaker}
                   onEndCall={handleEndCall}
                   onSwitchToVideo={onSwitchToVideo}
                   callType="voice"

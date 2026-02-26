@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Phone, PhoneOff, Video, VideoOff, Mic, MicOff, Volume2, VolumeX, SwitchCamera } from 'lucide-react';
 
 export type CallStatus = 'connecting' | 'ringing' | 'connected' | 'ended';
@@ -154,36 +153,42 @@ export function IncomingCallControls({
   className = '' 
 }: IncomingCallControlsProps) {
   return (
-    <div className={`flex justify-center items-center gap-8 ${className}`} data-testid="incoming-call-controls">
-      <Button
+    <div className={`flex justify-center items-end gap-12 ${className}`} data-testid="incoming-call-controls">
+      <button
         onClick={() => {
           console.log(`🔴 DECLINE ${callType.toUpperCase()} CALL`);
           onDecline();
         }}
         disabled={isLoading}
-        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center border-2 border-red-400 disabled:opacity-50 disabled:hover:scale-100"
         title="Decline Call"
         data-testid="button-decline-call"
+        className="flex flex-col items-center gap-1.5 group disabled:opacity-50"
       >
-        <PhoneOff className="h-8 w-8 sm:h-10 sm:w-10" />
-      </Button>
+        <div className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-xl shadow-red-500/40">
+          <PhoneOff className="h-7 w-7 text-white" />
+        </div>
+        <span className="text-xs text-gray-400 group-hover:text-gray-300 font-medium">Decline</span>
+      </button>
       
-      <Button
+      <button
         onClick={() => {
           console.log(`🎯 ANSWER ${callType.toUpperCase()} CALL`);
           onAnswer();
         }}
         disabled={isLoading}
-        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center border-2 border-green-400 disabled:opacity-50 disabled:hover:scale-100"
         title={callType === 'video' ? "Answer Video Call" : "Answer Call"}
         data-testid="button-answer-call"
+        className="flex flex-col items-center gap-1.5 group disabled:opacity-50"
       >
-        {callType === 'video' ? (
-          <Video className="h-8 w-8 sm:h-10 sm:w-10" />
-        ) : (
-          <Phone className="h-8 w-8 sm:h-10 sm:w-10" />
-        )}
-      </Button>
+        <div className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-xl shadow-green-500/40">
+          {callType === 'video' ? (
+            <Video className="h-7 w-7 text-white" />
+          ) : (
+            <Phone className="h-7 w-7 text-white" />
+          )}
+        </div>
+        <span className="text-xs text-gray-400 group-hover:text-gray-300 font-medium">Accept</span>
+      </button>
     </div>
   );
 }
@@ -217,97 +222,124 @@ export function ActiveCallControls({
   isLoading = false,
   className = ''
 }: ActiveCallControlsProps) {
+  const ControlBtn = ({ onClick, active, activeColor, icon, label, testId, danger = false }: {
+    onClick: () => void;
+    active?: boolean;
+    activeColor?: string;
+    icon: ReactNode;
+    label: string;
+    testId: string;
+    danger?: boolean;
+  }) => (
+    <button
+      onClick={onClick}
+      disabled={isLoading}
+      data-testid={testId}
+      title={label}
+      className={`flex flex-col items-center gap-1.5 group disabled:opacity-50`}
+    >
+      <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 shadow-lg ${
+        danger
+          ? "bg-red-500 hover:bg-red-400 shadow-red-500/30 text-white"
+          : active
+          ? `${activeColor} shadow-lg`
+          : "bg-white/10 hover:bg-white/20 text-white"
+      }`}>
+        {icon}
+      </div>
+      <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors font-medium">
+        {label}
+      </span>
+    </button>
+  );
+
+  if (callType === 'voice') {
+    return (
+      <div className={`space-y-4 ${className}`} data-testid="active-call-controls">
+        {/* Top row: mute, speaker, video */}
+        <div className="flex justify-center items-end gap-6">
+          <ControlBtn
+            onClick={onToggleMute}
+            active={isMuted}
+            activeColor="bg-red-500/80 hover:bg-red-400/80 text-white shadow-red-500/30"
+            icon={isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+            label={isMuted ? "Unmuted" : "Mute"}
+            testId="button-toggle-mute"
+          />
+          {onToggleSpeaker && (
+            <ControlBtn
+              onClick={onToggleSpeaker}
+              active={isSpeakerOn}
+              activeColor="bg-blue-500/80 hover:bg-blue-400/80 text-white shadow-blue-500/30"
+              icon={isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
+              label="Speaker"
+              testId="button-toggle-speaker"
+            />
+          )}
+          {onSwitchToVideo && (
+            <ControlBtn
+              onClick={onSwitchToVideo}
+              icon={<Video className="h-6 w-6" />}
+              label="Video"
+              testId="button-switch-to-video"
+            />
+          )}
+        </div>
+        {/* End call — large centered */}
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={onEndCall}
+            disabled={isLoading}
+            data-testid="button-end-call"
+            title="End call"
+            className="flex flex-col items-center gap-1.5 group disabled:opacity-50"
+          >
+            <div className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-xl shadow-red-500/40">
+              <PhoneOff className="h-7 w-7 text-white" />
+            </div>
+            <span className="text-xs text-gray-400 group-hover:text-gray-300 font-medium">End</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Video call layout (compact row)
   return (
-    <div className={`flex justify-center items-center gap-3 ${className}`} data-testid="active-call-controls">
-      <Button
-        variant="outline"
-        size="icon"
+    <div className={`flex justify-center items-end gap-4 ${className}`} data-testid="active-call-controls">
+      <ControlBtn
         onClick={onToggleMute}
-        disabled={isLoading}
-        className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-          isMuted 
-            ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
-            : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-        }`}
-        title={isMuted ? "Unmute" : "Mute"}
-        data-testid="button-toggle-mute"
-      >
-        {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-      </Button>
-
-      {callType === 'voice' && onToggleSpeaker && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onToggleSpeaker}
-          disabled={isLoading}
-          className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-            isSpeakerOn 
-              ? "bg-blue-500/20 border-blue-400 text-blue-400 hover:bg-blue-500/30 shadow-lg shadow-blue-500/20" 
-              : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-          }`}
-          title={isSpeakerOn ? "Turn off speaker" : "Turn on speaker"}
-          data-testid="button-toggle-speaker"
-        >
-          {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-        </Button>
-      )}
-
-      {callType === 'video' && onToggleVideo && (
-        <Button
-          variant="outline"
-          size="icon"
+        active={isMuted}
+        activeColor="bg-red-500/80 hover:bg-red-400/80 text-white shadow-red-500/30"
+        icon={isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+        label={isMuted ? "Unmuted" : "Mute"}
+        testId="button-toggle-mute"
+      />
+      {onToggleVideo && (
+        <ControlBtn
           onClick={onToggleVideo}
-          disabled={isLoading}
-          className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-            isVideoOff 
-              ? "bg-red-500/20 border-red-400 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20" 
-              : "bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-          }`}
-          title={isVideoOff ? "Turn on camera" : "Turn off camera"}
-          data-testid="button-toggle-video"
-        >
-          {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-        </Button>
+          active={isVideoOff}
+          activeColor="bg-red-500/80 hover:bg-red-400/80 text-white shadow-red-500/30"
+          icon={isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+          label={isVideoOff ? "Cam Off" : "Camera"}
+          testId="button-toggle-video"
+        />
       )}
-
-      {callType === 'video' && onSwitchCamera && (
-        <Button
-          variant="outline"
-          size="icon"
+      {onSwitchCamera && (
+        <ControlBtn
           onClick={onSwitchCamera}
-          disabled={isLoading}
-          className="w-12 h-12 rounded-full border-2 transition-all duration-200 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500"
-          title="Switch camera"
-          data-testid="button-switch-camera"
-        >
-          <SwitchCamera className="h-5 w-5" />
-        </Button>
+          icon={<SwitchCamera className="h-5 w-5" />}
+          label="Flip"
+          testId="button-switch-camera"
+        />
       )}
-
-      {callType === 'voice' && onSwitchToVideo && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onSwitchToVideo}
-          disabled={isLoading}
-          className="w-12 h-12 rounded-full border-2 bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-green-500/30 hover:border-green-400 hover:text-green-400 transition-all duration-200"
-          title="Switch to video call"
-          data-testid="button-switch-to-video"
-        >
-          <Video className="h-5 w-5" />
-        </Button>
-      )}
-
-      <Button
+      <ControlBtn
         onClick={onEndCall}
-        disabled={isLoading}
-        className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30"
-        title="End call"
-        data-testid="button-end-call"
-      >
-        <PhoneOff className="h-5 w-5" />
-      </Button>
+        danger
+        icon={<PhoneOff className="h-5 w-5" />}
+        label="End"
+        testId="button-end-call"
+      />
     </div>
   );
 }
@@ -321,15 +353,18 @@ interface ConnectingCallControlsProps {
 export function ConnectingCallControls({ onEndCall, isLoading = false, className = '' }: ConnectingCallControlsProps) {
   return (
     <div className={`flex justify-center ${className}`} data-testid="connecting-call-controls">
-      <Button
+      <button
         onClick={onEndCall}
         disabled={isLoading}
-        className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg"
-        title="Cancel call"
         data-testid="button-cancel-call"
+        title="Cancel call"
+        className="flex flex-col items-center gap-1.5 group disabled:opacity-50"
       >
-        <PhoneOff className="h-6 w-6" />
-      </Button>
+        <div className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-xl shadow-red-500/40">
+          <PhoneOff className="h-7 w-7 text-white" />
+        </div>
+        <span className="text-xs text-gray-400 group-hover:text-gray-300 font-medium">Cancel</span>
+      </button>
     </div>
   );
 }
