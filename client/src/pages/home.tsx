@@ -43,22 +43,35 @@ export default function HomePage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount — always redirect if valid user data exists
+  // Check for existing authentication on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('connectedUser');
     const storedConnected = localStorage.getItem('walletConnected');
-    const userSignedOut = localStorage.getItem('userSignedOut');
+    const userClickedHome = localStorage.getItem('userClickedHome');
+    const userOnHomepage = sessionStorage.getItem('userOnHomepage');
 
-    // If valid user data exists in storage, it always takes priority and we go to messenger.
-    // The userSignedOut flag only blocks redirect when there is NO user data present.
+    // If the user explicitly navigated back to the homepage (from messenger), respect that choice
+    if (userClickedHome === 'true' || userOnHomepage === 'true') {
+      console.log('👤 User navigated to homepage intentionally, staying');
+      sessionStorage.setItem('userOnHomepage', 'true');
+      if (storedConnected === 'true' && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setIsConnected(true);
+          setConnectedUser(parsedUser);
+        } catch { /* ignore */ }
+      }
+      return;
+    }
+
+    // No explicit home intent — if valid session exists, go to messenger.
+    // Importantly: userSignedOut is only respected when there is NO session data.
+    // If connectedUser is present, the session wins and any stale sign-out flag is cleared.
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser?.id || parsedUser?.walletAddress) {
-          // Valid user — clear any stale sign-out flag and redirect
           localStorage.removeItem('userSignedOut');
-          localStorage.removeItem('userClickedHome');
-          sessionStorage.removeItem('userOnHomepage');
           setIsConnected(true);
           setConnectedUser(parsedUser);
           console.log('✅ Authenticated user detected, redirecting to messenger...');
@@ -68,30 +81,29 @@ export default function HomePage() {
       } catch {
         // Corrupted data — fall through to clear it
       }
-      // Data was corrupted
       localStorage.removeItem('walletConnected');
       localStorage.removeItem('connectedUser');
       localStorage.removeItem('connectedUserId');
     }
 
-    // No valid stored session — respect userSignedOut flag
-    if (userSignedOut === 'true') {
-      console.log('🚫 User signed out and no session found, staying on homepage');
-    }
     setIsConnected(false);
     setConnectedUser(null);
   }, [setLocation]);
-  
+
   // Watch for Thirdweb autoConnect firing asynchronously after mount
   useEffect(() => {
     if (!activeWallet) return;
 
-    // Don't auto-redirect if the user explicitly signed out and has no session
-    const userSignedOut = localStorage.getItem('userSignedOut');
     const storedUser = localStorage.getItem('connectedUser');
     const storedConnected = localStorage.getItem('walletConnected');
+    const userClickedHome = localStorage.getItem('userClickedHome');
+    const userOnHomepage = sessionStorage.getItem('userOnHomepage');
+    const userSignedOut = localStorage.getItem('userSignedOut');
 
-    // If there's a connected wallet AND stored user data, always go to messenger
+    // If user explicitly came to homepage, don't override that
+    if (userClickedHome === 'true' || userOnHomepage === 'true') return;
+
+    // Wallet (re)connected and valid session exists → go to messenger
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -104,7 +116,7 @@ export default function HomePage() {
       } catch { /* ignore */ }
     }
 
-    // Wallet connected but no stored session — authenticate via API if not explicitly signed out
+    // Wallet connected but no stored session — authenticate if not explicitly signed out
     if (userSignedOut !== 'true' && !connectWalletMutation.isPending) {
       const account = (activeWallet as any).getAccount?.();
       const address = account?.address;
