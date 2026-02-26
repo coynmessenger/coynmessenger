@@ -757,7 +757,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       {/* Send Modal */}
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
-        <DialogContent hideCloseButton className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+        <DialogContent hideCloseButton noAnimation className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
@@ -855,7 +855,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       {/* QR Modal */}
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
-        <DialogContent hideCloseButton className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+        <DialogContent hideCloseButton noAnimation className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
@@ -907,7 +907,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         }
         setShowQRScanner(open);
       }}>
-        <DialogContent hideCloseButton className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
+        <DialogContent hideCloseButton noAnimation className="p-0 border-none bg-transparent shadow-none max-w-sm w-[92vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">

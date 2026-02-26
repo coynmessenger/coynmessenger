@@ -966,7 +966,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       onClose();
       setIsAnimating(false);
       isEndingRef.current = false;
-    }, 800);
+    }, 300);
   };
 
   const handleHideCall = () => {
@@ -1163,6 +1163,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }}>
       <DialogContent 
         hideCloseButton
+        noAnimation
         className="p-0 border-none bg-transparent shadow-none max-w-2xl w-[95vw] overflow-visible"
         style={{
           position: 'fixed',

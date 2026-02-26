@@ -308,7 +308,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       </Popover>
 
       <Dialog open={showCryptoModal} onOpenChange={setShowCryptoModal}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible">
+        <DialogContent noAnimation className="p-0 border-none bg-transparent shadow-none max-w-sm w-[90vw] overflow-visible">
           <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl animate-modal-enter">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">

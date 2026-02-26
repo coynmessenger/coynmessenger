@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import { Phone, PhoneOff, Video, VideoOff, Mic, MicOff, Volume2, VolumeX, SwitchCamera } from 'lucide-react';
+import { PhoneOff, Video, VideoOff, Mic, MicOff, Volume2, VolumeX, SwitchCamera, Phone } from 'lucide-react';
 
 export type CallStatus = 'connecting' | 'ringing' | 'connected' | 'ended';
 export type CallType = 'voice' | 'video';
@@ -43,98 +43,6 @@ export function useCallTimer(isActive: boolean) {
     formattedDuration: formatCallDuration(duration),
     reset
   };
-}
-
-interface CallTimerDisplayProps {
-  duration: number;
-  className?: string;
-}
-
-export function CallTimerDisplay({ duration, className = '' }: CallTimerDisplayProps) {
-  return (
-    <div className={`font-mono text-lg font-semibold tabular-nums ${className}`} data-testid="call-timer">
-      {formatCallDuration(duration)}
-    </div>
-  );
-}
-
-interface CallStatusIndicatorProps {
-  status: CallStatus;
-  callType?: CallType;
-  duration?: number;
-  className?: string;
-}
-
-export function CallStatusIndicator({ status, callType = 'voice', duration = 0, className = '' }: CallStatusIndicatorProps) {
-  const getStatusColor = () => {
-    switch (status) {
-      case 'connecting':
-        return 'text-yellow-400';
-      case 'ringing':
-        return 'text-orange-400';
-      case 'connected':
-        return 'text-green-400';
-      case 'ended':
-        return 'text-red-400';
-      default:
-        return 'text-gray-400';
-    }
-  };
-
-  const getIndicatorColor = () => {
-    switch (status) {
-      case 'connecting':
-        return 'bg-yellow-400';
-      case 'ringing':
-        return 'bg-orange-400';
-      case 'connected':
-        return 'bg-green-400';
-      case 'ended':
-        return 'bg-red-400';
-      default:
-        return 'bg-gray-400';
-    }
-  };
-
-  const getStatusText = () => {
-    switch (status) {
-      case 'connecting':
-        return (
-          <span className="flex items-center gap-1">
-            Connecting
-            <span className="flex gap-0.5">
-              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-            </span>
-          </span>
-        );
-      case 'ringing':
-        return (
-          <span className="flex items-center gap-1">
-            {callType === 'video' ? 'Incoming Video Call' : 'Incoming Call'}
-            <span className="flex gap-0.5">
-              <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-ping"></span>
-            </span>
-          </span>
-        );
-      case 'connected':
-        return <CallTimerDisplay duration={duration} className="text-green-400" />;
-      case 'ended':
-        return 'Call Ended';
-      default:
-        return '';
-    }
-  };
-
-  return (
-    <div className={`flex items-center gap-2 ${className}`} data-testid="call-status-indicator">
-      <div className={`w-2 h-2 rounded-full ${getIndicatorColor()} ${status !== 'ended' ? 'animate-pulse' : ''}`}></div>
-      <span className={`text-sm font-medium ${getStatusColor()}`}>
-        {getStatusText()}
-      </span>
-    </div>
-  );
 }
 
 interface IncomingCallControlsProps {
@@ -369,52 +277,3 @@ export function ConnectingCallControls({ onEndCall, isLoading = false, className
   );
 }
 
-interface CallerInfoProps {
-  displayName: string;
-  avatarUrl?: string;
-  callType: CallType;
-  status: CallStatus;
-  className?: string;
-}
-
-export function CallerInfo({ displayName, avatarUrl, callType, status, className = '' }: CallerInfoProps) {
-  const getCallTypeLabel = () => {
-    if (status === 'ringing') {
-      return callType === 'video' ? 'Video Call' : 'Voice Call';
-    }
-    return null;
-  };
-
-  return (
-    <div className={`flex flex-col items-center gap-3 ${className}`} data-testid="caller-info">
-      <div className="relative">
-        {avatarUrl ? (
-          <img 
-            src={avatarUrl} 
-            alt={displayName}
-            className="w-24 h-24 rounded-full object-cover border-4 border-white/20"
-          />
-        ) : (
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white/20">
-            {displayName.charAt(0).toUpperCase()}
-          </div>
-        )}
-        {status === 'ringing' && (
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-white flex items-center justify-center animate-pulse">
-            {callType === 'video' ? (
-              <Video className="h-3 w-3 text-white" />
-            ) : (
-              <Phone className="h-3 w-3 text-white" />
-            )}
-          </div>
-        )}
-      </div>
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-white">{displayName}</h2>
-        {getCallTypeLabel() && (
-          <p className="text-sm text-gray-400 mt-1">{getCallTypeLabel()}</p>
-        )}
-      </div>
-    </div>
-  );
-}
