@@ -845,7 +845,7 @@ export default function MessengerPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col w-full h-screen">
         {/* Mobile Navigation */}
-        <nav className="bg-white dark:bg-white backdrop-blur-sm border-b border-gray-200 dark:border-gray-200 z-50">
+        <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Button
@@ -856,12 +856,12 @@ export default function MessengerPage() {
                 }}
                 variant="ghost"
                 size="sm"
-                className="text-slate-700 dark:text-slate-700 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-100 p-2 active:bg-blue-100 transition-colors"
+                className="text-slate-700 dark:text-slate-300 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 active:bg-blue-100 transition-colors"
                 title="Go to Homepage"
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-normal text-black dark:text-black" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+              <h1 className="text-xl font-normal text-black dark:text-white" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
