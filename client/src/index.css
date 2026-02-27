@@ -22,6 +22,10 @@
 /* Ensure proper scrolling behavior */
 html {
   scroll-behavior: smooth;
+  /* Reserve permanent gutter for the vertical scrollbar so that when modals
+     apply overflow:hidden the scrollbar disappears but no layout shift occurs.
+     This prevents the horizontal "jump" seen when dialogs/modals open. */
+  scrollbar-gutter: stable;
 }
 
 body {
