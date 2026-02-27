@@ -22,9 +22,11 @@
 /* Ensure proper scrolling behavior */
 html {
   scroll-behavior: smooth;
-  /* Reserve permanent gutter for the vertical scrollbar so that when modals
-     apply overflow:hidden the scrollbar disappears but no layout shift occurs.
-     This prevents the horizontal "jump" seen when dialogs/modals open. */
+  /* Reserve a permanent gutter for the vertical scrollbar.
+     When react-remove-scroll-bar locks the body on modal open it also
+     injects margin-right / padding-right to compensate for the scrollbar
+     disappearing.  With the gutter already stable that compensation is
+     redundant — see override below. */
   scrollbar-gutter: stable;
 }
 
@@ -32,6 +34,20 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+  scrollbar-gutter: stable; /* also stable on the scroll container */
+}
+
+/* react-remove-scroll-bar (used by Radix UI dialogs/sheets/etc.) adds
+   data-scroll-locked to <body> and injects:
+     margin-right: <scrollbarWidth>px !important
+   to prevent the page from shifting when the scrollbar is hidden.
+   Because scrollbar-gutter:stable already reserves that space permanently,
+   the injected margin is now double-compensation and IS the cause of the
+   visible "resize" when a modal opens.  Cancel it with a more-specific
+   selector so our rule wins the !important specificity battle. */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 /* App-wide watercolor background */
