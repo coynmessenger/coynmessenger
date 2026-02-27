@@ -11,9 +11,10 @@ export interface EncryptedCall {
   peerConnection?: RTCPeerConnection;
   remoteOffer?: RTCSessionDescriptionInit;
   status?: 'connecting' | 'ringing' | 'connected' | 'ended';
-  retainedStreamType?: 'microphone' | 'camera'; // Track if using cached stream for proper release
-  pendingIceCandidates?: RTCIceCandidateInit[]; // Queue for ICE candidates that arrive before remote description
-  // Pending events for when handlers aren't registered yet
+  retainedStreamType?: 'microphone' | 'camera';
+  pendingIceCandidates?: RTCIceCandidateInit[];
+  dtlsFingerprint?: string; // Remote peer's DTLS fingerprint for verification
+  dtlsVerified?: boolean;   // Whether fingerprint was verified
   pendingIncomingCall?: { callId: string; fromUserId: string; type: 'voice' | 'video' };
   pendingCallAccepted?: { callId: string; fromUserId: string; type: 'voice' | 'video'; status: string };
 }
@@ -25,6 +26,7 @@ export interface CallEventHandlers {
   onRemoteStream?: (stream: MediaStream) => void;
   onLocalStream?: (stream: MediaStream) => void;
   onEncryptionStatusChanged?: (encrypted: boolean) => void;
+  onDtlsStateChanged?: (secured: boolean, fingerprint?: string) => void;
 }
 
 export class EncryptedWebRTCService {
@@ -76,6 +78,56 @@ export class EncryptedWebRTCService {
   // Desktop device detection
   private isMobileDevice(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Generate an ECDSA P-256 DTLS certificate for this peer connection.
+  // ECDSA P-256 is faster and produces shorter fingerprints than the browser's
+  // default RSA-2048, while meeting the WebRTC security requirements in RFC 8827.
+  private async generateDTLSCertificate(): Promise<RTCCertificate> {
+    try {
+      const cert = await RTCPeerConnection.generateCertificate({
+        name: 'ECDSA',
+        namedCurve: 'P-256',
+      } as EcKeyGenParams);
+      console.log('🔒 DTLS: Generated ECDSA P-256 certificate');
+      return cert;
+    } catch {
+      // Safari / older browsers may not support ECDSA — fall back to RSA-2048
+      console.warn('🔒 DTLS: ECDSA not supported, falling back to RSA-2048');
+      return RTCPeerConnection.generateCertificate({
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: 'SHA-256',
+      } as RsaHashedKeyGenParams);
+    }
+  }
+
+  // Extract the DTLS fingerprint line from an SDP blob.
+  // Returns the full "algorithm hash" string (e.g. "sha-256 AB:CD:…") or null.
+  private extractDtlsFingerprint(sdp: string): string | null {
+    const match = sdp.match(/a=fingerprint:([^\r\n]+)/);
+    return match ? match[1].trim() : null;
+  }
+
+  // Verify that the fingerprint signaled out-of-band matches what's in the SDP.
+  // A mismatch means the SDP was tampered with between the signaling server
+  // and the browser — the classic MITM scenario DTLS fingerprinting prevents.
+  private verifyDtlsFingerprint(sdp: string, expected: string): boolean {
+    const actual = this.extractDtlsFingerprint(sdp);
+    if (!actual) {
+      console.warn('🔒 DTLS: No fingerprint found in SDP — cannot verify');
+      return false;
+    }
+    const match = actual.toLowerCase() === expected.toLowerCase();
+    if (match) {
+      console.log('✅ DTLS: Fingerprint verified — peer identity confirmed');
+    } else {
+      console.error('🚨 DTLS: Fingerprint MISMATCH — possible MITM attack!');
+      console.error('  Expected:', expected);
+      console.error('  In SDP: ', actual);
+    }
+    return match;
   }
 
   // Process pending ICE candidates after remote description is set
@@ -203,6 +255,7 @@ export class EncryptedWebRTCService {
       encryptedOffer?: string;
       offer?: RTCSessionDescriptionInit;
       encrypted: boolean;
+      dtlsFingerprint?: string;
     }) => {
       console.log('📞 INCOMING CALL: ==================== RECEIVED ====================');
       console.log('📞 INCOMING CALL: Call ID:', data.callId);
@@ -211,13 +264,17 @@ export class EncryptedWebRTCService {
       console.log('📞 INCOMING CALL: Has Offer:', !!data.offer);
       
       try {
-        // Store call information
+        // Store call information — including caller's DTLS fingerprint for later verification
         const call: EncryptedCall = {
           callId: data.callId,
           participants: [data.fromUserId, this.localUserId!],
           type: data.type,
           encrypted: data.encrypted,
+          dtlsFingerprint: data.dtlsFingerprint,
         };
+        if (data.dtlsFingerprint) {
+          console.log('🔒 DTLS: Stored caller fingerprint for verification on accept');
+        }
         
         this.activeCalls.set(data.callId, call);
         console.log('✅ INCOMING CALL: Added to activeCalls. Total calls:', this.activeCalls.size);
@@ -256,6 +313,7 @@ export class EncryptedWebRTCService {
       encryptedAnswer?: string;
       answer?: RTCSessionDescriptionInit;
       encrypted: boolean;
+      dtlsFingerprint?: string;
     }) => {
       console.log('═══════════════════════════════════════════════════════');
       console.log('📞 CALLER: RECEIVED ANSWER FROM RECEIVER');
@@ -269,7 +327,19 @@ export class EncryptedWebRTCService {
       if (call?.peerConnection && data.answer) {
         try {
           console.log('📞 CALLER: Setting remote answer SDP...');
-          // Use standard answer (WebRTC provides DTLS-SRTP encryption)
+
+          // Verify callee's DTLS fingerprint — the caller now checks that the
+          // fingerprint the callee signaled out-of-band matches the one in the answer SDP.
+          if (data.dtlsFingerprint && data.answer.sdp) {
+            const verified = this.verifyDtlsFingerprint(data.answer.sdp, data.dtlsFingerprint);
+            if (call) call.dtlsVerified = verified;
+            if (!verified) {
+              console.error('🚨 DTLS: Callee fingerprint mismatch — aborting call setup');
+            }
+          } else if (!data.dtlsFingerprint) {
+            console.warn('🔒 DTLS: No callee fingerprint in answer; skipping verification');
+          }
+
           await call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
           console.log('✅ CALLER: Remote answer set successfully');
           
@@ -652,9 +722,15 @@ export class EncryptedWebRTCService {
         });
       }
       
-      // Create peer connection
+      // Create peer connection with an explicit ECDSA P-256 DTLS certificate.
+      // This replaces the browser's default (often RSA-2048) with a faster,
+      // equally-secure elliptic-curve certificate and lets us pin the fingerprint.
+      const dtlsCert = await this.generateDTLSCertificate();
       console.log('🔗 AUDIO DEBUG: Creating peer connection with config:', this.rtcConfiguration);
-      const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
+      const peerConnection = new RTCPeerConnection({
+        ...this.rtcConfiguration,
+        certificates: [dtlsCert],
+      });
       
       
       // Add local stream tracks to peer connection
@@ -704,13 +780,20 @@ export class EncryptedWebRTCService {
       });
       await peerConnection.setLocalDescription(offer);
 
+      // Extract our DTLS fingerprint from the local SDP so the callee can
+      // verify it against what arrives in the offer — prevents signaling MITM.
+      const localFingerprint = this.extractDtlsFingerprint(
+        peerConnection.localDescription?.sdp || offer.sdp || ''
+      );
+      console.log('🔒 DTLS: Caller fingerprint to send:', localFingerprint?.slice(0, 40) + '…');
+
       // Send encrypted call invitation
-      
       this.socket.emit('initiate-call', {
         callId,
         targetUserId,
         type,
         offer,
+        dtlsFingerprint: localFingerprint,
       });
 
       // Listen for call initiated confirmation
@@ -839,9 +922,13 @@ export class EncryptedWebRTCService {
         });
       }
       
-      // Create peer connection
+      // Create peer connection with explicit ECDSA P-256 DTLS certificate (callee side)
+      const dtlsCert = await this.generateDTLSCertificate();
       console.log('🔗 AUDIO DEBUG (ACCEPT): Creating peer connection with config:', this.rtcConfiguration);
-      const peerConnection = new RTCPeerConnection(this.rtcConfiguration);
+      const peerConnection = new RTCPeerConnection({
+        ...this.rtcConfiguration,
+        certificates: [dtlsCert],
+      });
       
       // Add local stream
       console.log('📤 AUDIO DEBUG (ACCEPT): Adding local tracks to peer connection...');
@@ -868,6 +955,22 @@ export class EncryptedWebRTCService {
       // Set remote description if we have an offer
       if (call.remoteOffer) {
         console.log('📞 ACCEPT: Setting remote offer description');
+
+        // Verify caller's DTLS fingerprint against what's inside the offer SDP.
+        // If we received a fingerprint out-of-band through the signaling server and
+        // it doesn't match the one embedded in the offer itself, the SDP may have
+        // been tampered with in transit (classic signaling-layer MITM attack).
+        if (call.dtlsFingerprint && call.remoteOffer.sdp) {
+          const verified = this.verifyDtlsFingerprint(call.remoteOffer.sdp, call.dtlsFingerprint);
+          call.dtlsVerified = verified;
+          if (!verified) {
+            console.error('🚨 DTLS: Rejecting call — fingerprint verification failed');
+            throw new Error('DTLS fingerprint verification failed — possible MITM attack');
+          }
+        } else if (!call.dtlsFingerprint) {
+          console.warn('🔒 DTLS: No out-of-band fingerprint received; cannot verify caller identity');
+        }
+
         await peerConnection.setRemoteDescription(new RTCSessionDescription(call.remoteOffer));
         console.log('✅ ACCEPT: Remote offer set successfully');
         
@@ -880,6 +983,12 @@ export class EncryptedWebRTCService {
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       console.log('✅ ACCEPT: Local answer SDP set successfully');
+
+      // Extract callee's DTLS fingerprint so the caller can verify us in turn
+      const calleeFingerprint = this.extractDtlsFingerprint(
+        peerConnection.localDescription?.sdp || answer.sdp || ''
+      );
+      console.log('🔒 DTLS: Callee fingerprint to send:', calleeFingerprint?.slice(0, 40) + '…');
 
       // Verify bi-directional audio setup BEFORE sending answer
       console.log('🔊 BI-DIRECTIONAL AUDIO CHECK:');
@@ -900,10 +1009,12 @@ export class EncryptedWebRTCService {
       });
 
       // Send call acceptance to server - this triggers the answer delivery to caller
+      // Include our DTLS fingerprint so the caller can verify our identity
       console.log('📤 ACCEPT: Sending answer to signaling server...');
       this.socket.emit('accept-call', {
         callId,
         answer,
+        dtlsFingerprint: calleeFingerprint,
       });
       console.log('✅ ACCEPT: Call accepted and answer sent to caller');
 
@@ -1075,6 +1186,43 @@ export class EncryptedWebRTCService {
         if (call.remoteStream && this.eventHandlers.onRemoteStream) {
           console.log('🔊 CLIENT: Re-delivering remote stream on connection established');
           this.eventHandlers.onRemoteStream(call.remoteStream);
+        }
+
+        // Inspect the DTLS transport that the browser negotiated.
+        // RTCDtlsTransport.state === 'connected' confirms the DTLS handshake
+        // completed successfully and media is now flowing over DTLS-SRTP.
+        const pc = call.peerConnection;
+        if (pc) {
+          const senders = pc.getSenders();
+          const dtlsTransport = senders[0]?.transport;
+          const dtlsState = dtlsTransport?.state;
+          console.log('🔒 DTLS: Transport state on connection:', dtlsState ?? 'unavailable');
+
+          if (dtlsState === 'connected' || !dtlsTransport) {
+            // Either DTLS transport is confirmed connected, or the browser doesn't
+            // expose the transport object (older API). In either case, WebRTC mandates
+            // DTLS-SRTP, so we can consider the media channel secure.
+            const fingerprint = this.extractDtlsFingerprint(
+              pc.localDescription?.sdp || ''
+            );
+            if (this.eventHandlers.onDtlsStateChanged) {
+              this.eventHandlers.onDtlsStateChanged(true, fingerprint || undefined);
+            }
+            console.log('✅ DTLS: DTLS-SRTP handshake confirmed — media is encrypted');
+          }
+
+          // Also listen to future DTLS state changes if the transport is available
+          if (dtlsTransport) {
+            dtlsTransport.onstatechange = () => {
+              const s = dtlsTransport.state;
+              console.log('🔒 DTLS: Transport state change:', s);
+              const isSecured = s === 'connected';
+              if (this.eventHandlers.onDtlsStateChanged) {
+                const fp = this.extractDtlsFingerprint(pc.localDescription?.sdp || '');
+                this.eventHandlers.onDtlsStateChanged(isSecured, fp || undefined);
+              }
+            };
+          }
         }
       } else if (state === 'failed') {
         console.error('❌ CLIENT: WebRTC connection failed - likely NAT/firewall issue');

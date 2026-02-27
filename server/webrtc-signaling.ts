@@ -173,7 +173,8 @@ export class EncryptedWebRTCSignaling {
         callId: string,
         targetUserId: string, 
         type: 'voice' | 'video',
-        offer?: RTCSessionDescriptionInit 
+        offer?: RTCSessionDescriptionInit,
+        dtlsFingerprint?: string
       }) => {
         const callerId = this.socketUsers.get(socket.id);
         
@@ -323,7 +324,8 @@ export class EncryptedWebRTCSignaling {
                 type: data.type,
                 encryptedOffer,
                 offer: data.offer, // Always include plain offer as fallback
-                encrypted: true
+                encrypted: true,
+                dtlsFingerprint: data.dtlsFingerprint, // Relay caller's DTLS fingerprint for peer verification
               });
               console.log('✅ CALL FLOW: incoming-call event emitted successfully');
               console.log('   Target should now receive the call!\n');
@@ -369,7 +371,8 @@ export class EncryptedWebRTCSignaling {
                 fromUserId: callerId,
                 type: data.type,
                 offer: data.offer,
-                encrypted: false
+                encrypted: false,
+                dtlsFingerprint: data.dtlsFingerprint,
               });
               console.log('✅ CALL FLOW: Unencrypted incoming-call sent\n');
             } else {
@@ -395,7 +398,8 @@ export class EncryptedWebRTCSignaling {
       // Accept encrypted call
       socket.on('accept-call', async (data: { 
         callId: string, 
-        answer?: RTCSessionDescriptionInit 
+        answer?: RTCSessionDescriptionInit,
+        dtlsFingerprint?: string
       }) => {
         const accepterId = this.socketUsers.get(socket.id);
         
@@ -488,7 +492,8 @@ export class EncryptedWebRTCSignaling {
           byUserId: accepterId,
           encryptedAnswer: isEncrypted ? encryptedAnswer : undefined,
           answer: data.answer, // CRITICAL: Always include plain answer for WebRTC handshake
-          encrypted: isEncrypted
+          encrypted: isEncrypted,
+          dtlsFingerprint: data.dtlsFingerprint, // Relay callee's DTLS fingerprint for caller verification
         });
         
         console.log('✅ ACCEPT FLOW: call-accepted event sent to caller');

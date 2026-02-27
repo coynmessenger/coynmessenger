@@ -8,7 +8,7 @@ import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { microphoneService } from "@/lib/microphone-service";
 import { tryPlayMedia } from "@/utils/media";
-import { X, Lock } from "lucide-react";
+import { X, Lock, ShieldCheck } from "lucide-react";
 import { 
   IncomingCallControls, 
   ActiveCallControls, 
@@ -69,6 +69,7 @@ export default function VoiceCallModal({
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
   const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
+  const [dtlsSecured, setDtlsSecured] = useState(false);
   
   // Use the modular call timer hook
   const { duration: callDuration, formattedDuration, reset: resetCallTimer } = useCallTimer(callStatus === "connected");
@@ -329,6 +330,9 @@ export default function VoiceCallModal({
           },
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
+          },
+          onDtlsStateChanged: (secured) => {
+            setDtlsSecured(secured);
           },
           onLocalStream: (stream) => {
             console.log('🎤 VOICE CALL: ========== LOCAL STREAM RECEIVED ==========');
@@ -1105,11 +1109,24 @@ export default function VoiceCallModal({
               )}
             </div>
 
-            {/* Encrypted badge */}
+            {/* Encrypted / DTLS badge */}
             {(callStatus === "connected" || callStatus === "ringing") && (
-              <div className="flex items-center gap-1 text-gray-500 text-xs mb-8">
-                <Lock className="w-3 h-3" />
-                <span>End-to-end encrypted</span>
+              <div className={`flex items-center gap-1 text-xs mb-8 transition-colors ${
+                dtlsSecured && callStatus === "connected"
+                  ? "text-green-500 dark:text-green-400"
+                  : "text-gray-500"
+              }`}>
+                {dtlsSecured && callStatus === "connected" ? (
+                  <>
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>DTLS-SRTP secured</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-3 h-3" />
+                    <span>End-to-end encrypted</span>
+                  </>
+                )}
               </div>
             )}
             {callStatus === "connecting" && <div className="mb-8" />}

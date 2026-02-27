@@ -8,7 +8,7 @@ import { notificationService } from "@/lib/notification-service";
 import { ringtoneService } from "@/lib/ringtone-service";
 import { permissionService } from "@/lib/permission-service";
 import { tryPlayMedia } from "@/utils/media";
-import { X } from "lucide-react";
+import { X, ShieldCheck } from "lucide-react";
 import { 
   IncomingCallControls, 
   ActiveCallControls, 
@@ -40,6 +40,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
   const [currentCamera, setCurrentCamera] = useState<'user' | 'environment'>('user');
   const [encryptedCallId, setEncryptedCallId] = useState<string | null>(null);
+  const [dtlsSecured, setDtlsSecured] = useState(false);
   
   // Use the modular call timer hook
   const { duration: callDuration, formattedDuration, reset: resetCallTimer } = useCallTimer(callStatus === "connected");
@@ -360,6 +361,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           },
           onEncryptionStatusChanged: (encrypted) => {
             // Handle encryption status changes
+          },
+          onDtlsStateChanged: (secured) => {
+            setDtlsSecured(secured);
           },
           onLocalStream: (stream) => {
             console.log('═══════════════════════════════════════════════════════');
@@ -1196,6 +1200,13 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                  callStatus === "ringing" ? (callType === "incoming" ? "Incoming Video Call" : "Calling...") : 
                  callStatus === "connected" ? "Video Call" : "Call Ended"}
               </DialogTitle>
+              {/* DTLS security badge — appears once the DTLS-SRTP handshake is confirmed */}
+              {dtlsSecured && callStatus === "connected" && (
+                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 text-[10px] font-semibold tracking-wide">
+                  <ShieldCheck className="w-3 h-3" />
+                  DTLS
+                </span>
+              )}
             </div>
             <button 
               onClick={handleHideCall}
