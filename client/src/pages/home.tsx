@@ -4,19 +4,43 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDisconnect, useActiveWallet } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-react";
+import { MessageCircle, Check, Users, Lock, Globe, Network, ShieldCheck, Zap, Coins } from "lucide-react";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
 import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
-import coynCoinPath from "@assets/image_1759095831947.png";
 import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
-import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import ThirdwebWalletConnector from "@/components/thirdweb-wallet-connector";
 import type { User } from "@shared/schema";
+
+const features = [
+  {
+    icon: Network,
+    title: "Peer-to-Peer",
+    description: "Direct encrypted P2P messaging and calls — no central server reads your data",
+    accent: "from-orange-500 to-orange-600",
+  },
+  {
+    icon: Coins,
+    title: "Crypto Payments",
+    description: "Send BNB, USDT, or COYN tokens directly inside any conversation",
+    accent: "from-amber-500 to-orange-500",
+  },
+  {
+    icon: ShieldCheck,
+    title: "DTLS Encrypted",
+    description: "DTLS-SRTP secured voice & video calls with fingerprint verification",
+    accent: "from-emerald-500 to-teal-600",
+  },
+  {
+    icon: Globe,
+    title: "Global Network",
+    description: "Connect with anyone on BNB Chain — no borders, no intermediaries",
+    accent: "from-blue-500 to-indigo-600",
+  },
+];
 
 export default function HomePage() {
   useScrollToTop();
@@ -24,11 +48,11 @@ export default function HomePage() {
   const queryClient = useQueryClient();
   const { disconnect } = useDisconnect();
   const activeWallet = useActiveWallet();
-  
+
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
   });
-  
+
   const [connectedUser, setConnectedUser] = useState<User | null>(() => {
     try {
       const stored = localStorage.getItem('connectedUser');
@@ -39,11 +63,10 @@ export default function HomePage() {
       return null;
     }
   });
-  
+
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  // Check for existing authentication on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('connectedUser');
     const storedConnected = localStorage.getItem('walletConnected');
@@ -57,13 +80,11 @@ export default function HomePage() {
           setIsConnected(true);
           setConnectedUser(parsedUser);
 
-          // User intentionally navigated to homepage — stay here
           if (userClickedHome === 'true') {
             console.log('👤 User navigated to homepage intentionally, staying');
             return;
           }
 
-          // stale userSignedOut flag but valid session — clear flag and go to messenger
           localStorage.removeItem('userSignedOut');
           console.log('✅ Authenticated user detected, redirecting to messenger...');
           window.location.href = '/messenger';
@@ -83,8 +104,7 @@ export default function HomePage() {
     setIsConnected(false);
     setConnectedUser(null);
   }, [setLocation]);
-  
-  // Watch for Thirdweb autoConnect firing asynchronously after mount
+
   useEffect(() => {
     if (!activeWallet) return;
 
@@ -93,10 +113,8 @@ export default function HomePage() {
     const storedUser = localStorage.getItem('connectedUser');
     const storedConnected = localStorage.getItem('walletConnected');
 
-    // User intentionally navigated home — don't auto-redirect
     if (userClickedHome === 'true') return;
 
-    // If there's a connected wallet AND stored user data, go to messenger
     if (storedConnected === 'true' && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -109,7 +127,6 @@ export default function HomePage() {
       } catch { /* ignore */ }
     }
 
-    // Wallet connected but no stored session — authenticate via API if not explicitly signed out
     if (userSignedOut !== 'true' && !connectWalletMutation.isPending) {
       const account = (activeWallet as any).getAccount?.();
       const address = account?.address;
@@ -120,12 +137,10 @@ export default function HomePage() {
     }
   }, [activeWallet]);
 
-  // Listen for storage changes from other tabs only (not focus/visibility)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
         console.log('📱 Storage change detected from another tab:', e.key);
-        // Only update local state, don't trigger navigation
         if (e.key === 'userSignedOut' && e.newValue === 'true') {
           setIsConnected(false);
           setConnectedUser(null);
@@ -155,36 +170,30 @@ export default function HomePage() {
     },
     onSuccess: (user: User) => {
       console.log('✅ COYN: User authenticated successfully!', { userId: user.id, walletAddress: user.walletAddress });
-      
-      // Clean up any competing states first
+
       localStorage.removeItem('pendingWalletConnection');
       localStorage.removeItem('walletConnectionAttempt');
       localStorage.removeItem('walletRedirectState');
-      localStorage.removeItem('explicitWalletConnection'); // Clean up the connection flag
-      localStorage.removeItem('userSignedOut'); // Clear sign out flag on successful connection
-      localStorage.removeItem('userClickedHome'); // Clear any homepage preference
-      sessionStorage.removeItem('userOnHomepage'); // Clear any homepage session flag
-      
-      // Store connection state
+      localStorage.removeItem('explicitWalletConnection');
+      localStorage.removeItem('userSignedOut');
+      localStorage.removeItem('userClickedHome');
+      sessionStorage.removeItem('userOnHomepage');
+
       localStorage.setItem('walletConnected', 'true');
       localStorage.setItem('connectedUser', JSON.stringify(user));
       localStorage.setItem('connectedUserId', user.id.toString());
-      
-      // Update cache and state
+
       queryClient.setQueryData(["/api/user"], user);
       queryClient.setQueryData(["/api/user", user.id], user);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      
-      // Update component state
+
       setConnectedUser(user);
       setIsConnected(true);
-      
-      // Clean URL
+
       const cleanUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.replaceState({}, document.title, cleanUrl);
-      
-      // Full page reload to messenger so everything initializes cleanly
+
       console.log('🎯 COYN: SUCCESS! Redirecting to messenger...');
       window.location.href = "/messenger";
     },
@@ -192,7 +201,6 @@ export default function HomePage() {
 
   const handleSignOut = async () => {
     try {
-      // First disconnect the thirdweb wallet
       console.log('🔌 Disconnecting thirdweb wallet...');
       if (activeWallet) {
         await disconnect(activeWallet);
@@ -200,11 +208,8 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error disconnecting thirdweb wallet:', error);
     }
-    
-    // Set explicit sign out flag
+
     localStorage.setItem('userSignedOut', 'true');
-    
-    // Clear ALL localStorage items
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
     localStorage.removeItem('connectedUserId');
@@ -213,170 +218,183 @@ export default function HomePage() {
     localStorage.removeItem('theme');
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
-    
-    // Clear session storage
     sessionStorage.clear();
-    
-    // Reset state
+
     setIsConnected(false);
     setConnectedUser(null);
-    
-    // Force page refresh
+
     window.location.reload();
   };
 
   const handleThirdwebConnect = (address: string) => {
     console.log('🔗 COYN: Wallet approved! Address received:', address);
     console.log('🚀 COYN: Starting user authentication and AUTO-NAVIGATION to messenger...');
-    
-    // Clear ALL navigation flags that might prevent redirect since user is explicitly connecting
+
     localStorage.removeItem('userSignedOut');
     localStorage.removeItem('userClickedHome');
     sessionStorage.removeItem('userOnHomepage');
-    
-    // Mark that this is an explicit wallet connection for immediate redirect
     localStorage.setItem('explicitWalletConnection', 'true');
-    
+
     console.log('🎯 COYN: User flags cleared, proceeding with authentication and auto-navigation...');
     connectWalletMutation.mutate({ walletAddress: address });
   };
 
   const handleThirdwebDisconnect = () => {
     console.log('🔌 Thirdweb wallet disconnected');
-    // Clear wallet connection state
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
     localStorage.removeItem('connectedUserId');
-    
-    // Reset component state
+
     setIsConnected(false);
     setConnectedUser(null);
-    
-    // Clear query cache
+
     queryClient.clear();
   };
 
-  const features = [
-    { icon: MessageCircle, title: "Real-time Messaging", description: "Instant Web3 communication" },
-    { icon: Users, title: "Wallet Integration", description: "Send crypto directly in chats" },
-    { icon: Lock, title: "Secure & Private", description: "Decentralized end-to-end encryption" },
-    { icon: Globe, title: "Global Network", description: "Chat with friends internationally" }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen flex flex-col">
 
-      {/* Header with Logo */}
-      <header className="w-full p-4 sm:p-6">
+      {/* Header */}
+      <header className="w-full pt-5 pb-2 px-4 sm:px-6">
         <div className="flex justify-center">
-          <img 
-            src={coynfulLogoPath} 
-            alt="Coynful" 
-            className="h-32 w-auto object-contain select-none"
+          <img
+            src={coynfulLogoPath}
+            alt="Coynful"
+            className="h-28 w-auto object-contain select-none"
             onContextMenu={(e) => e.preventDefault()}
             draggable={false}
           />
         </div>
       </header>
 
-      {/* Main Content - Centered Layout */}
-      <main 
-        className="flex-1 flex flex-col items-center justify-start px-4 bg-cover bg-center bg-no-repeat"
+      {/* Main content on background */}
+      <main
+        className="flex-1 flex flex-col items-center px-4 pb-8 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${backgroundImagePath})` }}
       >
-        {/* Connection Card - Positioned directly under logo */}
-        <div className="w-full max-w-md mx-auto mb-8">
-            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
-              <CardHeader className="text-center space-y-4 pb-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center">
-                    COYN Messenger
-                  </h3>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {!isConnected || !connectedUser ? (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Choose your preferred wallet to connect
-                      </p>
-                    </div>
-
-                    {/* Thirdweb Wallet Connection - Mobile Optimized */}
-                    <div className="flex justify-center mobile-wallet-connector">
-                      <ThirdwebWalletConnector
-                        onConnect={handleThirdwebConnect}
-                        onDisconnect={handleThirdwebDisconnect}
-                        className="w-full min-h-[56px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600 text-gray-900 dark:text-white font-medium py-4 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600 touch-manipulation select-none"
-                      />
-                    </div>
-                    
-                    {connectWalletMutation.isPending && (
-                      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                        ✅ Wallet connected successfully - user can now click to enter messenger
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center space-y-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-400/20 to-green-500/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                      <Check className="h-7 w-7 text-green-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-green-600 dark:text-green-400 mb-1">
-                        Connected to COYN Network
-                      </h3>
-                      <p className="text-sm text-gray-700 dark:text-foreground mb-2">
-                        Welcome to COYN, {connectedUser?.displayName}
-                      </p>
-                      <p className="text-[11px] text-gray-400 dark:text-muted-foreground font-mono truncate max-w-full px-2 overflow-hidden" title={connectedUser?.walletAddress}>
-                        {connectedUser?.walletAddress}
-                      </p>
-
-                      <div className="space-y-3 mt-6">
-                        <Button
-                          onClick={() => setLocation("/messenger")}
-                          className="w-full bg-black dark:bg-primary hover:bg-gray-800 dark:hover:bg-primary/90 text-white dark:text-primary-foreground font-semibold rounded-lg h-14 sm:h-12 touch-manipulation"
-                        >
-                          <MessageCircle className="mr-2 h-6 w-6 sm:h-5 sm:w-5" />
-                          Open Messenger
-                        </Button>
-                        <Button
-                          onClick={handleSignOut}
-                          variant="outline"
-                          className="w-full border-gray-300 dark:border-border text-gray-700 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted rounded-lg h-14 sm:h-12 touch-manipulation"
-                        >
-                          Sign Out
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Supporting BNB Smartchain Assets */}
-                <div className="border-t border-border pt-4">
-                  <p className="text-center text-muted-foreground text-sm">
-                    Supporting BNB Smartchain Assets
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Hero tagline — sits just above the card */}
+        <div className="w-full max-w-md mx-auto mt-4 mb-3 text-center space-y-2">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/90 text-white text-[11px] font-semibold tracking-wide shadow-sm">
+              <Network className="w-3 h-3" />
+              P2P
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/90 text-white text-[11px] font-semibold tracking-wide shadow-sm">
+              <ShieldCheck className="w-3 h-3" />
+              DTLS Encrypted
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/90 text-white text-[11px] font-semibold tracking-wide shadow-sm">
+              <Zap className="w-3 h-3" />
+              Web3 Native
+            </span>
+          </div>
+          <p className="text-white/90 text-xs font-medium drop-shadow-sm">
+            Peer-to-peer messaging with built-in crypto payments
+          </p>
         </div>
-        
-        {/* Features Section - Moved to bottom */}
-        <div className="w-full max-w-6xl mx-auto mt-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="text-center space-y-3 p-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
-                  <feature.icon className="h-6 w-6 text-white" />
+
+        {/* Connection Card */}
+        <div className="w-full max-w-md mx-auto mb-8">
+          <Card className="border border-white/20 shadow-2xl bg-white/88 dark:bg-slate-900/88 backdrop-blur-md rounded-2xl overflow-hidden">
+            {/* Orange accent top bar */}
+            <div className="h-1 w-full bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400" />
+
+            <CardHeader className="text-center pt-5 pb-3 space-y-1">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                COYN Messenger
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Decentralized · Peer-to-peer · BNB Chain
+              </p>
+            </CardHeader>
+
+            <CardContent className="space-y-5 px-6 pb-6">
+              {!isConnected || !connectedUser ? (
+                <div className="space-y-5">
+                  <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                    Connect your wallet to enter
+                  </p>
+
+                  <div className="flex justify-center mobile-wallet-connector">
+                    <ThirdwebWalletConnector
+                      onConnect={handleThirdwebConnect}
+                      onDisconnect={handleThirdwebDisconnect}
+                      className="w-full min-h-[52px] bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600 text-gray-900 dark:text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600 touch-manipulation select-none"
+                    />
+                  </div>
+
+                  {/* P2P privacy assurance */}
+                  <div className="flex items-start gap-2.5 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/40 rounded-xl p-3">
+                    <Network className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
+                      <span className="font-semibold text-orange-600 dark:text-orange-400">Fully P2P</span> — your messages and calls go directly between wallets. No account, no email, no server in the middle.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+              ) : (
+                <div className="text-center space-y-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-400/20 to-green-500/30 rounded-full flex items-center justify-center mx-auto ring-2 ring-green-400/30">
+                    <Check className="h-7 w-7 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                      Connected to COYN Network
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5">
+                      Welcome, {connectedUser?.displayName}
+                    </p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 font-mono truncate max-w-full px-2 mt-1" title={connectedUser?.walletAddress}>
+                      {connectedUser?.walletAddress}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <Button
+                      onClick={() => setLocation("/messenger")}
+                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl h-12 touch-manipulation shadow-md"
+                    >
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Open Messenger
+                    </Button>
+                    <Button
+                      onClick={handleSignOut}
+                      variant="outline"
+                      className="w-full border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl h-10 touch-manipulation text-sm"
+                    >
+                      Sign Out
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* BNB Chain note */}
+              <div className="border-t border-gray-100 dark:border-slate-800 pt-3">
+                <p className="text-center text-gray-400 dark:text-gray-500 text-[11px] flex items-center justify-center gap-1">
+                  <span className="text-orange-400 font-bold text-xs">₡</span>
+                  Powered by BNB Smart Chain
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Feature cards with glassmorphism */}
+        <div className="w-full max-w-2xl mx-auto">
+          <div className="grid grid-cols-2 gap-3">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="relative overflow-hidden rounded-2xl border border-white/25 bg-white/15 dark:bg-black/20 backdrop-blur-sm p-4 shadow-lg"
+              >
+                {/* Subtle gradient accent in corner */}
+                <div className={`absolute -top-4 -right-4 w-16 h-16 rounded-full bg-gradient-to-br ${feature.accent} opacity-20 blur-xl`} />
+                <div className={`w-9 h-9 bg-gradient-to-br ${feature.accent} rounded-xl flex items-center justify-center mb-2.5 shadow-sm`}>
+                  <feature.icon className="h-4.5 w-4.5 text-white" style={{ width: '18px', height: '18px' }} />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1 drop-shadow-sm">
                   {feature.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-white/70 text-[11px] leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -386,39 +404,38 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-600 dark:text-gray-400 space-y-4">
-          {/* Terms and Privacy Links */}
-          <div className="flex items-center justify-center space-x-6">
+      <footer className="w-full px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-950/60 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto text-center space-y-2">
+          <div className="flex items-center justify-center gap-6 text-xs text-gray-500 dark:text-gray-400">
             <button
               onClick={() => setShowTermsModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="hover:text-gray-800 dark:hover:text-white transition-colors"
             >
               Terms
             </button>
             <button
               onClick={() => setShowPrivacyModal(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="hover:text-gray-800 dark:hover:text-white transition-colors"
             >
               Privacy
             </button>
           </div>
-          
-          {/* Copyright */}
-          <p className="flex items-center justify-center gap-1">Powered by <a href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1">₡</a></p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1">
+            Powered by{" "}
+            <a
+              href="https://bscscan.com/token/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-500 hover:text-orange-600 transition-colors"
+            >
+              ₡ COYN
+            </a>
+          </p>
         </div>
       </footer>
 
-      {/* Modals */}
-      <TermsModal 
-        isOpen={showTermsModal} 
-        onClose={() => setShowTermsModal(false)} 
-      />
-      <PrivacyModal 
-        isOpen={showPrivacyModal} 
-        onClose={() => setShowPrivacyModal(false)} 
-      />
-      
+      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+      <PrivacyModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} />
       <PWAInstallPrompt />
     </div>
   );
