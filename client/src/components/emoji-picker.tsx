@@ -44,13 +44,13 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
           type="button"
           variant="ghost"
           size="icon"
-          className={`absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 backdrop-blur-sm transition-all duration-300 rounded-xl h-7 w-7 sm:h-8 sm:w-8 touch-manipulation ${
+          className={`transition-all duration-200 rounded-xl h-8 w-8 touch-manipulation shrink-0 ${
             isOpen 
-              ? 'bg-blue-500 text-white shadow-md' 
-              : 'text-gray-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+              ? 'bg-orange-500 text-white shadow-sm' 
+              : 'text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10'
           }`}
         >
-          <Smile className="h-4 w-4 sm:h-4 sm:w-4 antialiased" style={{ imageRendering: 'crisp-edges' }} />
+          <Smile className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
@@ -65,8 +65,8 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
                 onClick={() => setSelectedCategory(category as keyof typeof emojiCategories)}
                 className={`p-2 rounded-md transition-colors flex items-center justify-center ${
                   selectedCategory === category
-                    ? "bg-blue-50/50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
-                    : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+                    ? "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800"
+                    : "text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
                 }`}
                 title={category.charAt(0).toUpperCase() + category.slice(1)}
               >
@@ -81,7 +81,7 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
                 key={index}
                 type="button"
                 onClick={() => onEmojiSelect(emoji)}
-                className="text-lg hover:bg-blue-100 dark:hover:bg-slate-700 rounded p-1.5 transition-colors duration-200 hover:scale-110 active:scale-95 flex items-center justify-center h-8 w-8"
+                className="text-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded p-1.5 transition-colors duration-200 hover:scale-110 active:scale-95 flex items-center justify-center h-8 w-8"
               >
                 {emoji}
               </button>

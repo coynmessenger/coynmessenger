@@ -2757,7 +2757,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl px-2 py-2 sm:p-3 shadow-lg shrink-0 mt-auto">
+      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2787,7 +2787,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-1">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-1 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-2 py-1 shadow-inner backdrop-blur-sm">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -2796,9 +2796,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-200 rounded-lg h-7 w-7"
+                  className="text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10 transition-all duration-200 rounded-xl h-8 w-8 shrink-0"
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
@@ -2932,18 +2932,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 }
               }}
               onFocus={() => {
-                // Scroll to bottom when keyboard opens
                 setTimeout(() => {
                   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }, 100);
               }}
-              placeholder="Message"
-              className="pr-8 sm:pr-10 h-7 sm:h-8 text-sm bg-white/80 dark:bg-slate-800/80 border border-gray-200/50 dark:border-slate-600/50 focus:border-blue-500/30 dark:focus:border-blue-500/30 text-black dark:text-white placeholder-gray-500 dark:placeholder-slate-400 touch-manipulation backdrop-blur-sm transition-all duration-200 rounded-lg focus:ring-0 focus:outline-none"
+              placeholder="Message..."
+              className="h-9 text-sm bg-transparent border-none shadow-none focus:ring-0 focus:outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 touch-manipulation"
             />
-            
+          </div>
 
-
-            {/* Emoji Picker */}
+          {/* Emoji + GIF buttons grouped together */}
+          <div className="flex items-center gap-0.5 shrink-0">
             <EmojiPicker
               onEmojiSelect={(emoji) => {
                 setMessage(prev => prev + emoji);
@@ -2952,7 +2951,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               isOpen={showEmojiPicker}
               onOpenChange={setShowEmojiPicker}
             />
-
           </div>
 
           {/* GIF Picker */}
@@ -2996,12 +2994,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             type="submit"
             size="icon"
             className={`${isSendingMessage || sendMessageMutation.isPending 
-              ? 'bg-gradient-to-r from-green-500 to-green-600 animate-pulse' 
-              : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700'
-            } text-white h-7 w-7 touch-manipulation shadow-lg transition-all duration-200 rounded-lg backdrop-blur-sm`}
+              ? 'bg-gradient-to-br from-orange-400 to-orange-600 animate-pulse' 
+              : 'bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500'
+            } text-white h-8 w-8 touch-manipulation shadow-md transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
+            <img src={sendIconPath} alt="Send" className={`h-3.5 w-3.5 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
           </Button>
         </form>
       </div>

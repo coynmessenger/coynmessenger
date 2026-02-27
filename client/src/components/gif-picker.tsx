@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Image, Search, X, Loader2 } from "lucide-react";
+import { Search, X, Loader2 } from "lucide-react";
 
 const GIPHY_PROXY_URL = '/api/giphy';
 
@@ -130,14 +130,13 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
         <Button
           type="button"
           variant="ghost"
-          size="icon"
-          className={`backdrop-blur-sm transition-all duration-300 rounded-xl h-8 w-8 sm:h-8 sm:w-8 touch-manipulation ${
+          className={`transition-all duration-200 rounded-xl h-8 px-2 touch-manipulation shrink-0 font-bold tracking-tight text-xs ${
             isOpen 
-              ? 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-200 shadow-md' 
-              : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+              ? 'bg-orange-500 text-white shadow-sm' 
+              : 'text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10'
           }`}
         >
-          <Image className="h-3 w-3 sm:h-4 sm:w-4" />
+          GIF
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 h-96 p-0 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
