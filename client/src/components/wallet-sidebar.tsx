@@ -29,7 +29,7 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { useActiveAccount, useActiveWallet, useSwitchActiveWalletChain } from "thirdweb/react";
+import { useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
 import { bsc } from "@/lib/bsc-chain";
 
 interface WalletSidebarProps {
@@ -52,7 +52,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   
   const { toast } = useToast();
   const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
   const switchChain = useSwitchActiveWalletChain();
   
   useEffect(() => {
@@ -306,7 +305,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Send crypto mutation - initiates blockchain transaction via Thirdweb SDK
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      if (!activeAccount || !activeWallet) {
+      if (!activeAccount) {
         throw new Error('No wallet connected. Please connect your wallet first.');
       }
 
@@ -317,20 +316,14 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         throw new Error('Please switch to Binance Smart Chain (BSC) network in your wallet.');
       }
 
-      // Get wallet's own EIP-1193 provider — bypasses Thirdweb RPC entirely
-      const provider = await activeWallet.getProvider();
-      if (!provider) {
-        throw new Error('Could not access wallet provider. Please reconnect your wallet.');
-      }
-
-      const from = activeAccount.address as `0x${string}`;
-      let txHash: string;
+      let result: { transactionHash: string };
 
       if (currency === 'BNB') {
         const amountWei = BigInt(Math.round(parseFloat(amount) * 1e18));
-        txHash = await (provider as any).request({
-          method: 'eth_sendTransaction',
-          params: [{ from, to: address, value: '0x' + amountWei.toString(16) }],
+        result = await activeAccount.sendTransaction({
+          to: address as `0x${string}`,
+          value: amountWei,
+          chainId: 56,
         });
       } else if (currency === 'USDT' || currency === 'COYN') {
         const tokenAddresses: Record<string, string> = {
@@ -341,16 +334,18 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         const amountWei = BigInt(Math.round(parseFloat(amount) * 1e18));
         const paddedAddress = address.replace('0x', '').padStart(64, '0');
         const paddedAmount = amountWei.toString(16).padStart(64, '0');
-        const data = '0xa9059cbb' + paddedAddress + paddedAmount;
-        txHash = await (provider as any).request({
-          method: 'eth_sendTransaction',
-          params: [{ from, to: tokenAddress, data, value: '0x0' }],
+        const data = ('0xa9059cbb' + paddedAddress + paddedAmount) as `0x${string}`;
+        result = await activeAccount.sendTransaction({
+          to: tokenAddress as `0x${string}`,
+          data,
+          value: 0n,
+          chainId: 56,
         });
       } else {
         throw new Error(`Unsupported currency: ${currency}`);
       }
 
-      return { transactionHash: txHash, currency, amount, address };
+      return { transactionHash: result.transactionHash, currency, amount, address };
     },
     onSuccess: (data) => {
       toast({

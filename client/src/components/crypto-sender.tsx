@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useActiveAccount, useActiveWallet, useSwitchActiveWalletChain } from "thirdweb/react";
+import { useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
 import { apiRequest } from "@/lib/queryClient";
 import { bsc } from "@/lib/bsc-chain";
 import { Coins, Plus, X } from "lucide-react";
@@ -44,7 +44,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
   const switchChain = useSwitchActiveWalletChain();
 
   const getMaxBalance = (currency: string) => {
@@ -54,7 +53,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (data: { amount: string; currency: string }) => {
-      if (!activeAccount || !activeWallet) {
+      if (!activeAccount) {
         throw new Error('No wallet connected. Please connect your wallet first.');
       }
 
@@ -81,20 +80,14 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
       }
 
-      // Get wallet's own EIP-1193 provider — bypasses Thirdweb RPC entirely
-      const provider = await activeWallet.getProvider();
-      if (!provider) {
-        throw new Error('Could not access wallet provider. Please reconnect your wallet.');
-      }
-
-      const from = activeAccount.address as `0x${string}`;
-      let txHash: string;
+      let txResult: { transactionHash: string };
 
       if (data.currency === 'BNB') {
         const amountWei = BigInt(Math.floor(parseFloat(data.amount) * 1e18));
-        txHash = await (provider as any).request({
-          method: 'eth_sendTransaction',
-          params: [{ from, to: recipientData.walletAddress, value: '0x' + amountWei.toString(16) }],
+        txResult = await activeAccount.sendTransaction({
+          to: recipientData.walletAddress as `0x${string}`,
+          value: amountWei,
+          chainId: 56,
         });
       } else if (data.currency === 'USDT' || data.currency === 'COYN') {
         const tokenAddresses = {
@@ -104,16 +97,18 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
         const amountWei = BigInt(Math.floor(parseFloat(data.amount) * 1e18));
         const cleanAddr = recipientData.walletAddress.replace('0x', '').padStart(64, '0');
-        const callData = '0xa9059cbb' + cleanAddr.toLowerCase() + amountWei.toString(16).padStart(64, '0');
-        txHash = await (provider as any).request({
-          method: 'eth_sendTransaction',
-          params: [{ from, to: tokenAddress, data: callData, value: '0x0' }],
+        const callData = ('0xa9059cbb' + cleanAddr.toLowerCase() + amountWei.toString(16).padStart(64, '0')) as `0x${string}`;
+        txResult = await activeAccount.sendTransaction({
+          to: tokenAddress as `0x${string}`,
+          data: callData,
+          value: 0n,
+          chainId: 56,
         });
       } else {
         throw new Error(`Unsupported currency: ${data.currency}`);
       }
 
-      console.log('✅ Transaction successful! Hash:', txHash);
+      console.log('✅ Transaction successful! Hash:', txResult.transactionHash);
 
       // Send message in chat with transaction details
       const messageData = {
@@ -124,7 +119,7 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         cryptoAmount: data.amount,
         cryptoCurrency: data.currency,
         cryptoRecipient: recipientData.walletAddress,
-        transactionHash: txHash,
+        transactionHash: txResult.transactionHash,
         blockchainNetwork: 'BSC',
         walletType: activeAccount.address
       };

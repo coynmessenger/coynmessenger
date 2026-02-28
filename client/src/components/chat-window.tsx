@@ -27,7 +27,7 @@ import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
-import { useActiveAccount, useActiveWallet, useSwitchActiveWalletChain } from "thirdweb/react";
+import { useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
 import { bsc } from "@/lib/bsc-chain";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
@@ -77,7 +77,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
   const switchChain = useSwitchActiveWalletChain();
 
   // Get connected user ID from localStorage
@@ -833,7 +832,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           throw new Error(`Invalid recipient ${cryptoData.currency} address format`);
         }
         
-        if (!activeAccount || !activeWallet) {
+        if (!activeAccount) {
           throw new Error('No wallet connected. Please connect your wallet first.');
         }
 
@@ -844,20 +843,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
         }
 
-        // Get wallet's own EIP-1193 provider — bypasses Thirdweb RPC entirely
-        const provider = await activeWallet.getProvider();
-        if (!provider) {
-          throw new Error('Could not access wallet provider. Please reconnect your wallet.');
-        }
-
-        const from = activeAccount.address as `0x${string}`;
-        let txHash: string;
+        let txResult: { transactionHash: string };
 
         if (cryptoData.currency === 'BNB') {
           const amountWei = BigInt(Math.floor(parseFloat(cryptoData.amount) * 1e18));
-          txHash = await (provider as any).request({
-            method: 'eth_sendTransaction',
-            params: [{ from, to: recipientAddress, value: '0x' + amountWei.toString(16) }],
+          txResult = await activeAccount.sendTransaction({
+            to: recipientAddress as `0x${string}`,
+            value: amountWei,
+            chainId: 56,
           });
         } else if (cryptoData.currency === 'USDT' || cryptoData.currency === 'COYN') {
           const tokenAddresses = {
@@ -867,16 +860,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           const tokenAddress = tokenAddresses[cryptoData.currency as keyof typeof tokenAddresses];
           const amountWei = BigInt(Math.floor(parseFloat(cryptoData.amount) * 1e18));
           const cleanAddr = recipientAddress.replace('0x', '').padStart(64, '0');
-          const callData = '0xa9059cbb' + cleanAddr.toLowerCase() + amountWei.toString(16).padStart(64, '0');
-          txHash = await (provider as any).request({
-            method: 'eth_sendTransaction',
-            params: [{ from, to: tokenAddress, data: callData, value: '0x0' }],
+          const callData = ('0xa9059cbb' + cleanAddr.toLowerCase() + amountWei.toString(16).padStart(64, '0')) as `0x${string}`;
+          txResult = await activeAccount.sendTransaction({
+            to: tokenAddress as `0x${string}`,
+            data: callData,
+            value: 0n,
+            chainId: 56,
           });
         } else {
           throw new Error(`Unsupported currency: ${cryptoData.currency}`);
         }
 
-        const transactionResult = { transactionHash: txHash };
+        const transactionResult = { transactionHash: txResult.transactionHash };
 
         console.log('✅ Transaction successful! Hash:', transactionResult.transactionHash);
 
