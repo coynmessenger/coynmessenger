@@ -261,27 +261,12 @@ button[data-connect-wallet]:active {
     border-top-color: #374151;
   }
   
-  /* Ensure input area rises with keyboard */
-  .mobile-input-area.keyboard-open {
-    transform: translateY(0);
-    position: fixed;
-    bottom: 0;
-  }
   
-  /* Chat container adjustments for keyboard */
+  /* Chat container fills its flex parent; height is controlled by the parent layout */
   .chat-container {
-    height: 100dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-  }
-  
-  .chat-container.mobile-keyboard-aware {
-    height: 100dvh;
-  }
-  
-  .chat-container.keyboard-open {
-    height: calc(var(--vh, 1vh) * 100);
   }
   
   /* Chat messages area adjustment for mobile */

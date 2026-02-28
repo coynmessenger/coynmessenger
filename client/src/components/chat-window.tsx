@@ -78,8 +78,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   
   // Get queryClient instance
   const queryClient = useQueryClient();
@@ -349,49 +347,29 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     };
   }, [connectedUserId, conversation.id, toast]);
 
-  // Mobile keyboard detection for intuitive input bar rising
+  // Mobile keyboard detection — keeps --vh in sync and auto-scrolls on open
   useEffect(() => {
     const handleViewportChange = () => {
-      if (window.innerHeight && window.visualViewport) {
-        const heightDiff = window.innerHeight - window.visualViewport.height;
-        const isKeyboard = heightDiff > 150; // threshold for keyboard detection
-        
-        setKeyboardHeight(heightDiff);
-        setIsKeyboardOpen(isKeyboard);
-        
-        // Apply mobile keyboard aware class to main container
-        const mainContainer = document.querySelector('.chat-container');
-        if (mainContainer) {
-          if (isKeyboard) {
-            mainContainer.classList.add('keyboard-open');
-            // Auto-scroll to bottom when keyboard opens
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-          } else {
-            mainContainer.classList.remove('keyboard-open');
-          }
-        }
-        
-        // Apply proper viewport unit (dvh) for mobile
-        if (isKeyboard) {
-          document.documentElement.style.setProperty('--vh', `${window.visualViewport.height * 0.01}px`);
-        } else {
-          document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-        }
+      const vp = window.visualViewport;
+      const vpHeight = vp ? vp.height : window.innerHeight;
+      const wasKeyboard = window.innerHeight - vpHeight > 150;
+
+      // Keep CSS --vh variable in sync with the visible viewport
+      document.documentElement.style.setProperty('--vh', `${vpHeight * 0.01}px`);
+
+      // Auto-scroll to bottom when keyboard opens so latest message stays visible
+      if (wasKeyboard) {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       }
     };
 
-    // Listen for visual viewport changes (mobile keyboard opening/closing)
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewportChange);
       window.visualViewport.addEventListener('scroll', handleViewportChange);
     }
-
-    // Fallback for older browsers
     window.addEventListener('resize', handleViewportChange);
-    
-    // Initial check
     handleViewportChange();
 
     return () => {
@@ -1821,7 +1799,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   }, [searchQuery, searchResults]);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-background chat-container">
+    <div className="flex flex-col h-full bg-background chat-container">
       {/* Chat Header */}
       <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
