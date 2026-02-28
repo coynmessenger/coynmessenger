@@ -2806,7 +2806,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-0 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -2855,44 +2855,55 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <span>Send COYN</span>
                 </div>
               </DropdownMenuItem>
-              <div className="px-2 py-1">
-                <div className="h-px bg-gray-200 dark:bg-slate-600" />
-              </div>
-              <DropdownMenuItem
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerFileUpload(); }}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-blue-500" />
-                  <span>Document</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerImageVideoUpload(); }}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2">
-                  <Image className="w-4 h-4 text-green-500" />
-                  <span>Photo & Video</span>
-                </div>
-              </DropdownMenuItem>
-              <div className="px-2 py-1">
-                <div className="h-px bg-gray-200 dark:bg-slate-600" />
-              </div>
-              <DropdownMenuItem
-                onClick={() => setShowGifPicker(true)}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
-                  <span>GIF</span>
-                </div>
-              </DropdownMenuItem>
 
             </DropdownMenuContent>
             </DropdownMenu>
           )}
 
+
+          {/* Attachment Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 transition-all duration-200 rounded-lg h-5 w-5 shrink-0"
+              >
+                <Paperclip className="h-2.5 w-2.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[180px]">
+              <DropdownMenuItem
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerFileUpload(); }}
+                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1"
+              >
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">Document</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, ZIP…</span>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerImageVideoUpload(); }}
+                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1"
+              >
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-7 h-7 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <Image className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">Photo & Video</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Camera, Gallery</span>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Hidden file inputs */}
           <input
@@ -2936,45 +2947,39 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             />
           </div>
 
-          {/* Emoji + GIF buttons grouped together */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <EmojiPicker
-              onEmojiSelect={(emoji) => {
-                setMessage(prev => prev + emoji);
-                setShowEmojiPicker(false);
-              }}
-              isOpen={showEmojiPicker}
-              onOpenChange={setShowEmojiPicker}
-            />
-          </div>
+          <EmojiPicker
+            onEmojiSelect={(emoji) => {
+              setMessage(prev => prev + emoji);
+              setShowEmojiPicker(false);
+            }}
+            isOpen={showEmojiPicker}
+            onOpenChange={setShowEmojiPicker}
+          />
 
-          {/* GIF Picker — hidden trigger; opened programmatically from + dropdown */}
-          <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'visible', opacity: 0, pointerEvents: 'none' }}>
-            <GifPicker
-              onGifSelect={(gif) => {
-                apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-                  senderId: connectedUserId,
-                  content: gif.title,
-                  messageType: "gif",
-                  gifUrl: gif.images.original.url,
-                  gifTitle: gif.title,
-                  gifId: gif.id
-                }).then(() => {
-                  queryClient.invalidateQueries({ 
-                    queryKey: ["/api/conversations", conversation.id, "messages"] 
-                  });
-                }).catch(() => {
-                  toast({
-                    title: "Error",
-                    description: "Failed to send GIF. Please try again.",
-                    variant: "destructive",
-                  });
+          <GifPicker
+            onGifSelect={(gif) => {
+              apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
+                senderId: connectedUserId,
+                content: gif.title,
+                messageType: "gif",
+                gifUrl: gif.images.original.url,
+                gifTitle: gif.title,
+                gifId: gif.id
+              }).then(() => {
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/conversations", conversation.id, "messages"] 
                 });
-              }}
-              isOpen={showGifPicker}
-              onOpenChange={(open) => { setShowGifPicker(open); }}
-            />
-          </div>
+              }).catch(() => {
+                toast({
+                  title: "Error",
+                  description: "Failed to send GIF. Please try again.",
+                  variant: "destructive",
+                });
+              });
+            }}
+            isOpen={showGifPicker}
+            onOpenChange={setShowGifPicker}
+          />
 
           <Button 
             type="submit"
