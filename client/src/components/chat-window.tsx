@@ -887,17 +887,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         console.log('🔍 Active wallet account:', account.address);
         console.log('✅ WALLET ROUTING: Transaction will be signed by', activeWallet.id);
 
-        // Verify connected account matches user's wallet
+        // Log wallet address comparison for debugging — do NOT block on mismatch.
+        // Thirdweb routes the transaction through whatever wallet the user has active;
+        // the registered address is just their profile identity, not a signing lock.
         const connectedAccount = account.address.toLowerCase();
-        const userWallet = currentUser.walletAddress.toLowerCase();
-        if (connectedAccount !== userWallet) {
-          console.error('❌ WALLET MISMATCH!');
-          console.error('   Connected wallet:', connectedAccount);
-          console.error('   User wallet:', userWallet);
-          throw new Error('Connected wallet does not match your account. Please reconnect with the correct wallet.');
+        const userWallet = currentUser?.walletAddress?.toLowerCase() ?? '';
+        if (userWallet && connectedAccount !== userWallet) {
+          console.warn('⚠️ Active wallet differs from registered address — proceeding with active wallet.');
+          console.warn('   Signing with:', connectedAccount);
+          console.warn('   Registered:  ', userWallet);
+        } else {
+          console.log('✅ Wallet addresses match:', connectedAccount);
         }
-
-        console.log('✅ Wallet addresses match');
 
         // Ensure we're on BSC network
         const chain = activeWallet.getChain();
