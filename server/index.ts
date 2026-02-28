@@ -6,6 +6,10 @@ import { securityHeaders, corsOptions } from "./middleware/security";
 
 const app = express();
 
+// Trust the first proxy (Replit's load balancer) so express-rate-limit
+// correctly identifies client IPs from X-Forwarded-For headers.
+app.set('trust proxy', 1);
+
 app.use(cors(corsOptions));
 app.use(securityHeaders);
 
