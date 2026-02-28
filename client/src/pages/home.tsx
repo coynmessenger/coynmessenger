@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDisconnect, useActiveWallet } from "thirdweb/react";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ export default function HomePage() {
   const queryClient = useQueryClient();
   const { disconnect } = useDisconnect();
   const activeWallet = useActiveWallet();
+  const { signIn } = useAuth();
   
   const [isConnected, setIsConnected] = useState(() => {
     return localStorage.getItem('walletConnected') === 'true';
@@ -65,8 +67,9 @@ export default function HomePage() {
 
           // stale userSignedOut flag but valid session — clear flag and go to messenger
           localStorage.removeItem('userSignedOut');
-          console.log('✅ Authenticated user detected, redirecting to messenger...');
-          window.location.href = '/messenger';
+          console.log('✅ Authenticated user detected, navigating to messenger...');
+          signIn(parsedUser);
+          setLocation('/messenger');
           return;
         }
       } catch {
@@ -101,9 +104,9 @@ export default function HomePage() {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser?.id || parsedUser?.walletAddress) {
-          console.log('✅ Wallet autoConnected with valid session, redirecting to messenger...');
-          localStorage.removeItem('userSignedOut');
-          window.location.href = '/messenger';
+          console.log('✅ Wallet autoConnected with valid session, navigating to messenger...');
+          signIn(parsedUser);
+          setLocation('/messenger');
           return;
         }
       } catch { /* ignore */ }
@@ -156,37 +159,31 @@ export default function HomePage() {
     onSuccess: (user: User) => {
       console.log('✅ COYN: User authenticated successfully!', { userId: user.id, walletAddress: user.walletAddress });
       
-      // Clean up any competing states first
+      // Clean up any competing states
       localStorage.removeItem('pendingWalletConnection');
       localStorage.removeItem('walletConnectionAttempt');
       localStorage.removeItem('walletRedirectState');
-      localStorage.removeItem('explicitWalletConnection'); // Clean up the connection flag
-      localStorage.removeItem('userSignedOut'); // Clear sign out flag on successful connection
-      localStorage.removeItem('userClickedHome'); // Clear any homepage preference
-      sessionStorage.removeItem('userOnHomepage'); // Clear any homepage session flag
-      
-      // Store connection state
-      localStorage.setItem('walletConnected', 'true');
-      localStorage.setItem('connectedUser', JSON.stringify(user));
+      localStorage.removeItem('explicitWalletConnection');
       localStorage.setItem('connectedUserId', user.id.toString());
+      sessionStorage.removeItem('userOnHomepage');
       
-      // Update cache and state
+      // Update auth context (handles localStorage + React state atomically)
+      signIn(user);
+      
+      // Update query cache
       queryClient.setQueryData(["/api/user"], user);
       queryClient.setQueryData(["/api/user", user.id], user);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       
-      // Update component state
+      // Update local component state
       setConnectedUser(user);
       setIsConnected(true);
       
-      // Clean URL
-      const cleanUrl = `${window.location.origin}${window.location.pathname}`;
-      window.history.replaceState({}, document.title, cleanUrl);
-      
-      // Full page reload to messenger so everything initializes cleanly
-      console.log('🎯 COYN: SUCCESS! Redirecting to messenger...');
-      window.location.href = "/messenger";
+      // Client-side navigation — auth context is already updated so ProtectedRoute
+      // will immediately see isConnected=true without any loading flash or bounce
+      console.log('🎯 COYN: SUCCESS! Navigating to messenger...');
+      setLocation("/messenger");
     },
   });
 
