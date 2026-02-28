@@ -1093,9 +1093,9 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           <span className="flex items-center justify-center gap-1">
             Connecting
             <span className="flex gap-1">
-              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"></span>
-              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce animation-delay-200"></span>
-              <span className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce animation-delay-500"></span>
+              <span className="w-1 h-1 bg-yellow-500 dark:bg-yellow-400 rounded-full animate-bounce"></span>
+              <span className="w-1 h-1 bg-yellow-500 dark:bg-yellow-400 rounded-full animate-bounce animation-delay-200"></span>
+              <span className="w-1 h-1 bg-yellow-500 dark:bg-yellow-400 rounded-full animate-bounce animation-delay-500"></span>
             </span>
           </span>
         );
@@ -1104,18 +1104,18 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
           <span className="flex items-center justify-center gap-1">
             Incoming video call
             <span className="flex gap-1">
-              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></span>
-              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse animation-delay-300"></span>
-              <span className="w-1 h-1 bg-blue-400 rounded-full animate-pulse animation-delay-600"></span>
+              <span className="w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse"></span>
+              <span className="w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse animation-delay-300"></span>
+              <span className="w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse animation-delay-600"></span>
             </span>
           </span>
         ) : (
           <span className="flex items-center justify-center gap-1">
             Ringing
             <span className="flex gap-1">
-              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
-              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce animation-delay-200"></span>
-              <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce animation-delay-500"></span>
+              <span className="w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full animate-bounce"></span>
+              <span className="w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full animate-bounce animation-delay-200"></span>
+              <span className="w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full animate-bounce animation-delay-500"></span>
             </span>
           </span>
         );
@@ -1131,15 +1131,15 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   const getStatusColor = () => {
     switch (callStatus) {
       case "connecting":
-        return "text-yellow-400";
+        return "text-yellow-600 dark:text-yellow-400";
       case "ringing":
-        return "text-blue-400";
+        return "text-blue-600 dark:text-blue-400";
       case "connected":
-        return "text-green-400";
+        return "text-green-600 dark:text-green-400";
       case "ended":
-        return "text-red-400";
+        return "text-red-600 dark:text-red-400";
       default:
-        return "text-gray-400";
+        return "text-gray-600 dark:text-gray-400";
     }
   };
 
@@ -1218,7 +1218,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
 
           <div className="p-0">
             {/* Video Area */}
-            <div className="relative aspect-video bg-gray-100 dark:bg-gray-950 overflow-hidden">
+            <div className="relative aspect-video bg-gradient-to-b from-gray-50 to-gray-100 dark:bg-gray-950 overflow-hidden">
               {callStatus === "connected" ? (
                 <div className="w-full h-full relative">
                   <video
@@ -1229,11 +1229,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                     className={`w-full h-full object-cover ${remoteVideoEnabled ? 'block' : 'hidden'}`}
                   />
                   {!remoteVideoEnabled && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-                      <Avatar className="w-24 h-24 border-4 border-white/20">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+                      <Avatar className="w-24 h-24 border-4 border-gray-300/60 dark:border-white/20">
                         <AvatarImage src={user?.profilePicture || ""} />
-                        <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-2xl">
-                          <UserAvatarIcon className="w-12 h-12 text-gray-400" />
+                        <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-2xl">
+                          <UserAvatarIcon className="w-12 h-12 text-gray-500 dark:text-gray-400" />
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -1247,7 +1247,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                   <div className="text-center">
                     <div className="relative mb-4">
                       <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full animate-pulse" />
-                      <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-800 shadow-xl relative z-10 mx-auto">
+                      <Avatar className="w-32 h-32 border-4 border-gray-200 dark:border-gray-800 shadow-xl relative z-10 mx-auto">
                         <AvatarImage src={user?.profilePicture || ""} />
                         <AvatarFallback className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-4xl">
                           {user?.displayName?.[0] || <UserAvatarIcon className="w-16 h-16" />}
