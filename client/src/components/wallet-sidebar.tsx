@@ -364,16 +364,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
 
       const transactionHash = result.transactionHash;
 
-      // Record transaction on backend
-      const currentUser = JSON.parse(localStorage.getItem('connectedUser') || '{}');
-      await apiRequest("POST", "/api/wallet/send", {
-        currency,
-        amount,
-        address,
-        userId: currentUser.id,
-        transactionHash,
-      });
-
       return { transactionHash, currency, amount, address };
     },
     onSuccess: (data) => {
