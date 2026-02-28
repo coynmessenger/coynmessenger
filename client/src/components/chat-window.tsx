@@ -2067,12 +2067,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
         
         {messages.map((msg, index) => (
-          <div key={msg.id} className={`${index > 0 ? 'mt-3' : 'mt-1'} w-full overflow-hidden`}>
+          <div key={msg.id} className={`${index > 0 ? 'mt-1' : 'mt-0.5'} w-full overflow-hidden`}>
             {msg.messageType === "text" ? (
               // Check if this is an escrow system message
               (msg.content?.includes('🛡️ Escrow created:') || msg.content?.includes('🔔 Release Request:') || msg.content?.includes('🎉 Blockchain confirmations complete!')) ? (
                 // Escrow system message
-                <div className="flex justify-center mb-3" data-message-id={msg.id}>
+                <div className="flex justify-center mb-0" data-message-id={msg.id}>
                   <div className="bg-blue-500/90 backdrop-blur-sm text-white rounded-xl p-3 sm:p-4 max-w-[90%] sm:max-w-md shadow-lg border border-blue-400/30">
                     <div className="flex items-start space-x-2">
                       <div className="flex-shrink-0 mt-0.5">
@@ -2105,7 +2105,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.senderId === connectedUserId ? (
                   // Sent message (current user) - with swipe-to-reply
-                  <div className={`flex justify-end items-start space-x-3 mb-4 ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
+                  <div className={`flex justify-end items-start space-x-2 mb-0 ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
                       
                       {/* Swipeable message */}
@@ -2132,7 +2132,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div 
-                          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-blue-400/20"
+                          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-blue-400/20"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
                           {/* WhatsApp-style reply context */}
@@ -2186,7 +2186,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 ) : (
                   // Received message - with swipe-to-reply
-                  <div className={`flex items-start space-x-3 mb-4 ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
+                  <div className={`flex items-start space-x-2 mb-0 ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender?.profilePicture || ""} />
                       <AvatarFallback>{msg.sender?.displayName?.charAt(0) || msg.sender?.username?.charAt(0) || "U"}</AvatarFallback>
@@ -2217,7 +2217,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div 
-                          className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
+                          className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
                           {/* WhatsApp-style reply context for received messages */}
@@ -2268,7 +2268,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 )
               ) : msg.messageType === "crypto_transfer" ? (
                 // Crypto transaction message
-                <div className="flex justify-center group mb-4" data-message-id={msg.id}>
+                <div className="flex justify-center group mb-0" data-message-id={msg.id}>
                   <div className="relative">
                     <Card className="bg-gradient-to-br from-blue-100/90 to-blue-100/90 dark:from-blue-900/40 dark:to-blue-900/40 border border-blue-200/50 dark:border-blue-600/30 max-w-sm w-full shadow-lg rounded-3xl">
                       <CardContent className="p-6 text-center">
@@ -2351,7 +2351,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "product_share" ? (
                 // Product sharing message
-                <div className="flex justify-center group mb-4" data-message-id={msg.id}>
+                <div className="flex justify-center group mb-0" data-message-id={msg.id}>
                   <div className="relative">
 
                     <Card className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 max-w-xs shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-xl hover:scale-105 cursor-pointer"
@@ -2499,7 +2499,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "gif" ? (
                 // GIF message
-                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-4`} data-message-id={msg.id}>
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-0`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
                     {/* GIF bubble */}
                     <div 
@@ -2535,7 +2535,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "ai_image" ? (
                 // AI-generated image message
-                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-4`} data-message-id={msg.id}>
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-0`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
                     {/* AI Image bubble */}
                     <div 
