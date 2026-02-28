@@ -1819,8 +1819,27 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchQuery, searchResults]);
 
+  // Track visual viewport height so the container stays flush with the keyboard
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const update = () => {
+      const h = window.visualViewport?.height ?? window.innerHeight;
+      el.style.height = `${h}px`;
+    };
+    update();
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
+      el.style.height = '';
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col h-[100dvh] bg-background chat-container">
+    <div ref={chatContainerRef} className="flex flex-col bg-background chat-container" style={{ height: '100dvh' }}>
       {/* Chat Header */}
       <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
@@ -2757,7 +2776,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
+      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white dark:bg-slate-900 px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
