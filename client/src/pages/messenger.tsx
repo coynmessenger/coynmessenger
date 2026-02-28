@@ -531,7 +531,7 @@ export default function MessengerPage() {
   }, [socket, conversations]); // Trigger when socket is connected AND conversations are loaded
 
   return (
-    <div className="flex h-[100dvh] watercolor-bg bg-background text-foreground relative messenger-root">
+    <div className="flex h-[100dvh] watercolor-bg bg-background text-foreground relative messenger-root overflow-hidden">
       {/* Watercolor Background Overlay */}
       <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark -z-10"></div>
       
@@ -790,7 +790,7 @@ export default function MessengerPage() {
       </div>
 
       {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col w-full h-[100dvh] messenger-mobile-layout">
+      <div className="lg:hidden flex flex-col w-full h-[100dvh] messenger-mobile-layout bg-background overflow-hidden">
         {/* Mobile Navigation */}
         <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
           <div className="flex items-center justify-between p-4">

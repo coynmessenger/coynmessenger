@@ -283,14 +283,6 @@ button[data-connect-wallet]:active {
   .chat-container.keyboard-open {
     height: calc(var(--vh, 1vh) * 100);
   }
-
-  /* Outer messenger wrappers must also shrink when keyboard opens
-     so the watercolor background doesn't show below the input bar */
-  .messenger-root.keyboard-open,
-  .messenger-mobile-layout.keyboard-open {
-    height: calc(var(--vh, 1vh) * 100);
-    overflow: hidden;
-  }
   
   /* Chat messages area adjustment for mobile */
   .mobile-messages-area {
