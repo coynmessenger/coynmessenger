@@ -6,8 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
-import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
+import { thirdwebClient } from "@/lib/thirdweb-client";
 import { initializeGlobalWebRTC } from "@/lib/global-webrtc";
 import { useEffect, lazy, Suspense, ComponentType } from "react";
 import { logger } from "@/lib/logger";
@@ -32,11 +32,6 @@ function PageLoader() {
     </div>
   );
 }
-
-// Create Thirdweb client for wallet connections
-const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
-});
 
 // Configure supported wallets for auto-reconnection
 // WalletConnect enables mobile wallet connections via deep linking
@@ -110,9 +105,9 @@ function AppContent() {
     <ThirdwebProvider>
       {!isSignedOut && (
         <AutoConnect
-          client={client}
+          client={thirdwebClient}
           wallets={wallets}
-          timeout={2000}
+          timeout={15000}
           onConnect={(wallet) => {
             console.log('✅ AutoConnect: Wallet reconnected');
           }}

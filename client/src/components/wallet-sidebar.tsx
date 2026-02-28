@@ -29,13 +29,10 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { useActiveWallet } from "thirdweb/react";
-import { sendTransaction, prepareTransaction, createThirdwebClient } from "thirdweb";
+import { useActiveAccount, useSendTransaction, useSwitchActiveWalletChain } from "thirdweb/react";
+import { prepareTransaction } from "thirdweb";
+import { thirdwebClient } from "@/lib/thirdweb-client";
 import { bsc } from "@/lib/bsc-chain";
-
-const thirdwebClient = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "placeholder",
-});
 
 interface WalletSidebarProps {
   isOpen: boolean;
@@ -56,7 +53,9 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
   const { toast } = useToast();
-  const activeWallet = useActiveWallet();
+  const activeAccount = useActiveAccount();
+  const { mutateAsync: sendTx } = useSendTransaction();
+  const switchChain = useSwitchActiveWalletChain();
   
   useEffect(() => {
     if (showQRModal && user?.walletAddress) {
@@ -309,18 +308,13 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Send crypto mutation - initiates blockchain transaction via Thirdweb SDK
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      if (!activeWallet) {
+      if (!activeAccount) {
         throw new Error('No wallet connected. Please connect your wallet first.');
-      }
-
-      const account = activeWallet.getAccount();
-      if (!account) {
-        throw new Error('Could not get wallet account. Please reconnect your wallet.');
       }
 
       // Switch to BSC network
       try {
-        await activeWallet.switchChain(bsc);
+        await switchChain(bsc);
       } catch (switchError: any) {
         throw new Error('Please switch to Binance Smart Chain (BSC) network in your wallet.');
       }
@@ -357,11 +351,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         throw new Error(`Unsupported currency: ${currency}`);
       }
 
-      const result = await sendTransaction({
-        transaction: await transaction,
-        account,
-      });
-
+      const result = await sendTx(await transaction);
       const transactionHash = result.transactionHash;
 
       return { transactionHash, currency, amount, address };
