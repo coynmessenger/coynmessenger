@@ -93,11 +93,11 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
         throw new Error('Unable to access wallet account. Please reconnect your wallet.');
       }
 
-      // Verify connected account matches user's wallet
+      // Warn if connected wallet differs from registered address (non-blocking)
       const connectedAccount = account.address.toLowerCase();
       const userWallet = currentUser.walletAddress.toLowerCase();
       if (connectedAccount !== userWallet) {
-        throw new Error('Connected wallet does not match your account.');
+        console.warn('Connected wallet differs from registered address. Proceeding with active wallet.');
       }
 
       // Ensure we're on BSC network

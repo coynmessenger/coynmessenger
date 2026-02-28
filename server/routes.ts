@@ -894,58 +894,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send cryptocurrency via wallet sidebar to external address
-  app.post("/api/wallet/send-external", walletLimiter, async (req, res) => {
-    try {
-      const { currency: rawCurrency, amount, address, userId } = req.body;
-      const currency = sanitizeText(rawCurrency);
-
-      if (!currency || !amount || !address) {
-        return res.status(400).json({ message: "Missing required fields: currency, amount, address" });
-      }
-
-      const numAmount = parseFloat(amount);
-      if (isNaN(numAmount) || numAmount <= 0) {
-        return res.status(400).json({ message: "Invalid amount" });
-      }
-
-      // Validate wallet address format
-      if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
-        return res.status(400).json({ message: "Invalid wallet address format" });
-      }
-
-      // Get current user ID from request or use connected user
-      const currentUserId = userId || 5; // Default for now, should be from auth
-      
-      // Check if sender has sufficient balance
-      const senderBalance = await storage.getUserCurrencyBalance(currentUserId, currency);
-      if (!senderBalance || parseFloat(senderBalance.balance) < numAmount) {
-        return res.status(400).json({ message: "Insufficient balance" });
-      }
-
-      // For external transfers, we simulate the blockchain transaction
-      // In a real implementation, this would interact with the blockchain
-      
-      
-      // Deduct from sender's balance
-      const newBalance = parseFloat(senderBalance.balance) - numAmount;
-      await storage.updateWalletBalance(currentUserId, currency, { 
-        balance: newBalance.toString() 
-      });
-      
-      // Log the transaction (in production, this would be on blockchain)
-      
-
-      res.json({ 
-        message: "Transfer successful",
-        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`, // Mock transaction hash
-        amount: numAmount,
-        currency: currency,
-        recipient: address
-      });
-    } catch (error) {
-      
-      res.status(500).json({ message: "Failed to send cryptocurrency" });
-    }
+  app.post("/api/wallet/send-external", (_req, res) => {
+    res.status(410).json({ message: "This endpoint has been removed. Use /api/wallet/send instead." });
   });
 
   // Delete a message
