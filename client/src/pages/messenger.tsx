@@ -595,7 +595,7 @@ export default function MessengerPage() {
         <div className="flex flex-1">
           <div className="flex-1 flex flex-col bg-background">
             {selectedConversation && currentConversation ? (
-              <div data-conversation-id={selectedConversation}>
+              <div data-conversation-id={selectedConversation} className="h-full flex flex-col">
                 <ChatWindow
                   conversation={currentConversation}
                   onToggleSidebar={() => {}}
@@ -878,7 +878,7 @@ export default function MessengerPage() {
         )}
 
         {/* Mobile Main Content */}
-        <div className="flex-1 flex flex-col bg-background">
+        <div className="flex-1 flex flex-col bg-background min-h-0">
           {selectedConversation && currentConversation ? (
             <ChatWindow
               conversation={currentConversation}
