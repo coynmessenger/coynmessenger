@@ -130,7 +130,7 @@ export function GifPicker({ onGifSelect, isOpen, onOpenChange }: GifPickerProps)
         <Button
           type="button"
           variant="ghost"
-          className={`transition-all duration-200 rounded-xl h-7 px-1.5 touch-manipulation shrink-0 font-bold tracking-tight text-[11px] ${
+          className={`transition-all duration-200 rounded-xl h-6 px-1 touch-manipulation shrink-0 font-bold tracking-tight text-[10px] ${
             isOpen 
               ? 'bg-orange-500 text-white shadow-sm' 
               : 'text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10'

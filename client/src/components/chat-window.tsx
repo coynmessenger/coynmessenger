@@ -2787,7 +2787,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1.5 py-1 shadow-inner backdrop-blur-sm">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -2796,9 +2796,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10 transition-all duration-200 rounded-xl h-7 w-7 shrink-0"
+                  className="text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10 transition-all duration-200 rounded-xl h-6 w-6 shrink-0"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
@@ -2851,9 +2851,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-200 rounded-lg h-7 w-7"
+                className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-200 rounded-lg h-5 w-5 shrink-0"
               >
-                <Paperclip className="h-3 w-3" />
+                <Paperclip className="h-2.5 w-2.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[180px]">
@@ -2996,7 +2996,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             className={`${isSendingMessage || sendMessageMutation.isPending 
               ? 'bg-gradient-to-br from-orange-400 to-orange-600 animate-pulse' 
               : 'bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500'
-            } text-white h-7 w-7 touch-manipulation shadow-md transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
+            } text-white h-6 w-6 touch-manipulation shadow-md transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />

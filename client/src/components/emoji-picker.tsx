@@ -44,13 +44,13 @@ export function EmojiPicker({ onEmojiSelect, isOpen, onOpenChange }: EmojiPicker
           type="button"
           variant="ghost"
           size="icon"
-          className={`transition-all duration-200 rounded-xl h-7 w-7 touch-manipulation shrink-0 ${
+          className={`transition-all duration-200 rounded-xl h-6 w-6 touch-manipulation shrink-0 ${
             isOpen 
               ? 'bg-orange-500 text-white shadow-sm' 
               : 'text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10'
           }`}
         >
-          <Smile className="h-4 w-4" />
+          <Smile className="h-3 w-3" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-3 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-xl" align="end">
