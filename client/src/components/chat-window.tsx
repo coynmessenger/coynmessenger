@@ -167,27 +167,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     messageId: number | null;
     offsetX: number;
     isDragging: boolean;
-  }>({
-    messageId: null,
-    offsetX: 0,
-    isDragging: false,
-  });
-
-  // Ref-based drag tracker — avoids stale-closure bugs in event handlers
-  const dragRef = useRef<{
-    messageId: number | null;
+    showReply: boolean;
     startX: number;
-    startY: number;
-    offsetX: number;
-    isDragging: boolean;
-    isHorizontal: boolean | null; // null = not yet decided
   }>({
     messageId: null,
-    startX: 0,
-    startY: 0,
     offsetX: 0,
     isDragging: false,
-    isHorizontal: null,
+    showReply: false,
+    startX: 0
   });
   
   const [replyToMessage, setReplyToMessage] = useState<{
@@ -212,6 +199,31 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
   
+  // Add global mouse event listeners for swipe functionality
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (swipeState.isDragging) {
+        e.preventDefault();
+        handleSwipeMove(e as any);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (swipeState.isDragging) {
+        handleSwipeEnd();
+      }
+    };
+
+    if (swipeState.isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [swipeState.isDragging]); // Only depend on the boolean property, not the entire object
 
   // Socket.IO connection for real-time messaging
   useEffect(() => {
@@ -1211,85 +1223,103 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     setShowEmojiPicker(false);
   };
 
-  // ── Swipe-to-reply (ref-based, no stale-closure issues) ──────────────────
-  const handleSwipeStart = (e: React.TouchEvent, messageId: number) => {
-    const t = e.touches[0];
-    dragRef.current = {
+  // Swipe-to-reply handlers
+  const handleSwipeStart = (e: React.TouchEvent | React.MouseEvent, messageId: number) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    // Swipe initiated
+    setSwipeState({
       messageId,
-      startX: t.clientX,
-      startY: t.clientY,
       offsetX: 0,
       isDragging: true,
-      isHorizontal: null,
-    };
-    setSwipeState({ messageId, offsetX: 0, isDragging: true });
+      showReply: false,
+      startX: clientX
+    });
   };
 
-  const handleSwipeMove = (e: React.TouchEvent) => {
-    const d = dragRef.current;
-    if (!d.isDragging) return;
-
-    const t = e.touches[0];
-    const dx = t.clientX - d.startX;
-    const dy = t.clientY - d.startY;
-
-    // Decide gesture direction once we have enough movement
-    if (d.isHorizontal === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-      d.isHorizontal = Math.abs(dx) > Math.abs(dy);
-    }
-
-    // If it's a vertical gesture, let the scroll container handle it
-    if (d.isHorizontal === false) return;
-    if (d.isHorizontal === true) {
-      try { e.preventDefault(); } catch (_) { /* passive */ }
-    }
-
-    // Right-swipe only, capped at 100 px
-    const offsetX = Math.max(0, Math.min(dx, 100));
-    d.offsetX = offsetX;
-    setSwipeState(prev => ({ ...prev, offsetX }));
+  const handleSwipeMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!swipeState.isDragging || !swipeState.messageId) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const deltaX = Math.max(0, clientX - swipeState.startX); // Only allow right swipes
+    
+    setSwipeState(prev => ({
+      ...prev,
+      offsetX: Math.min(deltaX, 150) // Limit maximum swipe distance
+    }));
   };
 
   const handleSwipeEnd = () => {
-    const d = dragRef.current;
-    if (!d.isDragging) return;
+    if (!swipeState.isDragging) return;
 
-    const { messageId, offsetX, isHorizontal } = d;
-    // Reset ref immediately
-    dragRef.current = { messageId: null, startX: 0, startY: 0, offsetX: 0, isDragging: false, isHorizontal: null };
-    setSwipeState({ messageId: null, offsetX: 0, isDragging: false });
-
-    if (isHorizontal && offsetX >= 70 && messageId) {
-      const message = messages.find(m => m.id === messageId);
-      if (message) {
-        // Haptic feedback on supported devices
-        if ('vibrate' in navigator) navigator.vibrate(30);
-
-        let effectiveName: string;
-        if (connectedUserId && (message.sender as any)?.id === connectedUserId && connectedUser) {
-          effectiveName = getEffectiveDisplayName(connectedUser);
-        } else {
-          effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
-        }
-
-        let replyContent = "Message";
-        if (message.messageType === "text") {
-          replyContent = message.content || "Text message";
-        } else if (message.messageType === "crypto") {
-          replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
-        } else if (message.messageType === "product_share") {
-          replyContent = message.productTitle || message.content || "Shared product";
-        } else if (message.messageType === "attachment") {
-          replyContent = message.attachmentName || "File attachment";
-        } else if (message.messageType === "gif") {
-          replyContent = message.gifTitle || "GIF";
-        } else {
-          replyContent = message.content || "Message";
-        }
-
-        setReplyToMessage({ id: message.id, content: replyContent, sender: effectiveName });
-        setTimeout(() => messageInputRef.current?.focus(), 50);
+    if (swipeState.offsetX > 100) { // Increased threshold for less sensitive triggering
+      // Trigger reply to message with haptic-like feedback
+      const targetMessageId = swipeState.messageId;
+      const message = messages.find(m => m.id === targetMessageId);
+      // Reply triggered
+      
+      if (message && message.id === targetMessageId) {
+        // Clear any existing reply state first
+        setReplyToMessage(null);
+        
+        // Wait for state to clear then set new reply
+        setTimeout(() => {
+          // Check if this message is from the connected user, use current display name
+          let effectiveName: string;
+          if (connectedUserId && (message.sender as any)?.id === connectedUserId && connectedUser) {
+            // Use current connected user's display name for their own messages
+            effectiveName = getEffectiveDisplayName(connectedUser);
+            
+          } else {
+            // Use the original sender's display name for other users' messages
+            effectiveName = (message.sender as any).effectiveDisplayName || getEffectiveDisplayName(message.sender);
+            
+          }
+          // Get appropriate content based on message type
+          let replyContent = "Message content";
+          if (message.messageType === "text") {
+            replyContent = message.content || "Text message";
+          } else if (message.messageType === "crypto") {
+            replyContent = `${message.cryptoAmount} ${message.cryptoCurrency}`;
+          } else if (message.messageType === "product_share") {
+            replyContent = message.productTitle || message.content || "Shared product";
+          } else if (message.messageType === "attachment") {
+            replyContent = message.attachmentName || "File attachment";
+          } else if (message.messageType === "gif") {
+            replyContent = message.gifTitle || "GIF";
+          } else {
+            replyContent = message.content || "Message";
+          }
+          
+          const newReplyData = {
+            id: message.id,
+            content: replyContent,
+            sender: effectiveName
+          };
+          
+          
+          // Message details for debugging
+          
+          setReplyToMessage(newReplyData);
+        }, 50);
       }
+      // Reset swipe state with smooth animation
+      
+      setSwipeState({
+        messageId: null,
+        offsetX: 0,
+        isDragging: false,
+        showReply: false,
+        startX: 0
+      });
+    } else {
+      // Reset position with spring animation
+      setSwipeState({
+        messageId: null,
+        offsetX: 0,
+        isDragging: false,
+        showReply: false,
+        startX: 0
+      });
     }
   };
 
@@ -1789,27 +1819,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchQuery, searchResults]);
 
-  // Track visual viewport height so the container stays flush with the keyboard
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = chatContainerRef.current;
-    if (!el) return;
-    const update = () => {
-      const h = window.visualViewport?.height ?? window.innerHeight;
-      el.style.height = `${h}px`;
-    };
-    update();
-    window.visualViewport?.addEventListener('resize', update);
-    window.visualViewport?.addEventListener('scroll', update);
-    return () => {
-      window.visualViewport?.removeEventListener('resize', update);
-      window.visualViewport?.removeEventListener('scroll', update);
-      el.style.height = '';
-    };
-  }, []);
-
   return (
-    <div ref={chatContainerRef} className="flex flex-col bg-background chat-container" style={{ height: '100dvh' }}>
+    <div className="flex flex-col h-[100dvh] bg-background chat-container">
       {/* Chat Header */}
       <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
@@ -2099,16 +2110,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       
                       {/* Swipeable message */}
                       <div 
-                        className="relative select-none"
+                        className="relative cursor-pointer touch-pan-y select-none"
                         style={{
-                          touchAction: 'pan-y',
                           transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
-                          transition: swipeState.isDragging && swipeState.messageId === msg.id ? 'none' : 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                          transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
-                        onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                        onTouchStart={(e) => {
+                          handleSwipeStart(e, msg.id);
+                        }}
                         onTouchMove={handleSwipeMove}
-                        onTouchEnd={handleSwipeEnd}
-                        onTouchCancel={handleSwipeEnd}
+                        onTouchEnd={() => {
+                          handleSwipeEnd();
+                        }}
+                        onMouseDown={(e) => {
+                          handleSwipeStart(e, msg.id);
+                        }}
+                        onMouseUp={() => {
+                          if (swipeState.isDragging) {
+                            handleSwipeEnd();
+                          }
+                        }}
                       >
                         <div 
                           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-blue-400/20"
@@ -2142,17 +2163,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           </span>
                         </div>
                         
-                        {/* Reply hint for sent messages — appears to the LEFT */}
-                        {swipeState.messageId === msg.id && swipeState.offsetX > 15 && (
+                        {/* WhatsApp-style visual hint for sent messages */}
+                        {swipeState.messageId === msg.id && swipeState.offsetX > 20 && (
                           <div 
-                            className="absolute right-full top-1/2 -translate-y-1/2 pr-2 pointer-events-none"
+                            className="absolute right-full top-1/2 transform -translate-y-1/2 px-2 transition-all duration-100"
                             style={{
-                              opacity: Math.min(1, swipeState.offsetX / 60),
-                              transform: `translateY(-50%) scale(${Math.min(1, 0.6 + swipeState.offsetX / 140)})`,
+                              transform: `translateY(-50%) scale(${Math.min(1.2, 0.8 + swipeState.offsetX / 100)}) rotate(${Math.min(15, swipeState.offsetX / 10)}deg)`,
+                              opacity: Math.min(1, swipeState.offsetX / 80)
                             }}
                           >
-                            <div className="bg-orange-500 rounded-full p-1.5 shadow-md">
-                              <Reply className="h-3.5 w-3.5 text-white" />
+                            <div className="bg-green-500 rounded-full p-2 shadow-lg">
+                              <Reply className="h-4 w-4 text-white" />
                             </div>
                           </div>
                         )}
@@ -2174,16 +2195,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
                       {/* Swipeable message */}
                       <div 
-                        className="relative select-none"
+                        className="relative cursor-pointer touch-pan-y select-none"
                         style={{
-                          touchAction: 'pan-y',
                           transform: swipeState.messageId === msg.id ? `translateX(${swipeState.offsetX}px)` : 'translateX(0px)',
-                          transition: swipeState.isDragging && swipeState.messageId === msg.id ? 'none' : 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                          transition: swipeState.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
-                        onTouchStart={(e) => handleSwipeStart(e, msg.id)}
+                        onTouchStart={(e) => {
+                          handleSwipeStart(e, msg.id);
+                        }}
                         onTouchMove={handleSwipeMove}
-                        onTouchEnd={handleSwipeEnd}
-                        onTouchCancel={handleSwipeEnd}
+                        onTouchEnd={() => {
+                          handleSwipeEnd();
+                        }}
+                        onMouseDown={(e) => {
+                          handleSwipeStart(e, msg.id);
+                        }}
+                        onMouseUp={() => {
+                          if (swipeState.isDragging) {
+                            handleSwipeEnd();
+                          }
+                        }}
                       >
                         <div 
                           className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
@@ -2217,17 +2248,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           </span>
                         </div>
                         
-                        {/* Reply hint for received messages — appears to the LEFT */}
-                        {swipeState.messageId === msg.id && swipeState.offsetX > 15 && (
+                        {/* WhatsApp-style visual hint for received messages */}
+                        {swipeState.messageId === msg.id && swipeState.offsetX > 20 && (
                           <div 
-                            className="absolute right-full top-1/2 -translate-y-1/2 pr-2 pointer-events-none"
+                            className="absolute right-full top-1/2 transform -translate-y-1/2 px-2 transition-all duration-100"
                             style={{
-                              opacity: Math.min(1, swipeState.offsetX / 60),
-                              transform: `translateY(-50%) scale(${Math.min(1, 0.6 + swipeState.offsetX / 140)})`,
+                              transform: `translateY(-50%) scale(${Math.min(1.2, 0.8 + swipeState.offsetX / 100)}) rotate(${Math.min(15, swipeState.offsetX / 10)}deg)`,
+                              opacity: Math.min(1, swipeState.offsetX / 80)
                             }}
                           >
-                            <div className="bg-orange-500 rounded-full p-1.5 shadow-md">
-                              <Reply className="h-3.5 w-3.5 text-white" />
+                            <div className="bg-green-500 rounded-full p-2 shadow-lg">
+                              <Reply className="h-4 w-4 text-white" />
                             </div>
                           </div>
                         )}
@@ -2726,7 +2757,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white dark:bg-slate-900 px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
+      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2756,7 +2787,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-0 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -2805,11 +2836,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <span>Send COYN</span>
                 </div>
               </DropdownMenuItem>
+              <div className="px-2 py-1">
+                <div className="h-px bg-gray-200 dark:bg-slate-600" />
+              </div>
 
             </DropdownMenuContent>
             </DropdownMenu>
           )}
-
 
           {/* Attachment Button */}
           <DropdownMenu>
@@ -2818,37 +2851,48 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 transition-all duration-200 rounded-lg h-5 w-5 shrink-0"
+                className="text-blue-500 dark:text-blue-400 hover:bg-blue-100/80 dark:hover:bg-slate-700/80 backdrop-blur-sm transition-all duration-200 rounded-lg h-5 w-5 shrink-0"
               >
                 <Paperclip className="h-2.5 w-2.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-lg rounded-lg p-1 min-w-[180px]">
+              <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Choose File Type
+              </div>
               <DropdownMenuItem
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerFileUpload(); }}
-                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  triggerFileUpload();
+                }}
+                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1 transition-colors"
               >
                 <div className="flex items-center space-x-3 py-1">
-                  <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                    <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">Document</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, ZIP…</span>
+                    <span className="font-medium">Document</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, TXT, ZIP</span>
                   </div>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerImageVideoUpload(); }}
-                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  triggerImageVideoUpload();
+                }}
+                className="text-black dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer rounded-md mx-1 transition-colors"
               >
                 <div className="flex items-center space-x-3 py-1">
-                  <div className="w-7 h-7 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                    <Image className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <Image className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">Photo & Video</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Camera, Gallery</span>
+                    <span className="font-medium">Photo & Video</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Camera, Gallery, Files</span>
                   </div>
                 </div>
               </DropdownMenuItem>
@@ -2897,17 +2941,30 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             />
           </div>
 
-          <EmojiPicker
-            onEmojiSelect={(emoji) => {
-              setMessage(prev => prev + emoji);
-              setShowEmojiPicker(false);
-            }}
-            isOpen={showEmojiPicker}
-            onOpenChange={setShowEmojiPicker}
-          />
+          {/* Emoji + GIF buttons grouped together */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            <EmojiPicker
+              onEmojiSelect={(emoji) => {
+                setMessage(prev => prev + emoji);
+                setShowEmojiPicker(false);
+              }}
+              isOpen={showEmojiPicker}
+              onOpenChange={setShowEmojiPicker}
+            />
+          </div>
 
+          {/* GIF Picker */}
           <GifPicker
             onGifSelect={(gif) => {
+              // Send GIF as a message
+              const gifMessage = {
+                messageType: "gif" as const,
+                gifUrl: gif.images.original.url,
+                gifTitle: gif.title,
+                gifId: gif.id
+              };
+              
+              // Use API request directly since mutation expects different format
               apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
                 senderId: connectedUserId,
                 content: gif.title,
@@ -2916,10 +2973,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 gifTitle: gif.title,
                 gifId: gif.id
               }).then(() => {
+                // Refresh messages after sending
                 queryClient.invalidateQueries({ 
                   queryKey: ["/api/conversations", conversation.id, "messages"] 
                 });
-              }).catch(() => {
+              }).catch((error) => {
+
                 toast({
                   title: "Error",
                   description: "Failed to send GIF. Please try again.",
