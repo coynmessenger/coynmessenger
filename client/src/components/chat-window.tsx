@@ -359,18 +359,23 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         setKeyboardHeight(heightDiff);
         setIsKeyboardOpen(isKeyboard);
         
-        // Apply mobile keyboard aware class to main container
+        // Apply mobile keyboard aware class to main container + outer wrappers
         const mainContainer = document.querySelector('.chat-container');
-        if (mainContainer) {
+        const messengerRoot = document.querySelector('.messenger-root');
+        const messengerMobile = document.querySelector('.messenger-mobile-layout');
+        [mainContainer, messengerRoot, messengerMobile].forEach(el => {
+          if (!el) return;
           if (isKeyboard) {
-            mainContainer.classList.add('keyboard-open');
-            // Auto-scroll to bottom when keyboard opens
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            el.classList.add('keyboard-open');
           } else {
-            mainContainer.classList.remove('keyboard-open');
+            el.classList.remove('keyboard-open');
           }
+        });
+        if (isKeyboard) {
+          // Auto-scroll to bottom when keyboard opens
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
         }
         
         // Apply proper viewport unit (dvh) for mobile
