@@ -986,27 +986,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recipientAddress = toAddress;
       }
 
-      // Attempt real on-chain transaction from sender's internal wallet
+      // Transaction routing:
+      // - User-to-user: COYN internal DB transfer only (no on-chain attempt). Works like PayPal internal transfers.
+      // - External address: must succeed on-chain or hard fail — never silently deduct DB balance.
       let transactionHash: string | null = null;
-      try {
-        if (currency === 'BNB') {
-          const result = await sendBNBInternal(senderUser.encryptedPrivateKey!, recipientAddress, amount);
-          transactionHash = result.transactionHash;
-        } else if (currency === 'USDT' || currency === 'COYN') {
-          const result = await sendERC20Internal(senderUser.encryptedPrivateKey!, currency, recipientAddress, amount);
-          transactionHash = result.transactionHash;
-        }
-        console.log(`✅ On-chain ${currency} tx: ${transactionHash}`);
-      } catch (chainErr: any) {
-        console.warn(`⚠️ On-chain tx failed (likely insufficient gas): ${chainErr.message}`);
-      }
 
-      // Always update internal balances for user-to-user transfers
       if (toUserId) {
+        // Internal COYN platform transfer — DB only, instant, no gas required
         const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
         if (!success) return res.status(500).json({ message: "Failed to update balances" });
+        console.log(`✅ Internal COYN transfer: ${numAmount} ${currency} from user ${fromUserId} to user ${toUserId}`);
       } else {
-        // For external sends: deduct from sender only
+        // External blockchain send — attempt on-chain. Hard fail if it doesn't go through.
+        try {
+          if (currency === 'BNB') {
+            const result = await sendBNBInternal(senderUser.encryptedPrivateKey!, recipientAddress, amount);
+            transactionHash = result.transactionHash;
+          } else if (currency === 'USDT' || currency === 'COYN') {
+            const result = await sendERC20Internal(senderUser.encryptedPrivateKey!, currency as 'USDT' | 'COYN', recipientAddress, amount);
+            transactionHash = result.transactionHash;
+          }
+          console.log(`✅ On-chain ${currency} tx: ${transactionHash}`);
+        } catch (chainErr: any) {
+          console.error(`❌ External on-chain send failed: ${chainErr.message}`);
+          return res.status(400).json({
+            message: `On-chain transaction failed: ${chainErr.message}`,
+            onChain: false,
+          });
+        }
+        // Only deduct DB balance after confirmed on-chain success
         const senderBal = await storage.getUserCurrencyBalance(fromUserId, currency);
         if (senderBal) {
           const newBalance = (parseFloat(senderBal.balance) - numAmount).toFixed(8);

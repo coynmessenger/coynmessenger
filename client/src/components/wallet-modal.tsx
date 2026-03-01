@@ -125,15 +125,17 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     },
     onError: (error: any) => {
       let errorMessage = "Failed to send transaction. Please try again.";
-      
-      if (error.message.includes("User rejected")) {
-        errorMessage = "Transaction was cancelled by user.";
-      } else if (error.message.includes("insufficient funds")) {
-        errorMessage = "Insufficient funds for this transaction.";
-      } else if (error.message.includes("network")) {
-        errorMessage = "Please check your network connection and try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      try {
+        const raw = error.message || "";
+        const jsonStart = raw.indexOf('{');
+        if (jsonStart !== -1) {
+          const parsed = JSON.parse(raw.slice(jsonStart));
+          if (parsed.message) errorMessage = parsed.message;
+        } else {
+          errorMessage = raw || errorMessage;
+        }
+      } catch {
+        errorMessage = error.message || errorMessage;
       }
       
       toast({

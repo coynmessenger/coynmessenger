@@ -28,9 +28,13 @@ Preferred communication style: Simple, everyday language.
 - **Universal Wallet Support**: Thirdweb SDK v5 provides seamless support for all major Web3 wallets for sign-in only
 - **Supported Wallets**: WalletConnect (mobile), MetaMask, Coinbase Wallet, Bitget Wallet, Trust Wallet, Rabby, Zerion
 - **Auto-Reconnection**: AutoConnect component maintains wallet connections across page navigation
-- **Server-Side Internal Wallets**: Every user gets an auto-generated BSC wallet stored server-side (AES-256-GCM encrypted private key in DB). ALL crypto transactions (BNB/USDT/COYN) are signed and broadcast by the server — zero external wallet popups during transfers
+- **Server-Side Internal Wallets**: Every user gets an auto-generated BSC wallet stored server-side (AES-256-GCM encrypted private key in DB). Zero external wallet popups during transfers
 - **Transaction Flow**: External wallet → sign-in auth only. Internal wallet (server-managed) → all on-chain activity
-- **Graceful Gas Fallback**: If internal wallet lacks gas, balance transfer still completes in the DB with `onChain: false`
+- **Dual Transfer Model**:
+  - **User-to-user (internal)**: Pure DB transfer, instant, no gas needed. Shows "COYN Internal Transfer" badge. Like Venmo/PayPal internal — no BSCScan hash.
+  - **External address send**: Requires real on-chain balance + BNB for gas in the internal wallet. Hard fails with clear error if insufficient — never silently deducts DB balance. Shows BSCScan link on success.
+- **On-chain pre-flight checks**: Before broadcasting, wallet-service checks actual BSC on-chain token balance and BNB gas balance, returning descriptive errors if either is insufficient
+- **RPC Fallback**: Rotates through 5 BSC RPC endpoints with automatic failover
 - **Visual Feedback**: Loading modals and status messages during wallet redirects and connections
 - **Auto-Navigation**: Post-authentication automatically opens the messenger with smart delay detection
 - **Authentication Guard**: HomePage checks for existing authentication and redirects to messenger immediately

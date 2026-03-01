@@ -313,10 +313,13 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       }) as any;
       return { transactionHash: result.transactionHash, currency, amount, address };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
+      const isOnChain = !!data?.transactionHash;
       toast({
-        title: "Transaction Sent Successfully",
-        description: `${data.currency} transaction sent to blockchain network`,
+        title: isOnChain ? "Blockchain Transaction Confirmed" : "Send Complete",
+        description: isOnChain
+          ? `${data.amount} ${data.currency} confirmed on BSC. Hash: ${data.transactionHash?.slice(0, 10)}...`
+          : `${data.amount} ${data.currency} sent successfully`,
       });
       setShowSendModal(false);
       setSendAmount("");
@@ -325,19 +328,18 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
     onError: (error: any) => {
       let errorMessage = "Failed to send transaction. Please try again.";
-      
-      if (error.message.includes("User rejected") || error.message.includes("rejected by user")) {
-        errorMessage = "Transaction was cancelled by user.";
-      } else if (error.message.includes("insufficient funds")) {
-        errorMessage = "Insufficient funds for this transaction.";
-      } else if (error.message.includes("network") || error.message.includes("connection")) {
-        errorMessage = "Network error. Please check your connection and try again.";
-      } else if (error.message.includes("switch to")) {
-        errorMessage = "Please switch to Binance Smart Chain network in your wallet.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      try {
+        const raw = error.message || "";
+        const jsonStart = raw.indexOf('{');
+        if (jsonStart !== -1) {
+          const parsed = JSON.parse(raw.slice(jsonStart));
+          if (parsed.message) errorMessage = parsed.message;
+        } else {
+          errorMessage = raw || errorMessage;
+        }
+      } catch {
+        errorMessage = error.message || errorMessage;
       }
-      
       toast({
         title: "Transaction Failed",
         description: errorMessage,

@@ -7,6 +7,8 @@ const BSC_RPCS = [
   'https://bsc-rpc.publicnode.com',
   'https://bsc-dataseed1.binance.org',
   'https://bsc-dataseed2.binance.org',
+  'https://bsc-dataseed3.binance.org',
+  'https://bsc-dataseed4.binance.org',
 ];
 
 const TOKEN_CONTRACTS = {
@@ -17,6 +19,7 @@ const TOKEN_CONTRACTS = {
 const ERC20_ABI = [
   'function transfer(address to, uint256 amount) returns (bool)',
   'function balanceOf(address owner) view returns (uint256)',
+  'function decimals() view returns (uint8)',
 ];
 
 function getEncryptionKey(): Buffer {
@@ -27,8 +30,17 @@ function getEncryptionKey(): Buffer {
   return Buffer.from(keyHex, 'hex');
 }
 
-function getProvider(): ethers.JsonRpcProvider {
-  return new ethers.JsonRpcProvider(BSC_RPCS[0]);
+async function getProvider(): Promise<ethers.JsonRpcProvider> {
+  for (const rpc of BSC_RPCS) {
+    try {
+      const provider = new ethers.JsonRpcProvider(rpc);
+      await provider.getBlockNumber();
+      return provider;
+    } catch {
+      console.warn(`RPC ${rpc} unavailable, trying next...`);
+    }
+  }
+  throw new Error('All BSC RPC endpoints are unavailable');
 }
 
 export function generateWallet(): { address: string; privateKey: string } {
@@ -57,18 +69,45 @@ export function decryptPrivateKey(encryptedData: string): string {
   return decipher.update(encrypted).toString('utf8') + decipher.final('utf8');
 }
 
+export async function getOnChainBalance(
+  walletAddress: string,
+  currency: 'BNB' | 'USDT' | 'COYN'
+): Promise<string> {
+  const provider = await getProvider();
+  if (currency === 'BNB') {
+    const balance = await provider.getBalance(walletAddress);
+    return ethers.formatEther(balance);
+  }
+  const tokenAddress = TOKEN_CONTRACTS[currency];
+  const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  const balance = await contract.balanceOf(walletAddress);
+  return ethers.formatUnits(balance, 18);
+}
+
 export async function sendBNBInternal(
   encryptedPrivateKey: string,
   toAddress: string,
   amount: string
 ): Promise<{ transactionHash: string }> {
   const privateKey = decryptPrivateKey(encryptedPrivateKey);
-  const provider = getProvider();
+  const provider = await getProvider();
   const wallet = new ethers.Wallet(privateKey, provider);
 
   const amountWei = ethers.parseEther(amount);
   const feeData = await provider.getFeeData();
   const gasPrice = feeData.gasPrice ?? ethers.parseUnits('5', 'gwei');
+  const gasCost = gasPrice * 21000n;
+
+  const bnbBalance = await provider.getBalance(wallet.address);
+  const totalRequired = amountWei + gasCost;
+  if (bnbBalance < totalRequired) {
+    const formatted = ethers.formatEther(bnbBalance);
+    const required = ethers.formatEther(totalRequired);
+    throw new Error(
+      `Insufficient on-chain BNB. Wallet has ${formatted} BNB but needs ${required} BNB (including gas). ` +
+      `Please deposit BNB to your COYN wallet: ${wallet.address}`
+    );
+  }
 
   const tx = await wallet.sendTransaction({
     to: toAddress,
@@ -89,13 +128,38 @@ export async function sendERC20Internal(
   amount: string
 ): Promise<{ transactionHash: string }> {
   const privateKey = decryptPrivateKey(encryptedPrivateKey);
-  const provider = getProvider();
+  const provider = await getProvider();
   const wallet = new ethers.Wallet(privateKey, provider);
 
   const tokenAddress = TOKEN_CONTRACTS[tokenSymbol];
   const contract = new ethers.Contract(tokenAddress, ERC20_ABI, wallet);
 
   const amountWei = ethers.parseUnits(amount, 18);
+
+  const tokenBalance = await contract.balanceOf(wallet.address);
+  if (tokenBalance < amountWei) {
+    const formatted = ethers.formatUnits(tokenBalance, 18);
+    throw new Error(
+      `Insufficient on-chain ${tokenSymbol}. Wallet has ${formatted} ${tokenSymbol} on BSC but needs ${amount}. ` +
+      `Please deposit real ${tokenSymbol} to your COYN wallet: ${wallet.address}`
+    );
+  }
+
+  const bnbBalance = await provider.getBalance(wallet.address);
+  const estimatedGas = await contract.transfer.estimateGas(toAddress, amountWei);
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits('5', 'gwei');
+  const gasCost = estimatedGas * gasPrice;
+
+  if (bnbBalance < gasCost) {
+    const formatted = ethers.formatEther(bnbBalance);
+    const required = ethers.formatEther(gasCost);
+    throw new Error(
+      `Insufficient BNB for gas. Wallet has ${formatted} BNB but needs ~${required} BNB for fees. ` +
+      `Please deposit BNB to your COYN wallet: ${wallet.address}`
+    );
+  }
+
   const tx = await contract.transfer(toAddress, amountWei);
   const receipt = await tx.wait();
   if (!receipt) throw new Error('No receipt received from BSC network');
