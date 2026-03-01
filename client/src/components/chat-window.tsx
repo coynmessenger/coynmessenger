@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useActiveAccount } from "thirdweb/react";
+import { sendAndConfirmTransaction, prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
+import { bsc } from "thirdweb/chains";
+import { thirdwebClient } from "@/lib/thirdweb-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -104,7 +108,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const connectedUserId = getConnectedUserId();
-  
+  const activeAccount = useActiveAccount();
+
+  const TOKEN_CONTRACTS: Record<string, string> = {
+    USDT: '0x55d398326f99059fF775485246999027B3197955',
+    COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
+  };
+
   // Check if this is a self-conversation (messaging yourself)
   const isSelfConversation = conversation?.otherUser ? connectedUserId === conversation.otherUser.id : false;
 
@@ -829,25 +839,57 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      // Server-side BSC transaction — no external wallet popup
-      return apiRequest("POST", "/api/wallet/send-internal", {
+      if (!activeAccount) throw new Error("Please connect your wallet first to send crypto");
+
+      // Step 1: Get recipient's COYN internal wallet address (auto-created if needed)
+      const recipientResp = await fetch(`/api/wallet/internal-address?userId=${cryptoData.toUserId}`);
+      if (!recipientResp.ok) throw new Error("Failed to get recipient wallet address");
+      const recipientData = await recipientResp.json();
+      const recipientAddress: string = recipientData.walletAddress;
+
+      // Step 2: Build and send the on-chain transaction via user's connected external wallet
+      let transactionHash: string;
+
+      if (cryptoData.currency === 'BNB') {
+        const tx = prepareTransaction({
+          client: thirdwebClient,
+          chain: bsc,
+          to: recipientAddress,
+          value: toWei(cryptoData.amount),
+        });
+        const receipt = await sendAndConfirmTransaction({ transaction: tx, account: activeAccount });
+        transactionHash = receipt.transactionHash;
+      } else {
+        const tokenAddress = TOKEN_CONTRACTS[cryptoData.currency];
+        if (!tokenAddress) throw new Error(`Unsupported currency: ${cryptoData.currency}`);
+        const contract = getContract({ client: thirdwebClient, chain: bsc, address: tokenAddress });
+        const tx = prepareContractCall({
+          contract,
+          method: "function transfer(address to, uint256 amount) returns (bool)",
+          params: [recipientAddress, toUnits(cryptoData.amount, 18)],
+        });
+        const receipt = await sendAndConfirmTransaction({ transaction: tx, account: activeAccount });
+        transactionHash = receipt.transactionHash;
+      }
+
+      // Step 3: Record the completed transfer server-side (updates DB + creates message)
+      return apiRequest("POST", "/api/wallet/record-transfer", {
         fromUserId: connectedUserId,
         toUserId: cryptoData.toUserId,
         currency: cryptoData.currency,
         amount: cryptoData.amount,
+        transactionHash,
         conversationId: cryptoData.conversationId,
       });
     },
     onSuccess: async (data, variables) => {
-      // Use startTransition to prevent blocking video call modal renders
       startTransition(() => {
         setCryptoAmount("");
         setSelectedCrypto("");
         setShowCryptoModal(false);
         setCryptoStep("amount");
       });
-      
-      // Defer query invalidations to prevent video call interference
+
       setTimeout(() => {
         startTransition(() => {
           queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
@@ -855,24 +897,20 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", connectedUserId] });
         });
       }, 150);
-      
-      const isOnChain = !!data?.transactionHash;
+
       const recipient = conversation.otherUser?.displayName || "Unknown User";
-      
       toast({
-        title: isOnChain ? "Blockchain Transaction Confirmed" : "COYN Internal Transfer Complete",
-        description: isOnChain
-          ? `${variables.amount} ${variables.currency} sent on-chain to ${recipient}`
-          : `${variables.amount} ${variables.currency} sent to ${recipient} via COYN platform (instant, no gas)`,
-        duration: 5000
+        title: "Transaction Confirmed on BSC",
+        description: `${variables.amount} ${variables.currency} sent to ${recipient}`,
+        duration: 5000,
       });
-      
-      if (isOnChain && data?.transactionHash) {
+
+      if (data?.transactionHash) {
         setTimeout(() => {
           toast({
             title: "Transaction Hash",
             description: `Hash: ${data.transactionHash}`,
-            duration: 10000
+            duration: 10000,
           });
         }, 1000);
       }
@@ -2151,30 +2189,21 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {formatTimestamp(msg.timestamp)}
                           </div>
-                          {/* Transaction status */}
-                          {(msg.cryptoCurrency === 'BNB' || msg.cryptoCurrency === 'USDT' || msg.cryptoCurrency === 'COYN') && (
+                          {/* BSCScan transaction link */}
+                          {msg.transactionHash && (msg.cryptoCurrency === 'BNB' || msg.cryptoCurrency === 'USDT' || msg.cryptoCurrency === 'COYN') && (
                             <div className="mt-3">
-                              {msg.transactionHash ? (
-                                <a
-                                  href={`https://bscscan.com/tx/${msg.transactionHash}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-700/50"
-                                >
-                                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
-                                    <path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2v-2a1 1 0 10-2 0v2H5V7h2a1 1 0 000-2H5z"/>
-                                  </svg>
-                                  <span>View on BSCScan</span>
-                                </a>
-                              ) : (
-                                <span className="inline-flex items-center space-x-1 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full border border-green-200 dark:border-green-700/50">
-                                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                                  </svg>
-                                  <span>COYN Internal Transfer</span>
-                                </span>
-                              )}
+                              <a
+                                href={`https://bscscan.com/tx/${msg.transactionHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-700/50"
+                              >
+                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
+                                  <path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2v-2a1 1 0 10-2 0v2H5V7h2a1 1 0 000-2H5z"/>
+                                </svg>
+                                <span>View on BSCScan</span>
+                              </a>
                             </div>
                           )}
                         </div>

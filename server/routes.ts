@@ -927,6 +927,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get (or auto-create) a user's internal BSC wallet address — used by frontend before sending on-chain
+  app.get("/api/wallet/internal-address", async (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string);
+      if (!userId) return res.status(400).json({ message: "userId required" });
+
+      let user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (!user.internalWalletAddress) {
+        const { address, privateKey } = generateWallet();
+        const encrypted = encryptPrivateKey(privateKey);
+        await storage.updateUser(userId, { internalWalletAddress: address, encryptedPrivateKey: encrypted });
+        user.internalWalletAddress = address;
+      }
+
+      return res.json({ walletAddress: user.internalWalletAddress });
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get wallet address" });
+    }
+  });
+
+  // Record a completed on-chain transfer — called by frontend after Thirdweb broadcasts the tx
+  // Updates DB balances and creates the chat message. Does NOT sign anything.
+  app.post("/api/wallet/record-transfer", walletLimiter, async (req, res) => {
+    try {
+      const {
+        fromUserId,
+        toUserId,
+        toAddress,
+        currency: rawCurrency,
+        amount,
+        transactionHash,
+        conversationId,
+      } = req.body;
+
+      const currency = sanitizeText(rawCurrency);
+      if (!fromUserId || !currency || !amount || !transactionHash) {
+        return res.status(400).json({ message: "fromUserId, currency, amount, and transactionHash are required" });
+      }
+      if (!toUserId && !toAddress) {
+        return res.status(400).json({ message: "toUserId or toAddress required" });
+      }
+
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      // Update internal DB balances to reflect the completed on-chain transfer
+      if (toUserId) {
+        // User-to-user: ensure both users have internal wallets and transfer DB balance
+        const recipientUser = await storage.getUser(toUserId);
+        if (!recipientUser) return res.status(404).json({ message: "Recipient not found" });
+
+        if (!recipientUser.internalWalletAddress) {
+          const { address: rAddr, privateKey: rKey } = generateWallet();
+          await storage.updateUser(toUserId, {
+            internalWalletAddress: rAddr,
+            encryptedPrivateKey: encryptPrivateKey(rKey),
+          });
+        }
+
+        await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
+      } else {
+        // External send: deduct from sender DB balance only
+        const senderBal = await storage.getUserCurrencyBalance(fromUserId, currency);
+        if (senderBal) {
+          const newBalance = (parseFloat(senderBal.balance) - numAmount).toFixed(8);
+          await storage.updateWalletBalance(fromUserId, currency, { balance: newBalance });
+        }
+      }
+
+      // Create chat message with the real BSCScan hash
+      if (conversationId && toUserId) {
+        await storage.createMessage({
+          conversationId,
+          senderId: fromUserId,
+          content: `Sent ${amount} ${currency}`,
+          messageType: "crypto_transfer" as const,
+          cryptoAmount: amount,
+          cryptoCurrency: currency,
+          transactionHash,
+        });
+      }
+
+      console.log(`✅ On-chain transfer recorded: ${numAmount} ${currency}, hash: ${transactionHash}`);
+      return res.json({ message: "Transfer recorded", transactionHash, currency, amount: numAmount });
+    } catch (error: any) {
+      console.error("record-transfer error:", error);
+      res.status(500).json({ message: error.message || "Failed to record transfer" });
+    }
+  });
+
   // Server-side blockchain transaction — no external wallet popup needed
   // Accepts toUserId (COYN user) or toAddress (any BSC address)
   app.post("/api/wallet/send-internal", walletLimiter, async (req, res) => {

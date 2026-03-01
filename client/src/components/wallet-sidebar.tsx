@@ -29,7 +29,10 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { apiRequest } from "@/lib/queryClient";
+import { useActiveAccount } from "thirdweb/react";
+import { sendAndConfirmTransaction, prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
+import { bsc } from "thirdweb/chains";
+import { thirdwebClient } from "@/lib/thirdweb-client";
 
 interface WalletSidebarProps {
   isOpen: boolean;
@@ -50,7 +53,13 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
   const { toast } = useToast();
-  
+  const activeAccount = useActiveAccount();
+
+  const TOKEN_CONTRACTS: Record<string, string> = {
+    USDT: '0x55d398326f99059fF775485246999027B3197955',
+    COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
+  };
+
   // Use internal wallet address for receiving — this is the COYN server-managed BSC wallet
   const receiveAddress = user?.internalWalletAddress || user?.walletAddress || "";
 
@@ -302,16 +311,45 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   };
 
-  // Send crypto mutation — signs and broadcasts via server-side BSC wallet (no external wallet popup)
+  // Send crypto mutation — signs on-chain via user's connected external wallet (gas paid by user's BNB)
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      const result = await apiRequest("POST", "/api/wallet/send-internal", {
+      if (!activeAccount) throw new Error("Please connect your wallet first to send crypto");
+
+      let transactionHash: string;
+
+      if (currency === 'BNB') {
+        const tx = prepareTransaction({
+          client: thirdwebClient,
+          chain: bsc,
+          to: address,
+          value: toWei(amount),
+        });
+        const receipt = await sendAndConfirmTransaction({ transaction: tx, account: activeAccount });
+        transactionHash = receipt.transactionHash;
+      } else {
+        const tokenAddress = TOKEN_CONTRACTS[currency];
+        if (!tokenAddress) throw new Error(`Unsupported currency: ${currency}`);
+        const contract = getContract({ client: thirdwebClient, chain: bsc, address: tokenAddress });
+        const tx = prepareContractCall({
+          contract,
+          method: "function transfer(address to, uint256 amount) returns (bool)",
+          params: [address, toUnits(amount, 18)],
+        });
+        const receipt = await sendAndConfirmTransaction({ transaction: tx, account: activeAccount });
+        transactionHash = receipt.transactionHash;
+      }
+
+      // Record the completed on-chain transfer server-side (deducts DB balance)
+      await apiRequest("POST", "/api/wallet/record-transfer", {
         fromUserId: userId,
         toAddress: address,
         currency,
         amount,
-      }) as any;
-      return { transactionHash: result.transactionHash, currency, amount, address };
+        transactionHash,
+      });
+
+      return { transactionHash, currency, amount, address };
     },
     onSuccess: (data: any) => {
       const isOnChain = !!data?.transactionHash;
