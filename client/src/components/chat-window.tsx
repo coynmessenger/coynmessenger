@@ -3065,12 +3065,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-blue-900/30 dark:to-indigo-900/30 backdrop-blur-sm border border-blue-200/60 dark:border-blue-700/60 rounded-xl p-4 shadow-sm">
-                  <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                    <strong className="font-semibold">💼 Wallet approval required:</strong> Clicking "Send" will open <strong>{getConnectedWalletName()}</strong> for you to approve the transaction. Gas fees (BNB) are paid from your connected wallet.
-                  </p>
-                </div>
-
                 <div className="bg-gradient-to-r from-amber-50/90 to-yellow-50/90 dark:from-yellow-900/30 dark:to-amber-900/30 backdrop-blur-sm border border-amber-200/60 dark:border-yellow-700/60 rounded-xl p-4 shadow-sm">
                   <p className="text-sm text-amber-800 dark:text-yellow-200 leading-relaxed">
                     <strong className="font-semibold">⚠️ Important:</strong> This transaction cannot be reversed. Please verify all details before confirming.
