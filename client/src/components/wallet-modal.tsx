@@ -16,7 +16,7 @@ import QRCode from "qrcode";
 import { generateMetaMaskQRCode } from "@/lib/qr-generator";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import { apiRequest } from "@/lib/queryClient";
-import { useSendAndConfirmTransaction } from "thirdweb/react";
+import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
 import { bsc } from "thirdweb/chains";
 import { thirdwebClient } from "@/lib/thirdweb-client";
@@ -30,7 +30,23 @@ interface WalletModalProps {
 export default function WalletModal({ isOpen, onClose, initialCurrency }: WalletModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const activeAccount = useActiveAccount();
+  const activeWallet = useActiveWallet();
   const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
+
+  const WALLET_DEEP_LINKS: Record<string, string> = {
+    'io.metamask': 'metamask://',
+    'com.trustwallet.app': 'trust://',
+    'com.coinbase.wallet': 'cbwallet://',
+    'com.bitget.web3': 'bitkeep://',
+    'io.rabby': 'rabby://',
+  };
+
+  const openWalletForApproval = () => {
+    const walletId = activeWallet?.id || localStorage.getItem('connectedWalletId') || '';
+    const deepLink = WALLET_DEEP_LINKS[walletId];
+    if (deepLink) window.open(deepLink, '_blank');
+  };
 
   const TOKEN_CONTRACTS: Record<string, string> = {
     USDT: '0x55d398326f99059fF775485246999027B3197955',
@@ -117,6 +133,10 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       amount: string; 
       recipientAddress: string;
     }) => {
+      if (!activeAccount) {
+        throw new Error("Your wallet is not connected. Please reconnect your wallet on the home page.");
+      }
+
       let transactionHash: string;
 
       if (data.currency === 'BNB') {
@@ -126,6 +146,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           to: data.recipientAddress,
           value: toWei(data.amount),
         });
+        openWalletForApproval();
         const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       } else {
@@ -137,6 +158,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           method: "function transfer(address to, uint256 amount) returns (bool)",
           params: [data.recipientAddress, toUnits(data.amount, 18)],
         });
+        openWalletForApproval();
         const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       }

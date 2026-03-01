@@ -29,7 +29,7 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { useSendAndConfirmTransaction } from "thirdweb/react";
+import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
 import { bsc } from "thirdweb/chains";
 import { thirdwebClient } from "@/lib/thirdweb-client";
@@ -53,7 +53,23 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
   const { toast } = useToast();
+  const activeAccount = useActiveAccount();
+  const activeWallet = useActiveWallet();
   const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
+
+  const WALLET_DEEP_LINKS: Record<string, string> = {
+    'io.metamask': 'metamask://',
+    'com.trustwallet.app': 'trust://',
+    'com.coinbase.wallet': 'cbwallet://',
+    'com.bitget.web3': 'bitkeep://',
+    'io.rabby': 'rabby://',
+  };
+
+  const openWalletForApproval = () => {
+    const walletId = activeWallet?.id || localStorage.getItem('connectedWalletId') || '';
+    const deepLink = WALLET_DEEP_LINKS[walletId];
+    if (deepLink) window.open(deepLink, '_blank');
+  };
 
   const TOKEN_CONTRACTS: Record<string, string> = {
     USDT: '0x55d398326f99059fF775485246999027B3197955',
@@ -314,6 +330,10 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   // Send crypto mutation — signs on-chain via user's connected external wallet (gas paid by user's BNB)
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
+      if (!activeAccount) {
+        throw new Error("Your wallet is not connected. Please reconnect your wallet on the home page.");
+      }
+
       let transactionHash: string;
 
       if (currency === 'BNB') {
@@ -323,6 +343,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           to: address,
           value: toWei(amount),
         });
+        openWalletForApproval();
         const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       } else {
@@ -334,6 +355,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           method: "function transfer(address to, uint256 amount) returns (bool)",
           params: [address, toUnits(amount, 18)],
         });
+        openWalletForApproval();
         const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       }

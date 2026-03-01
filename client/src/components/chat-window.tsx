@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useSendAndConfirmTransaction } from "thirdweb/react";
+import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
 import { bsc } from "thirdweb/chains";
 import { thirdwebClient } from "@/lib/thirdweb-client";
@@ -108,7 +108,29 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const connectedUserId = getConnectedUserId();
+  const activeAccount = useActiveAccount();
+  const activeWallet = useActiveWallet();
   const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
+
+  // Maps wallet IDs to mobile deep-link schemes so we can redirect user to their wallet app
+  const WALLET_DEEP_LINKS: Record<string, string> = {
+    'io.metamask': 'metamask://',
+    'com.trustwallet.app': 'trust://',
+    'com.coinbase.wallet': 'cbwallet://',
+    'com.bitget.web3': 'bitkeep://',
+    'io.rabby': 'rabby://',
+  };
+
+  // After submitting a WalletConnect transaction request, open the wallet app so the
+  // user can see and approve it. Falls back silently if deep-linking isn't supported.
+  const openWalletForApproval = () => {
+    const walletId = activeWallet?.id || localStorage.getItem('connectedWalletId') || '';
+    const deepLink = WALLET_DEEP_LINKS[walletId];
+    if (deepLink) {
+      window.open(deepLink, '_blank');
+    }
+    // walletConnect sessions rely on push notifications / the relay — no generic URI
+  };
 
   const TOKEN_CONTRACTS: Record<string, string> = {
     USDT: '0x55d398326f99059fF775485246999027B3197955',
@@ -839,13 +861,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
+      // Guard: wallet must be connected
+      if (!activeAccount) {
+        throw new Error("Your wallet is not connected. Please go back to the home page and reconnect your wallet.");
+      }
+
       // Step 1: Get recipient's COYN internal wallet address (auto-created if needed)
       const recipientResp = await fetch(`/api/wallet/internal-address?userId=${cryptoData.toUserId}`);
       if (!recipientResp.ok) throw new Error("Failed to get recipient wallet address");
       const recipientData = await recipientResp.json();
       const recipientAddress: string = recipientData.walletAddress;
 
-      // Step 2: Build and send the on-chain transaction — triggers wallet approval popup
+      // Step 2: Build and broadcast via the user's connected wallet — opens wallet for approval
       let transactionHash: string;
 
       if (cryptoData.currency === 'BNB') {
@@ -855,6 +882,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           to: recipientAddress,
           value: toWei(cryptoData.amount),
         });
+        openWalletForApproval();
         const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       } else {
@@ -866,6 +894,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           method: "function transfer(address to, uint256 amount) returns (bool)",
           params: [recipientAddress, toUnits(cryptoData.amount, 18)],
         });
+        openWalletForApproval();
         const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       }
@@ -3036,6 +3065,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 </div>
                 
+                <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-blue-900/30 dark:to-indigo-900/30 backdrop-blur-sm border border-blue-200/60 dark:border-blue-700/60 rounded-xl p-4 shadow-sm">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                    <strong className="font-semibold">💼 Wallet approval required:</strong> Clicking "Send" will open <strong>{getConnectedWalletName()}</strong> for you to approve the transaction. Gas fees (BNB) are paid from your connected wallet.
+                  </p>
+                </div>
+
                 <div className="bg-gradient-to-r from-amber-50/90 to-yellow-50/90 dark:from-yellow-900/30 dark:to-amber-900/30 backdrop-blur-sm border border-amber-200/60 dark:border-yellow-700/60 rounded-xl p-4 shadow-sm">
                   <p className="text-sm text-amber-800 dark:text-yellow-200 leading-relaxed">
                     <strong className="font-semibold">⚠️ Important:</strong> This transaction cannot be reversed. Please verify all details before confirming.
@@ -3051,7 +3086,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     {sendCryptoMutation.isPending ? (
                       <span className="flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Sending...</span>
+                        <span>Approve in {getConnectedWalletName()}…</span>
                       </span>
                     ) : (
                       `Send ${selectedCrypto}`
