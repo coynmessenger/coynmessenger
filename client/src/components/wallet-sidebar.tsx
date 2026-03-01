@@ -31,7 +31,7 @@ import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
 import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
-import { bsc } from "thirdweb/chains";
+import { bsc } from "@/lib/bsc-chain";
 import { thirdwebClient } from "@/lib/thirdweb-client";
 
 interface WalletSidebarProps {

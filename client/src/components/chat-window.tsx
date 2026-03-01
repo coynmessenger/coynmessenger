@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
-import { bsc } from "thirdweb/chains";
+import { bsc } from "@/lib/bsc-chain";
 import { thirdwebClient } from "@/lib/thirdweb-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
