@@ -2,36 +2,30 @@ import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 import { bsc } from "@/lib/bsc-chain";
-import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import cryptoWalletPath from "@assets/cryptowallet_1769059838820.png";
 import { MessageSquare } from "lucide-react";
+import { clearAllWalletSessions } from "@/lib/wallet-session";
+
+export { clearAllWalletSessions };
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
 });
 
-// Configure supported chains - BSC for BNB, USDT, and COYN tokens
 const supportedChains = [bsc];
 
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-const wallets = isMobile
-  ? [
-      createWallet("io.metamask"),
-      createWallet("com.trustwallet.app"),
-      createWallet("com.coinbase.wallet"),
-      createWallet("com.bitget.web3"),
-      createWallet("io.zerion.wallet"),
-    ]
-  : [
-      createWallet("walletConnect"),
-      createWallet("io.metamask"),
-      createWallet("com.coinbase.wallet"),
-      createWallet("com.bitget.web3"),
-      createWallet("io.rabby"),
-      createWallet("io.zerion.wallet"),
-      createWallet("com.trustwallet.app"),
-    ];
+// WalletConnect is listed first — it bypasses window.ethereum injection which
+// Trust Wallet overrides on mobile, preventing other wallets from connecting.
+// All listed wallets also appear as EIP-6963 options on desktop.
+const wallets = [
+  createWallet("walletConnect"),
+  createWallet("io.metamask"),
+  createWallet("com.coinbase.wallet"),
+  createWallet("com.bitget.web3"),
+  createWallet("io.rabby"),
+  createWallet("io.zerion.wallet"),
+  createWallet("com.trustwallet.app"),
+];
 
 interface ThirdwebWalletConnectorProps {
   onConnect?: (address: string) => void;
@@ -44,14 +38,11 @@ export default function ThirdwebWalletConnector({
   onDisconnect, 
   className 
 }: ThirdwebWalletConnectorProps) {
-  // Check if user has explicitly signed out to prevent autoconnect
-  const userSignedOut = localStorage.getItem('userSignedOut') === 'true';
-  
   return (
     <div className="p-1 rounded-xl border-2 border-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.3)]">
       <ConnectButton
         client={client}
-        autoConnect={!userSignedOut}
+        autoConnect={false}
         chains={supportedChains}
         connectModal={{ 
           size: "wide",
@@ -60,7 +51,7 @@ export default function ThirdwebWalletConnector({
           showThirdwebBranding: false,
           welcomeScreen: {
             title: "Connect to COYN Messenger",
-            subtitle: "Secure crypto messaging on BSC network"
+            subtitle: "Use WalletConnect or select your wallet below",
           },
         }}
         detailsModal={{
@@ -120,83 +111,77 @@ export default function ThirdwebWalletConnector({
             touch-manipulation select-none
           `
         }}
-      detailsButton={{
-        className: `
-          bg-gradient-to-r from-orange-500 to-orange-600 
-          hover:from-orange-600 hover:to-orange-700 active:from-orange-700 active:to-orange-800
-          text-white font-medium py-2 px-4 min-h-[44px] rounded-lg 
-          transition-all duration-200 shadow-md hover:shadow-lg
-          border border-orange-400/20
-          touch-manipulation select-none
-        `
-      }}
-      onConnect={async (wallet) => {
-        try {
-          console.log('🎯 WALLET: Connection approved in wallet, processing...');
-          const account = wallet.getAccount();
-          const chain = wallet.getChain();
-          // Persist the wallet type ID so confirmation screens can display it
-          localStorage.setItem('connectedWalletId', wallet.id);
-          
-          console.log('🔗 WALLET: Connected to chain:', { 
-            chainId: chain?.id, 
-            chainName: chain?.name || 'BSC',
-            address: account?.address 
-          });
-          
-          // Ensure we're on BSC network (chain ID 56)
-          if (chain?.id !== 56) {
-            console.log('⚠️ WALLET: Not on BSC, attempting to switch to BSC network...');
-            try {
-              await wallet.switchChain(bsc);
-              console.log('✅ WALLET: Successfully switched to BSC network');
-            } catch (switchError) {
-              console.log('ℹ️ WALLET: Chain switch not needed or handled by wallet app');
+        detailsButton={{
+          className: `
+            bg-gradient-to-r from-orange-500 to-orange-600 
+            hover:from-orange-600 hover:to-orange-700 active:from-orange-700 active:to-orange-800
+            text-white font-medium py-2 px-4 min-h-[44px] rounded-lg 
+            transition-all duration-200 shadow-md hover:shadow-lg
+            border border-orange-400/20
+            touch-manipulation select-none
+          `
+        }}
+        onConnect={async (wallet) => {
+          try {
+            console.log('🎯 WALLET: Connection approved, processing...');
+            const account = wallet.getAccount();
+            const chain = wallet.getChain();
+
+            // Save wallet identity for confirmation screens
+            localStorage.setItem('connectedWalletId', wallet.id);
+            
+            console.log('🔗 WALLET: Connected:', { 
+              walletId: wallet.id,
+              chainId: chain?.id, 
+              address: account?.address 
+            });
+            
+            // Switch to BSC if not already on it
+            if (chain?.id !== 56) {
+              console.log('⚠️ WALLET: Switching to BSC...');
+              try {
+                await wallet.switchChain(bsc);
+                console.log('✅ WALLET: Switched to BSC');
+              } catch (switchError) {
+                console.log('ℹ️ WALLET: Chain switch handled by wallet app');
+              }
             }
+            
+            if (account?.address && onConnect) {
+              localStorage.removeItem('userSignedOut');
+              window.dispatchEvent(new StorageEvent('storage', {
+                key: 'userSignedOut',
+                newValue: null,
+                oldValue: 'true'
+              }));
+              window.dispatchEvent(new StorageEvent('storage', {
+                key: 'walletConnected',
+                newValue: 'pending',
+                oldValue: null
+              }));
+              onConnect(account.address);
+            } else {
+              console.error('❌ WALLET: No address found');
+            }
+          } catch (error) {
+            console.error('❌ WALLET: Connection error:', error);
           }
-          
-          if (account?.address && onConnect) {
-            console.log('✅ WALLET: Got address from wallet, initiating COYN connection...', account.address);
-            console.log('📱 MOBILE: Wallet approved, processing connection for automatic redirect...');
-            
-            // CRITICAL: Clear userSignedOut flag IMMEDIATELY when wallet approves
-            console.log('🔓 WALLET: Clearing sign-out flag for wallet approval...');
-            localStorage.removeItem('userSignedOut');
-            
-            // Trigger a storage event to ensure homepage detects the connection
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'userSignedOut',
-              newValue: null,
-              oldValue: 'true'
-            }));
-            
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'walletConnected',
-              newValue: 'pending',
-              oldValue: null
-            }));
-            
-            onConnect(account.address);
-          } else {
-            console.error('❌ WALLET: No address found in wallet account');
+        }}
+        onDisconnect={() => {
+          console.log('🔌 WALLET: Disconnecting...');
+          // Clear COYN session data
+          localStorage.setItem('userSignedOut', 'true');
+          localStorage.removeItem('walletConnected');
+          localStorage.removeItem('connectedUser');
+          localStorage.removeItem('connectedUserId');
+          localStorage.removeItem('connectedWalletId');
+          // Clear all Thirdweb + WalletConnect session data
+          clearAllWalletSessions();
+          console.log('✅ WALLET: Disconnect complete');
+          if (onDisconnect) {
+            onDisconnect();
           }
-        } catch (error) {
-          console.error('❌ WALLET: Error getting wallet account:', error);
-        }
-      }}
-      onDisconnect={() => {
-        console.log('🔌 WALLET: Disconnecting wallet...');
-        console.log('🔌 WALLET: Setting userSignedOut flag');
-        localStorage.setItem('userSignedOut', 'true');
-        localStorage.removeItem('walletConnected');
-        localStorage.removeItem('connectedUser');
-        localStorage.removeItem('connectedUserId');
-        localStorage.removeItem('connectedWalletId');
-        console.log('✅ WALLET: Disconnect complete, storage cleared');
-        if (onDisconnect) {
-          onDisconnect();
-        }
-      }}
+        }}
       />
     </div>
   );

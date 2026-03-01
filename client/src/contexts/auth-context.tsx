@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import type { User } from "@shared/schema";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { clearAllWalletSessions } from "@/lib/wallet-session";
 
 interface AuthContextType {
   user: User | null;
@@ -61,6 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEYS.WALLET_CONNECTED);
     localStorage.setItem(STORAGE_KEYS.USER_SIGNED_OUT, "true");
     localStorage.removeItem(STORAGE_KEYS.USER_CLICKED_HOME);
+    localStorage.removeItem('connectedWalletId');
+    // Clear all Thirdweb + WalletConnect session data
+    clearAllWalletSessions();
   }, []);
 
   const updateUser = useCallback((updates: Partial<User>) => {

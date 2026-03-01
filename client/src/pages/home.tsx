@@ -16,7 +16,7 @@ import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
-import ThirdwebWalletConnector from "@/components/thirdweb-wallet-connector";
+import ThirdwebWalletConnector, { clearAllWalletSessions } from "@/components/thirdweb-wallet-connector";
 import type { User } from "@shared/schema";
 
 export default function HomePage() {
@@ -201,15 +201,18 @@ export default function HomePage() {
     // Set explicit sign out flag
     localStorage.setItem('userSignedOut', 'true');
     
-    // Clear ALL localStorage items
+    // Clear ALL localStorage items (COYN session)
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');
     localStorage.removeItem('connectedUserId');
+    localStorage.removeItem('connectedWalletId');
     localStorage.removeItem('pendingWalletConnection');
     localStorage.removeItem('shopping-cart');
     localStorage.removeItem('theme');
     localStorage.removeItem('favorites');
     localStorage.removeItem('wallet-balances-hidden');
+    // Clear all Thirdweb + WalletConnect session data so no stale wallet is auto-reconnected
+    clearAllWalletSessions();
     
     // Clear session storage
     sessionStorage.clear();
