@@ -631,6 +631,27 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
             </div>
 
             <div className="p-5 space-y-5">
+              {/* Connected wallet badge */}
+              {(() => {
+                const walletId = localStorage.getItem('connectedWalletId') || '';
+                const names: Record<string, string> = {
+                  'io.metamask': 'MetaMask',
+                  'com.trustwallet.app': 'Trust Wallet',
+                  'com.coinbase.wallet': 'Coinbase Wallet',
+                  'com.bitget.web3': 'Bitget Wallet',
+                  'io.rabby': 'Rabby',
+                  'io.zerion.wallet': 'Zerion',
+                  'walletConnect': 'WalletConnect',
+                };
+                const name = names[walletId] || 'COYN Wallet';
+                return (
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 bg-blue-50/60 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800/40">
+                    <span>Sending via</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">{name}</span>
+                  </div>
+                );
+              })()}
+
               {/* Amount */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">

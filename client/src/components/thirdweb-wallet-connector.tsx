@@ -135,6 +135,8 @@ export default function ThirdwebWalletConnector({
           console.log('🎯 WALLET: Connection approved in wallet, processing...');
           const account = wallet.getAccount();
           const chain = wallet.getChain();
+          // Persist the wallet type ID so confirmation screens can display it
+          localStorage.setItem('connectedWalletId', wallet.id);
           
           console.log('🔗 WALLET: Connected to chain:', { 
             chainId: chain?.id, 
@@ -189,6 +191,7 @@ export default function ThirdwebWalletConnector({
         localStorage.removeItem('walletConnected');
         localStorage.removeItem('connectedUser');
         localStorage.removeItem('connectedUserId');
+        localStorage.removeItem('connectedWalletId');
         console.log('✅ WALLET: Disconnect complete, storage cleared');
         if (onDisconnect) {
           onDisconnect();

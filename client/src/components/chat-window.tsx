@@ -74,6 +74,21 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Get queryClient instance
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  // Map Thirdweb wallet IDs to human-readable names
+  const getConnectedWalletName = () => {
+    const walletId = localStorage.getItem('connectedWalletId') || '';
+    const names: Record<string, string> = {
+      'io.metamask': 'MetaMask',
+      'com.trustwallet.app': 'Trust Wallet',
+      'com.coinbase.wallet': 'Coinbase Wallet',
+      'com.bitget.web3': 'Bitget Wallet',
+      'io.rabby': 'Rabby',
+      'io.zerion.wallet': 'Zerion',
+      'walletConnect': 'WalletConnect',
+    };
+    return names[walletId] || 'COYN Wallet';
+  };
+
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
     const storedUser = localStorage.getItem('connectedUser');
@@ -2941,9 +2956,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Signing Wallet:</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Sending via:</span>
                     <span className="text-sm font-medium text-blue-500 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-900/30 px-3 py-1 rounded-lg shadow-sm capitalize">
-                      COYN Internal Wallet
+                      {getConnectedWalletName()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
