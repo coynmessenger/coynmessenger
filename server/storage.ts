@@ -641,9 +641,9 @@ export class DatabaseStorage implements IStorage {
         throw new Error('Failed to create receiver balance');
       }
 
-      // Update balances
-      const newSenderBalance = (parseFloat(senderBalance.balance) - amount).toString();
-      const newReceiverBalance = (parseFloat(receiverBalance.balance) + amount).toString();
+      // Update balances — use toFixed(8) to prevent floating-point precision errors
+      const newSenderBalance = (parseFloat(senderBalance.balance) - amount).toFixed(8);
+      const newReceiverBalance = (parseFloat(receiverBalance.balance) + amount).toFixed(8);
 
       await this.updateWalletBalance(fromUserId, currency, { balance: newSenderBalance });
       await this.updateWalletBalance(toUserId, currency, { balance: newReceiverBalance });

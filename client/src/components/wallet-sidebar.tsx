@@ -51,11 +51,14 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   
   const { toast } = useToast();
   
+  // Use internal wallet address for receiving — this is the COYN server-managed BSC wallet
+  const receiveAddress = user?.internalWalletAddress || user?.walletAddress || "";
+
   useEffect(() => {
-    if (showQRModal && user?.walletAddress) {
+    if (showQRModal && receiveAddress) {
       const generateQR = async () => {
         try {
-          const qrUrl = await QRCode.toDataURL(user.walletAddress, {
+          const qrUrl = await QRCode.toDataURL(receiveAddress, {
             width: 200,
             margin: 2,
             color: {
@@ -70,7 +73,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
       };
       generateQR();
     }
-  }, [showQRModal, user?.walletAddress]);
+  }, [showQRModal, receiveAddress]);
 
   const startQRScanner = async () => {
     const element = document.getElementById("qr-reader");
@@ -349,12 +352,21 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   };
 
   const handleConfirmSend = () => {
-    if (!sendAmount || !recipientAddress) {
-      toast({
-        title: "Invalid Input",
-        description: "Please enter amount and recipient address.",
-        variant: "destructive",
-      });
+    if (!sendAmount || parseFloat(sendAmount) <= 0) {
+      toast({ title: "Invalid Amount", description: "Please enter a valid amount greater than zero.", variant: "destructive" });
+      return;
+    }
+    if (!recipientAddress) {
+      toast({ title: "Missing Address", description: "Please enter a recipient wallet address.", variant: "destructive" });
+      return;
+    }
+    if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
+      toast({ title: "Invalid Address", description: "Please enter a valid BSC address (0x... 42 characters).", variant: "destructive" });
+      return;
+    }
+    const balance = walletBalances.find(b => b.currency === selectedCurrency);
+    if (!balance || parseFloat(sendAmount) > parseFloat(balance.balance)) {
+      toast({ title: "Insufficient Balance", description: `Not enough ${selectedCurrency} available to send.`, variant: "destructive" });
       return;
     }
     sendCryptoMutation.mutate({ 
@@ -763,14 +775,14 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
                 </p>
                 <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800">
                   <code className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all text-left">
-                    {user?.walletAddress}
+                    {receiveAddress}
                   </code>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => user?.walletAddress && copyToClipboard(user.walletAddress)}
+                    onClick={() => receiveAddress && copyToClipboard(receiveAddress)}
                     className="h-8 w-8 p-0 flex-shrink-0 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30"
-                    disabled={!user?.walletAddress}
+                    disabled={!receiveAddress}
                   >
                     <Copy className="w-4 h-4" />
                   </Button>

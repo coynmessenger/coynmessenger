@@ -145,10 +145,22 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
   });
 
   const handleSend = () => {
-    if (!recipientAddress || !amount || sendAmount <= 0 || sendAmount > availableBalance) {
+    if (!recipientAddress) {
+      toast({ title: "Missing Address", description: "Please enter a recipient wallet address.", variant: "destructive" });
       return;
     }
-
+    if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
+      toast({ title: "Invalid Address", description: "Please enter a valid BSC address starting with 0x (42 characters).", variant: "destructive" });
+      return;
+    }
+    if (!amount || sendAmount <= 0) {
+      toast({ title: "Invalid Amount", description: "Please enter a valid amount greater than zero.", variant: "destructive" });
+      return;
+    }
+    if (sendAmount > availableBalance) {
+      toast({ title: "Insufficient Balance", description: `You only have ${availableBalance} ${selectedCurrency} available.`, variant: "destructive" });
+      return;
+    }
     sendMutation.mutate({
       currency: selectedCurrency,
       amount,
@@ -160,7 +172,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     setView("main");
     setAmount("");
     setRecipientAddress("");
-    setSelectedCurrency(initialCurrency || "BTC");
+    setSelectedCurrency(initialCurrency || "BNB");
   };
 
   const handleClose = () => {
@@ -174,11 +186,14 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
     }
   }, [initialCurrency]);
 
+  // Use the COYN internal wallet address for receiving — this is the server-managed BSC wallet
+  const receiveAddress = currentUser?.internalWalletAddress || currentUser?.walletAddress || "";
+
   useEffect(() => {
-    if (isOpen && selectedCurrency && currentUser?.walletAddress) {
+    if (isOpen && selectedCurrency && receiveAddress) {
       const generateQR = async () => {
         try {
-          const qrUrl = await QRCode.toDataURL(currentUser.walletAddress);
+          const qrUrl = await QRCode.toDataURL(receiveAddress);
           setQrCodeUrl(qrUrl);
         } catch (error) {
           console.error("Failed to generate QR code:", error);
@@ -186,7 +201,7 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       };
       generateQR();
     }
-  }, [isOpen, selectedCurrency, currentUser?.walletAddress]);
+  }, [isOpen, selectedCurrency, receiveAddress]);
 
   // Real-time cryptocurrency market prices
   const getCurrentMarketPrices = () => {
@@ -263,9 +278,9 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
 
   // Function to copy wallet address to clipboard
   const copyWalletAddress = async () => {
-    if (currentUser?.walletAddress) {
+    if (receiveAddress) {
       try {
-        await navigator.clipboard.writeText(currentUser.walletAddress);
+        await navigator.clipboard.writeText(receiveAddress);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
         toast({
@@ -330,13 +345,13 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       </div>
 
       {/* Wallet Address */}
-      {currentUser?.walletAddress && (
+      {receiveAddress && (
         <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Your Wallet Address</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Your COYN Wallet Address</p>
               <p className="text-sm font-mono text-gray-800 dark:text-gray-200 break-all leading-relaxed">
-                {currentUser.walletAddress}
+                {receiveAddress}
               </p>
             </div>
             <Button
@@ -569,13 +584,13 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
           <p className="text-sm text-gray-600 dark:text-gray-400">Your Wallet Address</p>
           <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
             <p className="font-mono text-sm text-black dark:text-white break-all">
-              {currentUser?.walletAddress}
+              {receiveAddress}
             </p>
           </div>
           <Button
             variant="outline"
             onClick={() => {
-              navigator.clipboard.writeText(currentUser?.walletAddress || "");
+              navigator.clipboard.writeText(receiveAddress);
               toast({
                 title: "Address Copied",
                 description: "Wallet address copied to clipboard",
