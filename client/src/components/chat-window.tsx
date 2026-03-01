@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useActiveAccount } from "thirdweb/react";
-import { sendAndConfirmTransaction, prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
+import { useSendAndConfirmTransaction } from "thirdweb/react";
+import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
 import { bsc } from "thirdweb/chains";
 import { thirdwebClient } from "@/lib/thirdweb-client";
 import { Button } from "@/components/ui/button";
@@ -108,7 +108,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const connectedUserId = getConnectedUserId();
-  const activeAccount = useActiveAccount();
+  const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
 
   const TOKEN_CONTRACTS: Record<string, string> = {
     USDT: '0x55d398326f99059fF775485246999027B3197955',
@@ -839,15 +839,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      if (!activeAccount) throw new Error("Please connect your wallet first to send crypto");
-
       // Step 1: Get recipient's COYN internal wallet address (auto-created if needed)
       const recipientResp = await fetch(`/api/wallet/internal-address?userId=${cryptoData.toUserId}`);
       if (!recipientResp.ok) throw new Error("Failed to get recipient wallet address");
       const recipientData = await recipientResp.json();
       const recipientAddress: string = recipientData.walletAddress;
 
-      // Step 2: Build and send the on-chain transaction via user's connected external wallet
+      // Step 2: Build and send the on-chain transaction — triggers wallet approval popup
       let transactionHash: string;
 
       if (cryptoData.currency === 'BNB') {
@@ -857,7 +855,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           to: recipientAddress,
           value: toWei(cryptoData.amount),
         });
-        const receipt = await sendAndConfirmTransaction({ transaction: tx, account: activeAccount });
+        const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       } else {
         const tokenAddress = TOKEN_CONTRACTS[cryptoData.currency];
@@ -868,7 +866,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           method: "function transfer(address to, uint256 amount) returns (bool)",
           params: [recipientAddress, toUnits(cryptoData.amount, 18)],
         });
-        const receipt = await sendAndConfirmTransaction({ transaction: tx, account: activeAccount });
+        const receipt = await sendOnChain(tx);
         transactionHash = receipt.transactionHash;
       }
 
