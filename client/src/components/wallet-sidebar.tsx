@@ -29,8 +29,7 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
-import { bsc } from "@/lib/bsc-chain";
+import { useActiveAccount } from "thirdweb/react";
 
 interface WalletSidebarProps {
   isOpen: boolean;
@@ -52,7 +51,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   
   const { toast } = useToast();
   const activeAccount = useActiveAccount();
-  const switchChain = useSwitchActiveWalletChain();
   
   useEffect(() => {
     if (showQRModal && user?.walletAddress) {
@@ -307,13 +305,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
       if (!activeAccount) {
         throw new Error('No wallet connected. Please connect your wallet first.');
-      }
-
-      // Switch to BSC network
-      try {
-        await switchChain(bsc);
-      } catch (switchError: any) {
-        throw new Error('Please switch to Binance Smart Chain (BSC) network in your wallet.');
       }
 
       let result: { transactionHash: string };

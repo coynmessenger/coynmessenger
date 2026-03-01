@@ -27,8 +27,7 @@ import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
-import { useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
-import { bsc } from "@/lib/bsc-chain";
+import { useActiveAccount } from "thirdweb/react";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search, Sparkles } from "lucide-react";
@@ -77,7 +76,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const activeAccount = useActiveAccount();
-  const switchChain = useSwitchActiveWalletChain();
 
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
@@ -834,13 +832,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         if (!activeAccount) {
           throw new Error('No wallet connected. Please connect your wallet first.');
-        }
-
-        // Switch to BSC network
-        try {
-          await switchChain(bsc);
-        } catch (switchError) {
-          throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
         }
 
         let txResult: { transactionHash: string };

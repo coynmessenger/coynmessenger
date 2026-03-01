@@ -6,9 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 import { apiRequest } from "@/lib/queryClient";
-import { bsc } from "@/lib/bsc-chain";
 import { Coins, Plus, X } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
@@ -44,7 +43,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-  const switchChain = useSwitchActiveWalletChain();
 
   const getMaxBalance = (currency: string) => {
     const balance = walletBalances.find(b => b.currency === currency);
@@ -71,13 +69,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
       
       if (!recipientData.walletAddress) {
         throw new Error('Recipient wallet address not found.');
-      }
-
-      // Switch to BSC network
-      try {
-        await switchChain(bsc);
-      } catch (switchError) {
-        throw new Error('Please switch to BSC (Binance Smart Chain) network in your wallet.');
       }
 
       let txResult: { transactionHash: string };
