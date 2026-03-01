@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useActiveAccount } from "thirdweb/react";
 import { apiRequest } from "@/lib/queryClient";
 import { Coins, Plus, X } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
@@ -42,7 +41,6 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const activeAccount = useActiveAccount();
 
   const getMaxBalance = (currency: string) => {
     const balance = walletBalances.find(b => b.currency === currency);
@@ -51,71 +49,20 @@ export function CryptoSender({ conversationId, connectedUserId, walletBalances, 
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (data: { amount: string; currency: string }) => {
-      if (!activeAccount) {
-        throw new Error('No wallet connected. Please connect your wallet first.');
-      }
-
-      // Get recipient's wallet address from conversation
+      // Get recipient ID from conversation
       const conversationResponse = await fetch(`/api/conversations/${conversationId}`);
       const conversationData = await conversationResponse.json();
       const recipientId = conversationData.participants.find((p: any) => p.id !== connectedUserId)?.id;
-      
-      if (!recipientId) {
-        throw new Error('Recipient not found in conversation.');
-      }
+      if (!recipientId) throw new Error('Recipient not found in conversation.');
 
-      const recipientResponse = await fetch(`/api/user?userId=${recipientId}`);
-      const recipientData = await recipientResponse.json();
-      
-      if (!recipientData.walletAddress) {
-        throw new Error('Recipient wallet address not found.');
-      }
-
-      let txResult: { transactionHash: string };
-
-      if (data.currency === 'BNB') {
-        const amountWei = BigInt(Math.floor(parseFloat(data.amount) * 1e18));
-        txResult = await activeAccount.sendTransaction({
-          to: recipientData.walletAddress as `0x${string}`,
-          value: amountWei,
-          chainId: 56,
-        });
-      } else if (data.currency === 'USDT' || data.currency === 'COYN') {
-        const tokenAddresses = {
-          'USDT': '0x55d398326f99059fF775485246999027B3197955',
-          'COYN': '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
-        };
-        const tokenAddress = tokenAddresses[data.currency as keyof typeof tokenAddresses];
-        const amountWei = BigInt(Math.floor(parseFloat(data.amount) * 1e18));
-        const cleanAddr = recipientData.walletAddress.replace('0x', '').padStart(64, '0');
-        const callData = ('0xa9059cbb' + cleanAddr.toLowerCase() + amountWei.toString(16).padStart(64, '0')) as `0x${string}`;
-        txResult = await activeAccount.sendTransaction({
-          to: tokenAddress as `0x${string}`,
-          data: callData,
-          value: 0n,
-          chainId: 56,
-        });
-      } else {
-        throw new Error(`Unsupported currency: ${data.currency}`);
-      }
-
-      console.log('✅ Transaction successful! Hash:', txResult.transactionHash);
-
-      // Send message in chat with transaction details
-      const messageData = {
+      // Server-side BSC transaction — no external wallet popup
+      return await apiRequest("POST", "/api/wallet/send-internal", {
+        fromUserId: connectedUserId,
+        toUserId: recipientId,
+        currency: data.currency,
+        amount: data.amount,
         conversationId,
-        senderId: connectedUserId,
-        content: `💸 Sent ${data.amount} ${data.currency}`,
-        type: 'crypto',
-        cryptoAmount: data.amount,
-        cryptoCurrency: data.currency,
-        cryptoRecipient: recipientData.walletAddress,
-        transactionHash: txResult.transactionHash,
-        blockchainNetwork: 'BSC',
-        walletType: activeAccount.address
-      };
-
-      return await apiRequest("POST", "/api/messages", messageData);
+      });
     },
     onError: (error: Error) => {
       console.error('Transaction failed:', error);

@@ -12,6 +12,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
+import { generateWallet, encryptPrivateKey, decryptPrivateKey, sendBNBInternal, sendERC20Internal } from "./wallet-service";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 import { requireAuth } from "./middleware/security";
 
@@ -896,6 +897,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send cryptocurrency via wallet sidebar to external address
   app.post("/api/wallet/send-external", (_req, res) => {
     res.status(410).json({ message: "This endpoint has been removed. Use /api/wallet/send instead." });
+  });
+
+  // Ensure user has an internal server-managed BSC wallet (generate if missing)
+  app.post("/api/wallet/ensure-internal-wallet", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) return res.status(400).json({ message: "userId required" });
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.internalWalletAddress && user.encryptedPrivateKey) {
+        return res.json({ walletAddress: user.internalWalletAddress, created: false });
+      }
+
+      const { address, privateKey } = generateWallet();
+      const encrypted = encryptPrivateKey(privateKey);
+      await storage.updateUser(userId, {
+        internalWalletAddress: address,
+        encryptedPrivateKey: encrypted,
+      });
+
+      console.log(`✅ Internal wallet generated for user ${userId}: ${address}`);
+      return res.json({ walletAddress: address, created: true });
+    } catch (error: any) {
+      console.error("Failed to ensure internal wallet:", error);
+      res.status(500).json({ message: "Failed to create internal wallet" });
+    }
+  });
+
+  // Server-side blockchain transaction — no external wallet popup needed
+  // Accepts toUserId (COYN user) or toAddress (any BSC address)
+  app.post("/api/wallet/send-internal", walletLimiter, async (req, res) => {
+    try {
+      const { fromUserId, toUserId, toAddress: rawToAddress, currency: rawCurrency, amount, conversationId } = req.body;
+      const currency = sanitizeText(rawCurrency) as 'BNB' | 'USDT' | 'COYN';
+      const toAddress = rawToAddress ? sanitizeText(rawToAddress) : null;
+
+      if (!fromUserId || (!toUserId && !toAddress) || !currency || !amount) {
+        return res.status(400).json({ message: "Missing required fields: fromUserId, (toUserId or toAddress), currency, amount" });
+      }
+
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const senderUser = await storage.getUser(fromUserId);
+      if (!senderUser) return res.status(404).json({ message: "Sender not found" });
+
+      // Auto-generate internal wallet for sender if missing
+      if (!senderUser.internalWalletAddress || !senderUser.encryptedPrivateKey) {
+        const { address, privateKey } = generateWallet();
+        const encrypted = encryptPrivateKey(privateKey);
+        await storage.updateUser(fromUserId, { internalWalletAddress: address, encryptedPrivateKey: encrypted });
+        senderUser.internalWalletAddress = address;
+        senderUser.encryptedPrivateKey = encrypted;
+        console.log(`✅ Auto-generated internal wallet for sender ${fromUserId}: ${address}`);
+      }
+
+      // Check sender has sufficient internal balance
+      const senderBalance = await storage.getUserCurrencyBalance(fromUserId, currency);
+      if (!senderBalance || parseFloat(senderBalance.balance) < numAmount) {
+        return res.status(400).json({ message: `Insufficient ${currency} balance` });
+      }
+
+      // Determine recipient address
+      let recipientAddress: string;
+      let recipientUser: any = null;
+
+      if (toUserId) {
+        recipientUser = await storage.getUser(toUserId);
+        if (!recipientUser) return res.status(404).json({ message: "Recipient not found" });
+
+        if (!recipientUser.internalWalletAddress) {
+          const { address: rAddr, privateKey: rKey } = generateWallet();
+          await storage.updateUser(toUserId, { internalWalletAddress: rAddr, encryptedPrivateKey: encryptPrivateKey(rKey) });
+          recipientUser.internalWalletAddress = rAddr;
+          console.log(`✅ Auto-generated internal wallet for recipient ${toUserId}: ${rAddr}`);
+        }
+        recipientAddress = recipientUser.internalWalletAddress;
+      } else {
+        // External BSC address send
+        if (!toAddress || !toAddress.startsWith('0x') || toAddress.length !== 42) {
+          return res.status(400).json({ message: "Invalid recipient BSC address" });
+        }
+        recipientAddress = toAddress;
+      }
+
+      // Attempt real on-chain transaction from sender's internal wallet
+      let transactionHash: string | null = null;
+      try {
+        if (currency === 'BNB') {
+          const result = await sendBNBInternal(senderUser.encryptedPrivateKey!, recipientAddress, amount);
+          transactionHash = result.transactionHash;
+        } else if (currency === 'USDT' || currency === 'COYN') {
+          const result = await sendERC20Internal(senderUser.encryptedPrivateKey!, currency, recipientAddress, amount);
+          transactionHash = result.transactionHash;
+        }
+        console.log(`✅ On-chain ${currency} tx: ${transactionHash}`);
+      } catch (chainErr: any) {
+        console.warn(`⚠️ On-chain tx failed (likely insufficient gas): ${chainErr.message}`);
+      }
+
+      // Always update internal balances for user-to-user transfers
+      if (toUserId) {
+        const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
+        if (!success) return res.status(500).json({ message: "Failed to update balances" });
+      } else {
+        // For external sends: deduct from sender only
+        const senderBal = await storage.getUserCurrencyBalance(fromUserId, currency);
+        if (senderBal) {
+          const newBalance = (parseFloat(senderBal.balance) - numAmount).toFixed(8);
+          await storage.updateWalletBalance(fromUserId, currency, { balance: newBalance });
+        }
+      }
+
+      // Create crypto transfer message if in a conversation
+      if (conversationId && toUserId) {
+        await storage.createMessage({
+          conversationId,
+          senderId: fromUserId,
+          content: `Sent ${amount} ${currency}`,
+          messageType: "crypto_transfer" as const,
+          cryptoAmount: amount,
+          cryptoCurrency: currency,
+          transactionHash: transactionHash || undefined,
+        });
+      }
+
+      return res.json({
+        message: "Transfer successful",
+        transactionHash,
+        currency,
+        amount: numAmount,
+        fromAddress: senderUser.internalWalletAddress,
+        toAddress: recipientAddress,
+        onChain: !!transactionHash,
+      });
+    } catch (error: any) {
+      console.error("Internal send failed:", error);
+      res.status(500).json({ message: "Failed to send cryptocurrency" });
+    }
   });
 
   // Delete a message

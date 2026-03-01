@@ -29,7 +29,7 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { useActiveAccount } from "thirdweb/react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface WalletSidebarProps {
   isOpen: boolean;
@@ -50,7 +50,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
   const { toast } = useToast();
-  const activeAccount = useActiveAccount();
   
   useEffect(() => {
     if (showQRModal && user?.walletAddress) {
@@ -300,42 +299,15 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   };
 
-  // Send crypto mutation - initiates blockchain transaction via Thirdweb SDK
+  // Send crypto mutation — signs and broadcasts via server-side BSC wallet (no external wallet popup)
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      if (!activeAccount) {
-        throw new Error('No wallet connected. Please connect your wallet first.');
-      }
-
-      let result: { transactionHash: string };
-
-      if (currency === 'BNB') {
-        const amountWei = BigInt(Math.round(parseFloat(amount) * 1e18));
-        result = await activeAccount.sendTransaction({
-          to: address as `0x${string}`,
-          value: amountWei,
-          chainId: 56,
-        });
-      } else if (currency === 'USDT' || currency === 'COYN') {
-        const tokenAddresses: Record<string, string> = {
-          USDT: '0x55d398326f99059fF775485246999027B3197955',
-          COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
-        };
-        const tokenAddress = tokenAddresses[currency];
-        const amountWei = BigInt(Math.round(parseFloat(amount) * 1e18));
-        const paddedAddress = address.replace('0x', '').padStart(64, '0');
-        const paddedAmount = amountWei.toString(16).padStart(64, '0');
-        const data = ('0xa9059cbb' + paddedAddress + paddedAmount) as `0x${string}`;
-        result = await activeAccount.sendTransaction({
-          to: tokenAddress as `0x${string}`,
-          data,
-          value: 0n,
-          chainId: 56,
-        });
-      } else {
-        throw new Error(`Unsupported currency: ${currency}`);
-      }
-
+      const result = await apiRequest("POST", "/api/wallet/send-internal", {
+        fromUserId: userId,
+        toAddress: address,
+        currency,
+        amount,
+      }) as any;
       return { transactionHash: result.transactionHash, currency, amount, address };
     },
     onSuccess: (data) => {

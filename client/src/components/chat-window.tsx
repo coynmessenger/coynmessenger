@@ -27,7 +27,6 @@ import { EmojiPicker } from "@/components/emoji-picker";
 import { GifPicker } from "@/components/gif-picker";
 
 import { CryptoSender } from "@/components/crypto-sender";
-import { useActiveAccount } from "thirdweb/react";
 
 import type { User, Conversation, Message, WalletBalance } from "@shared/schema";
 import { ArrowLeft, Phone, Video, MoreVertical, Plus, Smile, X, Coins, Trash2, Home, ArrowUp, ArrowDown, Reply, Share, Users, Copy, Star, Forward, MoreHorizontal, Image, Paperclip, FileText, File, Download, ChevronUp, ChevronDown, Search, Sparkles } from "lucide-react";
@@ -75,8 +74,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   // Get queryClient instance
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const activeAccount = useActiveAccount();
-
   // Get connected user ID from localStorage
   const getConnectedUserId = () => {
     const storedUser = localStorage.getItem('connectedUser');
@@ -817,68 +814,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      // For BNB, USDT, and COYN, perform blockchain transactions using Thirdweb SDK
-      if (cryptoData.currency === 'BNB' || cryptoData.currency === 'USDT' || cryptoData.currency === 'COYN') {
-        // Get recipient user wallet address from conversation data
-        const recipientAddress = conversation.otherUser.walletAddress;
-        if (!recipientAddress) {
-          throw new Error('Recipient wallet address not found');
-        }
-        
-        // Validate recipient address format for BSC tokens
-        if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
-          throw new Error(`Invalid recipient ${cryptoData.currency} address format`);
-        }
-        
-        if (!activeAccount) {
-          throw new Error('No wallet connected. Please connect your wallet first.');
-        }
-
-        let txResult: { transactionHash: string };
-
-        if (cryptoData.currency === 'BNB') {
-          const amountWei = BigInt(Math.floor(parseFloat(cryptoData.amount) * 1e18));
-          txResult = await activeAccount.sendTransaction({
-            to: recipientAddress as `0x${string}`,
-            value: amountWei,
-            chainId: 56,
-          });
-        } else if (cryptoData.currency === 'USDT' || cryptoData.currency === 'COYN') {
-          const tokenAddresses = {
-            'USDT': '0x55d398326f99059fF775485246999027B3197955',
-            'COYN': '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
-          };
-          const tokenAddress = tokenAddresses[cryptoData.currency as keyof typeof tokenAddresses];
-          const amountWei = BigInt(Math.floor(parseFloat(cryptoData.amount) * 1e18));
-          const cleanAddr = recipientAddress.replace('0x', '').padStart(64, '0');
-          const callData = ('0xa9059cbb' + cleanAddr.toLowerCase() + amountWei.toString(16).padStart(64, '0')) as `0x${string}`;
-          txResult = await activeAccount.sendTransaction({
-            to: tokenAddress as `0x${string}`,
-            data: callData,
-            value: 0n,
-            chainId: 56,
-          });
-        } else {
-          throw new Error(`Unsupported currency: ${cryptoData.currency}`);
-        }
-
-        const transactionResult = { transactionHash: txResult.transactionHash };
-
-        console.log('✅ Transaction successful! Hash:', transactionResult.transactionHash);
-
-        // Update backend with successful blockchain transaction
-        return apiRequest("POST", "/api/wallet/send", {
-          ...cryptoData,
-          fromUserId: connectedUserId,
-          transactionHash: transactionResult.transactionHash,
-          isBlockchainTransaction: true
-        });
-      }
-      
-      // For other currencies, use internal transfer
-      return apiRequest("POST", "/api/wallet/send", {
-        ...cryptoData,
-        fromUserId: connectedUserId
+      // Server-side BSC transaction — no external wallet popup
+      return apiRequest("POST", "/api/wallet/send-internal", {
+        fromUserId: connectedUserId,
+        toUserId: cryptoData.toUserId,
+        currency: cryptoData.currency,
+        amount: cryptoData.amount,
+        conversationId: cryptoData.conversationId,
       });
     },
     onSuccess: async (data, variables) => {
@@ -3001,7 +2943,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-slate-400">Signing Wallet:</span>
                     <span className="text-sm font-medium text-blue-500 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-900/30 px-3 py-1 rounded-lg shadow-sm capitalize">
-                      {activeAccount ? `${activeAccount.address.slice(0, 6)}...${activeAccount.address.slice(-4)}` : "No wallet connected"}
+                      COYN Internal Wallet
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">

@@ -12,6 +12,8 @@ export const users = pgTable("users", {
   isOnline: boolean("is_online").default(false),
   isSetup: boolean("is_setup").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
+  internalWalletAddress: text("internal_wallet_address"),
+  encryptedPrivateKey: text("encrypted_private_key"),
   // Mailing address fields for marketplace delivery
   fullName: text("full_name"),
   addressLine1: text("address_line_1"),

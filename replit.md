@@ -23,11 +23,14 @@ Preferred communication style: Simple, everyday language.
 - **Database**: PostgreSQL (Neon serverless)
 - **Session Management**: Express sessions with PostgreSQL store
 
-### Authentication Flow
+### Authentication & Transaction Architecture
 - **Standalone App Experience**: Authenticated users are automatically redirected to the main messenger interface
-- **Universal Wallet Support**: Thirdweb SDK v5 provides seamless support for all major Web3 wallets
+- **Universal Wallet Support**: Thirdweb SDK v5 provides seamless support for all major Web3 wallets for sign-in only
 - **Supported Wallets**: WalletConnect (mobile), MetaMask, Coinbase Wallet, Bitget Wallet, Trust Wallet, Rabby, Zerion
 - **Auto-Reconnection**: AutoConnect component maintains wallet connections across page navigation
+- **Server-Side Internal Wallets**: Every user gets an auto-generated BSC wallet stored server-side (AES-256-GCM encrypted private key in DB). ALL crypto transactions (BNB/USDT/COYN) are signed and broadcast by the server — zero external wallet popups during transfers
+- **Transaction Flow**: External wallet → sign-in auth only. Internal wallet (server-managed) → all on-chain activity
+- **Graceful Gas Fallback**: If internal wallet lacks gas, balance transfer still completes in the DB with `onChain: false`
 - **Visual Feedback**: Loading modals and status messages during wallet redirects and connections
 - **Auto-Navigation**: Post-authentication automatically opens the messenger with smart delay detection
 - **Authentication Guard**: HomePage checks for existing authentication and redirects to messenger immediately
