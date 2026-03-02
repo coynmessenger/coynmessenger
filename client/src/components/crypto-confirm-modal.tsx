@@ -1,38 +1,18 @@
 import { useState, useEffect } from "react";
-import { useSendTransaction, useActiveWallet } from "thirdweb/react";
-import { useActiveAccount } from "thirdweb/react";
-import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
-import { bsc } from "@/lib/bsc-chain";
-import { thirdwebClient } from "@/lib/thirdweb-client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Copy, CheckCircle2, AlertCircle, Loader2, ExternalLink } from "lucide-react";
+import { Copy, CheckCircle2, AlertCircle, Loader2, ExternalLink, Shield } from "lucide-react";
 
-const TOKEN_CONTRACTS: Record<string, string> = {
-  USDT: "0x55d398326f99059fF775485246999027B3197955",
-  COYN: "0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1",
-};
+function getCurrencyIcon(currency: string) {
+  if (currency === "BNB") return "🟡";
+  if (currency === "USDT") return "💵";
+  if (currency === "COYN") return "🪙";
+  return "💰";
+}
 
-const WALLET_DEEP_LINKS: Record<string, string> = {
-  "io.metamask": "metamask://",
-  "com.trustwallet.app": "trust://",
-  "com.coinbase.wallet": "cbwallet://",
-  "com.bitget.web3": "bitkeep://",
-  "io.rabby": "rabby://",
-};
-
-const WALLET_NAMES: Record<string, string> = {
-  "io.metamask": "MetaMask",
-  "com.trustwallet.app": "Trust Wallet",
-  "com.coinbase.wallet": "Coinbase Wallet",
-  "com.bitget.web3": "Bitget Wallet",
-  "io.rabby": "Rabby",
-  "walletConnect": "WalletConnect",
-};
-
-type TxStatus = "idle" | "fetching" | "ready" | "approving" | "broadcasting" | "confirmed" | "error";
+type TxStatus = "fetching" | "ready" | "processing" | "confirmed" | "error";
 
 interface CryptoConfirmModalProps {
   open: boolean;
@@ -43,14 +23,7 @@ interface CryptoConfirmModalProps {
   recipientDisplayName: string;
   conversationId?: number;
   senderId: number;
-  onSuccess?: (txHash: string) => void;
-}
-
-function getCurrencyIcon(currency: string) {
-  if (currency === "BNB") return "🟡";
-  if (currency === "USDT") return "💵";
-  if (currency === "COYN") return "🪙";
-  return "💰";
+  onSuccess?: (txHash: string | null) => void;
 }
 
 export default function CryptoConfirmModal({
@@ -65,23 +38,17 @@ export default function CryptoConfirmModal({
   onSuccess,
 }: CryptoConfirmModalProps) {
   const { toast } = useToast();
-  const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
-  const { mutateAsync: sendTx } = useSendTransaction();
 
-  const [txStatus, setTxStatus] = useState<TxStatus>("idle");
+  const [txStatus, setTxStatus] = useState<TxStatus>("fetching");
   const [internalAddress, setInternalAddress] = useState<string>("");
-  const [txHash, setTxHash] = useState<string>("");
+  const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
-
-  const walletId = activeWallet?.id || localStorage.getItem("connectedWalletId") || "";
-  const walletName = WALLET_NAMES[walletId] || "Your Wallet";
 
   useEffect(() => {
     if (!open || !toUserId) return;
     setTxStatus("fetching");
     setInternalAddress("");
-    setTxHash("");
+    setTxHash(null);
     setErrorMsg("");
 
     fetch(`/api/wallet/internal-address?userId=${toUserId}`)
@@ -105,89 +72,47 @@ export default function CryptoConfirmModal({
     toast({ title: "Address Copied", description: "Wallet address copied to clipboard" });
   };
 
-  const openWalletApp = () => {
-    const deepLink = WALLET_DEEP_LINKS[walletId];
-    if (deepLink) window.open(deepLink, "_blank");
-  };
-
   const handleApprove = async () => {
-    if (!activeAccount) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please reconnect your wallet on the home page.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!internalAddress) {
-      toast({ title: "Address missing", description: "Recipient address not loaded yet.", variant: "destructive" });
-      return;
-    }
-
-    setTxStatus("approving");
+    setTxStatus("processing");
     setErrorMsg("");
-    openWalletApp();
 
     try {
-      let tx;
-      if (currency === "BNB") {
-        tx = prepareTransaction({
-          client: thirdwebClient,
-          chain: bsc,
-          to: internalAddress,
-          value: toWei(amount),
-        });
-      } else {
-        const tokenAddress = TOKEN_CONTRACTS[currency];
-        if (!tokenAddress) throw new Error(`Unsupported currency: ${currency}`);
-        const contract = getContract({ client: thirdwebClient, chain: bsc, address: tokenAddress });
-        tx = prepareContractCall({
-          contract,
-          method: "function transfer(address to, uint256 amount) returns (bool)",
-          params: [internalAddress, toUnits(amount, 18)],
-        });
-      }
-
-      setTxStatus("broadcasting");
-      const result = await sendTx(tx);
-      const hash = result.transactionHash;
-      setTxHash(hash);
-
-      await apiRequest("POST", "/api/wallet/record-transfer", {
+      const result: any = await apiRequest("POST", "/api/wallet/send-internal", {
         fromUserId: senderId,
         toUserId,
         currency,
         amount,
-        transactionHash: hash,
         conversationId,
       });
 
+      const hash = result?.transactionHash ?? null;
+      setTxHash(hash);
       setTxStatus("confirmed");
       onSuccess?.(hash);
     } catch (err: any) {
-      console.error("❌ CryptoConfirmModal tx error:", err);
-      const msg = err?.message || "Transaction failed. Please try again.";
-      setErrorMsg(
-        msg.includes("User rejected") || msg.includes("user rejected") || msg.includes("4001")
-          ? "You rejected the transaction in your wallet."
-          : msg.includes("insufficient funds") || msg.includes("Insufficient")
-          ? "Insufficient funds. Make sure you have enough token and BNB for gas."
-          : msg
-      );
+      console.error("❌ CryptoConfirmModal server send error:", err);
+      let msg = err?.message || "Transaction failed. Please try again.";
+      try {
+        const raw = err?.message || "";
+        const start = raw.indexOf("{");
+        if (start !== -1) {
+          const parsed = JSON.parse(raw.slice(start));
+          if (parsed.message) msg = parsed.message;
+        }
+      } catch {}
+      setErrorMsg(msg);
       setTxStatus("error");
     }
   };
 
   const handleClose = () => {
-    if (txStatus === "approving" || txStatus === "broadcasting") return;
-    setTxStatus("idle");
+    if (txStatus === "processing") return;
+    setTxStatus("fetching");
     setInternalAddress("");
-    setTxHash("");
+    setTxHash(null);
     setErrorMsg("");
     onClose();
   };
-
-  const isPending = txStatus === "approving" || txStatus === "broadcasting";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -203,7 +128,12 @@ export default function CryptoConfirmModal({
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {txStatus === "confirmed" ? (
-            <ConfirmedView hash={txHash} amount={amount} currency={currency} onClose={handleClose} />
+            <ConfirmedView
+              hash={txHash}
+              amount={amount}
+              currency={currency}
+              onClose={handleClose}
+            />
           ) : txStatus === "error" ? (
             <ErrorView
               message={errorMsg}
@@ -218,12 +148,13 @@ export default function CryptoConfirmModal({
                     {amount} {currency}
                   </span>
                 </Row>
-                <Row label="Sending via">
-                  <span className="text-sm font-medium text-blue-500">{walletName}</span>
-                </Row>
+
                 <Row label="Network">
-                  <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">BSC (Binance Smart Chain)</span>
+                  <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                    BSC (Binance Smart Chain)
+                  </span>
                 </Row>
+
                 <Row label="Recipient">
                   <span className="text-sm font-semibold text-black dark:text-white">
                     {recipientDisplayName}
@@ -232,7 +163,9 @@ export default function CryptoConfirmModal({
 
                 <div className="pt-1">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-500 dark:text-slate-400">Wallet Address:</span>
+                    <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
+                      Wallet Address:
+                    </span>
                     {internalAddress && (
                       <Button
                         variant="ghost"
@@ -260,11 +193,11 @@ export default function CryptoConfirmModal({
                 </div>
               </div>
 
-              {txStatus === "broadcasting" && (
+              {txStatus === "processing" && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 flex items-center gap-3">
                   <Loader2 className="h-4 w-4 animate-spin text-blue-500 shrink-0" />
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Broadcasting to BSC… please wait
+                    Processing transfer on BSC…
                   </p>
                 </div>
               )}
@@ -278,27 +211,25 @@ export default function CryptoConfirmModal({
               <div className="flex gap-3 pt-2">
                 <Button
                   onClick={handleApprove}
-                  disabled={isPending || txStatus === "fetching" || !internalAddress}
+                  disabled={txStatus === "processing" || txStatus === "fetching" || !internalAddress}
                   className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {txStatus === "approving" ? (
+                  {txStatus === "processing" ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Approve in {walletName}…
-                    </span>
-                  ) : txStatus === "broadcasting" ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Broadcasting…
+                      Processing…
                     </span>
                   ) : (
-                    `Approve in ${walletName}`
+                    <span className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Approve Transfer
+                    </span>
                   )}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  disabled={isPending}
+                  disabled={txStatus === "processing"}
                   className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Back
@@ -321,47 +252,78 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function ConfirmedView({ hash, amount, currency, onClose }: { hash: string; amount: string; currency: string; onClose: () => void }) {
-  const { toast } = useToast();
+function ConfirmedView({
+  hash,
+  amount,
+  currency,
+  onClose,
+}: {
+  hash: string | null;
+  amount: string;
+  currency: string;
+  onClose: () => void;
+}) {
   return (
     <div className="text-center space-y-4 py-2">
       <CheckCircle2 className="h-14 w-14 text-green-500 mx-auto" />
       <div>
-        <p className="text-lg font-bold text-black dark:text-white">Transaction Confirmed!</p>
+        <p className="text-lg font-bold text-black dark:text-white">Transfer Confirmed!</p>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-          {amount} {currency} sent on BSC
+          {amount} {currency} sent successfully
         </p>
       </div>
-      <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
-        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Transaction Hash</p>
-        <code className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{hash}</code>
-      </div>
-      <div className="flex gap-3">
+
+      {hash ? (
+        <>
+          <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Transaction Hash</p>
+            <code className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">
+              {hash}
+            </code>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-10 rounded-xl text-sm"
+              onClick={() => window.open(`https://bscscan.com/tx/${hash}`, "_blank")}
+            >
+              <ExternalLink className="h-3.5 w-3.5 mr-2" />
+              View on BSCScan
+            </Button>
+            <Button
+              className="flex-1 h-10 rounded-xl text-sm bg-orange-500 hover:bg-orange-600 text-white"
+              onClick={onClose}
+            >
+              Done
+            </Button>
+          </div>
+        </>
+      ) : (
         <Button
-          variant="outline"
-          className="flex-1 h-10 rounded-xl text-sm"
-          onClick={() => window.open(`https://bscscan.com/tx/${hash}`, "_blank")}
-        >
-          <ExternalLink className="h-3.5 w-3.5 mr-2" />
-          View on BSCScan
-        </Button>
-        <Button
-          className="flex-1 h-10 rounded-xl text-sm bg-orange-500 hover:bg-orange-600 text-white"
+          className="w-full h-11 rounded-xl text-sm bg-orange-500 hover:bg-orange-600 text-white"
           onClick={onClose}
         >
           Done
         </Button>
-      </div>
+      )}
     </div>
   );
 }
 
-function ErrorView({ message, onRetry, onClose }: { message: string; onRetry: () => void; onClose: () => void }) {
+function ErrorView({
+  message,
+  onRetry,
+  onClose,
+}: {
+  message: string;
+  onRetry: () => void;
+  onClose: () => void;
+}) {
   return (
     <div className="text-center space-y-4 py-2">
       <AlertCircle className="h-14 w-14 text-red-500 mx-auto" />
       <div>
-        <p className="text-lg font-bold text-black dark:text-white">Transaction Failed</p>
+        <p className="text-lg font-bold text-black dark:text-white">Transfer Failed</p>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 leading-relaxed">{message}</p>
       </div>
       <div className="flex gap-3">

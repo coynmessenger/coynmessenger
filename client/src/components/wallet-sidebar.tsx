@@ -29,10 +29,6 @@ import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
-import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
-import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
-import { bsc } from "@/lib/bsc-chain";
-import { thirdwebClient } from "@/lib/thirdweb-client";
 
 interface WalletSidebarProps {
   isOpen: boolean;
@@ -53,28 +49,6 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
   const { toast } = useToast();
-  const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
-  const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
-
-  const WALLET_DEEP_LINKS: Record<string, string> = {
-    'io.metamask': 'metamask://',
-    'com.trustwallet.app': 'trust://',
-    'com.coinbase.wallet': 'cbwallet://',
-    'com.bitget.web3': 'bitkeep://',
-    'io.rabby': 'rabby://',
-  };
-
-  const openWalletForApproval = () => {
-    const walletId = activeWallet?.id || localStorage.getItem('connectedWalletId') || '';
-    const deepLink = WALLET_DEEP_LINKS[walletId];
-    if (deepLink) window.open(deepLink, '_blank');
-  };
-
-  const TOKEN_CONTRACTS: Record<string, string> = {
-    USDT: '0x55d398326f99059fF775485246999027B3197955',
-    COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
-  };
 
   // Use internal wallet address for receiving — this is the COYN server-managed BSC wallet
   const receiveAddress = user?.internalWalletAddress || user?.walletAddress || "";
@@ -327,49 +301,19 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
     },
   };
 
-  // Send crypto mutation — signs on-chain via user's connected external wallet (gas paid by user's BNB)
+  // Send crypto mutation — server-side signing via internal wallet (no external wallet popup)
   const sendCryptoMutation = useMutation({
     mutationFn: async ({ currency, amount, address }: { currency: string; amount: string; address: string }) => {
-      if (!activeAccount) {
-        throw new Error("Your wallet is not connected. Please reconnect your wallet on the home page.");
+      if (!userId) {
+        throw new Error("Please log in to send cryptocurrency.");
       }
-
-      let transactionHash: string;
-
-      if (currency === 'BNB') {
-        const tx = prepareTransaction({
-          client: thirdwebClient,
-          chain: bsc,
-          to: address,
-          value: toWei(amount),
-        });
-        openWalletForApproval();
-        const receipt = await sendOnChain(tx);
-        transactionHash = receipt.transactionHash;
-      } else {
-        const tokenAddress = TOKEN_CONTRACTS[currency];
-        if (!tokenAddress) throw new Error(`Unsupported currency: ${currency}`);
-        const contract = getContract({ client: thirdwebClient, chain: bsc, address: tokenAddress });
-        const tx = prepareContractCall({
-          contract,
-          method: "function transfer(address to, uint256 amount) returns (bool)",
-          params: [address, toUnits(amount, 18)],
-        });
-        openWalletForApproval();
-        const receipt = await sendOnChain(tx);
-        transactionHash = receipt.transactionHash;
-      }
-
-      // Record the completed on-chain transfer server-side (deducts DB balance)
-      await apiRequest("POST", "/api/wallet/record-transfer", {
+      const result: any = await apiRequest("POST", "/api/wallet/send-internal", {
         fromUserId: userId,
         toAddress: address,
         currency,
         amount,
-        transactionHash,
       });
-
-      return { transactionHash, currency, amount, address };
+      return { transactionHash: result?.transactionHash ?? null, currency, amount, address };
     },
     onSuccess: (data: any) => {
       const isOnChain = !!data?.transactionHash;

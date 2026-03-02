@@ -1,10 +1,6 @@
 import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
-import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
-import { bsc } from "@/lib/bsc-chain";
-import { thirdwebClient } from "@/lib/thirdweb-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -110,34 +106,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   const connectedUserId = getConnectedUserId();
-  const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
-  const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
-
-  // Maps wallet IDs to mobile deep-link schemes so we can redirect user to their wallet app
-  const WALLET_DEEP_LINKS: Record<string, string> = {
-    'io.metamask': 'metamask://',
-    'com.trustwallet.app': 'trust://',
-    'com.coinbase.wallet': 'cbwallet://',
-    'com.bitget.web3': 'bitkeep://',
-    'io.rabby': 'rabby://',
-  };
-
-  // After submitting a WalletConnect transaction request, open the wallet app so the
-  // user can see and approve it. Falls back silently if deep-linking isn't supported.
-  const openWalletForApproval = () => {
-    const walletId = activeWallet?.id || localStorage.getItem('connectedWalletId') || '';
-    const deepLink = WALLET_DEEP_LINKS[walletId];
-    if (deepLink) {
-      window.open(deepLink, '_blank');
-    }
-    // walletConnect sessions rely on push notifications / the relay — no generic URI
-  };
-
-  const TOKEN_CONTRACTS: Record<string, string> = {
-    USDT: '0x55d398326f99059fF775485246999027B3197955',
-    COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
-  };
 
   // Check if this is a self-conversation (messaging yourself)
   const isSelfConversation = conversation?.otherUser ? connectedUserId === conversation.otherUser.id : false;
@@ -863,51 +831,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendCryptoMutation = useMutation({
     mutationFn: async (cryptoData: { toUserId: number; currency: string; amount: string; conversationId?: number }) => {
-      // Guard: wallet must be connected
-      if (!activeAccount) {
-        throw new Error("Your wallet is not connected. Please go back to the home page and reconnect your wallet.");
+      if (!connectedUserId) {
+        throw new Error("Please log in to send cryptocurrency.");
       }
-
-      // Step 1: Get recipient's COYN internal wallet address (auto-created if needed)
-      const recipientResp = await fetch(`/api/wallet/internal-address?userId=${cryptoData.toUserId}`);
-      if (!recipientResp.ok) throw new Error("Failed to get recipient wallet address");
-      const recipientData = await recipientResp.json();
-      const recipientAddress: string = recipientData.walletAddress;
-
-      // Step 2: Build and broadcast via the user's connected wallet — opens wallet for approval
-      let transactionHash: string;
-
-      if (cryptoData.currency === 'BNB') {
-        const tx = prepareTransaction({
-          client: thirdwebClient,
-          chain: bsc,
-          to: recipientAddress,
-          value: toWei(cryptoData.amount),
-        });
-        openWalletForApproval();
-        const receipt = await sendOnChain(tx);
-        transactionHash = receipt.transactionHash;
-      } else {
-        const tokenAddress = TOKEN_CONTRACTS[cryptoData.currency];
-        if (!tokenAddress) throw new Error(`Unsupported currency: ${cryptoData.currency}`);
-        const contract = getContract({ client: thirdwebClient, chain: bsc, address: tokenAddress });
-        const tx = prepareContractCall({
-          contract,
-          method: "function transfer(address to, uint256 amount) returns (bool)",
-          params: [recipientAddress, toUnits(cryptoData.amount, 18)],
-        });
-        openWalletForApproval();
-        const receipt = await sendOnChain(tx);
-        transactionHash = receipt.transactionHash;
-      }
-
-      // Step 3: Record the completed transfer server-side (updates DB + creates message)
-      return apiRequest("POST", "/api/wallet/record-transfer", {
+      // Server-side transfer — signs and broadcasts using internal wallet, no external wallet popup
+      return apiRequest("POST", "/api/wallet/send-internal", {
         fromUserId: connectedUserId,
         toUserId: cryptoData.toUserId,
         currency: cryptoData.currency,
         amount: cryptoData.amount,
-        transactionHash,
         conversationId: cryptoData.conversationId,
       });
     },
@@ -1026,7 +958,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   };
 
   // Called by CryptoConfirmModal on successful transaction
-  const handleConfirmSuccess = (txHash: string) => {
+  const handleConfirmSuccess = (txHash: string | null) => {
     setShowConfirmModal(false);
     setTimeout(() => {
       setCryptoAmount("");
@@ -1037,9 +969,11 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", connectedUserId] });
     }, 150);
     toast({
-      title: "Transaction Confirmed on BSC",
-      description: `Hash: ${txHash.slice(0, 10)}…${txHash.slice(-6)}`,
-      duration: 8000,
+      title: "Transfer Confirmed",
+      description: txHash
+        ? `Hash: ${txHash.slice(0, 10)}…${txHash.slice(-6)}`
+        : "Transfer completed successfully",
+      duration: 6000,
     });
   };
 

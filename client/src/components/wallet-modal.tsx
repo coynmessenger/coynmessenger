@@ -16,10 +16,6 @@ import QRCode from "qrcode";
 import { generateMetaMaskQRCode } from "@/lib/qr-generator";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import { apiRequest } from "@/lib/queryClient";
-import { useSendAndConfirmTransaction, useActiveAccount, useActiveWallet } from "thirdweb/react";
-import { prepareContractCall, prepareTransaction, getContract, toWei, toUnits } from "thirdweb";
-import { bsc } from "@/lib/bsc-chain";
-import { thirdwebClient } from "@/lib/thirdweb-client";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -30,28 +26,6 @@ interface WalletModalProps {
 export default function WalletModal({ isOpen, onClose, initialCurrency }: WalletModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
-  const { mutateAsync: sendOnChain } = useSendAndConfirmTransaction();
-
-  const WALLET_DEEP_LINKS: Record<string, string> = {
-    'io.metamask': 'metamask://',
-    'com.trustwallet.app': 'trust://',
-    'com.coinbase.wallet': 'cbwallet://',
-    'com.bitget.web3': 'bitkeep://',
-    'io.rabby': 'rabby://',
-  };
-
-  const openWalletForApproval = () => {
-    const walletId = activeWallet?.id || localStorage.getItem('connectedWalletId') || '';
-    const deepLink = WALLET_DEEP_LINKS[walletId];
-    if (deepLink) window.open(deepLink, '_blank');
-  };
-
-  const TOKEN_CONTRACTS: Record<string, string> = {
-    USDT: '0x55d398326f99059fF775485246999027B3197955',
-    COYN: '0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1',
-  };
   
   const [view, setView] = useState<"main" | "send" | "qr" | "success">("main");
   const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency || "BNB");
@@ -133,46 +107,16 @@ export default function WalletModal({ isOpen, onClose, initialCurrency }: Wallet
       amount: string; 
       recipientAddress: string;
     }) => {
-      if (!activeAccount) {
-        throw new Error("Your wallet is not connected. Please reconnect your wallet on the home page.");
+      if (!userId) {
+        throw new Error("Please log in to send cryptocurrency.");
       }
-
-      let transactionHash: string;
-
-      if (data.currency === 'BNB') {
-        const tx = prepareTransaction({
-          client: thirdwebClient,
-          chain: bsc,
-          to: data.recipientAddress,
-          value: toWei(data.amount),
-        });
-        openWalletForApproval();
-        const receipt = await sendOnChain(tx);
-        transactionHash = receipt.transactionHash;
-      } else {
-        const tokenAddress = TOKEN_CONTRACTS[data.currency];
-        if (!tokenAddress) throw new Error(`Unsupported currency: ${data.currency}`);
-        const contract = getContract({ client: thirdwebClient, chain: bsc, address: tokenAddress });
-        const tx = prepareContractCall({
-          contract,
-          method: "function transfer(address to, uint256 amount) returns (bool)",
-          params: [data.recipientAddress, toUnits(data.amount, 18)],
-        });
-        openWalletForApproval();
-        const receipt = await sendOnChain(tx);
-        transactionHash = receipt.transactionHash;
-      }
-
-      // Record the completed on-chain transfer server-side (deducts DB balance)
-      await apiRequest("POST", "/api/wallet/record-transfer", {
+      const result: any = await apiRequest("POST", "/api/wallet/send-internal", {
         fromUserId: userId,
         toAddress: data.recipientAddress,
         currency: data.currency,
         amount: data.amount,
-        transactionHash,
       });
-
-      return { transactionHash };
+      return { transactionHash: result?.transactionHash ?? null };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", userId] });
