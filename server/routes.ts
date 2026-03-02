@@ -1081,38 +1081,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Transaction routing:
-      // - All transfers: attempt on-chain first (sender's internal wallet → recipient's BSC address).
-      //   If on-chain succeeds → real BSCScan hash returned, DB balance deducted.
-      //   If on-chain fails (insufficient gas / no on-chain balance) → fall back to DB-only instant transfer.
-      // - External address: must succeed on-chain or hard fail — never silently deduct DB balance.
+      // All transfers (user-to-user and external) must be confirmed on-chain on BSC.
+      // No silent DB-only fallback — if the on-chain send fails, the whole request fails.
       let transactionHash: string | null = null;
-      let onChain = false;
 
       if (toUserId) {
-        // User-to-user: use platform wallet for on-chain if available, else DB-only
-        if (hasPlatformWallet()) {
-          try {
-            if (currency === 'BNB') {
-              const result = await platformSendBNB(recipientAddress, amount);
-              transactionHash = result.transactionHash;
-            } else if (currency === 'USDT' || currency === 'COYN') {
-              const result = await platformSendERC20(currency as 'USDT' | 'COYN', recipientAddress, amount);
-              transactionHash = result.transactionHash;
-            }
-            onChain = true;
-            console.log(`✅ Platform on-chain ${currency} transfer (user ${fromUserId} → user ${toUserId}): ${transactionHash}`);
-          } catch (chainErr: any) {
-            console.warn(`⚠️ Platform on-chain ${currency} failed (falling back to internal DB): ${chainErr.message}`);
+        // User-to-user: signed by the platform wallet (PLATFORM_WALLET_KEY).
+        // Hard fail if platform wallet is not configured or the on-chain send errors.
+        if (!hasPlatformWallet()) {
+          return res.status(503).json({
+            message: 'On-chain transfers are temporarily unavailable. The platform wallet is not configured.',
+          });
+        }
+        try {
+          if (currency === 'BNB') {
+            const result = await platformSendBNB(recipientAddress, amount);
+            transactionHash = result.transactionHash;
+          } else if (currency === 'USDT' || currency === 'COYN') {
+            const result = await platformSendERC20(currency as 'USDT' | 'COYN', recipientAddress, amount);
+            transactionHash = result.transactionHash;
           }
+          console.log(`✅ Platform on-chain ${currency} (user ${fromUserId} → user ${toUserId}): ${transactionHash}`);
+        } catch (chainErr: any) {
+          console.error(`❌ Platform on-chain ${currency} failed: ${chainErr.message}`);
+          return res.status(400).json({
+            message: `On-chain transaction failed: ${chainErr.message}`,
+            onChain: false,
+          });
         }
-        // Always update DB balances (covers both on-chain success and DB-only fallback)
+        // Update DB balances only after confirmed on-chain success
         const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
-        if (!success) return res.status(500).json({ message: "Failed to update balances" });
-        if (onChain) {
-          console.log(`✅ DB balances updated after on-chain ${currency} transfer`);
-        } else {
-          console.log(`✅ Internal DB transfer: ${numAmount} ${currency} from user ${fromUserId} to user ${toUserId}`);
-        }
+        if (!success) return res.status(500).json({ message: "Failed to update balances after on-chain transfer" });
+        console.log(`✅ DB balances updated after on-chain ${currency} transfer`);
       } else {
         // External blockchain send — must succeed on-chain or hard fail.
         try {
