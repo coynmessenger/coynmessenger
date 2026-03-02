@@ -23,6 +23,7 @@ import { io, Socket } from "socket.io-client";
 import ShareModal from "@/components/share-modal";
 import UserProfileModal from "@/components/user-profile-modal";
 import LinkPreview, { extractUrls } from "@/components/link-preview";
+import CryptoConfirmModal from "@/components/crypto-confirm-modal";
 import VoiceCallModal from "@/components/voice-call-modal";
 import VideoCallModal from "@/components/video-call-modal";
 import CallPermissionDialog from "@/components/call-permission-dialog";
@@ -74,6 +75,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [cryptoStep, setCryptoStep] = useState<"amount" | "confirm">("amount");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   
   // Get queryClient instance
   const queryClient = useQueryClient();
@@ -1010,26 +1012,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       });
       return;
     }
-    setCryptoStep("confirm");
-  };
-
-  // Handle final send confirmation
-  const handleSendConfirm = () => {
-    if (!connectedUserId) {
-      toast({
-        title: "Authentication Error",
-        description: "Please log in to send cryptocurrency",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    sendCryptoMutation.mutate({
-      toUserId: conversation.otherUser.id,
-      currency: selectedCrypto,
-      amount: cryptoAmount,
-      conversationId: conversation.id,
-    });
+    // Close the amount modal and open the dedicated confirm modal
+    setShowCryptoModal(false);
+    setTimeout(() => setShowConfirmModal(true), 200);
   };
 
   // Handle max button click
@@ -1038,6 +1023,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     const currentBalance = walletBalances?.find(balance => balance.currency === selectedCrypto);
     const maxAmount = currentBalance?.balance || "0";
     setCryptoAmount(maxAmount);
+  };
+
+  // Called by CryptoConfirmModal on successful transaction
+  const handleConfirmSuccess = (txHash: string) => {
+    setShowConfirmModal(false);
+    setTimeout(() => {
+      setCryptoAmount("");
+      setSelectedCrypto("");
+      setCryptoStep("amount");
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversation.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances", connectedUserId] });
+    }, 150);
+    toast({
+      title: "Transaction Confirmed on BSC",
+      description: `Hash: ${txHash.slice(0, 10)}…${txHash.slice(-6)}`,
+      duration: 8000,
+    });
   };
 
   // Reset crypto modal
@@ -2934,17 +2937,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <DialogHeader className="p-4 sm:p-6 pb-0 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-t-2xl border-b border-gray-200/30 dark:border-slate-700/30">
             <DialogTitle className="text-black dark:text-white text-lg sm:text-xl font-bold flex items-center space-x-2">
               <span className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
-                {cryptoStep === "amount" ? "Send" : "Confirm"}
+                Send
               </span>
               <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500 bg-clip-text text-transparent font-bold">
                 {selectedCrypto}
               </span>
               {getCryptoIcon(selectedCrypto)}
-              {cryptoStep === "confirm" && (
-                <span className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
-                  Transfer
-                </span>
-              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -3011,7 +3009,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               </div>
             )}
           
-            {cryptoStep === "confirm" && (
+            {false && (
               <div className="space-y-6">
                 <div className="bg-gradient-to-br from-gray-50/90 to-gray-100/90 dark:from-slate-800/90 dark:to-slate-700/90 backdrop-blur-sm rounded-xl p-5 border border-gray-200/60 dark:border-slate-600/60 shadow-lg space-y-4">
                   <div className="flex justify-between items-center py-2">
@@ -3100,6 +3098,24 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Crypto Transaction Confirm Modal */}
+      {connectedUserId && conversation.otherUser && (
+        <CryptoConfirmModal
+          open={showConfirmModal}
+          onClose={() => {
+            setShowConfirmModal(false);
+            setCryptoStep("amount");
+          }}
+          currency={selectedCrypto}
+          amount={cryptoAmount}
+          toUserId={conversation.otherUser.id}
+          recipientDisplayName={conversation.otherUser.displayName || `@${conversation.otherUser.walletAddress?.slice(-6)}`}
+          conversationId={conversation.id}
+          senderId={connectedUserId}
+          onSuccess={handleConfirmSuccess}
+        />
+      )}
 
       {/* User Profile Modal */}
       <UserProfileModal
