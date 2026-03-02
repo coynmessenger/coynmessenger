@@ -12,7 +12,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
 import { blockchainService } from "./blockchain";
-import { generateWallet, encryptPrivateKey, decryptPrivateKey, sendBNBInternal, sendERC20Internal } from "./wallet-service";
+import { generateWallet, encryptPrivateKey, decryptPrivateKey, sendBNBInternal, sendERC20Internal, platformSendBNB, platformSendERC20, hasPlatformWallet } from "./wallet-service";
 import { EncryptedWebRTCSignaling } from "./webrtc-signaling";
 import { requireAuth } from "./middleware/security";
 
@@ -1081,17 +1081,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Transaction routing:
-      // - User-to-user: COYN internal DB transfer only (no on-chain attempt). Works like PayPal internal transfers.
+      // - All transfers: attempt on-chain first (sender's internal wallet → recipient's BSC address).
+      //   If on-chain succeeds → real BSCScan hash returned, DB balance deducted.
+      //   If on-chain fails (insufficient gas / no on-chain balance) → fall back to DB-only instant transfer.
       // - External address: must succeed on-chain or hard fail — never silently deduct DB balance.
       let transactionHash: string | null = null;
+      let onChain = false;
 
       if (toUserId) {
-        // Internal COYN platform transfer — DB only, instant, no gas required
+        // User-to-user: use platform wallet for on-chain if available, else DB-only
+        if (hasPlatformWallet()) {
+          try {
+            if (currency === 'BNB') {
+              const result = await platformSendBNB(recipientAddress, amount);
+              transactionHash = result.transactionHash;
+            } else if (currency === 'USDT' || currency === 'COYN') {
+              const result = await platformSendERC20(currency as 'USDT' | 'COYN', recipientAddress, amount);
+              transactionHash = result.transactionHash;
+            }
+            onChain = true;
+            console.log(`✅ Platform on-chain ${currency} transfer (user ${fromUserId} → user ${toUserId}): ${transactionHash}`);
+          } catch (chainErr: any) {
+            console.warn(`⚠️ Platform on-chain ${currency} failed (falling back to internal DB): ${chainErr.message}`);
+          }
+        }
+        // Always update DB balances (covers both on-chain success and DB-only fallback)
         const success = await storage.transferCurrency(fromUserId, toUserId, currency, numAmount);
         if (!success) return res.status(500).json({ message: "Failed to update balances" });
-        console.log(`✅ Internal COYN transfer: ${numAmount} ${currency} from user ${fromUserId} to user ${toUserId}`);
+        if (onChain) {
+          console.log(`✅ DB balances updated after on-chain ${currency} transfer`);
+        } else {
+          console.log(`✅ Internal DB transfer: ${numAmount} ${currency} from user ${fromUserId} to user ${toUserId}`);
+        }
       } else {
-        // External blockchain send — attempt on-chain. Hard fail if it doesn't go through.
+        // External blockchain send — must succeed on-chain or hard fail.
         try {
           if (currency === 'BNB') {
             const result = await sendBNBInternal(senderUser.encryptedPrivateKey!, recipientAddress, amount);
@@ -1100,7 +1123,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const result = await sendERC20Internal(senderUser.encryptedPrivateKey!, currency as 'USDT' | 'COYN', recipientAddress, amount);
             transactionHash = result.transactionHash;
           }
-          console.log(`✅ On-chain ${currency} tx: ${transactionHash}`);
+          onChain = true;
+          console.log(`✅ On-chain ${currency} tx to external address: ${transactionHash}`);
         } catch (chainErr: any) {
           console.error(`❌ External on-chain send failed: ${chainErr.message}`);
           return res.status(400).json({

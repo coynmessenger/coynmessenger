@@ -165,3 +165,82 @@ export async function sendERC20Internal(
   if (!receipt) throw new Error('No receipt received from BSC network');
   return { transactionHash: receipt.hash };
 }
+
+// Platform wallet — used to sign all user-to-user on-chain transfers so users
+// never need to fund their internal wallets themselves.
+// Requires PLATFORM_WALLET_KEY env var (raw BSC private key, not encrypted).
+function getPlatformWallet(provider: ethers.JsonRpcProvider): ethers.Wallet {
+  const key = process.env.PLATFORM_WALLET_KEY;
+  if (!key) throw new Error('PLATFORM_WALLET_KEY is not set — cannot broadcast on-chain');
+  return new ethers.Wallet(key.startsWith('0x') ? key : `0x${key}`, provider);
+}
+
+export async function platformSendBNB(
+  toAddress: string,
+  amount: string
+): Promise<{ transactionHash: string; fromAddress: string }> {
+  const provider = await getProvider();
+  const wallet = getPlatformWallet(provider);
+
+  const amountWei = ethers.parseEther(amount);
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits('5', 'gwei');
+  const gasCost = gasPrice * 21000n;
+
+  const bnbBalance = await provider.getBalance(wallet.address);
+  if (bnbBalance < amountWei + gasCost) {
+    const have = ethers.formatEther(bnbBalance);
+    const need = ethers.formatEther(amountWei + gasCost);
+    throw new Error(`Platform wallet low on BNB: has ${have}, needs ${need} (amount + gas)`);
+  }
+
+  const tx = await wallet.sendTransaction({
+    to: toAddress,
+    value: amountWei,
+    gasLimit: 21000n,
+    gasPrice,
+  });
+  const receipt = await tx.wait();
+  if (!receipt) throw new Error('No receipt from BSC network');
+  return { transactionHash: receipt.hash, fromAddress: wallet.address };
+}
+
+export async function platformSendERC20(
+  tokenSymbol: 'USDT' | 'COYN',
+  toAddress: string,
+  amount: string
+): Promise<{ transactionHash: string; fromAddress: string }> {
+  const provider = await getProvider();
+  const wallet = getPlatformWallet(provider);
+
+  const tokenAddress = TOKEN_CONTRACTS[tokenSymbol];
+  const contract = new ethers.Contract(tokenAddress, ERC20_ABI, wallet);
+  const amountWei = ethers.parseUnits(amount, 18);
+
+  const tokenBalance = await contract.balanceOf(wallet.address);
+  if (tokenBalance < amountWei) {
+    const have = ethers.formatUnits(tokenBalance, 18);
+    throw new Error(`Platform wallet has insufficient ${tokenSymbol}: has ${have}, needs ${amount}`);
+  }
+
+  const estimatedGas = await contract.transfer.estimateGas(toAddress, amountWei);
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits('5', 'gwei');
+  const gasCost = estimatedGas * gasPrice;
+
+  const bnbBalance = await provider.getBalance(wallet.address);
+  if (bnbBalance < gasCost) {
+    const have = ethers.formatEther(bnbBalance);
+    const need = ethers.formatEther(gasCost);
+    throw new Error(`Platform wallet needs BNB for gas: has ${have}, needs ~${need}`);
+  }
+
+  const tx = await contract.transfer(toAddress, amountWei);
+  const receipt = await tx.wait();
+  if (!receipt) throw new Error('No receipt from BSC network');
+  return { transactionHash: receipt.hash, fromAddress: wallet.address };
+}
+
+export function hasPlatformWallet(): boolean {
+  return !!process.env.PLATFORM_WALLET_KEY;
+}
