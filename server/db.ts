@@ -16,9 +16,17 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 1, // Limit connections for serverless
-  idleTimeoutMillis: 30000, // 30 second idle timeout
-  connectionTimeoutMillis: 10000, // 10 second timeout
+  max: 3,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+// Prevent unhandled 'error' events from crashing the process.
+// Neon serverless will occasionally terminate idle connections with
+// "terminating connection due to administrator command" — this is normal
+// and the Pool automatically reconnects on the next query.
+pool.on('error', (err) => {
+  console.warn('DB pool connection error (will reconnect):', err.message);
 });
 
 export const db = drizzle({ client: pool, schema });

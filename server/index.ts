@@ -4,6 +4,15 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, corsOptions } from "./middleware/security";
 
+// Prevent transient errors (e.g. Neon DB connection resets, RPC timeouts)
+// from killing the production process entirely.
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception (keeping process alive):', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection (keeping process alive):', reason);
+});
+
 const app = express();
 
 // Trust the first proxy (Replit's load balancer) so express-rate-limit
