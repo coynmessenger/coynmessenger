@@ -14,11 +14,7 @@ const client = createThirdwebClient({
 
 const supportedChains = [bsc];
 
-// WalletConnect is listed first — it bypasses window.ethereum injection which
-// Trust Wallet overrides on mobile, preventing other wallets from connecting.
-// All listed wallets also appear as EIP-6963 options on desktop.
 const wallets = [
-  createWallet("walletConnect"),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("com.bitget.web3"),
@@ -51,7 +47,7 @@ export default function ThirdwebWalletConnector({
           showThirdwebBranding: false,
           welcomeScreen: {
             title: "Connect to COYN Messenger",
-            subtitle: "Use WalletConnect or select your wallet below",
+            subtitle: "Select your wallet to sign in",
           },
         }}
         detailsModal={{
