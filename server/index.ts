@@ -1,10 +1,23 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { createServer } from "http";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, corsOptions } from "./middleware/security";
+import fs from "fs";
 import path from "path";
+import { registerRoutes } from "./routes";
+import { securityHeaders, corsOptions } from "./middleware/security";
+
+// ---------------------------------------------------------------------------
+// Logging — inline here so we never import the vite package in production.
+// ---------------------------------------------------------------------------
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception (keeping process alive):', err.message);
@@ -21,8 +34,11 @@ app.use(securityHeaders);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
+// ---------------------------------------------------------------------------
 // Fast health-check — registered synchronously so it is available the instant
-// the server binds, before DB init or route registration completes.
+// the server binds, well before DB init or route registration completes.
+// In development Vite takes over / to serve index.html.
+// ---------------------------------------------------------------------------
 app.get('/', (_req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
     return res.status(200).json({ status: 'ok' });
@@ -30,6 +46,9 @@ app.get('/', (_req, res, next) => {
   next();
 });
 
+// ---------------------------------------------------------------------------
+// Request logger
+// ---------------------------------------------------------------------------
 app.use((req, res, next) => {
   const start = Date.now();
   const reqPath = req.path;
@@ -57,6 +76,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// ---------------------------------------------------------------------------
+// Static asset serving
+// ---------------------------------------------------------------------------
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
   setHeaders: (res, filePath) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -96,8 +118,8 @@ function bindServer(attempt = 1): void {
 bindServer();
 
 // ---------------------------------------------------------------------------
-// Async init: routes, DB, and Vite/static. Runs in the background while the
-// server is already accepting health-check requests.
+// Async init: routes, DB, and frontend serving.
+// Runs in the background — the server already handles GET / during this time.
 // ---------------------------------------------------------------------------
 (async () => {
   try {
@@ -109,10 +131,22 @@ bindServer();
       res.status(status).json({ message });
     });
 
-    if (app.get("env") === "development") {
+    if (process.env.NODE_ENV === "development") {
+      // Dynamic import keeps the vite package out of production entirely.
+      const { setupVite } = await import("./vite.js");
       await setupVite(app, server);
     } else {
-      serveStatic(app);
+      // Serve the pre-built frontend from dist/public (same dir as this file).
+      const distPath = path.resolve(import.meta.dirname, "public");
+      if (!fs.existsSync(distPath)) {
+        console.error(`[server] Build directory not found: ${distPath}`);
+      } else {
+        app.use(express.static(distPath));
+        app.use("*", (_req, res) => {
+          res.sendFile(path.resolve(distPath, "index.html"));
+        });
+        log(`serving static files from ${distPath}`);
+      }
     }
   } catch (error) {
     console.error('[server] Initialization error (server still running):', error);
