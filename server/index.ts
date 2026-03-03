@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, corsOptions } from "./middleware/security";
@@ -24,6 +25,14 @@ app.use(securityHeaders);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+
+// Fast health check for deployment — must respond before any async init
+app.get('/', (_req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(200).json({ status: 'ok' });
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -79,15 +88,25 @@ app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'attached_assets', 'coynresize_1760204738870.png'));
 });
 
+// Create the HTTP server early so we can start listening before heavy async init
+const server = createServer(app);
+const port = 5000;
+
+server.listen({
+  port,
+  host: "0.0.0.0",
+  reusePort: true,
+}, () => {
+  log(`serving on port ${port}`);
+});
+
 (async () => {
   try {
-    const server = await registerRoutes(app);
+    await registerRoutes(app, server);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-      
-      
       res.status(status).json({ message });
     });
 
@@ -99,20 +118,7 @@ app.get('/favicon.ico', (req, res) => {
     } else {
       serveStatic(app);
     }
-
-    // ALWAYS serve the app on port 5000
-    // this serves both the API and the client.
-    // It is the only port that is not firewalled.
-    const port = 5000;
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port}`);
-    });
   } catch (error) {
-    
-    process.exit(1);
+    console.error('Server initialization error (server still running):', error);
   }
 })();

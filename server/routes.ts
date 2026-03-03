@@ -110,7 +110,7 @@ function getEffectiveDisplayName(user: any): string {
   return `@${user.walletAddress.slice(-6)}`;
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express, existingServer?: Server): Promise<Server> {
   app.use(globalLimiter);
 
   // Health check endpoints
@@ -1969,7 +1969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
+  const httpServer = existingServer ?? createServer(app);
   
   // Initialize encrypted WebRTC signaling server
   const webrtcSignaling = new EncryptedWebRTCSignaling(httpServer);
