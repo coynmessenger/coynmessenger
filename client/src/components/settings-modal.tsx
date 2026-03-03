@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDisconnect, useActiveWallet } from "thirdweb/react";
@@ -304,13 +305,13 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log('🔧 SETTINGS: Found connected user in localStorage:', { id: parsedUser.id, walletAddress: parsedUser.walletAddress });
+        log('🔧 SETTINGS: Found connected user in localStorage:', { id: parsedUser.id, walletAddress: parsedUser.walletAddress });
         return parsedUser.id;
       } catch (e) {
-        console.log('❌ SETTINGS: Error parsing connected user from localStorage:', e);
+        log('❌ SETTINGS: Error parsing connected user from localStorage:', e);
       }
     }
-    console.log('❌ SETTINGS: No connected user found in localStorage');
+    log('❌ SETTINGS: No connected user found in localStorage');
     return null;
   }, [isOpen]); // Only re-evaluate when modal opens
 
@@ -335,7 +336,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   // Update local state when user data changes OR when localStorage changes
   React.useEffect(() => {
     if (user && isOpen && !hasInitialized) {
-      console.log('🔧 SETTINGS: Initializing form with user data:', { 
+      log('🔧 SETTINGS: Initializing form with user data:', { 
         userId: user.id, 
         walletAddress: user.walletAddress,
         displayName: getEffectiveDisplayName(user) 
@@ -365,10 +366,10 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          console.log('🔧 SETTINGS: Storage change detected, updating wallet address:', parsedUser.walletAddress);
+          log('🔧 SETTINGS: Storage change detected, updating wallet address:', parsedUser.walletAddress);
           setWalletAddress(parsedUser.walletAddress || "");
         } catch (e) {
-          console.log('❌ SETTINGS: Error parsing storage change:', e);
+          log('❌ SETTINGS: Error parsing storage change:', e);
         }
       }
     };
@@ -590,7 +591,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
   const handleSignOut = async () => {
     try {
       // First disconnect the thirdweb wallet
-      console.log('🔌 Disconnecting thirdweb wallet from settings...');
+      log('🔌 Disconnecting thirdweb wallet from settings...');
       if (activeWallet) {
         await disconnect(activeWallet);
       }

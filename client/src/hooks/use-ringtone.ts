@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useEffect, useRef, useCallback, useState } from "react";
 import { ringtoneService } from "@/lib/ringtone-service";
 
@@ -26,7 +27,7 @@ export function useRingtone(src: string, loop: boolean = true) {
     try {
       if (audioRef.current) {
         await audioRef.current.play();
-        console.log('[ringtone] Playing:', src);
+        log('[ringtone] Playing:', src);
       }
     } catch (err) {
       console.warn('[ringtone] Autoplay blocked. Will start on user gesture.', err);
@@ -37,7 +38,7 @@ export function useRingtone(src: string, loop: boolean = true) {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      console.log('[ringtone] Stopped');
+      log('[ringtone] Stopped');
     }
   };
 
@@ -82,7 +83,7 @@ export function useCallRingtone({
   }, []);
 
   const stopRingtone = useCallback(() => {
-    console.log('🔔 useCallRingtone: Stopping ringtone');
+    log('🔔 useCallRingtone: Stopping ringtone');
     clearMaxDurationTimer();
     ringtoneService.stopRingtone();
     setIsPlaying(false);
@@ -92,11 +93,11 @@ export function useCallRingtone({
 
   const startRingtone = useCallback(async () => {
     if (hasStartedRef.current || ringtoneService.isRingtonePlaying()) {
-      console.log('🔔 useCallRingtone: Ringtone already started or playing');
+      log('🔔 useCallRingtone: Ringtone already started or playing');
       return;
     }
 
-    console.log('🔔 useCallRingtone: Starting ringtone');
+    log('🔔 useCallRingtone: Starting ringtone');
     hasStartedRef.current = true;
 
     try {
@@ -106,7 +107,7 @@ export function useCallRingtone({
 
       clearMaxDurationTimer();
       maxDurationTimerRef.current = setTimeout(() => {
-        console.log('🔔 useCallRingtone: Max duration reached, stopping ringtone');
+        log('🔔 useCallRingtone: Max duration reached, stopping ringtone');
         stopRingtone();
         onMaxDurationReached?.();
       }, maxDuration);
@@ -119,7 +120,7 @@ export function useCallRingtone({
 
   const retryRingtone = useCallback(async () => {
     if (isPending && !isPlaying) {
-      console.log('🔔 useCallRingtone: Retrying pending ringtone');
+      log('🔔 useCallRingtone: Retrying pending ringtone');
       hasStartedRef.current = false;
       await startRingtone();
     }
@@ -171,11 +172,11 @@ class RingbackService {
 
   async startRingback(): Promise<void> {
     if (this.isPlaying) {
-      console.log('📞 RINGBACK: Already playing');
+      log('📞 RINGBACK: Already playing');
       return;
     }
 
-    console.log('📞 RINGBACK: Starting outgoing call ringback tone...');
+    log('📞 RINGBACK: Starting outgoing call ringback tone...');
 
     try {
       if (!this.audioContext) {
@@ -193,7 +194,7 @@ class RingbackService {
       this.isPlaying = true;
       this.playRingbackPattern();
 
-      console.log('✅ RINGBACK: Started successfully');
+      log('✅ RINGBACK: Started successfully');
     } catch (error) {
       console.error('❌ RINGBACK: Failed to start:', error);
     }
@@ -239,7 +240,7 @@ class RingbackService {
   }
 
   stopRingback() {
-    console.log('📞 RINGBACK: Stopping...');
+    log('📞 RINGBACK: Stopping...');
 
     this.isPlaying = false;
 
@@ -270,7 +271,7 @@ class RingbackService {
       }
     }, 200);
 
-    console.log('✅ RINGBACK: Stopped');
+    log('✅ RINGBACK: Stopped');
   }
 
   isRingbackPlaying(): boolean {

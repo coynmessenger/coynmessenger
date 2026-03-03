@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 /**
  * Simple Video/Voice Call Test Page
  * Use this to test the simplified WebRTC service
@@ -47,13 +48,13 @@ export default function CallTestPage() {
     
     // Authenticate
     service.authenticate(userId).then(() => {
-      console.log('✅ Authenticated with WebRTC service');
+      log('✅ Authenticated with WebRTC service');
       setCallStatus('Ready');
     });
 
     // Handle incoming calls
     service.onIncomingCall((data: IncomingCallData) => {
-      console.log('📞 Incoming call from:', data.fromUserId);
+      log('📞 Incoming call from:', data.fromUserId);
       
       toast({
         title: `Incoming ${data.type} call`,
@@ -91,21 +92,21 @@ export default function CallTestPage() {
         },
         {
           onLocalStream: (stream) => {
-            console.log('✅ Local stream received');
+            log('✅ Local stream received');
             setCallStatus('Ringing...');
           },
           onRemoteStream: (stream) => {
-            console.log('✅ Remote stream received');
+            log('✅ Remote stream received');
             // Try to play audio
             retryPendingAudio();
           },
           onCallConnected: () => {
-            console.log('✅ Call connected');
+            log('✅ Call connected');
             setCallStatus('Connected');
             setIsInCall(true);
           },
           onCallEnded: () => {
-            console.log('📞 Call ended');
+            log('📞 Call ended');
             setCallStatus('Ready');
             setIsInCall(false);
           },
@@ -121,7 +122,7 @@ export default function CallTestPage() {
         }
       );
 
-      console.log('📞 Call initiated:', callId);
+      log('📞 Call initiated:', callId);
 
     } catch (error: any) {
       console.error('Failed to initiate call:', error);
@@ -151,21 +152,21 @@ export default function CallTestPage() {
         },
         {
           onLocalStream: (stream) => {
-            console.log('✅ Local stream received');
+            log('✅ Local stream received');
           },
           onRemoteStream: (stream) => {
-            console.log('✅ Remote stream received');
+            log('✅ Remote stream received');
             // User clicked accept button, so we have user gesture - retry audio
             retryPendingAudio();
           },
           onCallConnected: () => {
-            console.log('✅ Call connected');
+            log('✅ Call connected');
             setCallStatus('Connected');
             setIsInCall(true);
             setIncomingCall(null);
           },
           onCallEnded: () => {
-            console.log('📞 Call ended');
+            log('📞 Call ended');
             setCallStatus('Ready');
             setIsInCall(false);
           },
@@ -182,7 +183,7 @@ export default function CallTestPage() {
         }
       );
 
-      console.log('✅ Call accepted');
+      log('✅ Call accepted');
 
     } catch (error: any) {
       console.error('Failed to accept call:', error);

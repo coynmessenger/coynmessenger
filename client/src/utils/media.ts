@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 /**
  * tryPlayMedia()
  * Safely attempts to play a given HTMLMediaElement.
@@ -11,7 +12,7 @@ export async function tryPlayMedia(element: HTMLMediaElement | null): Promise<bo
   }
 
   // Log element state BEFORE play attempt
-  console.log("🔊 AUDIO DEBUG (PLAY): Attempting playback...", {
+  log("🔊 AUDIO DEBUG (PLAY): Attempting playback...", {
     elementType: element.tagName,
     readyState: element.readyState,
     paused: element.paused,
@@ -25,7 +26,7 @@ export async function tryPlayMedia(element: HTMLMediaElement | null): Promise<bo
 
   // Log srcObject details if available
   if (element.srcObject instanceof MediaStream) {
-    console.log("🔊 AUDIO DEBUG (PLAY): MediaStream details:", {
+    log("🔊 AUDIO DEBUG (PLAY): MediaStream details:", {
       active: element.srcObject.active,
       id: element.srcObject.id,
       audioTracks: element.srcObject.getAudioTracks().length,
@@ -42,7 +43,7 @@ export async function tryPlayMedia(element: HTMLMediaElement | null): Promise<bo
 
   try {
     await element.play();
-    console.log("✅ AUDIO DEBUG (PLAY): Playback SUCCEEDED", {
+    log("✅ AUDIO DEBUG (PLAY): Playback SUCCEEDED", {
       readyState: element.readyState,
       paused: element.paused,
       currentTime: element.currentTime

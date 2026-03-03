@@ -52,20 +52,20 @@ export class EncryptedWebRTCSignaling {
       socket.on('authenticate', async (data: { userId: string | number }) => {
         const userId = String(data.userId); // Ensure consistent string format
         
-        console.log('🔐 SERVER: User authentication request');
-        console.log('- User ID:', userId);
-        console.log('- Socket ID:', socket.id);
+        this.log('🔐 SERVER: User authentication request');
+        this.log('- User ID:', userId);
+        this.log('- Socket ID:', socket.id);
         
         // Store user-socket mapping (OVERWRITE previous connections)
         const previousSocketId = this.userSockets.get(userId);
         if (previousSocketId) {
-          console.log('⚠️ SERVER: User', userId, 'had previous socket:', previousSocketId, 'replacing with:', socket.id);
+          this.log('⚠️ SERVER: User', userId, 'had previous socket:', previousSocketId, 'replacing with:', socket.id);
         }
         this.userSockets.set(userId, socket.id);
         this.socketUsers.set(socket.id, userId);
         
-        console.log('- User sockets map size:', this.userSockets.size);
-        console.log('- All authenticated users:', Array.from(this.userSockets.keys()));
+        this.log('- User sockets map size:', this.userSockets.size);
+        this.log('- All authenticated users:', Array.from(this.userSockets.keys()));
 
         // Initialize encryption service for user
         if (!this.encryptionServices.has(userId)) {
@@ -91,10 +91,10 @@ export class EncryptedWebRTCSignaling {
         const { conversationId } = data;
         const userId = this.socketUsers.get(socket.id);
 
-        console.log('🏠 SERVER: User joining conversation room');
-        console.log('- User ID:', userId);
-        console.log('- Socket ID:', socket.id);
-        console.log('- Conversation ID:', conversationId);
+        this.log('🏠 SERVER: User joining conversation room');
+        this.log('- User ID:', userId);
+        this.log('- Socket ID:', socket.id);
+        this.log('- Conversation ID:', conversationId);
         
         socket.join(`conversation-${conversationId}`);
         
@@ -104,7 +104,7 @@ export class EncryptedWebRTCSignaling {
         }
         this.conversationRooms.get(conversationId)!.add(socket.id);
         
-        console.log('- Room users count:', this.conversationRooms.get(conversationId)?.size || 0);
+        this.log('- Room users count:', this.conversationRooms.get(conversationId)?.size || 0);
       });
 
       // Leave conversation room
@@ -139,10 +139,10 @@ export class EncryptedWebRTCSignaling {
 
       // Test ping handler for debugging
       socket.on('ping-test', (data: { timestamp: number }) => {
-        console.log('🚨 CRITICAL DEBUG: Received ping-test from socket:', socket.id, 'at', new Date().toISOString());
-        console.log('🚨 CRITICAL DEBUG: Ping data:', data);
+        this.log('🚨 CRITICAL DEBUG: Received ping-test from socket:', socket.id, 'at', new Date().toISOString());
+        this.log('🚨 CRITICAL DEBUG: Ping data:', data);
         const userId = this.socketUsers.get(socket.id);
-        console.log('🚨 CRITICAL DEBUG: User ID for this socket:', userId);
+        this.log('🚨 CRITICAL DEBUG: User ID for this socket:', userId);
       });
 
       // Exchange encryption keys between users
@@ -179,26 +179,26 @@ export class EncryptedWebRTCSignaling {
         const callerId = this.socketUsers.get(socket.id);
         
         if (this.verboseLogging) {
-          console.log('\n');
-          console.log('════════════════════════════════════════════════════════');
-          console.log('📞 CALL FLOW: [1/6] INITIATE-CALL EVENT RECEIVED');
-          console.log('════════════════════════════════════════════════════════');
-          console.log('📞 Timestamp:', new Date().toISOString());
-          console.log('📞 Caller Socket ID:', socket.id);
-          console.log('📞 Caller User ID:', callerId);
-          console.log('📞 Target User ID:', data.targetUserId);
-          console.log('📞 Call ID:', data.callId);
-          console.log('📞 Call Type:', data.type);
-          console.log('📞 Offer Provided:', !!data.offer);
-          console.log('📞 Current Active User-Socket Mappings:');
+          this.log('\n');
+          this.log('════════════════════════════════════════════════════════');
+          this.log('📞 CALL FLOW: [1/6] INITIATE-CALL EVENT RECEIVED');
+          this.log('════════════════════════════════════════════════════════');
+          this.log('📞 Timestamp:', new Date().toISOString());
+          this.log('📞 Caller Socket ID:', socket.id);
+          this.log('📞 Caller User ID:', callerId);
+          this.log('📞 Target User ID:', data.targetUserId);
+          this.log('📞 Call ID:', data.callId);
+          this.log('📞 Call Type:', data.type);
+          this.log('📞 Offer Provided:', !!data.offer);
+          this.log('📞 Current Active User-Socket Mappings:');
           this.userSockets.forEach((socketId, userId) => {
             const socket = this.io.sockets.sockets.get(socketId);
             const isConnected = socket?.connected ? '✅' : '❌';
-            console.log(`   ${isConnected} User ${userId} -> Socket ${socketId}`);
+            this.log(`   ${isConnected} User ${userId} -> Socket ${socketId}`);
           });
         } else {
           // Production: minimal logging
-          console.log(`📞 Call initiated: ${callerId} → ${data.targetUserId} (${data.type})`);
+          this.log(`📞 Call initiated: ${callerId} → ${data.targetUserId} (${data.type})`);
         }
         
         // Validate caller authentication
@@ -245,11 +245,11 @@ export class EncryptedWebRTCSignaling {
           // Use the incoming callId from client to maintain synchronization
           const callId = data.callId || `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           
-          console.log('✅ CALL FLOW: Using call ID:', callId);
+          this.log('✅ CALL FLOW: Using call ID:', callId);
           
           // Send instant notification for toast/browser notification
-          console.log('\n📞 CALL FLOW: [4/6] SENDING NOTIFICATIONS');
-          console.log('   Sending instant notification for UI toast...');
+          this.log('\n📞 CALL FLOW: [4/6] SENDING NOTIFICATIONS');
+          this.log('   Sending instant notification for UI toast...');
           this.sendInstantNotification(data.targetUserId, {
             type: 'call',
             title: `Incoming ${data.type} call`,
@@ -258,7 +258,7 @@ export class EncryptedWebRTCSignaling {
             fromUserName: `User ${callerId}`,
             conversationId: callId,
           });
-          console.log('✅ Instant notification sent');
+          this.log('✅ Instant notification sent');
           
           // Get target user's encryption service
           const targetEncryption = this.encryptionServices.get(data.targetUserId);
@@ -273,10 +273,10 @@ export class EncryptedWebRTCSignaling {
             const callerPublicKey = await callerEncryption.getPublicKey();
             const targetPublicKey = await targetEncryption.getPublicKey();
             
-            console.log('   Establishing encrypted session...');
+            this.log('   Establishing encrypted session...');
             await callerEncryption.establishSession(data.targetUserId, targetPublicKey);
             await targetEncryption.establishSession(callerId, callerPublicKey);
-            console.log('✅ Encrypted session established');
+            this.log('✅ Encrypted session established');
             
             // Create active call record
             const call: ActiveCall = {
@@ -294,27 +294,27 @@ export class EncryptedWebRTCSignaling {
             };
 
             this.activeCalls.set(callId, call);
-            console.log('✅ Active call record created');
+            this.log('✅ Active call record created');
 
             // Encrypt call initiation data if offer is provided
             let encryptedOffer: string | undefined;
             if (data.offer) {
               encryptedOffer = await callerEncryption.encryptSignalingData(data.targetUserId, data.offer);
-              console.log('✅ WebRTC offer encrypted');
+              this.log('✅ WebRTC offer encrypted');
             }
 
             // Send encrypted call invitation to target
-            console.log('\n════════════════════════════════════════════════════════');
-            console.log('📞 CALL FLOW: [5/6] SENDING INCOMING-CALL EVENT');
-            console.log('════════════════════════════════════════════════════════');
-            console.log('   Event: incoming-call');
-            console.log('   Target Socket ID:', targetSocketId);
-            console.log('   Call ID:', callId);
-            console.log('   From User:', callerId);
-            console.log('   Call Type:', data.type);
-            console.log('   Plain Offer Included:', !!data.offer);
-            console.log('   Encrypted Offer Included:', !!encryptedOffer);
-            console.log('   Encrypted:', true);
+            this.log('\n════════════════════════════════════════════════════════');
+            this.log('📞 CALL FLOW: [5/6] SENDING INCOMING-CALL EVENT');
+            this.log('════════════════════════════════════════════════════════');
+            this.log('   Event: incoming-call');
+            this.log('   Target Socket ID:', targetSocketId);
+            this.log('   Call ID:', callId);
+            this.log('   From User:', callerId);
+            this.log('   Call Type:', data.type);
+            this.log('   Plain Offer Included:', !!data.offer);
+            this.log('   Encrypted Offer Included:', !!encryptedOffer);
+            this.log('   Encrypted:', true);
             
             const targetSocket = this.io.sockets.sockets.get(targetSocketId);
             if (targetSocket && targetSocket.connected) {
@@ -327,8 +327,8 @@ export class EncryptedWebRTCSignaling {
                 encrypted: true,
                 dtlsFingerprint: data.dtlsFingerprint, // Relay caller's DTLS fingerprint for peer verification
               });
-              console.log('✅ CALL FLOW: incoming-call event emitted successfully');
-              console.log('   Target should now receive the call!\n');
+              this.log('✅ CALL FLOW: incoming-call event emitted successfully');
+              this.log('   Target should now receive the call!\n');
             } else {
               console.error('❌ CRITICAL: Target socket not found or disconnected:', targetSocketId);
               socket.emit('call-error', { error: 'Target user disconnected' });
@@ -336,10 +336,10 @@ export class EncryptedWebRTCSignaling {
             }
             
             // Notify caller that call was initiated (SINGLE EMISSION)
-            console.log('📞 CALL FLOW: [6/6] CONFIRMING TO CALLER');
-            console.log('   Sending call-initiated confirmation to caller');
+            this.log('📞 CALL FLOW: [6/6] CONFIRMING TO CALLER');
+            this.log('   Sending call-initiated confirmation to caller');
             socket.emit('call-initiated', { callId, targetUserId: data.targetUserId });
-            console.log('✅ CALL FLOW: Call initiation complete!\n');
+            this.log('✅ CALL FLOW: Call initiation complete!\n');
             
           } catch (error) {
             console.error('⚠️ CALL FLOW: Encryption failed, falling back to unencrypted call');
@@ -361,9 +361,9 @@ export class EncryptedWebRTCSignaling {
             };
 
             this.activeCalls.set(callId, call);
-            console.log('✅ Active call record created (unencrypted)');
+            this.log('✅ Active call record created (unencrypted)');
 
-            console.log('\n📞 CALL FLOW: FALLBACK - Sending unencrypted incoming-call');
+            this.log('\n📞 CALL FLOW: FALLBACK - Sending unencrypted incoming-call');
             const targetSocket = this.io.sockets.sockets.get(targetSocketId);
             if (targetSocket && targetSocket.connected) {
               targetSocket.emit('incoming-call', {
@@ -374,7 +374,7 @@ export class EncryptedWebRTCSignaling {
                 encrypted: false,
                 dtlsFingerprint: data.dtlsFingerprint,
               });
-              console.log('✅ CALL FLOW: Unencrypted incoming-call sent\n');
+              this.log('✅ CALL FLOW: Unencrypted incoming-call sent\n');
             } else {
               console.error('❌ CRITICAL: Target socket not found in fallback:', targetSocketId);
               socket.emit('call-error', { error: 'Target user disconnected' });
@@ -403,15 +403,15 @@ export class EncryptedWebRTCSignaling {
       }) => {
         const accepterId = this.socketUsers.get(socket.id);
         
-        console.log('\n');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('📞 ACCEPT FLOW: [1/4] ACCEPT-CALL EVENT RECEIVED');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('📞 Timestamp:', new Date().toISOString());
-        console.log('📞 Accepter Socket ID:', socket.id);
-        console.log('📞 Accepter User ID:', accepterId || 'NOT FOUND');
-        console.log('📞 Call ID:', data.callId);
-        console.log('📞 Answer Provided:', !!data.answer);
+        this.log('\n');
+        this.log('════════════════════════════════════════════════════════');
+        this.log('📞 ACCEPT FLOW: [1/4] ACCEPT-CALL EVENT RECEIVED');
+        this.log('════════════════════════════════════════════════════════');
+        this.log('📞 Timestamp:', new Date().toISOString());
+        this.log('📞 Accepter Socket ID:', socket.id);
+        this.log('📞 Accepter User ID:', accepterId || 'NOT FOUND');
+        this.log('📞 Call ID:', data.callId);
+        this.log('📞 Answer Provided:', !!data.answer);
         
         if (!accepterId) {
           console.error('❌ ACCEPT FLOW: ERROR - Accepter not authenticated');
@@ -426,8 +426,8 @@ export class EncryptedWebRTCSignaling {
           return;
         }
         
-        console.log('✅ ACCEPT FLOW: Call found in active calls');
-        console.log('   Caller:', call.participants[0]?.userId || 'unknown');
+        this.log('✅ ACCEPT FLOW: Call found in active calls');
+        this.log('   Caller:', call.participants[0]?.userId || 'unknown');
 
         const accepterEncryption = this.encryptionServices.get(accepterId);
         if (!accepterEncryption) {
@@ -435,27 +435,27 @@ export class EncryptedWebRTCSignaling {
           return;
         }
 
-        console.log('\n📞 ACCEPT FLOW: [2/4] ADDING ACCEPTER TO CALL');
+        this.log('\n📞 ACCEPT FLOW: [2/4] ADDING ACCEPTER TO CALL');
         // Add accepter to call
         call.participants.push({
           userId: accepterId,
           socketId: socket.id,
           encryptionService: accepterEncryption
         });
-        console.log('✅ Accepter added to call participants');
-        console.log('   Total participants:', call.participants.length);
+        this.log('✅ Accepter added to call participants');
+        this.log('   Total participants:', call.participants.length);
 
         // Encrypt answer if provided and encryption is available
         let encryptedAnswer: string | undefined;
         let isEncrypted = call.encrypted;
         
-        console.log('\n📞 ACCEPT FLOW: [3/4] PROCESSING ANSWER');
+        this.log('\n📞 ACCEPT FLOW: [3/4] PROCESSING ANSWER');
         if (data.answer && call.participants.length > 1 && call.encrypted) {
           const callerId = call.participants[0].userId;
           try {
-            console.log('   Encrypting WebRTC answer...');
+            this.log('   Encrypting WebRTC answer...');
             encryptedAnswer = await accepterEncryption.encryptSignalingData(callerId, data.answer);
-            console.log('✅ Answer encrypted successfully');
+            this.log('✅ Answer encrypted successfully');
           } catch (error) {
             console.error('⚠️ Answer encryption failed, falling back to unencrypted');
             console.error('   Error:', error);
@@ -463,7 +463,7 @@ export class EncryptedWebRTCSignaling {
             isEncrypted = false;
           }
         } else {
-          console.log('   Using unencrypted answer');
+          this.log('   Using unencrypted answer');
         }
 
         const callerId = call.participants[0].userId;
@@ -471,21 +471,21 @@ export class EncryptedWebRTCSignaling {
         const currentCallerSocketId = this.userSockets.get(callerId) || storedCallerSocketId;
         
         if (currentCallerSocketId !== storedCallerSocketId) {
-          console.log('⚠️ ACCEPT FLOW: Caller socket changed since call initiation');
-          console.log('   Old socket:', storedCallerSocketId, '→ New socket:', currentCallerSocketId);
+          this.log('⚠️ ACCEPT FLOW: Caller socket changed since call initiation');
+          this.log('   Old socket:', storedCallerSocketId, '→ New socket:', currentCallerSocketId);
           call.participants[0].socketId = currentCallerSocketId;
         }
         
-        console.log('\n════════════════════════════════════════════════════════');
-        console.log('📞 ACCEPT FLOW: [4/4] SENDING CALL-ACCEPTED TO CALLER');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('   Event: call-accepted');
-        console.log('   To Socket ID:', currentCallerSocketId);
-        console.log('   By User:', accepterId);
-        console.log('   Call ID:', data.callId);
-        console.log('   Plain Answer Included:', !!data.answer);
-        console.log('   Encrypted Answer Included:', !!encryptedAnswer);
-        console.log('   Encrypted:', isEncrypted);
+        this.log('\n════════════════════════════════════════════════════════');
+        this.log('📞 ACCEPT FLOW: [4/4] SENDING CALL-ACCEPTED TO CALLER');
+        this.log('════════════════════════════════════════════════════════');
+        this.log('   Event: call-accepted');
+        this.log('   To Socket ID:', currentCallerSocketId);
+        this.log('   By User:', accepterId);
+        this.log('   Call ID:', data.callId);
+        this.log('   Plain Answer Included:', !!data.answer);
+        this.log('   Encrypted Answer Included:', !!encryptedAnswer);
+        this.log('   Encrypted:', isEncrypted);
         
         this.io.to(currentCallerSocketId).emit('call-accepted', {
           callId: data.callId,
@@ -496,7 +496,7 @@ export class EncryptedWebRTCSignaling {
           dtlsFingerprint: data.dtlsFingerprint, // Relay callee's DTLS fingerprint for caller verification
         });
         
-        console.log('✅ ACCEPT FLOW: call-accepted event sent to caller');
+        this.log('✅ ACCEPT FLOW: call-accepted event sent to caller');
         
         // Send confirmation back to accepter that acceptance was processed
         socket.emit('call-accepted-confirmation', {
@@ -504,8 +504,8 @@ export class EncryptedWebRTCSignaling {
           fromUserId: call.participants[0].userId
         });
         
-        console.log('✅ ACCEPT FLOW: Confirmation sent to accepter');
-        console.log('✅ ACCEPT FLOW: Call acceptance complete!\n');
+        this.log('✅ ACCEPT FLOW: Confirmation sent to accepter');
+        this.log('✅ ACCEPT FLOW: Call acceptance complete!\n');
       });
 
       // Handle encrypted ICE candidates
@@ -520,11 +520,11 @@ export class EncryptedWebRTCSignaling {
           return;
         }
 
-        console.log('🧊 SERVER: ICE candidate received');
-        console.log('- From:', senderId);
-        console.log('- To:', data.targetUserId);
-        console.log('- Call ID:', data.callId);
-        console.log('- Candidate type:', (data.candidate as any).type);
+        this.log('🧊 SERVER: ICE candidate received');
+        this.log('- From:', senderId);
+        this.log('- To:', data.targetUserId);
+        this.log('- Call ID:', data.callId);
+        this.log('- Candidate type:', (data.candidate as any).type);
 
         const senderEncryption = this.encryptionServices.get(senderId);
         const targetSocketId = this.userSockets.get(data.targetUserId);
@@ -537,7 +537,7 @@ export class EncryptedWebRTCSignaling {
               data.candidate
             );
 
-            console.log('📤 SERVER: Sending encrypted ICE candidate to target');
+            this.log('📤 SERVER: Sending encrypted ICE candidate to target');
             this.io.to(targetSocketId).emit('ice-candidate', {
               callId: data.callId,
               fromUserId: senderId,
@@ -547,7 +547,7 @@ export class EncryptedWebRTCSignaling {
             });
           } catch (error) {
             
-            console.log('📤 SERVER: Sending unencrypted ICE candidate to target (fallback)');
+            this.log('📤 SERVER: Sending unencrypted ICE candidate to target (fallback)');
             // Send unencrypted as fallback
             this.io.to(targetSocketId).emit('ice-candidate', {
               callId: data.callId,
@@ -605,14 +605,14 @@ export class EncryptedWebRTCSignaling {
       socket.on('end-call', (data: { callId: string }) => {
         const userId = this.socketUsers.get(socket.id);
         
-        console.log('\n');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('📞 END CALL: EVENT RECEIVED');
-        console.log('════════════════════════════════════════════════════════');
-        console.log('📞 Timestamp:', new Date().toISOString());
-        console.log('📞 Ended by Socket ID:', socket.id);
-        console.log('📞 Ended by User ID:', userId || 'unknown');
-        console.log('📞 Call ID:', data.callId);
+        this.log('\n');
+        this.log('════════════════════════════════════════════════════════');
+        this.log('📞 END CALL: EVENT RECEIVED');
+        this.log('════════════════════════════════════════════════════════');
+        this.log('📞 Timestamp:', new Date().toISOString());
+        this.log('📞 Ended by Socket ID:', socket.id);
+        this.log('📞 Ended by User ID:', userId || 'unknown');
+        this.log('📞 Call ID:', data.callId);
         
         const call = this.activeCalls.get(data.callId);
         if (!call) {
@@ -622,14 +622,14 @@ export class EncryptedWebRTCSignaling {
           return;
         }
 
-        console.log('✅ END CALL: Call found');
-        console.log('   Participants:', call.participants.length);
+        this.log('✅ END CALL: Call found');
+        this.log('   Participants:', call.participants.length);
 
         let notifiedCount = 0;
         call.participants.forEach(participant => {
           if (participant.userId !== userId) {
             const currentSocketId = this.userSockets.get(participant.userId) || participant.socketId;
-            console.log('   Notifying participant:', participant.userId, 'at socket:', currentSocketId);
+            this.log('   Notifying participant:', participant.userId, 'at socket:', currentSocketId);
             this.io.to(currentSocketId).emit('call-ended', {
               callId: data.callId,
               endedBy: userId,
@@ -639,13 +639,13 @@ export class EncryptedWebRTCSignaling {
           }
         });
         
-        console.log('✅ END CALL: Notified', notifiedCount, 'participant(s)');
+        this.log('✅ END CALL: Notified', notifiedCount, 'participant(s)');
 
         // Remove call from active calls
         this.activeCalls.delete(data.callId);
-        console.log('✅ END CALL: Call removed from active calls');
-        console.log('   Remaining active calls:', this.activeCalls.size);
-        console.log('✅ END CALL: Complete!\n');
+        this.log('✅ END CALL: Call removed from active calls');
+        this.log('   Remaining active calls:', this.activeCalls.size);
+        this.log('✅ END CALL: Complete!\n');
       });
 
       // Handle disconnection
@@ -678,15 +678,15 @@ export class EncryptedWebRTCSignaling {
           // Clean up mappings - CRITICAL: Only remove if this socket is the current one
           const currentSocketId = this.userSockets.get(userId);
           if (currentSocketId === socket.id) {
-            console.log('🔌 SERVER: Removing user socket mapping on disconnect');
-            console.log('- User ID:', userId);
-            console.log('- Socket ID:', socket.id);
+            this.log('🔌 SERVER: Removing user socket mapping on disconnect');
+            this.log('- User ID:', userId);
+            this.log('- Socket ID:', socket.id);
             this.userSockets.delete(userId);
           } else {
-            console.log('🔌 SERVER: Skipping socket removal - not current socket');
-            console.log('- User ID:', userId);
-            console.log('- Disconnected socket:', socket.id);
-            console.log('- Current socket for user:', currentSocketId);
+            this.log('🔌 SERVER: Skipping socket removal - not current socket');
+            this.log('- User ID:', userId);
+            this.log('- Disconnected socket:', socket.id);
+            this.log('- Current socket for user:', currentSocketId);
           }
           
           // Always remove from socketUsers mapping
@@ -732,12 +732,12 @@ export class EncryptedWebRTCSignaling {
     const roomName = `conversation-${conversationId}`;
     const roomUsers = this.conversationRooms.get(conversationId);
 
-    console.log('📡 SERVER: Broadcasting new message');
-    console.log('- Conversation ID:', conversationId);
-    console.log('- Room name:', roomName);
-    console.log('- Room users count:', roomUsers?.size || 0);
-    console.log('- Sender ID:', message.senderId);
-    console.log('- Message content:', message.content);
+    this.log('📡 SERVER: Broadcasting new message');
+    this.log('- Conversation ID:', conversationId);
+    this.log('- Room name:', roomName);
+    this.log('- Room users count:', roomUsers?.size || 0);
+    this.log('- Sender ID:', message.senderId);
+    this.log('- Message content:', message.content);
 
     this.io.to(roomName).emit('new_message', {
       conversationId,
@@ -748,7 +748,7 @@ export class EncryptedWebRTCSignaling {
       timestamp: new Date().toISOString()
     });
 
-    console.log('✅ SERVER: new_message event emitted to room:', roomName);
+    this.log('✅ SERVER: new_message event emitted to room:', roomName);
   }
 
   // Send instant notification to specific user
@@ -763,20 +763,20 @@ export class EncryptedWebRTCSignaling {
   }): void {
     const socketId = this.userSockets.get(userId);
     
-    console.log('🔔 SERVER: Sending instant notification');
-    console.log('- Target User ID:', userId);
-    console.log('- Target Socket ID:', socketId);
-    console.log('- Notification type:', notification.type);
-    console.log('- Notification title:', notification.title);
+    this.log('🔔 SERVER: Sending instant notification');
+    this.log('- Target User ID:', userId);
+    this.log('- Target Socket ID:', socketId);
+    this.log('- Notification type:', notification.type);
+    this.log('- Notification title:', notification.title);
     
     if (socketId) {
       this.io.to(socketId).emit('instant-notification', {
         ...notification,
         timestamp: new Date().toISOString()
       });
-      console.log('✅ SERVER: instant-notification event emitted to socket:', socketId);
+      this.log('✅ SERVER: instant-notification event emitted to socket:', socketId);
     } else {
-      console.log('❌ SERVER: No socket found for user:', userId);
+      this.log('❌ SERVER: No socket found for user:', userId);
     }
   }
 

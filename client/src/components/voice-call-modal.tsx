@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -46,7 +47,7 @@ export default function VoiceCallModal({
 }: VoiceCallModalProps) {
   
   // Add debugging for props
-  console.log('🎙️ VOICE MODAL: Rendered with props:', {
+  log('🎙️ VOICE MODAL: Rendered with props:', {
     isOpen,
     user: user ? { id: user.id, name: user.displayName } : null,
     callType,
@@ -57,10 +58,10 @@ export default function VoiceCallModal({
   useEffect(() => {
     const globalService = getGlobalWebRTC();
     if (globalService) {
-      console.log('🔧 VOICE MODAL: Setting WebRTC service from global service');
+      log('🔧 VOICE MODAL: Setting WebRTC service from global service');
       webrtcService.current = globalService;
     } else {
-      console.log('❌ VOICE MODAL: No global WebRTC service available');
+      log('❌ VOICE MODAL: No global WebRTC service available');
     }
   }, []);
   
@@ -85,7 +86,7 @@ export default function VoiceCallModal({
     isOpen,
     maxDuration: 45000,
     onMaxDurationReached: () => {
-      console.log('🔔 VOICE CALL: Ringtone max duration reached');
+      log('🔔 VOICE CALL: Ringtone max duration reached');
     }
   });
   
@@ -181,7 +182,7 @@ export default function VoiceCallModal({
   // Centralized state reset function - COMPLETE IDEMPOTENT CLEANUP
   // Uses refs instead of state to ensure cleanup works in all contexts (including unmount)
   const resetLocalState = () => {
-    console.log('📞 VOICE CALL: Starting complete cleanup...');
+    log('📞 VOICE CALL: Starting complete cleanup...');
     
     // Reset state
     setCallStatus("connecting");
@@ -198,10 +199,10 @@ export default function VoiceCallModal({
     
     // Clean up incoming stream ref - defensive check for already-stopped tracks
     if (incomingStreamRef.current) {
-      console.log('🧹 VOICE CALL: Stopping incomingStreamRef tracks');
+      log('🧹 VOICE CALL: Stopping incomingStreamRef tracks');
       incomingStreamRef.current.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
-          console.log(`  Stopping track: ${track.kind} (${track.label})`);
+          log(`  Stopping track: ${track.kind} (${track.label})`);
           track.stop();
         }
       });
@@ -210,10 +211,10 @@ export default function VoiceCallModal({
     
     // Clean up current stream using REF (not state) for unmount access
     if (currentStreamRef.current) {
-      console.log('🧹 VOICE CALL: Stopping currentStream tracks');
+      log('🧹 VOICE CALL: Stopping currentStream tracks');
       currentStreamRef.current.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
-          console.log(`  Stopping track: ${track.kind} (${track.label})`);
+          log(`  Stopping track: ${track.kind} (${track.label})`);
           track.stop();
         }
       });
@@ -226,20 +227,20 @@ export default function VoiceCallModal({
       remoteAudioRef.current.srcObject = null;
     }
     
-    console.log('✅ VOICE CALL: Cleanup complete');
+    log('✅ VOICE CALL: Cleanup complete');
   };
 
   // Retry pending audio playback after user gesture (accept button click)
   const retryPendingAudioPlayback = async () => {
     if (pendingAudioPlaybackRef.current && remoteAudioRef.current) {
-      console.log('🔄 VOICE CALL: Retrying audio playback after user gesture');
+      log('🔄 VOICE CALL: Retrying audio playback after user gesture');
       // Ensure audio element is configured
       remoteAudioRef.current.volume = 1.0;
       remoteAudioRef.current.muted = false;
       
       const played = await tryPlayMedia(remoteAudioRef.current);
       if (played) {
-        console.log('✅ VOICE CALL: Audio playback succeeded after user gesture');
+        log('✅ VOICE CALL: Audio playback succeeded after user gesture');
         pendingAudioPlaybackRef.current = null; // Clear pending playback
       } else {
         console.error('❌ VOICE CALL: Audio playback still failed after user gesture');
@@ -301,11 +302,11 @@ export default function VoiceCallModal({
             if (onCallStartRef.current) onCallStartRef.current();
           },
           onCallEnded: async (call) => {
-            console.log('📞 VOICE CALL: onCallEnded triggered - invoking full cleanup');
+            log('📞 VOICE CALL: onCallEnded triggered - invoking full cleanup');
             
             // Skip if already ending (handleEndCall already did cleanup)
             if (isEndingRef.current) {
-              console.log('📞 VOICE CALL: Already ending, skipping duplicate cleanup');
+              log('📞 VOICE CALL: Already ending, skipping duplicate cleanup');
               return;
             }
             
@@ -324,7 +325,7 @@ export default function VoiceCallModal({
             
             // Auto-close modal after delay
             setTimeout(() => {
-              console.log('📞 VOICE CALL: Auto-closing modal after call ended');
+              log('📞 VOICE CALL: Auto-closing modal after call ended');
               onClose();
             }, 1500);
           },
@@ -335,13 +336,13 @@ export default function VoiceCallModal({
             setDtlsSecured(secured);
           },
           onLocalStream: (stream) => {
-            console.log('🎤 VOICE CALL: ========== LOCAL STREAM RECEIVED ==========');
+            log('🎤 VOICE CALL: ========== LOCAL STREAM RECEIVED ==========');
             
             // Store local stream for muting and recording
             const audioTracks = stream.getAudioTracks();
-            console.log('🎤 VOICE CALL: Audio tracks:', audioTracks.length);
+            log('🎤 VOICE CALL: Audio tracks:', audioTracks.length);
             audioTracks.forEach((track, index) => {
-              console.log(`🎤 VOICE CALL: Audio track ${index}:`, {
+              log(`🎤 VOICE CALL: Audio track ${index}:`, {
                 enabled: track.enabled,
                 muted: track.muted,
                 readyState: track.readyState,
@@ -353,10 +354,10 @@ export default function VoiceCallModal({
             setCurrentStream(stream);
             currentStreamRef.current = stream;
             
-            console.log('✅ VOICE CALL: Local stream stored for muting/recording');
+            log('✅ VOICE CALL: Local stream stored for muting/recording');
           },
           onRemoteStream: (stream) => {
-            console.log('🔊 VOICE CALL: REMOTE STREAM RECEIVED', {
+            log('🔊 VOICE CALL: REMOTE STREAM RECEIVED', {
               active: stream.active,
               audioTracks: stream.getAudioTracks().length
             });
@@ -381,7 +382,7 @@ export default function VoiceCallModal({
                 if (!audioEl.srcObject) return;
                 if (!audioEl.paused) return;
                 await audioEl.play();
-                console.log(`✅ VOICE (${label}): Audio playback started`);
+                log(`✅ VOICE (${label}): Audio playback started`);
                 pendingAudioPlaybackRef.current = null;
               } catch (err: any) {
                 console.warn(`⚠️ VOICE (${label}): play() failed:`, err.name);
@@ -419,11 +420,11 @@ export default function VoiceCallModal({
   // CRITICAL: Unmount-only cleanup - release streams when component truly unmounts
   useEffect(() => {
     return () => {
-      console.log('🧹 VOICE CALL: Component unmounting - performing full cleanup');
+      log('🧹 VOICE CALL: Component unmounting - performing full cleanup');
       
       // Stop any active call first
       if (encryptedCallIdRef.current && !isEndingRef.current) {
-        console.log('🧹 VOICE CALL: Ending active call on unmount');
+        log('🧹 VOICE CALL: Ending active call on unmount');
         const service = getGlobalWebRTC();
         if (service) {
           service.endCall(encryptedCallIdRef.current);
@@ -435,7 +436,7 @@ export default function VoiceCallModal({
         if (stream) {
           stream.getTracks().forEach(track => {
             if (track.readyState !== 'ended') {
-              console.log(`🧹 Stopping ${name} track: ${track.kind}`);
+              log(`🧹 Stopping ${name} track: ${track.kind}`);
               track.stop();
             }
           });
@@ -453,7 +454,7 @@ export default function VoiceCallModal({
       // Clear DOM element srcObject
       if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
       
-      console.log('✅ VOICE CALL: Unmount cleanup complete');
+      log('✅ VOICE CALL: Unmount cleanup complete');
     };
   }, []); // Empty array = cleanup only on unmount
 
@@ -464,7 +465,7 @@ export default function VoiceCallModal({
       
       // ALWAYS trigger cleanup when modal closes, regardless of isEndingRef
       // This ensures microphone resources are released even if user just hides modal
-      console.log('📞 VOICE CALL: Modal closed, triggering full cleanup');
+      log('📞 VOICE CALL: Modal closed, triggering full cleanup');
       resetLocalState();
       return;
     }
@@ -486,12 +487,12 @@ export default function VoiceCallModal({
         setCallStatus("connecting"); // Start with connecting while we get permissions
         
         // CRITICAL: Request microphone permissions immediately for incoming calls
-        console.log('🎤 INCOMING CALL: Requesting microphone permissions immediately...');
+        log('🎤 INCOMING CALL: Requesting microphone permissions immediately...');
         
         // Start ringtone for incoming call
         ringtoneService.startRingtone()
           .then(() => {
-            console.log('🔔 INCOMING CALL: Ringtone started');
+            log('🔔 INCOMING CALL: Ringtone started');
           })
           .catch((error) => {
             console.warn('🔔 INCOMING CALL: Ringtone failed to start:', error);
@@ -501,7 +502,7 @@ export default function VoiceCallModal({
         microphoneService.requestPermissionWithFallback()
           .then((result) => {
             if (result.success && result.stream) {
-              console.log('✅ INCOMING CALL: Microphone permissions granted');
+              log('✅ INCOMING CALL: Microphone permissions granted');
               // Store the stream temporarily - we'll use it when user accepts
               incomingStreamRef.current = result.stream;
               setCallStatus("ringing"); // Now we can show ringing state
@@ -509,7 +510,7 @@ export default function VoiceCallModal({
               // Add 30-second auto-timeout for incoming calls
               setTimeout(() => {
                 if (callStatus === "ringing") {
-                  console.log('📞 INCOMING CALL: Call timeout - no answer after 30 seconds');
+                  log('📞 INCOMING CALL: Call timeout - no answer after 30 seconds');
                   ringtoneService.stopRingtone();
                   setCallStatus("ended");
                   setTimeout(() => onClose(), 1500);
@@ -562,7 +563,7 @@ export default function VoiceCallModal({
       
       if (!callInitiatedRef.current) {
         callInitiatedRef.current = true;
-        console.log('📞 OUTGOING CALL: Starting call initiation');
+        log('📞 OUTGOING CALL: Starting call initiation');
         
         setCallStatus("connecting");
         
@@ -573,7 +574,7 @@ export default function VoiceCallModal({
               if (!permissionResult.success) {
                 throw new Error(permissionResult.error?.message || 'Microphone access denied');
               }
-              console.log('✅ OUTGOING CALL: Microphone permission granted');
+              log('✅ OUTGOING CALL: Microphone permission granted');
               return webrtcService.current!.initialize(currentUser.id.toString());
             })
             .then(() => {
@@ -583,13 +584,13 @@ export default function VoiceCallModal({
               throw new Error('WebRTC service not available');
             })
             .then((callId) => {
-              console.log('📞 OUTGOING CALL: Call initiated successfully, ID:', callId);
+              log('📞 OUTGOING CALL: Call initiated successfully, ID:', callId);
               setEncryptedCallId(callId);
               setCallStatus("ringing");
               
               setTimeout(() => {
                 if (callStatus === "ringing") {
-                  console.log('📞 OUTGOING CALL: Call timeout - no response after 30 seconds');
+                  log('📞 OUTGOING CALL: Call timeout - no response after 30 seconds');
                   setCallStatus("ended");
                   setTimeout(() => onClose(), 1500);
                 }
@@ -640,7 +641,7 @@ export default function VoiceCallModal({
   // This ensures encryptedCallId is set even if incomingCallId arrives after modal opens
   useEffect(() => {
     if (callType === "incoming" && incomingCallId && !encryptedCallId) {
-      console.log('🎙️ VOICE: Setting encryptedCallId from incomingCallId:', incomingCallId);
+      log('🎙️ VOICE: Setting encryptedCallId from incomingCallId:', incomingCallId);
       setEncryptedCallId(incomingCallId);
     }
   }, [callType, incomingCallId, encryptedCallId]);
@@ -648,23 +649,23 @@ export default function VoiceCallModal({
   // Note: Timer is now handled by useCallTimer hook
 
   const handleAcceptCall = async () => {
-    console.log('🎯 ACCEPT BUTTON CLICKED');
-    console.log('🆔 Encrypted Call ID:', encryptedCallId);
-    console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
-    console.log('🎙️ Call Status:', callStatus);
-    console.log('🔧 Call Type:', callType);
-    console.log('👤 User:', user);
+    log('🎯 ACCEPT BUTTON CLICKED');
+    log('🆔 Encrypted Call ID:', encryptedCallId);
+    log('🔧 WebRTC Service Available:', !!webrtcService.current);
+    log('🎙️ Call Status:', callStatus);
+    log('🔧 Call Type:', callType);
+    log('👤 User:', user);
     
     if (encryptedCallId && webrtcService.current) {
       try {
-        console.log('📞 INCOMING CALL: Starting accept call process...');
+        log('📞 INCOMING CALL: Starting accept call process...');
         setCallStatus("connecting");
         
         ringtoneService.stopRingtone();
         
         const tempStream = incomingStreamRef.current;
         if (tempStream) {
-          console.log('✅ ACCEPT: Stopping pre-authorized microphone stream to free mic');
+          log('✅ ACCEPT: Stopping pre-authorized microphone stream to free mic');
           tempStream.getTracks().forEach(track => track.stop());
           incomingStreamRef.current = null;
         }
@@ -681,7 +682,7 @@ export default function VoiceCallModal({
             const ctx = new AudioCtx();
             await ctx.resume();
             ctx.close();
-            console.log('✅ ACCEPT: AudioContext resumed via user gesture');
+            log('✅ ACCEPT: AudioContext resumed via user gesture');
           }
         } catch (e) {
           console.warn('⚠️ ACCEPT: AudioContext resume failed:', e);
@@ -694,14 +695,14 @@ export default function VoiceCallModal({
           remoteAudioRef.current.pause();
         }
         
-        console.log('📞 ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
+        log('📞 ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
-        console.log('✅ ACCEPT: Call accepted successfully');
+        log('✅ ACCEPT: Call accepted successfully');
         
         if (remoteAudioRef.current && remoteAudioRef.current.srcObject && remoteAudioRef.current.paused) {
           try {
             await remoteAudioRef.current.play();
-            console.log('✅ ACCEPT: Audio playback started after acceptCall');
+            log('✅ ACCEPT: Audio playback started after acceptCall');
           } catch (e) {
             console.warn('⚠️ ACCEPT: Post-accept play() failed:', e);
           }
@@ -771,15 +772,15 @@ export default function VoiceCallModal({
         if (typeof (remoteAudioRef.current as any).setSinkId === 'function') {
           // setSinkId expects a deviceId from enumerateDevices, or 'default' for system default
           // For speaker toggle, we use volume adjustment as primary method
-          console.log('🔊 VOICE CALL: Toggling speaker mode:', newSpeakerState ? 'ON' : 'OFF');
+          log('🔊 VOICE CALL: Toggling speaker mode:', newSpeakerState ? 'ON' : 'OFF');
         }
         
         // Primary method: adjust volume (louder = speaker, normal = earpiece-like)
         remoteAudioRef.current.volume = newSpeakerState ? 1.0 : 0.5;
-        console.log('🔊 VOICE CALL: Volume set to:', remoteAudioRef.current.volume);
+        log('🔊 VOICE CALL: Volume set to:', remoteAudioRef.current.volume);
         
       } catch (error) {
-        console.log('Speaker toggle not fully supported on this device:', error);
+        log('Speaker toggle not fully supported on this device:', error);
       }
     }
     setIsSpeakerOn(!isSpeakerOn);
@@ -797,7 +798,7 @@ export default function VoiceCallModal({
     }
     
     // CRITICAL: Use centralized cleanup - handles all streams, refs, and state
-    console.log('📞 VOICE CALL: handleEndCall - invoking resetLocalState');
+    log('📞 VOICE CALL: handleEndCall - invoking resetLocalState');
     resetLocalState();
     
     setCallStatus("ended");

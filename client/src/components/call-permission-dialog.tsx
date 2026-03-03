@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ export default function CallPermissionDialog({
     setError(null);
 
     try {
-      console.log(`🎤 PERMISSION DIALOG: Requesting ${callType} permissions...`);
+      log(`🎤 PERMISSION DIALOG: Requesting ${callType} permissions...`);
       
       let result;
       if (callType === "video") {
@@ -54,7 +55,7 @@ export default function CallPermissionDialog({
         if (result.success) {
           setCameraPermission("granted");
           setMicPermission("granted");
-          console.log("✅ PERMISSION DIALOG: Camera + Microphone permission granted");
+          log("✅ PERMISSION DIALOG: Camera + Microphone permission granted");
         } else {
           setCameraPermission("denied");
           setMicPermission("denied");
@@ -63,7 +64,7 @@ export default function CallPermissionDialog({
         result = await microphoneService.requestPermissionWithFallback();
         if (result.success) {
           setMicPermission("granted");
-          console.log("✅ PERMISSION DIALOG: Microphone permission granted");
+          log("✅ PERMISSION DIALOG: Microphone permission granted");
         } else {
           setMicPermission("denied");
         }
@@ -81,7 +82,7 @@ export default function CallPermissionDialog({
           oscillator.start();
           oscillator.stop(audioContext.currentTime + 0.001);
           setSpeakerEnabled(true);
-          console.log("✅ PERMISSION DIALOG: Speaker audio unlocked");
+          log("✅ PERMISSION DIALOG: Speaker audio unlocked");
           await new Promise(resolve => setTimeout(resolve, 500));
           onPermissionGranted();
         } catch (audioErr) {

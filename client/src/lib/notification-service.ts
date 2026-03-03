@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 export interface NotificationSettings {
   pushNotifications: boolean;
   messagePreview: boolean;
@@ -45,7 +46,7 @@ export class NotificationService {
 
   private async requestPermission(): Promise<boolean> {
     if (!('Notification' in window)) {
-      console.log('Notifications not supported');
+      log('Notifications not supported');
       return false;
     }
 
@@ -85,7 +86,7 @@ export class NotificationService {
     }
 
     if (!('Notification' in window)) {
-      console.log('Notifications not supported');
+      log('Notifications not supported');
       return;
     }
 

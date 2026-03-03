@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 // Enhanced microphone permission service with better error handling
 
 export interface MicrophonePermissionResult {
@@ -15,11 +16,11 @@ class MicrophoneService {
 
   async requestMicrophonePermission(): Promise<MicrophonePermissionResult> {
     try {
-      console.log('🎤 Requesting microphone permissions...');
+      log('🎤 Requesting microphone permissions...');
       
       // Check if we already have permission
       const permissionStatus = await this.checkPermissionStatus();
-      console.log('🎤 Permission status:', permissionStatus);
+      log('🎤 Permission status:', permissionStatus);
 
       const constraints: MediaStreamConstraints = {
         audio: {
@@ -39,8 +40,8 @@ class MicrophoneService {
         throw new Error('No audio tracks available');
       }
 
-      console.log('✅ Microphone access granted successfully');
-      console.log('🎤 Audio tracks:', audioTracks.map(track => ({
+      log('✅ Microphone access granted successfully');
+      log('🎤 Audio tracks:', audioTracks.map(track => ({
         label: track.label,
         enabled: track.enabled,
         readyState: track.readyState
@@ -120,7 +121,7 @@ class MicrophoneService {
     let result = await this.requestMicrophonePermission();
     
     if (!result.success && result.error?.type === 'other') {
-      console.log('🎤 Trying fallback with basic constraints...');
+      log('🎤 Trying fallback with basic constraints...');
       
       try {
         // Fallback with basic constraints
@@ -142,7 +143,7 @@ class MicrophoneService {
 
   stopCurrentStream() {
     if (this.currentStream) {
-      console.log('🎤 Stopping current microphone stream...');
+      log('🎤 Stopping current microphone stream...');
       this.currentStream.getTracks().forEach(track => {
         track.stop();
       });

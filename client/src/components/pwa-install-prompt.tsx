@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,7 +41,7 @@ export default function PWAInstallPrompt() {
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
-      console.log('📱 COYN Messenger installed successfully');
+      log('📱 COYN Messenger installed successfully');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -60,9 +61,9 @@ export default function PWAInstallPrompt() {
       const choiceResult = await deferredPrompt.userChoice;
       
       if (choiceResult.outcome === 'accepted') {
-        console.log('✅ User accepted PWA install');
+        log('✅ User accepted PWA install');
       } else {
-        console.log('❌ User dismissed PWA install');
+        log('❌ User dismissed PWA install');
       }
       
       setDeferredPrompt(null);

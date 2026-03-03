@@ -14,7 +14,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: "dark", // Default to dark for COYN Messenger
+  theme: "dark",
   setTheme: () => null,
 };
 
@@ -29,17 +29,13 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => {
       const stored = localStorage.getItem(storageKey);
-      // Convert system theme to light if it exists, or handle any invalid themes
-      if (stored === "system" || !stored || (stored !== "light" && stored !== "dark")) {
-        return "light";
-      }
-      return stored as Theme;
+      if (stored === "light" || stored === "dark") return stored as Theme;
+      return defaultTheme;
     }
   );
 
   useEffect(() => {
     const root = window.document.documentElement;
-
     root.classList.remove("light", "dark");
     root.classList.add(theme);
   }, [theme]);

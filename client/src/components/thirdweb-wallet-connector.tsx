@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
@@ -119,14 +120,14 @@ export default function ThirdwebWalletConnector({
         }}
         onConnect={async (wallet) => {
           try {
-            console.log('🎯 WALLET: Connection approved, processing...');
+            log('🎯 WALLET: Connection approved, processing...');
             const account = wallet.getAccount();
             const chain = wallet.getChain();
 
             // Save wallet identity for confirmation screens
             localStorage.setItem('connectedWalletId', wallet.id);
             
-            console.log('🔗 WALLET: Connected:', { 
+            log('🔗 WALLET: Connected:', { 
               walletId: wallet.id,
               chainId: chain?.id, 
               address: account?.address 
@@ -134,12 +135,12 @@ export default function ThirdwebWalletConnector({
             
             // Switch to BSC if not already on it
             if (chain?.id !== 56) {
-              console.log('⚠️ WALLET: Switching to BSC...');
+              log('⚠️ WALLET: Switching to BSC...');
               try {
                 await wallet.switchChain(bsc);
-                console.log('✅ WALLET: Switched to BSC');
+                log('✅ WALLET: Switched to BSC');
               } catch (switchError) {
-                console.log('ℹ️ WALLET: Chain switch handled by wallet app');
+                log('ℹ️ WALLET: Chain switch handled by wallet app');
               }
             }
             
@@ -164,7 +165,7 @@ export default function ThirdwebWalletConnector({
           }
         }}
         onDisconnect={() => {
-          console.log('🔌 WALLET: Disconnecting...');
+          log('🔌 WALLET: Disconnecting...');
           // Clear COYN session data
           localStorage.setItem('userSignedOut', 'true');
           localStorage.removeItem('walletConnected');
@@ -173,7 +174,7 @@ export default function ThirdwebWalletConnector({
           localStorage.removeItem('connectedWalletId');
           // Clear all Thirdweb + WalletConnect session data
           clearAllWalletSessions();
-          console.log('✅ WALLET: Disconnect complete');
+          log('✅ WALLET: Disconnect complete');
           if (onDisconnect) {
             onDisconnect();
           }

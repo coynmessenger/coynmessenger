@@ -18,6 +18,8 @@ interface CryptoPrice {
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
   private coingeckoApiUrl = 'https://api.coingecko.com/api/v3/simple/price';
+  private readonly dev = process.env.NODE_ENV === 'development';
+  private log(...args: any[]) { if (this.dev) this.log(...args); }
   
   // Token contract addresses on BSC
   private tokenContracts = {
@@ -108,13 +110,13 @@ class BlockchainService {
   private async getCOYNPrice(): Promise<{usd: number, usd_24h_change: number}> {
     // Check cache first
     if (this.coynPriceCache && (Date.now() - this.coynPriceCache.timestamp) < this.CACHE_TTL) {
-      console.log(`💰 COYN Price (cached): $${this.coynPriceCache.usd.toFixed(10)} (${this.coynPriceCache.usd_24h_change}%)`);
+      this.log(`💰 COYN Price (cached): $${this.coynPriceCache.usd.toFixed(10)} (${this.coynPriceCache.usd_24h_change}%)`);
       return { usd: this.coynPriceCache.usd, usd_24h_change: this.coynPriceCache.usd_24h_change };
     }
 
     // Try CoinBrain first with improved error handling
     try {
-      console.log('🔍 Attempting to fetch COYN price from CoinBrain...');
+      this.log('🔍 Attempting to fetch COYN price from CoinBrain...');
       const response = await axios.get('https://coinbrain.com/coins/bnb-0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -172,17 +174,17 @@ class BlockchainService {
           
           // Cache the successful result
           this.coynPriceCache = { ...result, timestamp: Date.now() };
-          console.log(`✅ COYN Price fetched from CoinBrain: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
+          this.log(`✅ COYN Price fetched from CoinBrain: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
           return result;
         }
       }
     } catch (error) {
-      console.log(`⚠️ CoinBrain fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(`⚠️ CoinBrain fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     // Fallback to DEXScreener
     try {
-      console.log('🔍 Trying DEXScreener as fallback...');
+      this.log('🔍 Trying DEXScreener as fallback...');
       const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1`, {
         timeout: 5000
       });
@@ -196,16 +198,16 @@ class BlockchainService {
         
         if (result.usd > 0) {
           this.coynPriceCache = { ...result, timestamp: Date.now() };
-          console.log(`✅ COYN Price fetched from DEXScreener: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
+          this.log(`✅ COYN Price fetched from DEXScreener: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
           return result;
         }
       }
     } catch (error) {
-      console.log(`⚠️ DEXScreener fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(`⚠️ DEXScreener fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     
     // Final fallback with realistic demo values and cache
-    console.log(`🔄 Using demo values with cache (token address may be invalid)`);
+    this.log(`🔄 Using demo values with cache (token address may be invalid)`);
     const basePrice = 0.000000125;
     const timeVariation = Math.sin(Date.now() / 1000000) * 0.000000025;
     const changeVariation = (Math.sin(Date.now() / 500000) * 15);
@@ -217,7 +219,7 @@ class BlockchainService {
     
     // Cache demo values for shorter time
     this.coynPriceCache = { ...result, timestamp: Date.now() - (this.CACHE_TTL - 60000) }; // Cache for 1 minute only
-    console.log(`💰 COYN Demo Price: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
+    this.log(`💰 COYN Demo Price: $${result.usd.toFixed(10)} (${result.usd_24h_change}%)`);
     return result;
   }
 
@@ -242,7 +244,7 @@ class BlockchainService {
       
       return prices;
     } catch (error) {
-      console.log(`⚠️ Failed to fetch crypto prices, using fallback values`);
+      this.log(`⚠️ Failed to fetch crypto prices, using fallback values`);
       
       // Return fallback prices including COYN
       return {

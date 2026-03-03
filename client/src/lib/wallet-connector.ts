@@ -1,3 +1,4 @@
+const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { ethers } from 'ethers';
 
 interface WalletProvider {
@@ -82,7 +83,7 @@ class WalletConnector {
       `metamask://dapp/${hostname}`,                   // Custom scheme fallback
     ];
     
-    console.log('⚠️ MetaMask mobile deep links have known reliability issues');
+    log('⚠️ MetaMask mobile deep links have known reliability issues');
     
     // Use the primary format that should show the dapp in MetaMask browser
     const primaryDeepLink = deepLinkFormats[0];
@@ -180,7 +181,7 @@ class WalletConnector {
         return;
       }
 
-      console.log(`🔄 Switching from ${currentChainId} to BSC...`);
+      log(`🔄 Switching from ${currentChainId} to BSC...`);
       
       try {
         // Try to switch to BSC
@@ -191,7 +192,7 @@ class WalletConnector {
       } catch (switchError: any) {
         // If BSC network doesn't exist, add it
         if (switchError.code === 4902) {
-          console.log('➕ Adding BSC network to wallet...');
+          log('➕ Adding BSC network to wallet...');
           await provider.request({
             method: 'wallet_addEthereumChain',
             params: [this.BSC_CONFIG],
@@ -220,10 +221,10 @@ class WalletConnector {
     }
 
     try {
-      console.log('💰 Preparing BNB transaction...');
-      console.log(`From: ${this.currentWallet.address}`);
-      console.log(`To: ${toAddress}`);
-      console.log(`Amount: ${amount} BNB`);
+      log('💰 Preparing BNB transaction...');
+      log(`From: ${this.currentWallet.address}`);
+      log(`To: ${toAddress}`);
+      log(`Amount: ${amount} BNB`);
 
       // Validate addresses
       if (!ethers.isAddress(toAddress)) {
@@ -250,7 +251,7 @@ class WalletConnector {
       // Send transaction
       const transaction = await this.signer.sendTransaction(tx);
       
-      console.log('⏳ Waiting for confirmation...');
+      log('⏳ Waiting for confirmation...');
       
       // Wait for confirmation
       const receipt = await transaction.wait();
@@ -314,10 +315,10 @@ class WalletConnector {
     }
 
     try {
-      console.log(`💰 Preparing ${tokenSymbol} transaction...`);
-      console.log(`From: ${this.currentWallet.address}`);
-      console.log(`To: ${toAddress}`);
-      console.log(`Amount: ${amount} ${tokenSymbol}`);
+      log(`💰 Preparing ${tokenSymbol} transaction...`);
+      log(`From: ${this.currentWallet.address}`);
+      log(`To: ${toAddress}`);
+      log(`Amount: ${amount} ${tokenSymbol}`);
 
       // Validate addresses
       if (!ethers.isAddress(toAddress)) {
@@ -344,13 +345,13 @@ class WalletConnector {
         throw new Error(`Insufficient ${tokenSymbol} balance`);
       }
 
-      console.log('📝 Signing token transfer transaction...');
+      log('📝 Signing token transfer transaction...');
       
       // Send token transfer transaction
       const transaction = await tokenContract.transfer(toAddress, value);
       
-      console.log('✅ Token transaction sent:', transaction.hash);
-      console.log('⏳ Waiting for confirmation...');
+      log('✅ Token transaction sent:', transaction.hash);
+      log('⏳ Waiting for confirmation...');
       
       // Wait for confirmation
       const receipt = await transaction.wait();
@@ -359,7 +360,7 @@ class WalletConnector {
         throw new Error('Token transaction failed');
       }
 
-      console.log(`🎉 ${tokenSymbol} transaction confirmed!`);
+      log(`🎉 ${tokenSymbol} transaction confirmed!`);
       
       return {
         hash: transaction.hash,
@@ -389,7 +390,7 @@ class WalletConnector {
 
     // Account changes
     provider.on('accountsChanged', (accounts: string[]) => {
-      console.log('👤 Accounts changed:', accounts);
+      log('👤 Accounts changed:', accounts);
       if (accounts.length === 0) {
         this.disconnect();
       } else if (this.currentWallet) {
@@ -399,7 +400,7 @@ class WalletConnector {
 
     // Network changes
     provider.on('chainChanged', (chainId: string) => {
-      console.log('🔗 Network changed:', chainId);
+      log('🔗 Network changed:', chainId);
       if (this.currentWallet) {
         this.currentWallet.chainId = chainId;
       }
@@ -409,14 +410,14 @@ class WalletConnector {
 
     // Disconnection
     provider.on('disconnect', () => {
-      console.log('🔌 Wallet disconnected');
+      log('🔌 Wallet disconnected');
       this.disconnect();
     });
   }
 
   // Disconnect wallet
   disconnect(): void {
-    console.log('🔌 Disconnecting wallet...');
+    log('🔌 Disconnecting wallet...');
     this.currentWallet = null;
     this.provider = null;
     this.signer = null;
@@ -454,9 +455,9 @@ class WalletConnector {
     }
 
     try {
-      console.log('✍️ Signing message...');
+      log('✍️ Signing message...');
       const signature = await this.signer.signMessage(message);
-      console.log('✅ Message signed');
+      log('✅ Message signed');
       return signature;
     } catch (error: any) {
       console.error('Failed to sign message:', error);

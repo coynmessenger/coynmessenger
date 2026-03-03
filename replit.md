@@ -28,7 +28,7 @@ Preferred communication style: Simple, everyday language.
 -   **Server-Side Internal Wallets**: Each user has an auto-generated BSC wallet with AES-256-GCM encrypted private keys stored server-side, enabling transactions without external wallet popups.
 -   **Dual Transfer Model**: Supports instant user-to-user (internal DB transfer) and external on-chain sends, with pre-flight checks for token and gas balances.
 -   **RPC Fallback**: Rotates through 5 BSC RPC endpoints with automatic failover.
--   **Supported Wallets**: WalletConnect (mobile), MetaMask, Coinbase Wallet, Bitget Wallet, Trust Wallet, Rabby, Zerion.
+-   **Supported Wallets**: MetaMask, Coinbase Wallet, Bitget Wallet, Trust Wallet, Rabby, Zerion (WalletConnect removed).
 -   **Supported Tokens**: BNB (native), USDT (ERC-20), COYN (ERC-20).
 
 ### Core Features
@@ -46,6 +46,9 @@ Preferred communication style: Simple, everyday language.
 -   API routes for user, conversations, messages, and marketplace interactions.
 -   Universal Wallet Transaction System using Thirdweb SDK for routing transactions through the user's connected wallet.
 -   Transaction processing uses the real BNB chain (BSC) for all token transfers.
+-   Production logging: all debug `console.log` calls are dev-only (gated by `process.env.NODE_ENV`/`import.meta.env.DEV`).
+-   Deployment target: `vm` (required for WebSocket/Socket.IO persistence). Build: `npm run build`. Run: `NODE_ENV=production node dist/index.js`.
+-   Dark theme is the default for all new sessions via `ThemeProvider defaultTheme="dark"`.
 
 ## External Dependencies
 -   **@neondatabase/serverless**: PostgreSQL database connection.

@@ -109,7 +109,7 @@ function AppContent() {
           wallets={wallets}
           timeout={15000}
           onConnect={(wallet) => {
-            console.log('✅ AutoConnect: Wallet reconnected');
+            import.meta.env.DEV && console.log('✅ AutoConnect: Wallet reconnected');
           }}
         />
       )}
