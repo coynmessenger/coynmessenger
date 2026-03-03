@@ -1363,6 +1363,26 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getDateLabel = (date: Date | null): string => {
+    if (!date) return "";
+    const d = new Date(date);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const toDay = (x: Date) => x.toISOString().slice(0, 10);
+    if (toDay(d) === toDay(today)) return "Today";
+    if (toDay(d) === toDay(yesterday)) return "Yesterday";
+    return toDay(d);
+  };
+
+  const isSameDay = (a: Date | null, b: Date | null): boolean => {
+    if (!a || !b) return false;
+    const da = new Date(a), db = new Date(b);
+    return da.getFullYear() === db.getFullYear() &&
+      da.getMonth() === db.getMonth() &&
+      da.getDate() === db.getDate();
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -1916,6 +1936,14 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-1' : 'mt-0.5'} w-full overflow-hidden`}>
+            {/* Date separator — show when day changes between consecutive messages */}
+            {!isSameDay(msg.timestamp, messages[index - 1]?.timestamp ?? null) && (
+              <div className="flex items-center justify-center my-3">
+                <div className="bg-gray-200/80 dark:bg-gray-700/80 text-gray-500 dark:text-gray-400 text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm select-none">
+                  {getDateLabel(msg.timestamp)}
+                </div>
+              </div>
+            )}
             {msg.messageType === "text" ? (
               // Check if this is an escrow system message
               (msg.content?.includes('🛡️ Escrow created:') || msg.content?.includes('🔔 Release Request:') || msg.content?.includes('🎉 Blockchain confirmations complete!')) ? (
