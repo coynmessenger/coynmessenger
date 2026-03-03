@@ -111,8 +111,9 @@ app.get('/favicon.ico', (req, res) => {
     }, () => {
       log(`serving on port ${port}`);
     });
-  } catch (error) {
-    
+  } catch (error: any) {
+    console.error('FATAL: Server failed to start:', error?.message ?? error);
+    console.error(error?.stack ?? '');
     process.exit(1);
   }
 })();
