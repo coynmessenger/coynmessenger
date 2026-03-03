@@ -3,6 +3,7 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, corsOptions } from "./middleware/security";
+import { initializeDatabase } from "./db";
 
 // Prevent transient errors (e.g. Neon DB connection resets, RPC timeouts)
 // from killing the production process entirely.
@@ -110,6 +111,10 @@ app.get('/favicon.ico', (req, res) => {
       reusePort: true,
     }, () => {
       log(`serving on port ${port}`);
+      // DB init is non-blocking — server is already accepting connections
+      initializeDatabase().catch((err) => {
+        console.error('DB initialization error (non-fatal):', err?.message ?? err);
+      });
     });
   } catch (error: any) {
     console.error('FATAL: Server failed to start:', error?.message ?? error);
