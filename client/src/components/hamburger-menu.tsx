@@ -19,6 +19,7 @@ interface HamburgerMenuProps {
 
 interface StarredMessage extends Message {
   sender: User;
+  recipient?: User | null;
   conversationId: number;
 }
 
@@ -378,65 +379,70 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {transactionHistory.map((transaction) => (
-                  <div 
-                    key={transaction.id} 
-                    className="group p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-9 w-9 ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
-                        <AvatarImage src={transaction.sender.profilePicture || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold text-xs">
-                          {getEffectiveDisplayName(transaction.sender).charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                            {getEffectiveDisplayName(transaction.sender)}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full flex-shrink-0">
-                            {formatTimestamp(transaction.timestamp)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                            {transaction.senderId === connectedUserId ? '-' : '+'}{transaction.cryptoAmount} {transaction.cryptoCurrency}
+                {transactionHistory.map((transaction) => {
+                  const isSent = transaction.senderId === connectedUserId;
+                  const displayUser = isSent
+                    ? (transaction.recipient ?? transaction.sender)
+                    : transaction.sender;
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="group p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-9 w-9 ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
+                          <AvatarImage src={displayUser.profilePicture || ""} />
+                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold text-xs">
+                            {getEffectiveDisplayName(displayUser).charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                              {getEffectiveDisplayName(displayUser)}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full flex-shrink-0">
+                              {formatTimestamp(transaction.timestamp)}
+                            </span>
                           </div>
-                          <Badge className="bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 text-xs px-1.5 py-0.5">
-                            {transaction.senderId === connectedUserId ? 'Sent' : 'Received'}
-                          </Badge>
-                        </div>
-                        {/* BSCScan transaction link */}
-                        {transaction.transactionHash && (transaction.cryptoCurrency === 'BNB' || transaction.cryptoCurrency === 'USDT' || transaction.cryptoCurrency === 'COYN') && (
-                          <div className="mt-2">
-                            <a
-                              href={`https://bscscan.com/tx/${transaction.transactionHash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-800"
-                            >
-                              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
-                                <path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2v-2a1 1 0 10-2 0v2H5V7h2a1 1 0 000-2H5z"/>
-                              </svg>
-                              <span>View on BSCScan</span>
-                            </a>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                              {isSent ? '-' : '+'}{transaction.cryptoAmount} {transaction.cryptoCurrency}
+                            </div>
+                            <Badge className="bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 text-xs px-1.5 py-0.5">
+                              {isSent ? 'Sent' : 'Received'}
+                            </Badge>
                           </div>
-                        )}
+                          {transaction.transactionHash && (transaction.cryptoCurrency === 'BNB' || transaction.cryptoCurrency === 'USDT' || transaction.cryptoCurrency === 'COYN') && (
+                            <div className="mt-2">
+                              <a
+                                href={`https://bscscan.com/tx/${transaction.transactionHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-800"
+                              >
+                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
+                                  <path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2v-2a1 1 0 10-2 0v2H5V7h2a1 1 0 000-2H5z"/>
+                                </svg>
+                                <span>View on BSCScan</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-70 group-hover:opacity-100 p-1.5 h-7 w-7 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-all duration-200 flex-shrink-0"
+                          onClick={() => handleDeleteTransaction(transaction)}
+                          title="Delete transaction"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="opacity-70 group-hover:opacity-100 p-1.5 h-7 w-7 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-all duration-200 flex-shrink-0"
-                        onClick={() => handleDeleteTransaction(transaction)}
-                        title="Delete transaction"
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                      </Button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
