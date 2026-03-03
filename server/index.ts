@@ -26,7 +26,8 @@ app.use(securityHeaders);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
-// Fast health check for deployment — must respond before any async init
+// Fast health check for deployment — responds immediately before any async init.
+// In development this is skipped so Vite serves index.html at /.
 app.get('/', (_req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
     return res.status(200).json({ status: 'ok' });
@@ -88,20 +89,33 @@ app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'attached_assets', 'coynresize_1760204738870.png'));
 });
 
-// Create the HTTP server early so we can start listening before heavy async init
-const server = createServer(app);
-const port = 5000;
+function startListening(server: ReturnType<typeof createServer>, port: number, attempt = 1): void {
+  server.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
+    log(`serving on port ${port}`);
+  });
 
-server.listen({
-  port,
-  host: "0.0.0.0",
-  reusePort: true,
-}, () => {
-  log(`serving on port ${port}`);
-});
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE' && attempt < 5) {
+      // Port still held by previous process (common during dev hot-reload).
+      // Remove the listener so we can retry cleanly.
+      server.removeAllListeners('error');
+      server.close(() => {
+        setTimeout(() => startListening(server, port, attempt + 1), 500 * attempt);
+      });
+    } else {
+      console.error('Server listen error:', err.message);
+    }
+  });
+}
 
 (async () => {
   try {
+    // Create the HTTP server and start listening BEFORE heavy async init so
+    // the deployment health checker gets a fast 200 response at /.
+    const server = createServer(app);
+    const port = 5000;
+    startListening(server, port);
+
     await registerRoutes(app, server);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
