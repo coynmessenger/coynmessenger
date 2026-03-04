@@ -33,12 +33,9 @@ function PageLoader() {
   );
 }
 
-// Configure supported wallets for auto-reconnection
-// WalletConnect enables mobile wallet connections via deep linking
 const wallets = [
-  createWallet("walletConnect"), // Primary mobile wallet connector
   createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),  
+  createWallet("com.coinbase.wallet"),
   createWallet("com.bitget.web3"),
   createWallet("io.rabby"),
   createWallet("io.zerion.wallet"),
