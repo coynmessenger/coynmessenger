@@ -1,48 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, corsOptions } from "./middleware/security";
-import { initializeDatabase } from "./db";
-
-// Prevent transient errors (e.g. Neon DB connection resets, RPC timeouts)
-// from killing the production process entirely.
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception (keeping process alive):', err.message);
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled promise rejection (keeping process alive):', reason);
-});
 
 const app = express();
 
 // Trust the first proxy (Replit's load balancer) so express-rate-limit
 // correctly identifies client IPs from X-Forwarded-For headers.
 app.set('trust proxy', 1);
-
-// In production: pre-read index.html into memory so GET / and /healthz
-// always respond instantly — before CORS, rate limiting, or file-system I/O.
-// This ensures Replit's 5-second health check always passes.
-if (process.env.NODE_ENV !== 'development') {
-  let indexHtml = '';
-  const candidates = [
-    path.resolve(path.dirname(new URL(import.meta.url).pathname), 'public', 'index.html'),
-    path.join(process.cwd(), 'dist', 'public', 'index.html'),
-  ];
-  for (const p of candidates) {
-    try { indexHtml = fs.readFileSync(p, 'utf-8'); break; } catch { /* try next */ }
-  }
-  app.get('/', (_req, res) => {
-    res.status(200).type('html').send(indexHtml || '<html><body>COYN Messenger</body></html>');
-  });
-}
-
-// Fast health/liveness endpoint — before all middleware
-app.get('/healthz', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
 
 app.use(cors(corsOptions));
 app.use(securityHeaders);
@@ -84,6 +50,7 @@ app.use((req, res, next) => {
   next();
 });
 
+import path from 'path';
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
   setHeaders: (res, filePath) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -133,15 +100,10 @@ app.get('/favicon.ico', (req, res) => {
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      console.log(`[COYN] Server listening on port ${port} (${process.env.NODE_ENV ?? 'development'})`);
-      // DB init is non-blocking — server is already accepting connections
-      initializeDatabase().catch((err) => {
-        console.error('DB initialization error (non-fatal):', err?.message ?? err);
-      });
+      log(`serving on port ${port}`);
     });
-  } catch (error: any) {
-    console.error('FATAL: Server failed to start:', error?.message ?? error);
-    console.error(error?.stack ?? '');
+  } catch (error) {
+    
     process.exit(1);
   }
 })();

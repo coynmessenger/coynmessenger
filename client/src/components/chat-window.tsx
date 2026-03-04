@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import React, { useState, useRef, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -655,12 +654,12 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { content: string; messageType: string; replyToId?: number | null; replyToContent?: string | null; replyToSender?: string | null }) => {
-      log("📡 Starting send message mutation");
-      log("- Message data:", messageData);
-      log("- Connected user ID:", connectedUserId);
+      console.log("📡 Starting send message mutation");
+      console.log("- Message data:", messageData);
+      console.log("- Connected user ID:", connectedUserId);
       
       if (!connectedUserId) {
-        log("❌ User not authenticated - missing connectedUserId");
+        console.log("❌ User not authenticated - missing connectedUserId");
         throw new Error("User not authenticated");
       }
       
@@ -676,8 +675,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
 
         
-        log("📡 Making fetch request to:", `/api/conversations/${conversation.id}/messages`);
-        log("📡 Request body:", requestBody);
+        console.log("📡 Making fetch request to:", `/api/conversations/${conversation.id}/messages`);
+        console.log("📡 Request body:", requestBody);
         
         const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
           method: "POST",
@@ -690,17 +689,17 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         clearTimeout(timeoutId);
         
-        log("📡 Response status:", response.status);
-        log("📡 Response ok:", response.ok);
+        console.log("📡 Response status:", response.status);
+        console.log("📡 Response ok:", response.ok);
         
         if (!response.ok) {
           const errorText = await response.text();
-          log("❌ Server error response:", errorText);
+          console.log("❌ Server error response:", errorText);
           throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
         
         const result = await response.json();
-        log("✅ Message sent successfully:", result);
+        console.log("✅ Message sent successfully:", result);
         return result;
       } catch (error) {
         clearTimeout(timeoutId);
@@ -1012,15 +1011,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
-    log("🔥 Send button clicked - Debug info:");
-    log("- Message content:", message);
-    log("- Message trimmed length:", message.trim().length);
-    log("- Is pending:", sendMessageMutation.isPending);
-    log("- Connected user ID:", connectedUserId);
-    log("- Conversation ID:", conversation.id);
+    console.log("🔥 Send button clicked - Debug info:");
+    console.log("- Message content:", message);
+    console.log("- Message trimmed length:", message.trim().length);
+    console.log("- Is pending:", sendMessageMutation.isPending);
+    console.log("- Connected user ID:", connectedUserId);
+    console.log("- Conversation ID:", conversation.id);
     
     if (!message.trim()) {
-      log("❌ Message is empty or only whitespace");
+      console.log("❌ Message is empty or only whitespace");
       return;
     }
 
@@ -1044,8 +1043,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       messageContent = `${senderName}: ${message}`;
     }
 
-    log("✅ About to send message with content:", messageContent);
-    log("✅ Mutation function exists:", !!sendMessageMutation.mutate);
+    console.log("✅ About to send message with content:", messageContent);
+    console.log("✅ Mutation function exists:", !!sendMessageMutation.mutate);
 
     setIsSendingMessage(true);
     
@@ -1057,7 +1056,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       replyToSender: replyToMessage?.sender || null
     }, {
       onSettled: () => {
-        log("📤 Send message mutation settled");
+        console.log("📤 Send message mutation settled");
         setIsSendingMessage(false);
       }
     });
@@ -3132,10 +3131,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           setShowPermissionDialog(false);
           // Start the appropriate call based on pending type
           if (pendingCallType === "voice") {
-            log("✅ Permission granted, starting voice call");
+            console.log("✅ Permission granted, starting voice call");
             setShowVoiceCall(true);
           } else if (pendingCallType === "video") {
-            log("✅ Permission granted, starting video call");
+            console.log("✅ Permission granted, starting video call");
             setShowVideoCall(true);
           }
           setPendingCallType(null);

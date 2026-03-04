@@ -8,24 +8,17 @@ neonConfig.webSocketConstructor = ws;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineConnect = false;
 
-const DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) {
-  console.error('[DB] DATABASE_URL is not set. Add it to deployment secrets. Database operations will fail until this is configured.');
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
 }
 
 export const pool = new Pool({ 
-  connectionString: DATABASE_URL ?? 'postgresql://localhost/placeholder',
-  max: 3,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
-
-// Prevent unhandled 'error' events from crashing the process.
-// Neon serverless will occasionally terminate idle connections with
-// "terminating connection due to administrator command" — this is normal
-// and the Pool automatically reconnects on the next query.
-pool.on('error', (err) => {
-  console.warn('DB pool connection error (will reconnect):', err.message);
+  connectionString: process.env.DATABASE_URL,
+  max: 1, // Limit connections for serverless
+  idleTimeoutMillis: 30000, // 30 second idle timeout
+  connectionTimeoutMillis: 10000, // 10 second timeout
 });
 
 export const db = drizzle({ client: pool, schema });

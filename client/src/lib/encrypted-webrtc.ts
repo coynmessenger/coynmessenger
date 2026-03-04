@@ -36,8 +36,6 @@ export class EncryptedWebRTCService {
   private publicKey: string | null = null;
   private eventHandlers: CallEventHandlers = {};
   private isInitialized = false;
-  private readonly dev = import.meta.env.DEV;
-  private log(...args: any[]) { if (this.dev) console.log(...args); }
 
   private rtcConfiguration: RTCConfiguration = {
     iceServers: [
@@ -91,7 +89,7 @@ export class EncryptedWebRTCService {
         name: 'ECDSA',
         namedCurve: 'P-256',
       } as EcKeyGenParams);
-      this.log('🔒 DTLS: Generated ECDSA P-256 certificate');
+      console.log('🔒 DTLS: Generated ECDSA P-256 certificate');
       return cert;
     } catch {
       // Safari / older browsers may not support ECDSA — fall back to RSA-2048
@@ -123,7 +121,7 @@ export class EncryptedWebRTCService {
     }
     const match = actual.toLowerCase() === expected.toLowerCase();
     if (match) {
-      this.log('✅ DTLS: Fingerprint verified — peer identity confirmed');
+      console.log('✅ DTLS: Fingerprint verified — peer identity confirmed');
     } else {
       console.error('🚨 DTLS: Fingerprint MISMATCH — possible MITM attack!');
       console.error('  Expected:', expected);
@@ -139,11 +137,11 @@ export class EncryptedWebRTCService {
     }
     
     if (!call.peerConnection) {
-      this.log('🧊 ICE: Cannot process pending candidates - no peer connection');
+      console.log('🧊 ICE: Cannot process pending candidates - no peer connection');
       return;
     }
     
-    this.log(`🧊 ICE: Processing ${call.pendingIceCandidates.length} pending ICE candidates`);
+    console.log(`🧊 ICE: Processing ${call.pendingIceCandidates.length} pending ICE candidates`);
     
     const candidates = [...call.pendingIceCandidates];
     call.pendingIceCandidates = []; // Clear the queue
@@ -151,13 +149,13 @@ export class EncryptedWebRTCService {
     for (const candidate of candidates) {
       try {
         await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        this.log('🧊 ICE: Pending candidate added successfully');
+        console.log('🧊 ICE: Pending candidate added successfully');
       } catch (error) {
         console.error('🧊 ICE: Failed to add pending ICE candidate:', error);
       }
     }
     
-    this.log('🧊 ICE: All pending candidates processed');
+    console.log('🧊 ICE: All pending candidates processed');
   }
 
   // Enhanced desktop media constraints
@@ -259,11 +257,11 @@ export class EncryptedWebRTCService {
       encrypted: boolean;
       dtlsFingerprint?: string;
     }) => {
-      this.log('📞 INCOMING CALL: ==================== RECEIVED ====================');
-      this.log('📞 INCOMING CALL: Call ID:', data.callId);
-      this.log('📞 INCOMING CALL: From User:', data.fromUserId);
-      this.log('📞 INCOMING CALL: Type:', data.type);
-      this.log('📞 INCOMING CALL: Has Offer:', !!data.offer);
+      console.log('📞 INCOMING CALL: ==================== RECEIVED ====================');
+      console.log('📞 INCOMING CALL: Call ID:', data.callId);
+      console.log('📞 INCOMING CALL: From User:', data.fromUserId);
+      console.log('📞 INCOMING CALL: Type:', data.type);
+      console.log('📞 INCOMING CALL: Has Offer:', !!data.offer);
       
       try {
         // Store call information — including caller's DTLS fingerprint for later verification
@@ -275,12 +273,12 @@ export class EncryptedWebRTCService {
           dtlsFingerprint: data.dtlsFingerprint,
         };
         if (data.dtlsFingerprint) {
-          this.log('🔒 DTLS: Stored caller fingerprint for verification on accept');
+          console.log('🔒 DTLS: Stored caller fingerprint for verification on accept');
         }
         
         this.activeCalls.set(data.callId, call);
-        this.log('✅ INCOMING CALL: Added to activeCalls. Total calls:', this.activeCalls.size);
-        this.log('✅ INCOMING CALL: Active call IDs:', Array.from(this.activeCalls.keys()));
+        console.log('✅ INCOMING CALL: Added to activeCalls. Total calls:', this.activeCalls.size);
+        console.log('✅ INCOMING CALL: Active call IDs:', Array.from(this.activeCalls.keys()));
 
         // Trigger the incoming call event for UI
         const incomingCallEvent = {
@@ -290,10 +288,10 @@ export class EncryptedWebRTCService {
         };
         
         if (this.eventHandlers.onIncomingCall) {
-          this.log('📞 INCOMING CALL: Triggering onIncomingCall handler');
+          console.log('📞 INCOMING CALL: Triggering onIncomingCall handler');
           this.eventHandlers.onIncomingCall(incomingCallEvent);
         } else {
-          this.log('📦 INCOMING CALL: No handler yet, buffering event for later delivery');
+          console.log('📦 INCOMING CALL: No handler yet, buffering event for later delivery');
           call.pendingIncomingCall = incomingCallEvent;
         }
 
@@ -301,7 +299,7 @@ export class EncryptedWebRTCService {
         if (data.offer) {
           // Store offer data for when user accepts (use standard offer, not encrypted)
           call.remoteOffer = data.offer;
-          this.log('✅ INCOMING CALL: Stored remote offer for later acceptance');
+          console.log('✅ INCOMING CALL: Stored remote offer for later acceptance');
         }
         
       } catch (error) {
@@ -317,18 +315,18 @@ export class EncryptedWebRTCService {
       encrypted: boolean;
       dtlsFingerprint?: string;
     }) => {
-      this.log('═══════════════════════════════════════════════════════');
-      this.log('📞 CALLER: RECEIVED ANSWER FROM RECEIVER');
-      this.log('═══════════════════════════════════════════════════════');
-      this.log('  Call ID:', data.callId);
-      this.log('  Accepted by:', data.byUserId);
-      this.log('  Answer received:', !!data.answer);
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('📞 CALLER: RECEIVED ANSWER FROM RECEIVER');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('  Call ID:', data.callId);
+      console.log('  Accepted by:', data.byUserId);
+      console.log('  Answer received:', !!data.answer);
       
       // Set remote description with the answer
       const call = this.activeCalls.get(data.callId);
       if (call?.peerConnection && data.answer) {
         try {
-          this.log('📞 CALLER: Setting remote answer SDP...');
+          console.log('📞 CALLER: Setting remote answer SDP...');
 
           // Verify callee's DTLS fingerprint — the caller now checks that the
           // fingerprint the callee signaled out-of-band matches the one in the answer SDP.
@@ -343,7 +341,7 @@ export class EncryptedWebRTCService {
           }
 
           await call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-          this.log('✅ CALLER: Remote answer set successfully');
+          console.log('✅ CALLER: Remote answer set successfully');
           
           // CRITICAL: Process any queued ICE candidates now that remote description is set
           await this.processPendingIceCandidates(call);
@@ -353,30 +351,30 @@ export class EncryptedWebRTCService {
           this.activeCalls.set(data.callId, call);
           
           // Verify bi-directional audio setup on caller side
-          this.log('🔊 CALLER BI-DIRECTIONAL AUDIO CHECK:');
-          this.log('  📤 Outgoing (caller → receiver):');
+          console.log('🔊 CALLER BI-DIRECTIONAL AUDIO CHECK:');
+          console.log('  📤 Outgoing (caller → receiver):');
           const senders = call.peerConnection.getSenders();
           senders.forEach((sender, i) => {
             if (sender.track) {
-              this.log(`    Track ${i}: ${sender.track.kind} - enabled: ${sender.track.enabled}, state: ${sender.track.readyState}`);
+              console.log(`    Track ${i}: ${sender.track.kind} - enabled: ${sender.track.enabled}, state: ${sender.track.readyState}`);
             }
           });
-          this.log('  📥 Incoming (receiver → caller):');
+          console.log('  📥 Incoming (receiver → caller):');
           const receivers = call.peerConnection.getReceivers();
           receivers.forEach((receiver, i) => {
             if (receiver.track) {
-              this.log(`    Track ${i}: ${receiver.track.kind} - enabled: ${receiver.track.enabled}, state: ${receiver.track.readyState}`);
+              console.log(`    Track ${i}: ${receiver.track.kind} - enabled: ${receiver.track.enabled}, state: ${receiver.track.readyState}`);
             }
           });
           
           // Log connection summary
-          this.log('═══════════════════════════════════════════════════════');
-          this.log('✅ CALLER: WEBRTC HANDSHAKE COMPLETE');
-          this.log('═══════════════════════════════════════════════════════');
-          this.log('  Peer connection state:', call.peerConnection.connectionState);
-          this.log('  ICE connection state:', call.peerConnection.iceConnectionState);
-          this.log('  Signaling state:', call.peerConnection.signalingState);
-          this.log('═══════════════════════════════════════════════════════');
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('✅ CALLER: WEBRTC HANDSHAKE COMPLETE');
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('  Peer connection state:', call.peerConnection.connectionState);
+          console.log('  ICE connection state:', call.peerConnection.iceConnectionState);
+          console.log('  Signaling state:', call.peerConnection.signalingState);
+          console.log('═══════════════════════════════════════════════════════');
           
         } catch (error) {
           console.error('❌ CALLER: Failed to set remote answer:', error);
@@ -393,9 +391,9 @@ export class EncryptedWebRTCService {
       
       if (this.eventHandlers.onCallAccepted) {
         this.eventHandlers.onCallAccepted(callAcceptedEvent);
-        this.log('✅ CALLER: UI should now show in-call controls (Hang Up, Speaker, etc.)');
+        console.log('✅ CALLER: UI should now show in-call controls (Hang Up, Speaker, etc.)');
       } else {
-        this.log('📦 CALLER: No handler yet, buffering callAccepted event');
+        console.log('📦 CALLER: No handler yet, buffering callAccepted event');
         if (call) {
           call.pendingCallAccepted = callAcceptedEvent;
         }
@@ -407,7 +405,7 @@ export class EncryptedWebRTCService {
       endedBy: string;
       reason: string;
     }) => {
-      this.log('Call ended:', data);
+      console.log('Call ended:', data);
       
       if (this.eventHandlers.onCallEnded) {
         this.eventHandlers.onCallEnded(data);
@@ -424,11 +422,11 @@ export class EncryptedWebRTCService {
       candidate?: RTCIceCandidateInit;
       encrypted: boolean;
     }) => {
-      this.log('🧊 ICE: Received ICE candidate for call:', data.callId);
+      console.log('🧊 ICE: Received ICE candidate for call:', data.callId);
       
       const call = this.activeCalls.get(data.callId);
       if (!call) {
-        this.log('🧊 ICE: No call found for ICE candidate - queueing not possible');
+        console.log('🧊 ICE: No call found for ICE candidate - queueing not possible');
         return;
       }
       
@@ -436,39 +434,39 @@ export class EncryptedWebRTCService {
       
       // Handle encrypted ICE candidates if available
       if (data.encrypted && data.encryptedCandidate) {
-        this.log('🧊 ICE: Encrypted ICE candidate received');
+        console.log('🧊 ICE: Encrypted ICE candidate received');
       }
       
       if (!candidate) {
-        this.log('🧊 ICE: No candidate data in message');
+        console.log('🧊 ICE: No candidate data in message');
         return;
       }
       
       // If no peer connection yet, queue the candidate
       if (!call.peerConnection) {
-        this.log('🧊 ICE: No peer connection yet - queuing candidate');
+        console.log('🧊 ICE: No peer connection yet - queuing candidate');
         if (!call.pendingIceCandidates) {
           call.pendingIceCandidates = [];
         }
         call.pendingIceCandidates.push(candidate);
-        this.log('🧊 ICE: Queued candidates count:', call.pendingIceCandidates.length);
+        console.log('🧊 ICE: Queued candidates count:', call.pendingIceCandidates.length);
         return;
       }
       
       // Check if remote description is set before adding ICE candidates
       if (!call.peerConnection.remoteDescription) {
-        this.log('🧊 ICE: Remote description not set yet - queuing candidate');
+        console.log('🧊 ICE: Remote description not set yet - queuing candidate');
         if (!call.pendingIceCandidates) {
           call.pendingIceCandidates = [];
         }
         call.pendingIceCandidates.push(candidate);
-        this.log('🧊 ICE: Queued candidates count:', call.pendingIceCandidates.length);
+        console.log('🧊 ICE: Queued candidates count:', call.pendingIceCandidates.length);
         return;
       }
 
       try {
         await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        this.log('🧊 ICE: Candidate added successfully');
+        console.log('🧊 ICE: Candidate added successfully');
       } catch (error) {
         console.error('🧊 ICE: Failed to add ICE candidate:', error);
       }
@@ -483,11 +481,11 @@ export class EncryptedWebRTCService {
       type: 'offer' | 'answer' | 'ice-candidate';
       encrypted: boolean;
     }) => {
-      this.log('Received WebRTC signal:', data);
+      console.log('Received WebRTC signal:', data);
       
       const call = this.activeCalls.get(data.callId);
       if (!call?.peerConnection) {
-        this.log('No peer connection found for WebRTC signal');
+        console.log('No peer connection found for WebRTC signal');
         return;
       }
 
@@ -496,19 +494,19 @@ export class EncryptedWebRTCService {
         
         // Handle encrypted signals if available
         if (data.encrypted && data.encryptedSignal) {
-          this.log('Encrypted WebRTC signal received');
+          console.log('Encrypted WebRTC signal received');
           // For now, use plain signalData which comes as fallback
         }
 
         if (signalData) {
           if (data.type === 'offer') {
             await call.peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
-            this.log('Remote offer set successfully');
+            console.log('Remote offer set successfully');
             // Process any queued ICE candidates
             await this.processPendingIceCandidates(call);
           } else if (data.type === 'answer') {
             await call.peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
-            this.log('Remote answer set successfully');
+            console.log('Remote answer set successfully');
             // Process any queued ICE candidates
             await this.processPendingIceCandidates(call);
           }
@@ -519,7 +517,7 @@ export class EncryptedWebRTCService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      this.log('Disconnected from encrypted WebRTC signaling server, reason:', reason);
+      console.log('Disconnected from encrypted WebRTC signaling server, reason:', reason);
       // Only mark as uninitialized if it's a real disconnect, not during HMR
       if (reason !== 'transport close' && reason !== 'io client disconnect') {
         this.isInitialized = false;
@@ -538,7 +536,7 @@ export class EncryptedWebRTCService {
       }
 
       if (this.socket?.connected && this.localUserId === userId) {
-        this.log('Socket connected but not fully initialized, re-authenticating...');
+        console.log('Socket connected but not fully initialized, re-authenticating...');
         this.socket.emit('authenticate', { userId });
         const timeout = setTimeout(() => {
           reject(new Error('Re-authentication timeout'));
@@ -569,7 +567,7 @@ export class EncryptedWebRTCService {
 
       this.initializeSocket();
 
-      this.log(`Authenticating user ${userId} with WebRTC signaling server`);
+      console.log(`Authenticating user ${userId} with WebRTC signaling server`);
       
       const timeout = setTimeout(() => {
         console.error(`Authentication timeout for user ${userId}`);
@@ -584,7 +582,7 @@ export class EncryptedWebRTCService {
               this.activeCalls.set(id, call);
             }
           });
-          this.log(`Restored ${this.activeCalls.size} active calls after re-init`);
+          console.log(`Restored ${this.activeCalls.size} active calls after re-init`);
         }
         resolve();
       });
@@ -595,7 +593,7 @@ export class EncryptedWebRTCService {
       });
 
       this.socket!.on('disconnect', (reason) => {
-        this.log(`Disconnected from encrypted WebRTC signaling server, reason:`, reason);
+        console.log(`Disconnected from encrypted WebRTC signaling server, reason:`, reason);
         this.isInitialized = false;
       });
 
@@ -612,27 +610,27 @@ export class EncryptedWebRTCService {
     this.activeCalls.forEach((call, callId) => {
       // Deliver pending incoming call events
       if (handlers.onIncomingCall && call.pendingIncomingCall) {
-        this.log('📦 EVENT HANDLER: Delivering buffered incoming call for:', callId);
+        console.log('📦 EVENT HANDLER: Delivering buffered incoming call for:', callId);
         handlers.onIncomingCall(call.pendingIncomingCall);
         call.pendingIncomingCall = undefined; // Clear after delivery
       }
       
       // Deliver pending call accepted events
       if (handlers.onCallAccepted && call.pendingCallAccepted) {
-        this.log('📦 EVENT HANDLER: Delivering buffered call accepted for:', callId);
+        console.log('📦 EVENT HANDLER: Delivering buffered call accepted for:', callId);
         handlers.onCallAccepted(call.pendingCallAccepted);
         call.pendingCallAccepted = undefined; // Clear after delivery
       }
       
       // Deliver pending remote streams
       if (handlers.onRemoteStream && call.remoteStream) {
-        this.log('📦 EVENT HANDLER: Delivering buffered remote stream for:', callId);
+        console.log('📦 EVENT HANDLER: Delivering buffered remote stream for:', callId);
         handlers.onRemoteStream(call.remoteStream);
       }
       
       // Deliver pending local streams
       if (handlers.onLocalStream && call.localStream) {
-        this.log('📦 EVENT HANDLER: Delivering buffered local stream for:', callId);
+        console.log('📦 EVENT HANDLER: Delivering buffered local stream for:', callId);
         handlers.onLocalStream(call.localStream);
       }
     });
@@ -675,7 +673,7 @@ export class EncryptedWebRTCService {
     
     try {
       if (cachedStream) {
-        this.log(`✅ Using cached ${streamType} stream from preflight permission check`);
+        console.log(`✅ Using cached ${streamType} stream from preflight permission check`);
         // Clone the cached stream to create a new MediaStream with copies of the tracks
         // This allows the cache to remain live for subsequent uses
         localStream = cachedStream.clone();
@@ -684,7 +682,7 @@ export class EncryptedWebRTCService {
         permissionService.retainStream(streamType);
         usingCachedStream = true;
         
-        this.log('🎤 AUDIO DEBUG: Using cached stream, tracks:', {
+        console.log('🎤 AUDIO DEBUG: Using cached stream, tracks:', {
           audioTracks: localStream.getAudioTracks().length,
           videoTracks: localStream.getVideoTracks().length,
           audioTrackDetails: localStream.getAudioTracks().map(t => ({
@@ -711,8 +709,8 @@ export class EncryptedWebRTCService {
         permissionService.retainStream(streamType);
         usingCachedStream = true;
         
-        this.log('✅ AUDIO DEBUG: Permission granted via fallback');
-        this.log('🎤 AUDIO DEBUG: Local stream tracks:', {
+        console.log('✅ AUDIO DEBUG: Permission granted via fallback');
+        console.log('🎤 AUDIO DEBUG: Local stream tracks:', {
           audioTracks: localStream.getAudioTracks().length,
           videoTracks: localStream.getVideoTracks().length,
           audioTrackDetails: localStream.getAudioTracks().map(t => ({
@@ -728,7 +726,7 @@ export class EncryptedWebRTCService {
       // This replaces the browser's default (often RSA-2048) with a faster,
       // equally-secure elliptic-curve certificate and lets us pin the fingerprint.
       const dtlsCert = await this.generateDTLSCertificate();
-      this.log('🔗 AUDIO DEBUG: Creating peer connection with config:', this.rtcConfiguration);
+      console.log('🔗 AUDIO DEBUG: Creating peer connection with config:', this.rtcConfiguration);
       const peerConnection = new RTCPeerConnection({
         ...this.rtcConfiguration,
         certificates: [dtlsCert],
@@ -736,9 +734,9 @@ export class EncryptedWebRTCService {
       
       
       // Add local stream tracks to peer connection
-      this.log('📤 AUDIO DEBUG: Adding local tracks to peer connection...');
+      console.log('📤 AUDIO DEBUG: Adding local tracks to peer connection...');
       localStream.getTracks().forEach(track => {
-        this.log('📤 AUDIO DEBUG: Adding track:', {
+        console.log('📤 AUDIO DEBUG: Adding track:', {
           kind: track.kind,
           enabled: track.enabled,
           muted: track.muted,
@@ -747,7 +745,7 @@ export class EncryptedWebRTCService {
         });
         peerConnection.addTrack(track, localStream!);
       });
-      this.log('✅ AUDIO DEBUG: All local tracks added to peer connection');
+      console.log('✅ AUDIO DEBUG: All local tracks added to peer connection');
 
       // Generate call ID
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -771,7 +769,7 @@ export class EncryptedWebRTCService {
 
       // CRITICAL: Notify UI of local stream for muting and recording
       if (this.eventHandlers.onLocalStream) {
-        this.log('📤 AUDIO DEBUG: Delivering local stream to UI handler');
+        console.log('📤 AUDIO DEBUG: Delivering local stream to UI handler');
         this.eventHandlers.onLocalStream(localStream);
       }
 
@@ -787,7 +785,7 @@ export class EncryptedWebRTCService {
       const localFingerprint = this.extractDtlsFingerprint(
         peerConnection.localDescription?.sdp || offer.sdp || ''
       );
-      this.log('🔒 DTLS: Caller fingerprint to send:', localFingerprint?.slice(0, 40) + '…');
+      console.log('🔒 DTLS: Caller fingerprint to send:', localFingerprint?.slice(0, 40) + '…');
 
       // Send encrypted call invitation
       this.socket.emit('initiate-call', {
@@ -818,12 +816,12 @@ export class EncryptedWebRTCService {
       
       // CRITICAL: Cleanup on error - release retained stream and stop cloned tracks
       if (usingCachedStream) {
-        this.log(`🧹 Releasing ${streamType} stream due to error in initiateCall`);
+        console.log(`🧹 Releasing ${streamType} stream due to error in initiateCall`);
         permissionService.releaseStream(streamType);
       }
       
       if (localStream) {
-        this.log('🧹 Stopping cloned tracks due to error');
+        console.log('🧹 Stopping cloned tracks due to error');
         localStream.getTracks().forEach(track => track.stop());
       }
       
@@ -833,21 +831,21 @@ export class EncryptedWebRTCService {
 
   // Accept an incoming call
   async acceptCall(callId: string): Promise<void> {
-    this.log('🧪 COMPREHENSIVE TEST: ==================== ACCEPT CALL TEST ====================');
-    this.log('🧪 TEST: Function: acceptCall');
-    this.log('🧪 TEST: Call ID to accept:', callId);
-    this.log('🧪 TEST: Active calls map size:', this.activeCalls.size);
-    this.log('🧪 TEST: Active call IDs:', Array.from(this.activeCalls.keys()));
-    this.log('🧪 TEST: Socket initialized:', !!this.socket);
-    this.log('🧪 TEST: Socket connected:', this.socket?.connected);
-    this.log('🧪 TEST: Socket ID:', this.socket?.id);
-    this.log('🧪 TEST: Service initialized:', this.isInitialized);
-    this.log('🧪 TEST: Local user ID:', this.localUserId);
-    this.log('🧪 TEST: Timestamp:', new Date().toISOString());
+    console.log('🧪 COMPREHENSIVE TEST: ==================== ACCEPT CALL TEST ====================');
+    console.log('🧪 TEST: Function: acceptCall');
+    console.log('🧪 TEST: Call ID to accept:', callId);
+    console.log('🧪 TEST: Active calls map size:', this.activeCalls.size);
+    console.log('🧪 TEST: Active call IDs:', Array.from(this.activeCalls.keys()));
+    console.log('🧪 TEST: Socket initialized:', !!this.socket);
+    console.log('🧪 TEST: Socket connected:', this.socket?.connected);
+    console.log('🧪 TEST: Socket ID:', this.socket?.id);
+    console.log('🧪 TEST: Service initialized:', this.isInitialized);
+    console.log('🧪 TEST: Local user ID:', this.localUserId);
+    console.log('🧪 TEST: Timestamp:', new Date().toISOString());
     
-    this.log('📞 DEEP TEST: ===============================');
-    this.log('📞 DEEP TEST: ANSWER BUTTON CLICKED - ACCEPTING CALL');
-    this.log('📞 DEEP TEST: ===============================');
+    console.log('📞 DEEP TEST: ===============================');
+    console.log('📞 DEEP TEST: ANSWER BUTTON CLICKED - ACCEPTING CALL');
+    console.log('📞 DEEP TEST: ===============================');
     
     // Test 1: Service Status Check
     if (!this.socket || !this.isInitialized) {
@@ -855,7 +853,7 @@ export class EncryptedWebRTCService {
       console.error('❌ ERROR DETAILS: Socket:', !!this.socket, 'Connected:', this.socket?.connected, 'Initialized:', this.isInitialized);
       throw new Error('Service not initialized');
     }
-    this.log('✅ TEST PASSED: Service Initialization Check');
+    console.log('✅ TEST PASSED: Service Initialization Check');
 
     // Test 2: Call Existence Check
     const call = this.activeCalls.get(callId);
@@ -865,7 +863,7 @@ export class EncryptedWebRTCService {
       console.error('❌ Available calls:', Array.from(this.activeCalls.keys()));
       throw new Error(`Call not found: ${callId}. Available calls: ${Array.from(this.activeCalls.keys()).join(', ') || 'none'}`);
     }
-    this.log('✅ TEST PASSED: Call found in activeCalls');
+    console.log('✅ TEST PASSED: Call found in activeCalls');
 
     // CRITICAL: Request media through permissionService for consistent error handling
     const streamType = call.type === 'video' ? 'camera' : 'microphone';
@@ -876,7 +874,7 @@ export class EncryptedWebRTCService {
     
     try {
       if (cachedStream) {
-        this.log(`✅ ACCEPT: Using cached ${streamType} stream`);
+        console.log(`✅ ACCEPT: Using cached ${streamType} stream`);
         // Clone the cached stream
         localStream = cachedStream.clone();
         
@@ -884,7 +882,7 @@ export class EncryptedWebRTCService {
         permissionService.retainStream(streamType);
         usingCachedStream = true;
         
-        this.log('🎤 AUDIO DEBUG (ACCEPT): Using cached stream, tracks:', {
+        console.log('🎤 AUDIO DEBUG (ACCEPT): Using cached stream, tracks:', {
           audioTracks: localStream.getAudioTracks().length,
           videoTracks: localStream.getVideoTracks().length,
           audioTrackDetails: localStream.getAudioTracks().map(t => ({
@@ -896,7 +894,7 @@ export class EncryptedWebRTCService {
         });
       } else {
         // Request through permissionService for consistent error handling
-        this.log(`⚠️ ACCEPT: No cached stream, requesting ${streamType} permission`);
+        console.log(`⚠️ ACCEPT: No cached stream, requesting ${streamType} permission`);
         
         const permissionResult = call.type === 'video' 
           ? await permissionService.requestCameraPermission()
@@ -911,8 +909,8 @@ export class EncryptedWebRTCService {
         permissionService.retainStream(streamType);
         usingCachedStream = true;
         
-        this.log('✅ AUDIO DEBUG (ACCEPT): Permission granted');
-        this.log('🎤 AUDIO DEBUG (ACCEPT): Local stream tracks:', {
+        console.log('✅ AUDIO DEBUG (ACCEPT): Permission granted');
+        console.log('🎤 AUDIO DEBUG (ACCEPT): Local stream tracks:', {
           audioTracks: localStream.getAudioTracks().length,
           videoTracks: localStream.getVideoTracks().length,
           audioTrackDetails: localStream.getAudioTracks().map(t => ({
@@ -926,16 +924,16 @@ export class EncryptedWebRTCService {
       
       // Create peer connection with explicit ECDSA P-256 DTLS certificate (callee side)
       const dtlsCert = await this.generateDTLSCertificate();
-      this.log('🔗 AUDIO DEBUG (ACCEPT): Creating peer connection with config:', this.rtcConfiguration);
+      console.log('🔗 AUDIO DEBUG (ACCEPT): Creating peer connection with config:', this.rtcConfiguration);
       const peerConnection = new RTCPeerConnection({
         ...this.rtcConfiguration,
         certificates: [dtlsCert],
       });
       
       // Add local stream
-      this.log('📤 AUDIO DEBUG (ACCEPT): Adding local tracks to peer connection...');
+      console.log('📤 AUDIO DEBUG (ACCEPT): Adding local tracks to peer connection...');
       localStream.getTracks().forEach(track => {
-        this.log('📤 AUDIO DEBUG (ACCEPT): Adding track:', {
+        console.log('📤 AUDIO DEBUG (ACCEPT): Adding track:', {
           kind: track.kind,
           enabled: track.enabled,
           muted: track.muted,
@@ -944,7 +942,7 @@ export class EncryptedWebRTCService {
         });
         peerConnection.addTrack(track, localStream!);
       });
-      this.log('✅ AUDIO DEBUG (ACCEPT): All local tracks added to peer connection');
+      console.log('✅ AUDIO DEBUG (ACCEPT): All local tracks added to peer connection');
 
       // Update call object
       call.localStream = localStream;
@@ -956,7 +954,7 @@ export class EncryptedWebRTCService {
 
       // Set remote description if we have an offer
       if (call.remoteOffer) {
-        this.log('📞 ACCEPT: Setting remote offer description');
+        console.log('📞 ACCEPT: Setting remote offer description');
 
         // Verify caller's DTLS fingerprint against what's inside the offer SDP.
         // If we received a fingerprint out-of-band through the signaling server and
@@ -974,71 +972,71 @@ export class EncryptedWebRTCService {
         }
 
         await peerConnection.setRemoteDescription(new RTCSessionDescription(call.remoteOffer));
-        this.log('✅ ACCEPT: Remote offer set successfully');
+        console.log('✅ ACCEPT: Remote offer set successfully');
         
         // CRITICAL: Process any queued ICE candidates now that remote description is set
         await this.processPendingIceCandidates(call);
       }
 
       // Create answer - this completes the WebRTC offer/answer handshake on receiver side
-      this.log('📞 ACCEPT: Creating WebRTC answer...');
+      console.log('📞 ACCEPT: Creating WebRTC answer...');
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-      this.log('✅ ACCEPT: Local answer SDP set successfully');
+      console.log('✅ ACCEPT: Local answer SDP set successfully');
 
       // Extract callee's DTLS fingerprint so the caller can verify us in turn
       const calleeFingerprint = this.extractDtlsFingerprint(
         peerConnection.localDescription?.sdp || answer.sdp || ''
       );
-      this.log('🔒 DTLS: Callee fingerprint to send:', calleeFingerprint?.slice(0, 40) + '…');
+      console.log('🔒 DTLS: Callee fingerprint to send:', calleeFingerprint?.slice(0, 40) + '…');
 
       // Verify bi-directional audio setup BEFORE sending answer
-      this.log('🔊 BI-DIRECTIONAL AUDIO CHECK:');
-      this.log('  📤 Outgoing (local → remote):');
+      console.log('🔊 BI-DIRECTIONAL AUDIO CHECK:');
+      console.log('  📤 Outgoing (local → remote):');
       const senders = peerConnection.getSenders();
       senders.forEach((sender, i) => {
         if (sender.track) {
-          this.log(`    Track ${i}: ${sender.track.kind} - enabled: ${sender.track.enabled}, state: ${sender.track.readyState}`);
+          console.log(`    Track ${i}: ${sender.track.kind} - enabled: ${sender.track.enabled}, state: ${sender.track.readyState}`);
         }
       });
-      this.log('  📥 Incoming (remote → local): Waiting for ontrack event after answer exchange');
+      console.log('  📥 Incoming (remote → local): Waiting for ontrack event after answer exchange');
       
       // Verify transceivers are set up for bi-directional communication
       const transceivers = peerConnection.getTransceivers();
-      this.log('  🔀 Transceivers:', transceivers.length);
+      console.log('  🔀 Transceivers:', transceivers.length);
       transceivers.forEach((t, i) => {
-        this.log(`    Transceiver ${i}: direction=${t.direction}, currentDirection=${t.currentDirection}`);
+        console.log(`    Transceiver ${i}: direction=${t.direction}, currentDirection=${t.currentDirection}`);
       });
 
       // Send call acceptance to server - this triggers the answer delivery to caller
       // Include our DTLS fingerprint so the caller can verify our identity
-      this.log('📤 ACCEPT: Sending answer to signaling server...');
+      console.log('📤 ACCEPT: Sending answer to signaling server...');
       this.socket.emit('accept-call', {
         callId,
         answer,
         dtlsFingerprint: calleeFingerprint,
       });
-      this.log('✅ ACCEPT: Call accepted and answer sent to caller');
+      console.log('✅ ACCEPT: Call accepted and answer sent to caller');
 
       // Update call status to connected and trigger UI update
       call.status = 'connected';
       this.activeCalls.set(callId, call);
 
       // Log final success summary
-      this.log('═══════════════════════════════════════════════════════');
-      this.log('✅ ACCEPT CALL: HANDSHAKE COMPLETE');
-      this.log('═══════════════════════════════════════════════════════');
-      this.log('  Call ID:', callId);
-      this.log('  Local stream tracks:', localStream.getTracks().length);
-      this.log('  Audio tracks enabled:', localStream.getAudioTracks().filter(t => t.enabled).length);
-      this.log('  Peer connection state:', peerConnection.connectionState);
-      this.log('  ICE connection state:', peerConnection.iceConnectionState);
-      this.log('  Signaling state:', peerConnection.signalingState);
-      this.log('═══════════════════════════════════════════════════════');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('✅ ACCEPT CALL: HANDSHAKE COMPLETE');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('  Call ID:', callId);
+      console.log('  Local stream tracks:', localStream.getTracks().length);
+      console.log('  Audio tracks enabled:', localStream.getAudioTracks().filter(t => t.enabled).length);
+      console.log('  Peer connection state:', peerConnection.connectionState);
+      console.log('  ICE connection state:', peerConnection.iceConnectionState);
+      console.log('  Signaling state:', peerConnection.signalingState);
+      console.log('═══════════════════════════════════════════════════════');
 
       // CRITICAL: Notify UI of local stream for muting and recording
       if (this.eventHandlers.onLocalStream) {
-        this.log('📤 AUDIO DEBUG (ACCEPT): Delivering local stream to UI handler');
+        console.log('📤 AUDIO DEBUG (ACCEPT): Delivering local stream to UI handler');
         this.eventHandlers.onLocalStream(localStream);
       }
 
@@ -1057,12 +1055,12 @@ export class EncryptedWebRTCService {
       
       // CRITICAL: Cleanup on error - release retained stream and stop cloned tracks
       if (usingCachedStream) {
-        this.log(`🧹 Releasing ${streamType} stream due to error in acceptCall`);
+        console.log(`🧹 Releasing ${streamType} stream due to error in acceptCall`);
         permissionService.releaseStream(streamType);
       }
       
       if (localStream) {
-        this.log('🧹 Stopping cloned tracks due to error');
+        console.log('🧹 Stopping cloned tracks due to error');
         localStream.getTracks().forEach(track => track.stop());
       }
       
@@ -1078,12 +1076,12 @@ export class EncryptedWebRTCService {
     // Clean up media streams - stop tracks first
     if (call.localStream) {
       call.localStream.getTracks().forEach(track => track.stop());
-      this.log('🧹 Stopped local stream tracks');
+      console.log('🧹 Stopped local stream tracks');
     }
     
     // CRITICAL: Release retained stream AFTER stopping tracks
     if (call.retainedStreamType) {
-      this.log(`🧹 Releasing ${call.retainedStreamType} stream (endCall)`);
+      console.log(`🧹 Releasing ${call.retainedStreamType} stream (endCall)`);
       permissionService.releaseStream(call.retainedStreamType);
     }
 
@@ -1100,7 +1098,7 @@ export class EncryptedWebRTCService {
       this.socket.emit('end-call', { callId });
     }
 
-    this.log('Call ended and cleaned up');
+    console.log('Call ended and cleaned up');
   }
 
   private setupPeerConnectionHandlers(call: EncryptedCall): void {
@@ -1110,7 +1108,7 @@ export class EncryptedWebRTCService {
     const peerConnection = call.peerConnection;
 
     peerConnection.ontrack = (event) => {
-      this.log('🎧 ONTRACK EVENT FIRED:', {
+      console.log('🎧 ONTRACK EVENT FIRED:', {
         streamCount: event.streams.length,
         trackKind: event.track.kind,
         trackEnabled: event.track.enabled,
@@ -1127,7 +1125,7 @@ export class EncryptedWebRTCService {
         }
 
         track.onunmute = () => {
-          this.log('🔊 TRACK: Audio track unmuted - re-delivering stream');
+          console.log('🔊 TRACK: Audio track unmuted - re-delivering stream');
           if (this.eventHandlers.onRemoteStream) {
             this.eventHandlers.onRemoteStream(stream);
           }
@@ -1145,10 +1143,10 @@ export class EncryptedWebRTCService {
       });
 
       if (this.eventHandlers.onRemoteStream) {
-        this.log('✅ STREAM: Delivering remote stream to handler');
+        console.log('✅ STREAM: Delivering remote stream to handler');
         this.eventHandlers.onRemoteStream(stream);
       } else {
-        this.log('📦 STREAM: No handler yet, stream buffered in call.remoteStream');
+        console.log('📦 STREAM: No handler yet, stream buffered in call.remoteStream');
       }
     };
 
@@ -1157,15 +1155,15 @@ export class EncryptedWebRTCService {
         // Enhanced desktop ICE candidate handling
         const targetUserId = call.participants.find(p => p !== this.localUserId);
         if (targetUserId) {
-          this.log('🧊 DESKTOP: Sending ICE candidate to:', targetUserId);
-          this.log('- Candidate type:', event.candidate.type);
-          this.log('- Protocol:', event.candidate.protocol);
-          this.log('- Priority:', event.candidate.priority);
-          this.log('- Foundation:', event.candidate.foundation);
+          console.log('🧊 DESKTOP: Sending ICE candidate to:', targetUserId);
+          console.log('- Candidate type:', event.candidate.type);
+          console.log('- Protocol:', event.candidate.protocol);
+          console.log('- Priority:', event.candidate.priority);
+          console.log('- Foundation:', event.candidate.foundation);
           
           // Desktop-specific candidate optimization
           if (!this.isMobileDevice() && event.candidate.type === 'host') {
-            this.log('🧊 DESKTOP: Prioritizing host candidate for direct connection');
+            console.log('🧊 DESKTOP: Prioritizing host candidate for direct connection');
           }
           
           this.socket.emit('ice-candidate', {
@@ -1175,18 +1173,18 @@ export class EncryptedWebRTCService {
           });
         }
       } else if (!event.candidate) {
-        this.log('🏁 DESKTOP: ICE gathering complete for call:', call.callId);
+        console.log('🏁 DESKTOP: ICE gathering complete for call:', call.callId);
       }
     };
 
     call.peerConnection.onconnectionstatechange = () => {
       const state = call.peerConnection?.connectionState;
-      this.log('🔌 CLIENT: Connection state changed:', state);
+      console.log('🔌 CLIENT: Connection state changed:', state);
       
       if (state === 'connected') {
-        this.log('✅ CLIENT: WebRTC connection established successfully!');
+        console.log('✅ CLIENT: WebRTC connection established successfully!');
         if (call.remoteStream && this.eventHandlers.onRemoteStream) {
-          this.log('🔊 CLIENT: Re-delivering remote stream on connection established');
+          console.log('🔊 CLIENT: Re-delivering remote stream on connection established');
           this.eventHandlers.onRemoteStream(call.remoteStream);
         }
 
@@ -1198,7 +1196,7 @@ export class EncryptedWebRTCService {
           const senders = pc.getSenders();
           const dtlsTransport = senders[0]?.transport;
           const dtlsState = dtlsTransport?.state;
-          this.log('🔒 DTLS: Transport state on connection:', dtlsState ?? 'unavailable');
+          console.log('🔒 DTLS: Transport state on connection:', dtlsState ?? 'unavailable');
 
           if (dtlsState === 'connected' || !dtlsTransport) {
             // Either DTLS transport is confirmed connected, or the browser doesn't
@@ -1210,14 +1208,14 @@ export class EncryptedWebRTCService {
             if (this.eventHandlers.onDtlsStateChanged) {
               this.eventHandlers.onDtlsStateChanged(true, fingerprint || undefined);
             }
-            this.log('✅ DTLS: DTLS-SRTP handshake confirmed — media is encrypted');
+            console.log('✅ DTLS: DTLS-SRTP handshake confirmed — media is encrypted');
           }
 
           // Also listen to future DTLS state changes if the transport is available
           if (dtlsTransport) {
             dtlsTransport.onstatechange = () => {
               const s = dtlsTransport.state;
-              this.log('🔒 DTLS: Transport state change:', s);
+              console.log('🔒 DTLS: Transport state change:', s);
               const isSecured = s === 'connected';
               if (this.eventHandlers.onDtlsStateChanged) {
                 const fp = this.extractDtlsFingerprint(pc.localDescription?.sdp || '');
@@ -1228,13 +1226,13 @@ export class EncryptedWebRTCService {
         }
       } else if (state === 'failed') {
         console.error('❌ CLIENT: WebRTC connection failed - likely NAT/firewall issue');
-        this.log('💡 TIP: Check TURN server configuration and firewall settings');
+        console.log('💡 TIP: Check TURN server configuration and firewall settings');
         
         // Give it more time before ending the call - sometimes ICE takes longer
         setTimeout(() => {
           const stillFailed = call.peerConnection?.iceConnectionState === 'failed';
           if (stillFailed) {
-            this.log('❌ CLIENT: ICE connection still failed after retry period, ending call');
+            console.log('❌ CLIENT: ICE connection still failed after retry period, ending call');
             this.endCall(call.callId);
             // Notify UI about connection failure
             if (this.eventHandlers.onCallEnded) {
@@ -1245,14 +1243,14 @@ export class EncryptedWebRTCService {
               });
             }
           } else {
-            this.log('✅ CLIENT: ICE connection recovered after retry period');
+            console.log('✅ CLIENT: ICE connection recovered after retry period');
           }
         }, 10000); // Give 10 more seconds for ICE to recover
       } else if (state === 'disconnected') {
         console.warn('⚠️ CLIENT: WebRTC connection disconnected');
         setTimeout(() => {
           if (call.peerConnection?.connectionState === 'disconnected') {
-            this.log('🔄 CLIENT: Connection still disconnected, restarting ICE...');
+            console.log('🔄 CLIENT: Connection still disconnected, restarting ICE...');
             try {
               call.peerConnection.restartIce();
             } catch (e) {
@@ -1266,57 +1264,57 @@ export class EncryptedWebRTCService {
     // Enhanced signaling state debugging
     call.peerConnection.onsignalingstatechange = () => {
       const signalingState = call.peerConnection?.signalingState;
-      this.log('📡 CLIENT: Signaling state changed:', signalingState);
+      console.log('📡 CLIENT: Signaling state changed:', signalingState);
       
       switch (signalingState) {
         case 'stable':
-          this.log('✅ Signaling: Ready for new offer/answer exchange');
+          console.log('✅ Signaling: Ready for new offer/answer exchange');
           break;
         case 'have-local-offer':
-          this.log('📤 Signaling: Local offer created, waiting for answer');
+          console.log('📤 Signaling: Local offer created, waiting for answer');
           break;
         case 'have-remote-offer':
-          this.log('📥 Signaling: Remote offer received, creating answer');
+          console.log('📥 Signaling: Remote offer received, creating answer');
           break;
         case 'have-local-pranswer':
-          this.log('📤 Signaling: Local provisional answer created');
+          console.log('📤 Signaling: Local provisional answer created');
           break;
         case 'have-remote-pranswer':
-          this.log('📥 Signaling: Remote provisional answer received');
+          console.log('📥 Signaling: Remote provisional answer received');
           break;
         case 'closed':
-          this.log('❌ Signaling: Connection closed');
+          console.log('❌ Signaling: Connection closed');
           break;
         default:
-          this.log('❓ Signaling: Unknown state:', signalingState);
+          console.log('❓ Signaling: Unknown state:', signalingState);
       }
     };
     
     // Enhanced ICE connection state monitoring with TURN detection
     call.peerConnection.oniceconnectionstatechange = async () => {
       const state = call.peerConnection?.iceConnectionState;
-      this.log('🧊 ICE MONITOR: Connection state changed:', state);
+      console.log('🧊 ICE MONITOR: Connection state changed:', state);
       
       switch (state) {
         case 'new':
-          this.log('🆕 ICE MONITOR: ICE agent gathering addresses');
+          console.log('🆕 ICE MONITOR: ICE agent gathering addresses');
           break;
           
         case 'checking':
-          this.log('🔍 ICE MONITOR: ICE agent checking candidates');
+          console.log('🔍 ICE MONITOR: ICE agent checking candidates');
           break;
           
         case 'connected':
-          this.log('✅ ICE MONITOR: ICE connection established!');
+          console.log('✅ ICE MONITOR: ICE connection established!');
 
           if (call.remoteStream && this.eventHandlers.onRemoteStream) {
-            this.log('🔊 ICE MONITOR: Re-delivering remote stream after ICE connected');
+            console.log('🔊 ICE MONITOR: Re-delivering remote stream after ICE connected');
             this.eventHandlers.onRemoteStream(call.remoteStream);
           }
           break;
           
         case 'completed':
-          this.log('✅ ICE MONITOR: ICE negotiation completed successfully');
+          console.log('✅ ICE MONITOR: ICE negotiation completed successfully');
           break;
           
         case 'failed':
@@ -1330,10 +1328,10 @@ export class EncryptedWebRTCService {
           
         case 'disconnected':
           console.warn('⚠️ ICE MONITOR: ICE connection temporarily disconnected');
-          this.log('💡 ICE MONITOR: Will attempt ICE restart if not recovered...');
+          console.log('💡 ICE MONITOR: Will attempt ICE restart if not recovered...');
           setTimeout(() => {
             if (call.peerConnection?.iceConnectionState === 'disconnected') {
-              this.log('🔄 ICE MONITOR: Still disconnected, restarting ICE...');
+              console.log('🔄 ICE MONITOR: Still disconnected, restarting ICE...');
               try {
                 call.peerConnection.restartIce();
               } catch (e) {
@@ -1344,18 +1342,18 @@ export class EncryptedWebRTCService {
           break;
           
         case 'closed':
-          this.log('🔒 ICE MONITOR: ICE connection closed');
+          console.log('🔒 ICE MONITOR: ICE connection closed');
           break;
           
         default:
-          this.log('❓ ICE MONITOR: Unknown ICE state:', state);
+          console.log('❓ ICE MONITOR: Unknown ICE state:', state);
       }
     };
     
     // Monitor ICE gathering state
     call.peerConnection.onicegatheringstatechange = () => {
       const state = call.peerConnection?.iceGatheringState;
-      this.log('📍 CLIENT: ICE gathering state:', state);
+      console.log('📍 CLIENT: ICE gathering state:', state);
     };
   }
 
@@ -1377,13 +1375,13 @@ export class EncryptedWebRTCService {
     const audioTrack = call.localStream.getAudioTracks()[0];
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled;
-      this.log('📞 DESKTOP: Audio toggled to:', audioTrack.enabled ? 'enabled' : 'muted');
+      console.log('📞 DESKTOP: Audio toggled to:', audioTrack.enabled ? 'enabled' : 'muted');
       
       // Desktop-specific audio quality maintenance
       if (!this.isMobileDevice() && audioTrack.enabled) {
         // Ensure audio processing settings are maintained after unmute
         const constraints = audioTrack.getConstraints();
-        this.log('📞 DESKTOP: Maintaining audio constraints:', constraints);
+        console.log('📞 DESKTOP: Maintaining audio constraints:', constraints);
       }
       
       return !audioTrack.enabled; // Return mute state
@@ -1399,12 +1397,12 @@ export class EncryptedWebRTCService {
     const videoTrack = call.localStream.getVideoTracks()[0];
     if (videoTrack) {
       videoTrack.enabled = !videoTrack.enabled;
-      this.log('📞 DESKTOP: Video toggled to:', videoTrack.enabled ? 'enabled' : 'disabled');
+      console.log('📞 DESKTOP: Video toggled to:', videoTrack.enabled ? 'enabled' : 'disabled');
       
       // Desktop-specific video quality maintenance
       if (!this.isMobileDevice() && videoTrack.enabled) {
         const settings = videoTrack.getSettings();
-        this.log('📞 DESKTOP: Maintaining video quality:', {
+        console.log('📞 DESKTOP: Maintaining video quality:', {
           width: settings.width,
           height: settings.height,
           frameRate: settings.frameRate
@@ -1429,7 +1427,7 @@ export class EncryptedWebRTCService {
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       
       if (videoDevices.length <= 1) {
-        this.log('📞 DESKTOP: Only one camera available');
+        console.log('📞 DESKTOP: Only one camera available');
         return;
       }
 
@@ -1443,7 +1441,7 @@ export class EncryptedWebRTCService {
       const nextIndex = (currentIndex + 1) % videoDevices.length;
       const nextDevice = videoDevices[nextIndex];
       
-      this.log('📞 DESKTOP: Switching to camera:', nextDevice.label);
+      console.log('📞 DESKTOP: Switching to camera:', nextDevice.label);
       
       // Build video constraints with specific deviceId
       const baseConstraints = this.getDesktopMediaConstraints('video');
@@ -1478,7 +1476,7 @@ export class EncryptedWebRTCService {
       
       if (sender) {
         await sender.replaceTrack(newVideoTrack);
-        this.log('📞 DESKTOP: Camera track replaced successfully');
+        console.log('📞 DESKTOP: Camera track replaced successfully');
       }
       
       // Update local stream
@@ -1502,13 +1500,13 @@ export class EncryptedWebRTCService {
     if (!call?.peerConnection) return false;
 
     try {
-      this.log('📞 DESKTOP: Attempting connection recovery for call:', callId);
+      console.log('📞 DESKTOP: Attempting connection recovery for call:', callId);
       
       // Check if we can restart ICE
       if (call.peerConnection.connectionState === 'failed' || 
           call.peerConnection.iceConnectionState === 'failed') {
         
-        this.log('📞 DESKTOP: Restarting ICE for connection recovery');
+        console.log('📞 DESKTOP: Restarting ICE for connection recovery');
         call.peerConnection.restartIce();
         
         // Wait for ICE restart
@@ -1518,7 +1516,7 @@ export class EncryptedWebRTCService {
           const checkConnection = () => {
             if (call.peerConnection?.connectionState === 'connected') {
               clearTimeout(timeout);
-              this.log('📞 DESKTOP: Connection recovery successful');
+              console.log('📞 DESKTOP: Connection recovery successful');
               resolve(true);
             } else if (call.peerConnection?.connectionState === 'failed') {
               clearTimeout(timeout);

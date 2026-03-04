@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 // Wallet Access Validator - Ensures proper blockchain transaction access
 // This module validates that the wallet has proper authorization for transactions
 
@@ -18,7 +17,7 @@ class WalletAccessValidator {
     try {
       const storedAccess = localStorage.getItem('walletAccess');
       if (!storedAccess) {
-        log('No wallet access found in storage');
+        console.log('No wallet access found in storage');
         return null;
       }
       
@@ -26,14 +25,14 @@ class WalletAccessValidator {
       
       // Check if access is expired (older than 1 hour)
       if (Date.now() - walletData.timestamp > 3600000) {
-        log('Wallet access expired, removing from storage');
+        console.log('Wallet access expired, removing from storage');
         localStorage.removeItem('walletAccess');
         return null;
       }
       
       // Validate required fields
       if (!walletData.address || !walletData.authorized) {
-        log('Invalid wallet access data found');
+        console.log('Invalid wallet access data found');
         localStorage.removeItem('walletAccess');
         return null;
       }
@@ -86,7 +85,7 @@ class WalletAccessValidator {
         return false;
       }
       
-      log('Blockchain access validated successfully');
+      console.log('Blockchain access validated successfully');
       return true;
     } catch (error) {
       console.error('Blockchain access test failed:', error);
@@ -97,7 +96,7 @@ class WalletAccessValidator {
   // Re-establish wallet access if validation fails
   static async establishWalletAccess(provider: any): Promise<WalletAccess | null> {
     try {
-      log('Establishing fresh wallet access...');
+      console.log('Establishing fresh wallet access...');
       
       // Request account access
       const accounts = await provider.request({ method: 'eth_requestAccounts' });
@@ -130,7 +129,7 @@ class WalletAccessValidator {
       // Store wallet access
       localStorage.setItem('walletAccess', JSON.stringify(walletAccess));
       
-      log('Fresh wallet access established successfully');
+      console.log('Fresh wallet access established successfully');
       return walletAccess;
     } catch (error) {
       console.error('Failed to establish wallet access:', error);

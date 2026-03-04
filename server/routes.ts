@@ -7,6 +7,7 @@ import fs from "fs";
 import { storage } from "./storage";
 import { insertMessageSchema, insertUserSchema, conversations, messages, groupMembers, favorites, users, type User } from "@shared/schema";
 import { db } from "./db";
+import { initializeDatabase } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { marketplaceAPI } from "./amazon-api";
@@ -148,6 +149,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialize database
+  await initializeDatabase();
 
   // Get current user - optimized with caching
   app.get("/api/user", async (req, res) => {

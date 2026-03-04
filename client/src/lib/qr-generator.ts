@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import QRCode from 'qrcode';
 
 export interface QRCodeOptions {
@@ -33,7 +32,7 @@ export async function generateMetaMaskQRCode(
     const hostname = url.hostname;
     const metamaskUrl = `https://metamask.app.link/dapp/${hostname}`;
     
-    log('🔧 Generating QR code for MetaMask URL (hostname-only for compatibility):', metamaskUrl);
+    console.log('🔧 Generating QR code for MetaMask URL (hostname-only for compatibility):', metamaskUrl);
     
     // Generate QR code as data URL
     const qrDataUrl = await QRCode.toDataURL(metamaskUrl, {

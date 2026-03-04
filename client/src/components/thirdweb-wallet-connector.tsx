@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { ConnectButton } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
@@ -15,7 +14,11 @@ const client = createThirdwebClient({
 
 const supportedChains = [bsc];
 
+// WalletConnect is listed first — it bypasses window.ethereum injection which
+// Trust Wallet overrides on mobile, preventing other wallets from connecting.
+// All listed wallets also appear as EIP-6963 options on desktop.
 const wallets = [
+  createWallet("walletConnect"),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("com.bitget.web3"),
@@ -48,7 +51,7 @@ export default function ThirdwebWalletConnector({
           showThirdwebBranding: false,
           welcomeScreen: {
             title: "Connect to COYN Messenger",
-            subtitle: "Select your wallet to sign in",
+            subtitle: "Use WalletConnect or select your wallet below",
           },
         }}
         detailsModal={{
@@ -120,14 +123,14 @@ export default function ThirdwebWalletConnector({
         }}
         onConnect={async (wallet) => {
           try {
-            log('🎯 WALLET: Connection approved, processing...');
+            console.log('🎯 WALLET: Connection approved, processing...');
             const account = wallet.getAccount();
             const chain = wallet.getChain();
 
             // Save wallet identity for confirmation screens
             localStorage.setItem('connectedWalletId', wallet.id);
             
-            log('🔗 WALLET: Connected:', { 
+            console.log('🔗 WALLET: Connected:', { 
               walletId: wallet.id,
               chainId: chain?.id, 
               address: account?.address 
@@ -135,12 +138,12 @@ export default function ThirdwebWalletConnector({
             
             // Switch to BSC if not already on it
             if (chain?.id !== 56) {
-              log('⚠️ WALLET: Switching to BSC...');
+              console.log('⚠️ WALLET: Switching to BSC...');
               try {
                 await wallet.switchChain(bsc);
-                log('✅ WALLET: Switched to BSC');
+                console.log('✅ WALLET: Switched to BSC');
               } catch (switchError) {
-                log('ℹ️ WALLET: Chain switch handled by wallet app');
+                console.log('ℹ️ WALLET: Chain switch handled by wallet app');
               }
             }
             
@@ -165,7 +168,7 @@ export default function ThirdwebWalletConnector({
           }
         }}
         onDisconnect={() => {
-          log('🔌 WALLET: Disconnecting...');
+          console.log('🔌 WALLET: Disconnecting...');
           // Clear COYN session data
           localStorage.setItem('userSignedOut', 'true');
           localStorage.removeItem('walletConnected');
@@ -174,7 +177,7 @@ export default function ThirdwebWalletConnector({
           localStorage.removeItem('connectedWalletId');
           // Clear all Thirdweb + WalletConnect session data
           clearAllWalletSessions();
-          log('✅ WALLET: Disconnect complete');
+          console.log('✅ WALLET: Disconnect complete');
           if (onDisconnect) {
             onDisconnect();
           }

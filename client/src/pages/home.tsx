@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -62,13 +61,13 @@ export default function HomePage() {
 
           // User intentionally navigated to homepage — stay here
           if (userClickedHome === 'true') {
-            log('👤 User navigated to homepage intentionally, staying');
+            console.log('👤 User navigated to homepage intentionally, staying');
             return;
           }
 
           // stale userSignedOut flag but valid session — clear flag and go to messenger
           localStorage.removeItem('userSignedOut');
-          log('✅ Authenticated user detected, navigating to messenger...');
+          console.log('✅ Authenticated user detected, navigating to messenger...');
           signIn(parsedUser);
           setLocation('/messenger');
           return;
@@ -82,7 +81,7 @@ export default function HomePage() {
     }
 
     if (userSignedOut === 'true') {
-      log('🚫 User signed out and no session found, staying on homepage');
+      console.log('🚫 User signed out and no session found, staying on homepage');
     }
     setIsConnected(false);
     setConnectedUser(null);
@@ -105,7 +104,7 @@ export default function HomePage() {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser?.id || parsedUser?.walletAddress) {
-          log('✅ Wallet autoConnected with valid session, navigating to messenger...');
+          console.log('✅ Wallet autoConnected with valid session, navigating to messenger...');
           signIn(parsedUser);
           setLocation('/messenger');
           return;
@@ -118,7 +117,7 @@ export default function HomePage() {
       const account = (activeWallet as any).getAccount?.();
       const address = account?.address;
       if (address && !storedUser) {
-        log('🔗 Wallet autoConnected without session, authenticating...');
+        console.log('🔗 Wallet autoConnected without session, authenticating...');
         connectWalletMutation.mutate({ walletAddress: address });
       }
     }
@@ -128,7 +127,7 @@ export default function HomePage() {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'walletConnected' || e.key === 'connectedUser' || e.key === 'userSignedOut') {
-        log('📱 Storage change detected from another tab:', e.key);
+        console.log('📱 Storage change detected from another tab:', e.key);
         // Only update local state, don't trigger navigation
         if (e.key === 'userSignedOut' && e.newValue === 'true') {
           setIsConnected(false);
@@ -158,7 +157,7 @@ export default function HomePage() {
       }
     },
     onSuccess: (user: User) => {
-      log('✅ COYN: User authenticated successfully!', { userId: user.id, walletAddress: user.walletAddress });
+      console.log('✅ COYN: User authenticated successfully!', { userId: user.id, walletAddress: user.walletAddress });
       
       // Clean up any competing states
       localStorage.removeItem('pendingWalletConnection');
@@ -183,7 +182,7 @@ export default function HomePage() {
       
       // Client-side navigation — auth context is already updated so ProtectedRoute
       // will immediately see isConnected=true without any loading flash or bounce
-      log('🎯 COYN: SUCCESS! Navigating to messenger...');
+      console.log('🎯 COYN: SUCCESS! Navigating to messenger...');
       setLocation("/messenger");
     },
   });
@@ -191,7 +190,7 @@ export default function HomePage() {
   const handleSignOut = async () => {
     try {
       // First disconnect the thirdweb wallet
-      log('🔌 Disconnecting thirdweb wallet...');
+      console.log('🔌 Disconnecting thirdweb wallet...');
       if (activeWallet) {
         await disconnect(activeWallet);
       }
@@ -227,8 +226,8 @@ export default function HomePage() {
   };
 
   const handleThirdwebConnect = (address: string) => {
-    log('🔗 COYN: Wallet approved! Address received:', address);
-    log('🚀 COYN: Starting user authentication and AUTO-NAVIGATION to messenger...');
+    console.log('🔗 COYN: Wallet approved! Address received:', address);
+    console.log('🚀 COYN: Starting user authentication and AUTO-NAVIGATION to messenger...');
     
     // Clear ALL navigation flags that might prevent redirect since user is explicitly connecting
     localStorage.removeItem('userSignedOut');
@@ -238,12 +237,12 @@ export default function HomePage() {
     // Mark that this is an explicit wallet connection for immediate redirect
     localStorage.setItem('explicitWalletConnection', 'true');
     
-    log('🎯 COYN: User flags cleared, proceeding with authentication and auto-navigation...');
+    console.log('🎯 COYN: User flags cleared, proceeding with authentication and auto-navigation...');
     connectWalletMutation.mutate({ walletAddress: address });
   };
 
   const handleThirdwebDisconnect = () => {
-    log('🔌 Thirdweb wallet disconnected');
+    console.log('🔌 Thirdweb wallet disconnected');
     // Clear wallet connection state
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('connectedUser');

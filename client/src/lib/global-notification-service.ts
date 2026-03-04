@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { io, Socket } from 'socket.io-client';
 import { toast } from '@/hooks/use-toast';
 
@@ -30,14 +29,14 @@ class GlobalNotificationService {
 
   initialize(userId: string): void {
     if (this.isInitialized && this.userId === userId) {
-      log('Global notification service already initialized for user:', userId);
+      console.log('Global notification service already initialized for user:', userId);
       return;
     }
 
     this.userId = userId;
     this.setupSocketConnection();
     this.isInitialized = true;
-    log('Global notification service initialized for user:', userId);
+    console.log('Global notification service initialized for user:', userId);
   }
 
   private setupSocketConnection(): void {
@@ -55,7 +54,7 @@ class GlobalNotificationService {
     });
 
     this.socket.on('connect', () => {
-      log('🔔 Global notification service connected to server');
+      console.log('🔔 Global notification service connected to server');
       if (this.userId) {
         this.socket!.emit('authenticate', { userId: this.userId });
       }
@@ -63,24 +62,24 @@ class GlobalNotificationService {
 
     // Listen for instant notifications from server
     this.socket.on('instant-notification', (data: NotificationData) => {
-      log('🔔 Global instant notification received:', data);
+      console.log('🔔 Global instant notification received:', data);
       
       // CRITICAL FIX: Handle call notifications specially
       if (data.type === 'call') {
-        log('📞 CALL NOTIFICATION: Received call notification via instant notification system');
-        log('📞 CALL NOTIFICATION: From user:', data.fromUserId);
-        log('📞 CALL NOTIFICATION: Call ID:', data.conversationId);
+        console.log('📞 CALL NOTIFICATION: Received call notification via instant notification system');
+        console.log('📞 CALL NOTIFICATION: From user:', data.fromUserId);
+        console.log('📞 CALL NOTIFICATION: Call ID:', data.conversationId);
         
         // Get the global WebRTC service and trigger incoming call
         const globalWebRTC = (window as any).globalWebRTCService;
         if (globalWebRTC && globalWebRTC.eventHandlers?.onIncomingCall) {
-          log('📞 CALL NOTIFICATION: Triggering incoming call modal...');
+          console.log('📞 CALL NOTIFICATION: Triggering incoming call modal...');
           globalWebRTC.eventHandlers.onIncomingCall({
             callId: data.conversationId || 'unknown',
             fromUserId: data.fromUserId || 'unknown',
             type: data.title?.includes('video') ? 'video' : 'voice'
           });
-          log('✅ CALL NOTIFICATION: Incoming call modal should now appear');
+          console.log('✅ CALL NOTIFICATION: Incoming call modal should now appear');
         } else {
           console.error('❌ CALL NOTIFICATION: No WebRTC service or handler available');
         }
@@ -98,7 +97,7 @@ class GlobalNotificationService {
       messageType: string;
       timestamp: string;
     }) => {
-      log('🔔 Global new message notification:', data);
+      console.log('🔔 Global new message notification:', data);
       
       // Only show notification if user is not the sender
       if (this.userId && data.senderId.toString() !== this.userId) {
@@ -120,7 +119,7 @@ class GlobalNotificationService {
     });
 
     this.socket.on('disconnect', () => {
-      log('🔔 Global notification service disconnected');
+      console.log('🔔 Global notification service disconnected');
     });
   }
 
@@ -174,7 +173,7 @@ class GlobalNotificationService {
     }
     this.isInitialized = false;
     this.userId = null;
-    log('Global notification service cleaned up');
+    console.log('Global notification service cleaned up');
   }
 }
 

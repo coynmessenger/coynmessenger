@@ -45,7 +45,7 @@ export interface IStorage {
   searchMessagesInConversation(query: string, conversationId: number): Promise<Message[]>;
   getStarredMessages(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
   toggleMessageStar(messageId: number, userId: number, isStarred: boolean): Promise<boolean>;
-  getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; recipient: User | null; conversationId: number })[]>;
+  getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
 
   // Wallet
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
@@ -775,49 +775,45 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  async getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; recipient: User | null; conversationId: number })[]> {
-    // Get user's conversations with both participant IDs
-    const userConversations = await db
-      .select({ id: conversations.id, participant1Id: conversations.participant1Id, participant2Id: conversations.participant2Id })
+  async getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; conversationId: number })[]> {
+    // Get user's conversation IDs
+    const userConversationIds = await db
+      .select({ id: conversations.id })
       .from(conversations)
-      .where(or(eq(conversations.participant1Id, userId), eq(conversations.participant2Id, userId)));
+      .where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      );
 
-    const conversationIds = userConversations.map(c => c.id);
-    if (conversationIds.length === 0) return [];
-
-    // Map conversationId → the OTHER participant's ID (i.e. recipient from this user's POV)
-    const otherParticipantMap = new Map<number, number>();
-    for (const c of userConversations) {
-      otherParticipantMap.set(c.id, c.participant1Id === userId ? c.participant2Id : c.participant1Id);
+    const conversationIds = userConversationIds.map(c => c.id);
+    
+    if (conversationIds.length === 0) {
+      return [];
     }
 
-    // Fetch all crypto transfer messages with their sender
+    // Get crypto transaction messages from user's conversations
     const transactions = await db
-      .select({ message: messages, sender: users })
+      .select({
+        message: messages,
+        sender: users
+      })
       .from(messages)
       .leftJoin(users, eq(messages.senderId, users.id))
-      .where(and(inArray(messages.conversationId, conversationIds), eq(messages.messageType, "crypto_transfer")))
+      .where(
+        and(
+          inArray(messages.conversationId, conversationIds),
+          eq(messages.messageType, "crypto_transfer")
+        )
+      )
       .orderBy(desc(messages.timestamp));
 
-    // Collect unique other-participant IDs so we can fetch their user records
-    const otherIds = [...new Set(
-      transactions.map(t => otherParticipantMap.get(t.message.conversationId)).filter((id): id is number => id !== undefined)
-    )];
-
-    const otherUsers = otherIds.length > 0
-      ? await db.select().from(users).where(inArray(users.id, otherIds))
-      : [];
-    const otherUserMap = new Map<number, User>(otherUsers.map(u => [u.id, u]));
-
-    return transactions.map(row => {
-      const otherId = otherParticipantMap.get(row.message.conversationId);
-      return {
-        ...row.message,
-        sender: row.sender!,
-        recipient: otherId ? (otherUserMap.get(otherId) ?? null) : null,
-        conversationId: row.message.conversationId,
-      };
-    });
+    return transactions.map(row => ({
+      ...row.message,
+      sender: row.sender!,
+      conversationId: row.message.conversationId
+    }));
   }
 
   async clearAllUserData(userId: number): Promise<boolean> {

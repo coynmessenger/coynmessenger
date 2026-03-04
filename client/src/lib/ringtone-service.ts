@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 // Ringtone service for handling incoming call audio notifications
 // Uses HTML Audio element with MP3 file for standard phone ringtone
 
@@ -23,7 +22,7 @@ class RingtoneService {
       this.audioElement.loop = true;
       this.audioElement.volume = 1.0;
       this.audioElement.preload = 'auto';
-      log('🔔 RINGTONE: Audio file preloaded:', ringtoneAudio);
+      console.log('🔔 RINGTONE: Audio file preloaded:', ringtoneAudio);
     } catch (error) {
       console.error('🔔 RINGTONE: Failed to preload audio:', error);
     }
@@ -32,7 +31,7 @@ class RingtoneService {
   private setupVisibilityListener() {
     this.visibilityHandler = () => {
       if (!document.hidden && this.pendingRingtone) {
-        log('🔔 RINGTONE: Tab became visible, resuming ringtone');
+        console.log('🔔 RINGTONE: Tab became visible, resuming ringtone');
         this.resumeRingtone();
       }
     };
@@ -43,7 +42,7 @@ class RingtoneService {
     const gestureHandler = () => {
       if (!this.userGestureReceived) {
         this.userGestureReceived = true;
-        log('🔔 RINGTONE: User gesture detected, audio unlocked');
+        console.log('🔔 RINGTONE: User gesture detected, audio unlocked');
         
         if (this.pendingRingtone && !this.isPlaying) {
           this.resumeRingtone();
@@ -58,7 +57,7 @@ class RingtoneService {
 
   private async resumeRingtone() {
     if (this.pendingRingtone && !this.isPlaying) {
-      log('🔔 RINGTONE: Resuming pending ringtone');
+      console.log('🔔 RINGTONE: Resuming pending ringtone');
       this.pendingRingtone = false;
       await this.playAudio();
     }
@@ -66,7 +65,7 @@ class RingtoneService {
 
   async retryPendingRingtone(): Promise<boolean> {
     if (this.pendingRingtone && !this.isPlaying) {
-      log('🔔 RINGTONE: Retrying pending ringtone on user gesture');
+      console.log('🔔 RINGTONE: Retrying pending ringtone on user gesture');
       try {
         await this.resumeRingtone();
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -81,16 +80,16 @@ class RingtoneService {
 
   async startRingtone(): Promise<void> {
     if (this.isPlaying) {
-      log('🔔 RINGTONE: Already playing');
+      console.log('🔔 RINGTONE: Already playing');
       return;
     }
 
-    log('🔔 RINGTONE: Starting incoming call ringtone...');
-    log('🔔 RINGTONE: Tab hidden:', document.hidden);
-    log('🔔 RINGTONE: User gesture received:', this.userGestureReceived);
+    console.log('🔔 RINGTONE: Starting incoming call ringtone...');
+    console.log('🔔 RINGTONE: Tab hidden:', document.hidden);
+    console.log('🔔 RINGTONE: User gesture received:', this.userGestureReceived);
 
     if (document.hidden) {
-      log('🔔 RINGTONE: Tab is hidden, setting pending flag');
+      console.log('🔔 RINGTONE: Tab is hidden, setting pending flag');
       this.pendingRingtone = true;
       
       try {
@@ -108,7 +107,7 @@ class RingtoneService {
       
       if (!this.userGestureReceived) {
         this.pendingRingtone = true;
-        log('🔔 RINGTONE: Waiting for user gesture to unlock audio');
+        console.log('🔔 RINGTONE: Waiting for user gesture to unlock audio');
       }
     }
   }
@@ -126,13 +125,13 @@ class RingtoneService {
       if ('setSinkId' in this.audioElement) {
         try {
           await (this.audioElement as any).setSinkId('default');
-          log('🔔 RINGTONE: Audio routed to default speaker');
+          console.log('🔔 RINGTONE: Audio routed to default speaker');
         } catch (sinkError) {
           console.warn('🔔 RINGTONE: setSinkId not supported');
         }
       }
 
-      log('🔔 RINGTONE: Attempting to play audio file...');
+      console.log('🔔 RINGTONE: Attempting to play audio file...');
       
       const playPromise = this.audioElement.play();
       
@@ -140,7 +139,7 @@ class RingtoneService {
         await playPromise;
         this.isPlaying = true;
         this.pendingRingtone = false;
-        log('✅ RINGTONE: Playing office phone ring!');
+        console.log('✅ RINGTONE: Playing office phone ring!');
       }
     } catch (error) {
       console.error('❌ RINGTONE: Playback failed:', error);
@@ -150,7 +149,7 @@ class RingtoneService {
   }
 
   stopRingtone() {
-    log('🔇 RINGTONE: Stopping...');
+    console.log('🔇 RINGTONE: Stopping...');
 
     this.isPlaying = false;
     this.pendingRingtone = false;
@@ -164,7 +163,7 @@ class RingtoneService {
       }
     }
 
-    log('✅ RINGTONE: Stopped');
+    console.log('✅ RINGTONE: Stopped');
   }
 
   isRingtonePlaying(): boolean {
@@ -176,7 +175,7 @@ class RingtoneService {
   }
 
   async testRingtone(durationMs: number = 5000): Promise<void> {
-    log('🔔 RINGTONE TEST: Starting test for', durationMs, 'ms');
+    console.log('🔔 RINGTONE TEST: Starting test for', durationMs, 'ms');
     
     try {
       this.userGestureReceived = true;
@@ -184,14 +183,14 @@ class RingtoneService {
       await this.startRingtone();
       
       if (this.isPlaying) {
-        log('✅ RINGTONE TEST: Ringtone is playing!');
+        console.log('✅ RINGTONE TEST: Ringtone is playing!');
         
         setTimeout(() => {
-          log('🔔 RINGTONE TEST: Test complete, stopping');
+          console.log('🔔 RINGTONE TEST: Test complete, stopping');
           this.stopRingtone();
         }, durationMs);
       } else {
-        log('❌ RINGTONE TEST: Ringtone did not start');
+        console.log('❌ RINGTONE TEST: Ringtone did not start');
       }
     } catch (error) {
       console.error('❌ RINGTONE TEST: Failed:', error);
@@ -217,5 +216,5 @@ export const ringtoneService = new RingtoneService();
 
 if (typeof window !== 'undefined') {
   (window as any).testRingtone = (durationMs?: number) => ringtoneService.testRingtone(durationMs);
-  log('🔔 RINGTONE: Test available - run window.testRingtone() or testRingtone() in console');
+  console.log('🔔 RINGTONE: Test available - run window.testRingtone() or testRingtone() in console');
 }

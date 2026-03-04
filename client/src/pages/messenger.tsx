@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -165,7 +164,7 @@ export default function MessengerPage() {
       return newMap;
     });
     
-    log('🧹 Cleared notifications and highlighting for conversation:', conversationId);
+    console.log('🧹 Cleared notifications and highlighting for conversation:', conversationId);
     
     // Notify server to clear notifications
     if (socket) {
@@ -263,36 +262,36 @@ export default function MessengerPage() {
 
     // Handle connection event
     socketConnection.on('connect', () => {
-      log('Connected to Socket.IO server for conversations');
+      console.log('Connected to Socket.IO server for conversations');
       
       // Authenticate with server
       socketConnection.emit('authenticate', { userId: connectedUserId });
       
       // Wait longer for authentication to process before joining rooms
       setTimeout(() => {
-        log('🏠 FIXED: Attempting to join conversation rooms after auth delay');
+        console.log('🏠 FIXED: Attempting to join conversation rooms after auth delay');
         // Join all conversation rooms for this user
-        log('🏠 Checking conversations to join:', { 
+        console.log('🏠 Checking conversations to join:', { 
           conversationsCount: conversations?.length || 0, 
           conversations: conversations?.map(c => c.id) || [] 
         });
         
         if (conversations && conversations.length > 0) {
           conversations.forEach(conversation => {
-            log('🏠 FIXED: Joining conversation room:', conversation.id);
+            console.log('🏠 FIXED: Joining conversation room:', conversation.id);
             socketConnection.emit('join-conversation', { 
               conversationId: conversation.id.toString() 
             });
           });
         } else {
-          log('⚠️ No conversations found to join, will retry when conversations load');
+          console.log('⚠️ No conversations found to join, will retry when conversations load');
         }
       }, 500); // Longer delay to ensure authentication is processed
     });
 
     // GUARANTEED WebRTC initialization with retry mechanism
     const initializeWebRTC = async () => {
-        log('🔧 GUARANTEED: Starting WebRTC initialization for user:', connectedUserId);
+        console.log('🔧 GUARANTEED: Starting WebRTC initialization for user:', connectedUserId);
         
         // Always reset and initialize fresh to ensure it works
         setGlobalWebRTCInitialized(false);
@@ -301,7 +300,7 @@ export default function MessengerPage() {
           // Use retry mechanism for guaranteed initialization
           await initializeGlobalWebRTC(connectedUserId.toString(), 3);
           setGlobalWebRTCInitialized(true); // Only set flag AFTER successful initialization
-          log('✅ GUARANTEED: WebRTC service ready for user:', connectedUserId);
+          console.log('✅ GUARANTEED: WebRTC service ready for user:', connectedUserId);
           
           // Don't initialize global notification service here - we handle notifications in messenger
           // globalNotificationService.initialize(connectedUserId.toString());
@@ -309,41 +308,41 @@ export default function MessengerPage() {
           // Set up global WebRTC handlers for incoming calls IMMEDIATELY after initialization
           setGlobalWebRTCHandlers({
             onIncomingCall: (call) => {
-              log('📞 CRITICAL: Incoming call received in messenger handler:', call);
-              log('👥 All users available:', allUsers.length);
-              log('🔍 Looking for caller user ID:', call.fromUserId);
-              log('🎯 Current modal states - Video:', isVideoCallOpen);
+              console.log('📞 CRITICAL: Incoming call received in messenger handler:', call);
+              console.log('👥 All users available:', allUsers.length);
+              console.log('🔍 Looking for caller user ID:', call.fromUserId);
+              console.log('🎯 Current modal states - Video:', isVideoCallOpen);
               
               // Find the user for this call
               const callerUser = allUsers.find(u => u.id.toString() === call.fromUserId);
-              log('👤 Found caller user:', callerUser);
+              console.log('👤 Found caller user:', callerUser);
               
               // Always show the call modal, even if user is not found in the list
               // The modal can handle missing user gracefully
-              log('🔧 Setting incoming call data:', { fromUserId: call.fromUserId, type: call.type, callId: call.callId });
+              console.log('🔧 Setting incoming call data:', { fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               setIncomingCallData({ fromUserId: call.fromUserId, type: call.type, callId: call.callId });
               
               // Open the appropriate modal
               if (call.type === 'voice') {
-                log('🎙️ CRITICAL: Opening incoming voice call modal');
+                console.log('🎙️ CRITICAL: Opening incoming voice call modal');
                 setShowIncomingVoiceModal(true);
-                log('🎙️ CRITICAL: Incoming voice call modal should now be open');
+                console.log('🎙️ CRITICAL: Incoming voice call modal should now be open');
               } else if (call.type === 'video') {
-                log('📹 CRITICAL: Opening video call modal');
+                console.log('📹 CRITICAL: Opening video call modal');
                 setIsVideoCallOpen(true);
-                log('📹 CRITICAL: Video call modal should now be open');
+                console.log('📹 CRITICAL: Video call modal should now be open');
               }
               
               // Force a re-render to ensure modals show
               setTimeout(() => {
-                log('🔄 Post-timeout modal states - Video:', isVideoCallOpen);
+                console.log('🔄 Post-timeout modal states - Video:', isVideoCallOpen);
               }, 100);
             },
             onCallAccepted: (call) => {
-              log('Global WebRTC call accepted:', call);
+              console.log('Global WebRTC call accepted:', call);
             },
             onCallEnded: (call) => {
-              log('Global WebRTC call ended:', call);
+              console.log('Global WebRTC call ended:', call);
               setIsVideoCallOpen(false);
               setIsVoiceCallOpen(false);
               setShowIncomingVoiceModal(false);
@@ -360,10 +359,10 @@ export default function MessengerPage() {
 
     // Listen for new messages
     socketConnection.on('new_message', (data) => {
-      log('🔔 MESSENGER: New message received via Socket.IO:', data);
-      log('🔔 MESSENGER: Current user ID:', connectedUserId);
-      log('🔔 MESSENGER: Selected conversation:', selectedConversation);
-      log('📧 Message details:', {
+      console.log('🔔 MESSENGER: New message received via Socket.IO:', data);
+      console.log('🔔 MESSENGER: Current user ID:', connectedUserId);
+      console.log('🔔 MESSENGER: Selected conversation:', selectedConversation);
+      console.log('📧 Message details:', {
         senderId: data.senderId,
         senderName: data.senderName,
         conversationId: data.conversationId,
@@ -373,12 +372,12 @@ export default function MessengerPage() {
       });
       
       // Invalidate conversation queries to refresh the list immediately
-      log('🔄 Invalidating conversation queries for user:', connectedUserId);
+      console.log('🔄 Invalidating conversation queries for user:', connectedUserId);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", connectedUserId] });
       
       // If this is the currently selected conversation, also invalidate messages query
       if (selectedConversation && selectedConversation.toString() === data.conversationId) {
-        log('💬 Invalidating messages query for conversation:', data.conversationId);
+        console.log('💬 Invalidating messages query for conversation:', data.conversationId);
         queryClient.invalidateQueries({ queryKey: ["/api/conversations", parseInt(data.conversationId), "messages"] });
       }
       
@@ -387,7 +386,7 @@ export default function MessengerPage() {
         // Check if the conversation is currently open by checking if ChatWindow is rendered for this conversation
         const chatWindow = document.querySelector(`[data-conversation-id="${data.conversationId}"]`);
         const isConversationOpen = !!chatWindow;
-        log('🔔 Notification check:', {
+        console.log('🔔 Notification check:', {
           isConversationOpen,
           shouldShowNotification: !isConversationOpen,
           conversationId: data.conversationId,
@@ -411,7 +410,7 @@ export default function MessengerPage() {
             description: data.content ? data.content.substring(0, 100) + (data.content.length > 100 ? '...' : '') : 'New message received',
             duration: 4500,
             onClick: () => {
-              log('🖱️ Toast notification clicked - opening conversation:', data.conversationId);
+              console.log('🖱️ Toast notification clicked - opening conversation:', data.conversationId);
               // Dismiss this toast with fade animation
               dismiss(newToast.id);
               setSelectedConversation(parseInt(data.conversationId));
@@ -420,9 +419,9 @@ export default function MessengerPage() {
             }
           });
           
-          log('📱 Toast notification shown and conversation marked as unread:', data.conversationId);
+          console.log('📱 Toast notification shown and conversation marked as unread:', data.conversationId);
         } else {
-          log('🔇 No notification or highlighting - conversation is currently open and user can see messages in real-time');
+          console.log('🔇 No notification or highlighting - conversation is currently open and user can see messages in real-time');
         }
       }
     });
@@ -438,7 +437,7 @@ export default function MessengerPage() {
       fromUserName?: string;
       timestamp: string;
     }) => {
-      log('📱 MESSENGER: Instant notification received:', data);
+      console.log('📱 MESSENGER: Instant notification received:', data);
       
       // Show toast notification immediately - entire toast is clickable
       const newToast = toast({
@@ -446,7 +445,7 @@ export default function MessengerPage() {
         description: data.body,
         duration: 4500, // Show for 4.5 seconds
         onClick: data.conversationId ? () => {
-          log('🖱️ Instant notification clicked - opening conversation:', data.conversationId);
+          console.log('🖱️ Instant notification clicked - opening conversation:', data.conversationId);
           // Dismiss this toast with fade animation
           dismiss(newToast.id);
           setSelectedConversation(parseInt(data.conversationId!));
@@ -485,7 +484,7 @@ export default function MessengerPage() {
 
     // Listen for notification clearing confirmation
     socketConnection.on('notifications-cleared', (data) => {
-      log('Notifications cleared for conversation:', data.conversationId);
+      console.log('Notifications cleared for conversation:', data.conversationId);
       
       // Dismiss active toast notification for this conversation
       const existingToastId = activeToasts.get(data.conversationId);
@@ -516,14 +515,14 @@ export default function MessengerPage() {
   useEffect(() => {
     if (!socket || !conversations || conversations.length === 0) return;
 
-    log('🏠 CONVERSATIONS LOADED: Joining rooms for loaded conversations:', {
+    console.log('🏠 CONVERSATIONS LOADED: Joining rooms for loaded conversations:', {
       conversationsCount: conversations.length,
       conversations: conversations.map(c => c.id)
     });
 
     // Join all conversation rooms
     conversations.forEach(conversation => {
-      log('🏠 CONVERSATIONS LOADED: Joining room for conversation:', conversation.id);
+      console.log('🏠 CONVERSATIONS LOADED: Joining room for conversation:', conversation.id);
       socket.emit('join-conversation', { 
         conversationId: conversation.id.toString() 
       });
@@ -553,7 +552,7 @@ export default function MessengerPage() {
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => {
-                log('Desktop home button clicked - navigating to homepage');
+                console.log('Desktop home button clicked - navigating to homepage');
                 localStorage.setItem('userClickedHome', 'true');
                 setLocation("/");
               }}
@@ -798,7 +797,7 @@ export default function MessengerPage() {
             <div className="flex items-center space-x-3">
               <Button
                 onClick={() => {
-                  log('Home button clicked - navigating to homepage');
+                  console.log('Home button clicked - navigating to homepage');
                   localStorage.setItem('userClickedHome', 'true');
                   setLocation("/");
                 }}
@@ -1017,12 +1016,12 @@ export default function MessengerPage() {
         <IncomingVoiceCallModal
           isOpen={showIncomingVoiceModal}
           onAnswer={() => {
-            log('📞 Answering incoming voice call');
+            console.log('📞 Answering incoming voice call');
             setShowIncomingVoiceModal(false);
             setIsVoiceCallOpen(true);
           }}
           onDecline={() => {
-            log('📞 Declining incoming voice call');
+            console.log('📞 Declining incoming voice call');
             setShowIncomingVoiceModal(false);
             const webrtc = getGlobalWebRTC();
             if (webrtc && incomingCallData?.callId) {
@@ -1061,7 +1060,7 @@ export default function MessengerPage() {
         <VoiceCallModal
         isOpen={isVoiceCallOpen}
         onClose={() => {
-          log('🎙️ Voice call modal closing');
+          console.log('🎙️ Voice call modal closing');
           setIsVoiceCallOpen(false);
           setIncomingCallData(null);
         }}
@@ -1106,7 +1105,7 @@ export default function MessengerPage() {
         <VideoCallModal
           isOpen={isVideoCallOpen}
           onClose={() => {
-            log('📹 Video call modal closing');
+            console.log('📹 Video call modal closing');
             setIsVideoCallOpen(false);
             setIncomingCallData(null);
           }}

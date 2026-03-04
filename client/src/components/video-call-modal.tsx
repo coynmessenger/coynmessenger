@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -57,7 +56,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     isOpen,
     maxDuration: 45000,
     onMaxDurationReached: () => {
-      log('📹 VIDEO CALL: Ringtone max duration reached');
+      console.log('📹 VIDEO CALL: Ringtone max duration reached');
     }
   });
   
@@ -178,7 +177,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // Centralized state reset function - COMPLETE IDEMPOTENT CLEANUP
   // Uses refs instead of state to ensure cleanup works in all contexts (including unmount)
   const resetLocalState = () => {
-    log('🧹 VIDEO CALL: Starting complete cleanup...');
+    console.log('🧹 VIDEO CALL: Starting complete cleanup...');
     
     // Reset state
     setCallStatus("connecting");
@@ -193,10 +192,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // Clean up incoming stream ref - defensive check for already-stopped tracks
     if (incomingStreamRef.current) {
-      log('🧹 VIDEO CALL: Stopping incomingStreamRef tracks');
+      console.log('🧹 VIDEO CALL: Stopping incomingStreamRef tracks');
       incomingStreamRef.current.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
-          log(`  Stopping track: ${track.kind} (${track.label})`);
+          console.log(`  Stopping track: ${track.kind} (${track.label})`);
           track.stop();
         }
       });
@@ -205,10 +204,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // Clean up current stream using REF (not state) for unmount access
     if (currentStreamRef.current) {
-      log('🧹 VIDEO CALL: Stopping currentStream tracks');
+      console.log('🧹 VIDEO CALL: Stopping currentStream tracks');
       currentStreamRef.current.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
-          log(`  Stopping track: ${track.kind} (${track.label})`);
+          console.log(`  Stopping track: ${track.kind} (${track.label})`);
           track.stop();
         }
       });
@@ -218,10 +217,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // CRITICAL: Clean up remote stream using REF to release remote media resources
     if (remoteStreamRef.current) {
-      log('🧹 VIDEO CALL: Stopping remote stream tracks');
+      console.log('🧹 VIDEO CALL: Stopping remote stream tracks');
       remoteStreamRef.current.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
-          log(`  Stopping track: ${track.kind} (${track.label})`);
+          console.log(`  Stopping track: ${track.kind} (${track.label})`);
           track.stop();
         }
       });
@@ -231,10 +230,10 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // CRITICAL: Clean up local stream using REF to release camera/mic resources
     if (localStreamRef.current) {
-      log('🧹 VIDEO CALL: Stopping local stream tracks');
+      console.log('🧹 VIDEO CALL: Stopping local stream tracks');
       localStreamRef.current.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
-          log(`  Stopping track: ${track.kind} (${track.label})`);
+          console.log(`  Stopping track: ${track.kind} (${track.label})`);
           track.stop();
         }
       });
@@ -245,7 +244,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     // Clear pending audio playback ref
     if (pendingAudioPlaybackRef.current) {
-      log('🧹 VIDEO CALL: Clearing pending audio playback ref');
+      console.log('🧹 VIDEO CALL: Clearing pending audio playback ref');
       pendingAudioPlaybackRef.current = null;
     }
     userGestureReceivedRef.current = false;
@@ -253,31 +252,31 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     // Clear ALL media element srcObjects to ensure complete cleanup
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
-      log('🧹 VIDEO CALL: Cleared remoteVideoRef.srcObject');
+      console.log('🧹 VIDEO CALL: Cleared remoteVideoRef.srcObject');
     }
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = null;
-      log('🧹 VIDEO CALL: Cleared localVideoRef.srcObject');
+      console.log('🧹 VIDEO CALL: Cleared localVideoRef.srcObject');
     }
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = null;
-      log('🧹 VIDEO CALL: Cleared remoteAudioRef.srcObject');
+      console.log('🧹 VIDEO CALL: Cleared remoteAudioRef.srcObject');
     }
     
-    log('✅ VIDEO CALL: Complete cleanup finished');
+    console.log('✅ VIDEO CALL: Complete cleanup finished');
   };
 
   // Retry pending audio playback after user gesture (accept button click)
   const retryPendingAudioPlayback = async () => {
     if (pendingAudioPlaybackRef.current && remoteAudioRef.current) {
-      log('🔄 VIDEO CALL: Retrying audio playback after user gesture');
+      console.log('🔄 VIDEO CALL: Retrying audio playback after user gesture');
       // Ensure audio element is configured
       remoteAudioRef.current.volume = 1.0;
       remoteAudioRef.current.muted = false;
       
       const played = await tryPlayMedia(remoteAudioRef.current);
       if (played) {
-        log('✅ VIDEO CALL: Audio playback succeeded after user gesture');
+        console.log('✅ VIDEO CALL: Audio playback succeeded after user gesture');
         pendingAudioPlaybackRef.current = null; // Clear pending playback
       } else {
         console.error('❌ VIDEO CALL: Audio playback still failed after user gesture');
@@ -339,11 +338,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             if (onCallStart) onCallStart();
           },
           onCallEnded: async (call) => {
-            log('📹 VIDEO CALL: onCallEnded triggered - invoking full cleanup');
+            console.log('📹 VIDEO CALL: onCallEnded triggered - invoking full cleanup');
             
             // Skip if already ending (handleEndCall already did cleanup)
             if (isEndingRef.current) {
-              log('📹 VIDEO CALL: Already ending, skipping duplicate cleanup');
+              console.log('📹 VIDEO CALL: Already ending, skipping duplicate cleanup');
               return;
             }
             
@@ -367,19 +366,19 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             setDtlsSecured(secured);
           },
           onLocalStream: (stream) => {
-            log('═══════════════════════════════════════════════════════');
-            log('📹 VIDEO CALL: LOCAL STREAM RECEIVED');
-            log('═══════════════════════════════════════════════════════');
+            console.log('═══════════════════════════════════════════════════════');
+            console.log('📹 VIDEO CALL: LOCAL STREAM RECEIVED');
+            console.log('═══════════════════════════════════════════════════════');
             
             const videoTracks = stream.getVideoTracks();
             const audioTracks = stream.getAudioTracks();
             
-            log('📤 OUTGOING STREAM ANALYSIS:');
-            log('  Audio tracks:', audioTracks.length);
-            log('  Video tracks:', videoTracks.length);
+            console.log('📤 OUTGOING STREAM ANALYSIS:');
+            console.log('  Audio tracks:', audioTracks.length);
+            console.log('  Video tracks:', videoTracks.length);
             
             videoTracks.forEach((track, index) => {
-              log(`  📹 Video track ${index}:`, {
+              console.log(`  📹 Video track ${index}:`, {
                 enabled: track.enabled,
                 muted: track.muted,
                 readyState: track.readyState,
@@ -394,38 +393,38 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             
             // Attach to local video element for self-view
             if (localVideoRef.current && videoTracks.length > 0) {
-              log('📺 VIDEO CALL: Attaching local video stream to self-view');
+              console.log('📺 VIDEO CALL: Attaching local video stream to self-view');
               localVideoRef.current.srcObject = stream;
               localVideoRef.current.muted = true; // Always mute local playback to prevent feedback
               
               localVideoRef.current.play().then(() => {
-                log('✅ VIDEO CALL: Local video (self-view) playing');
+                console.log('✅ VIDEO CALL: Local video (self-view) playing');
               }).catch((err) => {
                 console.warn('⚠️ VIDEO CALL: Local video autoplay blocked:', err);
               });
             }
             
-            log('═══════════════════════════════════════════════════════');
-            log('✅ VIDEO CALL: LOCAL STREAM ATTACHED');
-            log('  📤 Outgoing audio: ' + (audioTracks.length > 0 ? 'YES' : 'NO'));
-            log('  📤 Outgoing video: ' + (videoTracks.length > 0 ? 'YES' : 'NO'));
-            log('═══════════════════════════════════════════════════════');
+            console.log('═══════════════════════════════════════════════════════');
+            console.log('✅ VIDEO CALL: LOCAL STREAM ATTACHED');
+            console.log('  📤 Outgoing audio: ' + (audioTracks.length > 0 ? 'YES' : 'NO'));
+            console.log('  📤 Outgoing video: ' + (videoTracks.length > 0 ? 'YES' : 'NO'));
+            console.log('═══════════════════════════════════════════════════════');
           },
           onRemoteStream: (stream) => {
-            log('═══════════════════════════════════════════════════════');
-            log('📹 VIDEO CALL: STEP 4 - HANDLE REMOTE STREAM');
-            log('═══════════════════════════════════════════════════════');
+            console.log('═══════════════════════════════════════════════════════');
+            console.log('📹 VIDEO CALL: STEP 4 - HANDLE REMOTE STREAM');
+            console.log('═══════════════════════════════════════════════════════');
             
             // Step 4.1: Log all received tracks for bi-directional verification
             const audioTracks = stream.getAudioTracks();
             const videoTracks = stream.getVideoTracks();
             
-            log('📥 INCOMING STREAM ANALYSIS:');
-            log('  Audio tracks:', audioTracks.length);
-            log('  Video tracks:', videoTracks.length);
+            console.log('📥 INCOMING STREAM ANALYSIS:');
+            console.log('  Audio tracks:', audioTracks.length);
+            console.log('  Video tracks:', videoTracks.length);
             
             audioTracks.forEach((track, index) => {
-              log(`  🔊 Audio track ${index}:`, {
+              console.log(`  🔊 Audio track ${index}:`, {
                 enabled: track.enabled,
                 muted: track.muted,
                 readyState: track.readyState,
@@ -434,7 +433,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             });
             
             videoTracks.forEach((track, index) => {
-              log(`  📹 Video track ${index}:`, {
+              console.log(`  📹 Video track ${index}:`, {
                 enabled: track.enabled,
                 muted: track.muted,
                 readyState: track.readyState,
@@ -449,34 +448,34 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             if (videoTracks.length > 0) {
               const hasEnabledVideo = videoTracks.some(track => track.enabled && track.readyState === 'live');
               setRemoteVideoEnabled(hasEnabledVideo);
-              log('📹 VIDEO CALL: Remote video enabled:', hasEnabledVideo);
+              console.log('📹 VIDEO CALL: Remote video enabled:', hasEnabledVideo);
             }
             
             // Ensure all tracks are enabled
             audioTracks.forEach(track => {
               if (!track.enabled) {
-                log('🔧 VIDEO CALL: Enabling disabled audio track');
+                console.log('🔧 VIDEO CALL: Enabling disabled audio track');
                 track.enabled = true;
               }
             });
             
             videoTracks.forEach(track => {
               if (!track.enabled) {
-                log('🔧 VIDEO CALL: Enabling disabled video track');
+                console.log('🔧 VIDEO CALL: Enabling disabled video track');
                 track.enabled = true;
               }
             });
             
             // Step 4.2a: Attach video stream to remote video element
             if (remoteVideoRef.current && videoTracks.length > 0) {
-              log('📺 VIDEO CALL: Attaching remote video stream to video element');
+              console.log('📺 VIDEO CALL: Attaching remote video stream to video element');
               remoteVideoRef.current.srcObject = stream;
               remoteVideoRef.current.muted = true; // Mute video element (audio handled separately)
               
               const playVideo = async () => {
                 try {
                   await remoteVideoRef.current?.play();
-                  log('✅ VIDEO CALL: Remote video playback started');
+                  console.log('✅ VIDEO CALL: Remote video playback started');
                   setRemoteVideoEnabled(true);
                 } catch (err) {
                   console.warn('⚠️ VIDEO CALL: Remote video autoplay blocked, will retry on interaction');
@@ -502,7 +501,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
                   if (!audioEl.srcObject) return;
                   if (!audioEl.paused) return;
                   await audioEl.play();
-                  log(`✅ VIDEO (${label}): Audio playback started`);
+                  console.log(`✅ VIDEO (${label}): Audio playback started`);
                   pendingAudioPlaybackRef.current = null;
                 } catch (err: any) {
                   console.warn(`⚠️ VIDEO (${label}): play() failed:`, err.name);
@@ -525,7 +524,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             
             // Monitor stream lifecycle
             stream.addEventListener('active', () => {
-              log('✅ VIDEO CALL: Remote stream became active');
+              console.log('✅ VIDEO CALL: Remote stream became active');
             });
             
             stream.addEventListener('inactive', () => {
@@ -534,11 +533,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
             });
             
             // Log bi-directional verification summary
-            log('═══════════════════════════════════════════════════════');
-            log('✅ VIDEO CALL: STEP 4 COMPLETE - REMOTE STREAM ATTACHED');
-            log('  📥 Incoming audio: ' + (audioTracks.length > 0 ? 'YES' : 'NO'));
-            log('  📥 Incoming video: ' + (videoTracks.length > 0 ? 'YES' : 'NO'));
-            log('═══════════════════════════════════════════════════════');
+            console.log('═══════════════════════════════════════════════════════');
+            console.log('✅ VIDEO CALL: STEP 4 COMPLETE - REMOTE STREAM ATTACHED');
+            console.log('  📥 Incoming audio: ' + (audioTracks.length > 0 ? 'YES' : 'NO'));
+            console.log('  📥 Incoming video: ' + (videoTracks.length > 0 ? 'YES' : 'NO'));
+            console.log('═══════════════════════════════════════════════════════');
           }
         });
       }
@@ -557,11 +556,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   useEffect(() => {
     return () => {
       // This cleanup only runs on true unmount (empty dependency array)
-      log('🧹 VIDEO CALL: Component unmounting - performing full cleanup');
+      console.log('🧹 VIDEO CALL: Component unmounting - performing full cleanup');
       
       // Stop any active call first
       if (encryptedCallIdRef.current && !isEndingRef.current) {
-        log('🧹 VIDEO CALL: Ending active call on unmount');
+        console.log('🧹 VIDEO CALL: Ending active call on unmount');
         const service = getGlobalWebRTC();
         if (service) {
           service.endCall(encryptedCallIdRef.current);
@@ -574,7 +573,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         if (stream) {
           stream.getTracks().forEach(track => {
             if (track.readyState !== 'ended') {
-              log(`🧹 Stopping ${name} track: ${track.kind}`);
+              console.log(`🧹 Stopping ${name} track: ${track.kind}`);
               track.stop();
             }
           });
@@ -598,7 +597,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       if (localVideoRef.current) localVideoRef.current.srcObject = null;
       if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
       
-      log('✅ VIDEO CALL: Unmount cleanup complete');
+      console.log('✅ VIDEO CALL: Unmount cleanup complete');
     };
   }, []); // Empty array = cleanup only on unmount
 
@@ -609,7 +608,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       
       // ALWAYS trigger cleanup when modal closes, regardless of isCallActive
       // This ensures camera/mic resources are released even if user just hides modal
-      log('📹 VIDEO CALL: Modal closed, triggering full cleanup');
+      console.log('📹 VIDEO CALL: Modal closed, triggering full cleanup');
       resetLocalState();
       return;
     }
@@ -627,11 +626,11 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
       setCallStatus("connecting");
       
       // IMMEDIATELY request camera/microphone permission before initiating call
-      log('📹 OUTGOING VIDEO CALL: Requesting camera/microphone permission immediately...');
+      console.log('📹 OUTGOING VIDEO CALL: Requesting camera/microphone permission immediately...');
       permissionService.requestCameraPermission()
         .then((permissionResult) => {
           if (permissionResult.success && permissionResult.stream) {
-            log('✅ OUTGOING VIDEO CALL: Camera/microphone permission granted');
+            console.log('✅ OUTGOING VIDEO CALL: Camera/microphone permission granted');
             // Store the stream for immediate local preview
             incomingStreamRef.current = permissionResult.stream;
             setLocalStream(permissionResult.stream);
@@ -714,12 +713,12 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         setEncryptedCallId(incomingCallId);
         
         // CRITICAL: Request camera permissions immediately for incoming video calls
-        log('📹 INCOMING VIDEO CALL: Requesting camera permissions immediately...');
+        console.log('📹 INCOMING VIDEO CALL: Requesting camera permissions immediately...');
         
         // Start ringtone for incoming video call
         ringtoneService.startRingtone()
           .then(() => {
-            log('🔔 VIDEO CALL: Ringtone started for incoming call');
+            console.log('🔔 VIDEO CALL: Ringtone started for incoming call');
           })
           .catch(err => {
             console.warn('🔕 VIDEO CALL: Ringtone autoplay blocked:', err);
@@ -729,7 +728,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         permissionService.requestCameraPermission()
           .then((result) => {
             if (result.success && result.stream) {
-              log('✅ INCOMING VIDEO CALL: Camera permissions granted');
+              console.log('✅ INCOMING VIDEO CALL: Camera permissions granted');
               // Store the stream temporarily - we'll use it when user accepts
               incomingStreamRef.current = result.stream;
               setCallStatus("ringing"); // Now we can show ringing state
@@ -737,7 +736,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
               // Add 45-second auto-timeout for incoming calls
               setTimeout(() => {
                 if (callStatusRef.current === "ringing") {
-                  log('📹 INCOMING VIDEO CALL: Call timeout - no answer after 45 seconds');
+                  console.log('📹 INCOMING VIDEO CALL: Call timeout - no answer after 45 seconds');
                   ringtoneService.stopRingtone();
                   setCallStatus("ended");
                   setTimeout(() => onClose(), 1500);
@@ -773,7 +772,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // This ensures encryptedCallId is set even if incomingCallId arrives after modal opens
   useEffect(() => {
     if (callType === "incoming" && incomingCallId && !encryptedCallId) {
-      log('📹 VIDEO: Setting encryptedCallId from incomingCallId:', incomingCallId);
+      console.log('📹 VIDEO: Setting encryptedCallId from incomingCallId:', incomingCallId);
       setEncryptedCallId(incomingCallId);
     }
   }, [callType, incomingCallId, encryptedCallId]);
@@ -785,14 +784,14 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     
     if (shouldShowPreview) {
       const stream = localStream || incomingStreamRef.current;
-      log(`📹 VIDEO CALL: Displaying camera preview during ${callStatus} state (${callType})`);
+      console.log(`📹 VIDEO CALL: Displaying camera preview during ${callStatus} state (${callType})`);
       
       if (localVideoRef.current && stream) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.muted = true; // Prevent feedback
         
         localVideoRef.current.play().then(() => {
-          log('✅ VIDEO CALL: Camera preview playing');
+          console.log('✅ VIDEO CALL: Camera preview playing');
         }).catch((err) => {
           console.warn('⚠️ VIDEO CALL: Camera preview autoplay blocked:', err);
         });
@@ -803,13 +802,13 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
   // Note: Timer is now handled by useCallTimer hook
 
   const handleAcceptCall = async () => {
-    log('🎯 VIDEO ACCEPT BUTTON CLICKED');
-    log('🆔 Encrypted Call ID:', encryptedCallId);
-    log('🔧 WebRTC Service Available:', !!webrtcService.current);
+    console.log('🎯 VIDEO ACCEPT BUTTON CLICKED');
+    console.log('🆔 Encrypted Call ID:', encryptedCallId);
+    console.log('🔧 WebRTC Service Available:', !!webrtcService.current);
     
     // Mark that user has made a gesture (clicked accept button)
     userGestureReceivedRef.current = true;
-    log('👆 VIDEO ACCEPT: User gesture received (button click)');
+    console.log('👆 VIDEO ACCEPT: User gesture received (button click)');
     
     // Stop ringtone when accepting call
     ringtoneService.stopRingtone();
@@ -823,14 +822,14 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
         // Check if we already have the media stream from the incoming call preparation
         const tempStream = incomingStreamRef.current;
         if (tempStream) {
-          log('✅ VIDEO ACCEPT: Using pre-authorized camera stream');
+          console.log('✅ VIDEO ACCEPT: Using pre-authorized camera stream');
           // Clean up the temporary reference
           incomingStreamRef.current = null;
         }
         
-        log('📞 VIDEO ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
+        console.log('📞 VIDEO ACCEPT: Calling webrtcService.acceptCall with:', encryptedCallId);
         await webrtcService.current.acceptCall(encryptedCallId);
-        log('✅ VIDEO ACCEPT: Call accepted successfully');
+        console.log('✅ VIDEO ACCEPT: Call accepted successfully');
         
         // Retry any pending audio playback (autoplay might have been blocked)
         await retryPendingAudioPlayback();
@@ -948,7 +947,7 @@ export default function VideoCallModal({ isOpen, onClose, onHide, onCallStart, o
     }
     
     // CRITICAL: Use centralized cleanup - handles all streams, refs, and state
-    log('🧹 VIDEO CALL: handleEndCall - invoking resetLocalState');
+    console.log('🧹 VIDEO CALL: handleEndCall - invoking resetLocalState');
     resetLocalState();
     
     // Clear DOM element srcObjects

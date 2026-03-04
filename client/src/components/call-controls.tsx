@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { PhoneOff, Video, VideoOff, Mic, MicOff, Volume2, VolumeX, SwitchCamera, Phone } from 'lucide-react';
 
@@ -65,7 +64,7 @@ export function IncomingCallControls({
     <div className={`flex justify-center items-end gap-12 ${className}`} data-testid="incoming-call-controls">
       <button
         onClick={() => {
-          log(`🔴 DECLINE ${callType.toUpperCase()} CALL`);
+          console.log(`🔴 DECLINE ${callType.toUpperCase()} CALL`);
           onDecline();
         }}
         disabled={isLoading}
@@ -81,7 +80,7 @@ export function IncomingCallControls({
       
       <button
         onClick={() => {
-          log(`🎯 ANSWER ${callType.toUpperCase()} CALL`);
+          console.log(`🎯 ANSWER ${callType.toUpperCase()} CALL`);
           onAnswer();
         }}
         disabled={isLoading}

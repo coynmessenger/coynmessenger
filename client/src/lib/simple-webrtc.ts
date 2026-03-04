@@ -44,8 +44,6 @@ export class SimpleWebRTCService {
   private events: CallEvents = {};
   private onIncomingCallHandler: ((data: IncomingCallData) => void) | null = null;
   private pendingOffer: any = null;
-  private readonly dev = import.meta.env.DEV;
-  private log(...args: any[]) { if (this.dev) this.log(...args); }
   
   // ICE servers configuration with public STUN servers
   private iceServers: RTCIceServer[] = [
@@ -64,11 +62,11 @@ export class SimpleWebRTCService {
     });
 
     this.socket.on('connect', () => {
-      this.log('✅ WebRTC: Socket connected');
+      console.log('✅ WebRTC: Socket connected');
     });
 
     this.socket.on('disconnect', () => {
-      this.log('❌ WebRTC: Socket disconnected');
+      console.log('❌ WebRTC: Socket disconnected');
     });
 
     // Handle incoming call
@@ -78,7 +76,7 @@ export class SimpleWebRTCService {
       type: 'voice' | 'video';
       offer: RTCSessionDescriptionInit;
     }) => {
-      this.log('📞 WebRTC: Incoming call from', data.fromUserId);
+      console.log('📞 WebRTC: Incoming call from', data.fromUserId);
       
       // Store offer for acceptance
       this.pendingOffer = data;
@@ -91,11 +89,11 @@ export class SimpleWebRTCService {
           type: data.type,
           accept: async (config: CallConfig, events: CallEvents) => {
             // Accept the call with provided config
-            this.log('✅ WebRTC: Accepting call via callback...');
+            console.log('✅ WebRTC: Accepting call via callback...');
             await this.acceptCall(config, events);
           },
           reject: () => {
-            this.log('❌ WebRTC: Call rejected by user');
+            console.log('❌ WebRTC: Call rejected by user');
             this.pendingOffer = null;
             if (this.socket) {
               this.socket.emit('end-call', { callId: data.callId });
@@ -113,14 +111,14 @@ export class SimpleWebRTCService {
       byUserId: string;
       answer: RTCSessionDescriptionInit;
     }) => {
-      this.log('✅ WebRTC: Call accepted by', data.byUserId);
+      console.log('✅ WebRTC: Call accepted by', data.byUserId);
       
       if (this.pendingCall && data.answer) {
         try {
           await this.pendingCall.peerConnection.setRemoteDescription(
             new RTCSessionDescription(data.answer)
           );
-          this.log('✅ WebRTC: Remote description set');
+          console.log('✅ WebRTC: Remote description set');
           
           if (this.events.onCallConnected) {
             this.events.onCallConnected();
@@ -140,14 +138,14 @@ export class SimpleWebRTCService {
       fromUserId: string;
       candidate: RTCIceCandidateInit;
     }) => {
-      this.log('🧊 WebRTC: Received ICE candidate');
+      console.log('🧊 WebRTC: Received ICE candidate');
       
       if (this.pendingCall && data.candidate) {
         try {
           await this.pendingCall.peerConnection.addIceCandidate(
             new RTCIceCandidate(data.candidate)
           );
-          this.log('✅ WebRTC: ICE candidate added');
+          console.log('✅ WebRTC: ICE candidate added');
         } catch (error) {
           console.error('❌ WebRTC: Failed to add ICE candidate:', error);
         }
@@ -156,7 +154,7 @@ export class SimpleWebRTCService {
 
     // Handle call ended
     this.socket.on('call-ended', (data: { callId: string }) => {
-      this.log('📞 WebRTC: Call ended:', data.callId);
+      console.log('📞 WebRTC: Call ended:', data.callId);
       this.cleanup();
       
       if (this.events.onCallEnded) {
@@ -181,7 +179,7 @@ export class SimpleWebRTCService {
       this.socket.emit('authenticate', { userId });
       
       this.socket.once('authenticated', (data: { userId: string }) => {
-        this.log('✅ WebRTC: Authenticated as', data.userId);
+        console.log('✅ WebRTC: Authenticated as', data.userId);
         resolve();
       });
     });
@@ -215,13 +213,13 @@ export class SimpleWebRTCService {
         } : false,
       };
 
-      this.log('🎤 WebRTC: Requesting media access...');
+      console.log('🎤 WebRTC: Requesting media access...');
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.log('✅ WebRTC: Media access granted');
+      console.log('✅ WebRTC: Media access granted');
       
       // DEBUG: Verify microphone track state
       localStream.getAudioTracks().forEach(track => {
-        this.log('[mic] 🎤 Local audio track:', {
+        console.log('[mic] 🎤 Local audio track:', {
           label: track.label,
           enabled: track.enabled,
           muted: track.muted,
@@ -231,7 +229,7 @@ export class SimpleWebRTCService {
       
       if (config.type === 'video') {
         localStream.getVideoTracks().forEach(track => {
-          this.log('[camera] 📹 Local video track:', {
+          console.log('[camera] 📹 Local video track:', {
             label: track.label,
             enabled: track.enabled,
             readyState: track.readyState,
@@ -258,12 +256,12 @@ export class SimpleWebRTCService {
       // Add local tracks to peer connection
       localStream.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStream);
-        this.log('📤 WebRTC: Added track to peer connection:', track.kind);
+        console.log('📤 WebRTC: Added track to peer connection:', track.kind);
       });
 
       // Handle remote stream
       peerConnection.ontrack = (event) => {
-        this.log('[webrtc] 🔊 ontrack event fired:', {
+        console.log('[webrtc] 🔊 ontrack event fired:', {
           trackKind: event.track.kind,
           enabled: event.track.enabled,
           readyState: event.track.readyState,
@@ -273,7 +271,7 @@ export class SimpleWebRTCService {
         const remoteStream = event.streams[0];
         
         // DEBUG: Log remote stream details
-        this.log('[webrtc] 📡 Remote stream details:', {
+        console.log('[webrtc] 📡 Remote stream details:', {
           id: remoteStream.id,
           active: remoteStream.active,
           tracks: remoteStream.getTracks().map(t => ({
@@ -288,7 +286,7 @@ export class SimpleWebRTCService {
         // Attach to remote video element if video call
         if (config.remoteVideoElement && config.type === 'video') {
           config.remoteVideoElement.srcObject = remoteStream;
-          this.log('[webrtc] 📺 Remote video element srcObject set');
+          console.log('[webrtc] 📺 Remote video element srcObject set');
         }
 
         // CRITICAL: Always attach audio to dedicated audio element
@@ -297,7 +295,7 @@ export class SimpleWebRTCService {
           config.remoteAudioElement.volume = 1.0;
           config.remoteAudioElement.muted = false;
           
-          this.log('[webrtc] 🔊 Remote audio element configured:', {
+          console.log('[webrtc] 🔊 Remote audio element configured:', {
             srcObject: !!config.remoteAudioElement.srcObject,
             volume: config.remoteAudioElement.volume,
             muted: config.remoteAudioElement.muted,
@@ -307,7 +305,7 @@ export class SimpleWebRTCService {
           // Attempt playback
           config.remoteAudioElement.play()
             .then(() => {
-              this.log('[tryPlayMedia] ✅ Playback succeeded - audio should be playing');
+              console.log('[tryPlayMedia] ✅ Playback succeeded - audio should be playing');
             })
             .catch((error) => {
               console.warn('[tryPlayMedia] ⚠️ Playback blocked or failed - will retry on user gesture');
@@ -327,7 +325,7 @@ export class SimpleWebRTCService {
       // Handle ICE candidates
       peerConnection.onicecandidate = (event) => {
         if (event.candidate && this.socket) {
-          this.log('🧊 WebRTC: Sending ICE candidate');
+          console.log('🧊 WebRTC: Sending ICE candidate');
           this.socket.emit('ice-candidate', {
             callId: this.pendingCall?.callId,
             targetUserId: config.targetUserId,
@@ -338,10 +336,10 @@ export class SimpleWebRTCService {
 
       // Monitor connection state
       peerConnection.onconnectionstatechange = () => {
-        this.log('[webrtc] 🔗 Connection state:', peerConnection.connectionState);
+        console.log('[webrtc] 🔗 Connection state:', peerConnection.connectionState);
         
         if (peerConnection.connectionState === 'connected') {
-          this.log('[webrtc] ✅ ICE connected - peer connection established');
+          console.log('[webrtc] ✅ ICE connected - peer connection established');
         } else if (peerConnection.connectionState === 'failed') {
           console.error('[webrtc] ❌ Connection failed');
           if (events.onError) {
@@ -352,18 +350,18 @@ export class SimpleWebRTCService {
       
       // Monitor ICE connection state for debugging
       peerConnection.oniceconnectionstatechange = () => {
-        this.log('[webrtc] 🧊 ICE connection state:', peerConnection.iceConnectionState);
+        console.log('[webrtc] 🧊 ICE connection state:', peerConnection.iceConnectionState);
       };
 
       // Create offer
-      this.log('📝 WebRTC: Creating offer...');
+      console.log('📝 WebRTC: Creating offer...');
       const offer = await peerConnection.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: config.type === 'video',
       });
       
       await peerConnection.setLocalDescription(offer);
-      this.log('✅ WebRTC: Local description set');
+      console.log('✅ WebRTC: Local description set');
 
       // Generate call ID
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -379,7 +377,7 @@ export class SimpleWebRTCService {
 
       // Send call initiation to server
       if (this.socket) {
-        this.log('📤 WebRTC: Sending call initiation...');
+        console.log('📤 WebRTC: Sending call initiation...');
         this.socket.emit('initiate-call', {
           callId,
           targetUserId: config.targetUserId,
@@ -426,13 +424,13 @@ export class SimpleWebRTCService {
         } : false,
       };
 
-      this.log('🎤 WebRTC: Requesting media access for answer...');
+      console.log('🎤 WebRTC: Requesting media access for answer...');
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.log('✅ WebRTC: Media access granted');
+      console.log('✅ WebRTC: Media access granted');
       
       // DEBUG: Verify microphone track state
       localStream.getAudioTracks().forEach(track => {
-        this.log('[mic] 🎤 Local audio track (receiver):', {
+        console.log('[mic] 🎤 Local audio track (receiver):', {
           label: track.label,
           enabled: track.enabled,
           muted: track.muted,
@@ -442,7 +440,7 @@ export class SimpleWebRTCService {
       
       if (config.type === 'video') {
         localStream.getVideoTracks().forEach(track => {
-          this.log('[camera] 📹 Local video track (receiver):', {
+          console.log('[camera] 📹 Local video track (receiver):', {
             label: track.label,
             enabled: track.enabled,
             readyState: track.readyState,
@@ -468,12 +466,12 @@ export class SimpleWebRTCService {
       // Add local tracks
       localStream.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStream);
-        this.log('📤 WebRTC: Added track to peer connection:', track.kind);
+        console.log('📤 WebRTC: Added track to peer connection:', track.kind);
       });
 
       // Handle remote stream
       peerConnection.ontrack = (event) => {
-        this.log('[webrtc] 🔊 ontrack event fired (receiver):', {
+        console.log('[webrtc] 🔊 ontrack event fired (receiver):', {
           trackKind: event.track.kind,
           enabled: event.track.enabled,
           readyState: event.track.readyState,
@@ -483,7 +481,7 @@ export class SimpleWebRTCService {
         const remoteStream = event.streams[0];
         
         // DEBUG: Log remote stream details
-        this.log('[webrtc] 📡 Remote stream details (receiver):', {
+        console.log('[webrtc] 📡 Remote stream details (receiver):', {
           id: remoteStream.id,
           active: remoteStream.active,
           tracks: remoteStream.getTracks().map(t => ({
@@ -497,7 +495,7 @@ export class SimpleWebRTCService {
         
         if (config.remoteVideoElement && config.type === 'video') {
           config.remoteVideoElement.srcObject = remoteStream;
-          this.log('[webrtc] 📺 Remote video element srcObject set (receiver)');
+          console.log('[webrtc] 📺 Remote video element srcObject set (receiver)');
         }
 
         // CRITICAL: Audio element handling
@@ -506,7 +504,7 @@ export class SimpleWebRTCService {
           config.remoteAudioElement.volume = 1.0;
           config.remoteAudioElement.muted = false;
           
-          this.log('[webrtc] 🔊 Remote audio element configured (receiver):', {
+          console.log('[webrtc] 🔊 Remote audio element configured (receiver):', {
             srcObject: !!config.remoteAudioElement.srcObject,
             volume: config.remoteAudioElement.volume,
             muted: config.remoteAudioElement.muted,
@@ -516,7 +514,7 @@ export class SimpleWebRTCService {
           // Since this is triggered by accept button click, we have user gesture
           config.remoteAudioElement.play()
             .then(() => {
-              this.log('[tryPlayMedia] ✅ Playback succeeded (receiver) - audio should be playing');
+              console.log('[tryPlayMedia] ✅ Playback succeeded (receiver) - audio should be playing');
             })
             .catch((error) => {
               console.error('[tryPlayMedia] ❌ Audio playback failed (receiver):', error);
@@ -531,7 +529,7 @@ export class SimpleWebRTCService {
       // Handle ICE candidates
       peerConnection.onicecandidate = (event) => {
         if (event.candidate && this.socket) {
-          this.log('🧊 WebRTC: Sending ICE candidate');
+          console.log('🧊 WebRTC: Sending ICE candidate');
           this.socket.emit('ice-candidate', {
             callId: pendingOffer.callId,
             targetUserId: pendingOffer.fromUserId,
@@ -542,10 +540,10 @@ export class SimpleWebRTCService {
 
       // Monitor connection state
       peerConnection.onconnectionstatechange = () => {
-        this.log('[webrtc] 🔗 Connection state (receiver):', peerConnection.connectionState);
+        console.log('[webrtc] 🔗 Connection state (receiver):', peerConnection.connectionState);
         
         if (peerConnection.connectionState === 'connected') {
-          this.log('[webrtc] ✅ ICE connected (receiver) - peer connection established');
+          console.log('[webrtc] ✅ ICE connected (receiver) - peer connection established');
           if (events.onCallConnected) {
             events.onCallConnected();
           }
@@ -554,17 +552,17 @@ export class SimpleWebRTCService {
       
       // Monitor ICE connection state for debugging
       peerConnection.oniceconnectionstatechange = () => {
-        this.log('[webrtc] 🧊 ICE connection state (receiver):', peerConnection.iceConnectionState);
+        console.log('[webrtc] 🧊 ICE connection state (receiver):', peerConnection.iceConnectionState);
       };
 
       // Set remote description from offer
       await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer.offer));
-      this.log('✅ WebRTC: Remote description set from offer');
+      console.log('✅ WebRTC: Remote description set from offer');
 
       // Create answer
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-      this.log('✅ WebRTC: Local description set with answer');
+      console.log('✅ WebRTC: Local description set with answer');
 
       // Store pending call
       this.pendingCall = {
@@ -581,7 +579,7 @@ export class SimpleWebRTCService {
           callId: pendingOffer.callId,
           answer: answer,
         });
-        this.log('✅ WebRTC: Answer sent to server');
+        console.log('✅ WebRTC: Answer sent to server');
       }
 
       // Clean up pending offer
@@ -693,13 +691,13 @@ export function retryPendingAudio(): Promise<boolean> {
     const audioElement = (window as any).__pendingAudioElement as HTMLAudioElement;
     
     if (!audioElement || !audioElement.srcObject) {
-      this.log('[tryPlayMedia] ⏭️ No pending audio to retry');
+      console.log('[tryPlayMedia] ⏭️ No pending audio to retry');
       resolve(false);
       return;
     }
 
-    this.log('[tryPlayMedia] 🔄 Retrying audio playback after user gesture...');
-    this.log('[tryPlayMedia] Audio element state before retry:', {
+    console.log('[tryPlayMedia] 🔄 Retrying audio playback after user gesture...');
+    console.log('[tryPlayMedia] Audio element state before retry:', {
       srcObject: !!audioElement.srcObject,
       volume: audioElement.volume,
       muted: audioElement.muted,
@@ -708,7 +706,7 @@ export function retryPendingAudio(): Promise<boolean> {
 
     audioElement.play()
       .then(() => {
-        this.log('[tryPlayMedia] ✅ Playback succeeded after user gesture - audio should now be playing!');
+        console.log('[tryPlayMedia] ✅ Playback succeeded after user gesture - audio should now be playing!');
         delete (window as any).__pendingAudioElement;
         resolve(true);
       })

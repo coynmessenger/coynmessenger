@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 import { useState, useRef, useCallback } from 'react';
 
 interface CallRecordingOptions {
@@ -77,7 +76,7 @@ export function useCallRecording(options: CallRecordingOptions): CallRecordingRe
       mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
 
-      log('🎙️ Call recording started');
+      console.log('🎙️ Call recording started');
     } catch (err) {
       console.error('Failed to start recording:', err);
       setError('Failed to start recording');
@@ -101,7 +100,7 @@ export function useCallRecording(options: CallRecordingOptions): CallRecordingRe
           const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
           
           if (audioBlob.size < 1000) {
-            log('Recording too short, skipping upload');
+            console.log('Recording too short, skipping upload');
             setIsProcessing(false);
             resolve();
             return;
@@ -133,7 +132,7 @@ export function useCallRecording(options: CallRecordingOptions): CallRecordingRe
                 const uploadData = await uploadRes.json();
                 if (uploadData.fileId) {
                   setRecordingId(uploadData.fileId);
-                  log('📁 Call recording uploaded:', uploadData.fileId);
+                  console.log('📁 Call recording uploaded:', uploadData.fileId);
                 }
               }
 
@@ -151,7 +150,7 @@ export function useCallRecording(options: CallRecordingOptions): CallRecordingRe
                 const transcribeData = await transcribeRes.json();
                 if (transcribeData.transcript) {
                   setTranscript(transcribeData.transcript);
-                  log('📝 Call transcribed:', transcribeData.transcript.substring(0, 100) + '...');
+                  console.log('📝 Call transcribed:', transcribeData.transcript.substring(0, 100) + '...');
                 }
               }
             } catch (apiError) {

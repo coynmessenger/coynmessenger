@@ -1,4 +1,3 @@
-const log = import.meta.env.DEV ? console.log.bind(console) : () => {};
 /**
  * Preflight Permission Service
  * 
@@ -35,7 +34,7 @@ class PermissionService {
   retainStream(type: 'microphone' | 'camera'): void {
     const currentCount = this.retentionCounts.get(type) || 0;
     this.retentionCounts.set(type, currentCount + 1);
-    log(`🔒 Retained ${type} stream (count: ${currentCount + 1})`);
+    console.log(`🔒 Retained ${type} stream (count: ${currentCount + 1})`);
   }
   
   /**
@@ -53,7 +52,7 @@ class PermissionService {
     
     const newCount = currentCount - 1;
     this.retentionCounts.set(type, newCount);
-    log(`🔓 Released ${type} stream (count: ${newCount})`);
+    console.log(`🔓 Released ${type} stream (count: ${newCount})`);
     
     // If no one is using the stream anymore, clear it
     if (newCount === 0) {
@@ -77,7 +76,7 @@ class PermissionService {
       if ('permissions' in navigator) {
         const permissionName = type === 'microphone' ? 'microphone' : 'camera';
         const result = await navigator.permissions.query({ name: permissionName as PermissionName });
-        log(`🔒 Permission state for ${type}:`, result.state);
+        console.log(`🔒 Permission state for ${type}:`, result.state);
         return result.state as PermissionState;
       }
       
@@ -94,7 +93,7 @@ class PermissionService {
    * MUST be called within user gesture on mobile!
    */
   async requestMicrophonePermission(): Promise<PermissionResult> {
-    log('🎤 Requesting microphone permission...');
+    console.log('🎤 Requesting microphone permission...');
     
     // Check security context first
     if (!window.isSecureContext) {
@@ -118,7 +117,7 @@ class PermissionService {
         video: false
       });
       
-      log('✅ Microphone permission granted');
+      console.log('✅ Microphone permission granted');
       
       // Cache the stream for reuse
       this.cachedStreams.set('microphone', stream);
@@ -140,7 +139,7 @@ class PermissionService {
    * MUST be called within user gesture on mobile!
    */
   async requestCameraPermission(): Promise<PermissionResult> {
-    log('📹 Requesting camera + microphone permission...');
+    console.log('📹 Requesting camera + microphone permission...');
     
     // Check security context first
     if (!window.isSecureContext) {
@@ -176,7 +175,7 @@ class PermissionService {
         }
       });
       
-      log('✅ Camera + microphone permission granted');
+      console.log('✅ Camera + microphone permission granted');
       
       // Cache the stream for reuse
       this.cachedStreams.set('camera', stream);
@@ -199,7 +198,7 @@ class PermissionService {
    * MUST be called within user gesture on mobile!
    */
   async requestCameraWithConstraints(videoConstraints: MediaTrackConstraints): Promise<PermissionResult> {
-    log('📹 Requesting camera with custom constraints (uncached):', videoConstraints);
+    console.log('📹 Requesting camera with custom constraints (uncached):', videoConstraints);
     
     // Check security context first
     if (!window.isSecureContext) {
@@ -222,7 +221,7 @@ class PermissionService {
         video: videoConstraints
       });
       
-      log('✅ Camera with custom constraints granted (uncached)');
+      console.log('✅ Camera with custom constraints granted (uncached)');
       
       // Do NOT cache this stream - it's for specific use cases like camera switching
       return {
@@ -314,7 +313,7 @@ class PermissionService {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       this.cachedStreams.delete(type);
-      log(`🧹 Cleared cached ${type} stream`);
+      console.log(`🧹 Cleared cached ${type} stream`);
     }
   }
   
@@ -324,7 +323,7 @@ class PermissionService {
   clearAllCachedStreams(): void {
     this.cachedStreams.forEach((stream, type) => {
       stream.getTracks().forEach(track => track.stop());
-      log(`🧹 Cleared cached ${type} stream`);
+      console.log(`🧹 Cleared cached ${type} stream`);
     });
     this.cachedStreams.clear();
   }
