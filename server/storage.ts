@@ -45,7 +45,7 @@ export interface IStorage {
   searchMessagesInConversation(query: string, conversationId: number): Promise<Message[]>;
   getStarredMessages(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
   toggleMessageStar(messageId: number, userId: number, isStarred: boolean): Promise<boolean>;
-  getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; conversationId: number })[]>;
+  getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; counterpart: User; conversationId: number })[]>;
 
   // Wallet
   getUserWalletBalances(userId: number): Promise<WalletBalance[]>;
@@ -775,10 +775,10 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  async getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; conversationId: number })[]> {
-    // Get user's conversation IDs
-    const userConversationIds = await db
-      .select({ id: conversations.id })
+  async getUserTransactionHistory(userId: number): Promise<(Message & { sender: User; counterpart: User; conversationId: number })[]> {
+    // Get user's conversations with participant info
+    const userConversations = await db
+      .select({ id: conversations.id, participant1Id: conversations.participant1Id, participant2Id: conversations.participant2Id })
       .from(conversations)
       .where(
         or(
@@ -787,10 +787,24 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    const conversationIds = userConversationIds.map(c => c.id);
+    const conversationIds = userConversations.map(c => c.id);
     
     if (conversationIds.length === 0) {
       return [];
+    }
+
+    // Build a map of conversationId → other participant ID
+    const convCounterpartMap: Record<number, number> = {};
+    for (const conv of userConversations) {
+      convCounterpartMap[conv.id] = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+    }
+
+    // Get all unique counterpart user IDs and fetch them in one query
+    const counterpartIds = [...new Set(Object.values(convCounterpartMap))];
+    const counterpartUsers = await db.select().from(users).where(inArray(users.id, counterpartIds));
+    const counterpartMap: Record<number, User> = {};
+    for (const u of counterpartUsers) {
+      counterpartMap[u.id] = u;
     }
 
     // Get crypto transaction messages from user's conversations
@@ -812,6 +826,7 @@ export class DatabaseStorage implements IStorage {
     return transactions.map(row => ({
       ...row.message,
       sender: row.sender!,
+      counterpart: counterpartMap[convCounterpartMap[row.message.conversationId]] ?? row.sender!,
       conversationId: row.message.conversationId
     }));
   }

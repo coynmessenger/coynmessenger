@@ -19,6 +19,7 @@ interface HamburgerMenuProps {
 
 interface StarredMessage extends Message {
   sender: User;
+  counterpart?: User;
   conversationId: number;
 }
 
@@ -378,22 +379,28 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {transactionHistory.map((transaction) => (
+                {transactionHistory.map((transaction) => {
+                  const isSent = transaction.senderId === connectedUserId;
+                  // For sent txs show who received it; for received txs show who sent it
+                  const displayUser = isSent
+                    ? (transaction.counterpart ?? transaction.sender)
+                    : transaction.sender;
+                  return (
                   <div 
                     key={transaction.id} 
                     className="group p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
                   >
                     <div className="flex items-start gap-3">
                       <Avatar className="h-9 w-9 ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
-                        <AvatarImage src={transaction.sender.profilePicture || ""} />
+                        <AvatarImage src={displayUser.profilePicture || ""} />
                         <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-semibold text-xs">
-                          {getEffectiveDisplayName(transaction.sender).charAt(0)}
+                          {getEffectiveDisplayName(displayUser).charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                            {getEffectiveDisplayName(transaction.sender)}
+                            {getEffectiveDisplayName(displayUser)}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full flex-shrink-0">
                             {formatTimestamp(transaction.timestamp)}
@@ -436,7 +443,8 @@ export default function HamburgerMenu({ onOpenSettings }: HamburgerMenuProps) {
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
