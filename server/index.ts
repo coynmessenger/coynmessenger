@@ -1,5 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import fs from "fs";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, corsOptions } from "./middleware/security";
@@ -20,7 +22,24 @@ const app = express();
 // correctly identifies client IPs from X-Forwarded-For headers.
 app.set('trust proxy', 1);
 
-// Fast health check registered first — responds before any route/middleware
+// In production: pre-read index.html into memory so GET / and /healthz
+// always respond instantly — before CORS, rate limiting, or file-system I/O.
+// This ensures Replit's 5-second health check always passes.
+if (process.env.NODE_ENV !== 'development') {
+  let indexHtml = '';
+  const candidates = [
+    path.resolve(path.dirname(new URL(import.meta.url).pathname), 'public', 'index.html'),
+    path.join(process.cwd(), 'dist', 'public', 'index.html'),
+  ];
+  for (const p of candidates) {
+    try { indexHtml = fs.readFileSync(p, 'utf-8'); break; } catch { /* try next */ }
+  }
+  app.get('/', (_req, res) => {
+    res.status(200).type('html').send(indexHtml || '<html><body>COYN Messenger</body></html>');
+  });
+}
+
+// Fast health/liveness endpoint — before all middleware
 app.get('/healthz', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
@@ -65,7 +84,6 @@ app.use((req, res, next) => {
   next();
 });
 
-import path from 'path';
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
   setHeaders: (res, filePath) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
