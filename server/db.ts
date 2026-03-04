@@ -8,14 +8,13 @@ neonConfig.webSocketConstructor = ws;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineConnect = false;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('[DB] DATABASE_URL is not set. Add it to deployment secrets. Database operations will fail until this is configured.');
 }
 
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL ?? 'postgresql://localhost/placeholder',
   max: 3,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
