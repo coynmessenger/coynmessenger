@@ -20,6 +20,11 @@ const app = express();
 // correctly identifies client IPs from X-Forwarded-For headers.
 app.set('trust proxy', 1);
 
+// Fast health check registered first — responds before any route/middleware
+app.get('/healthz', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.use(cors(corsOptions));
 app.use(securityHeaders);
 
@@ -110,7 +115,7 @@ app.get('/favicon.ico', (req, res) => {
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on port ${port}`);
+      console.log(`[COYN] Server listening on port ${port} (${process.env.NODE_ENV ?? 'development'})`);
       // DB init is non-blocking — server is already accepting connections
       initializeDatabase().catch((err) => {
         console.error('DB initialization error (non-fatal):', err?.message ?? err);

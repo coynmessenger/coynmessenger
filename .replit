@@ -8,7 +8,7 @@ packages = ["ffmpeg", "opencv"]
 
 [deployment]
 deploymentTarget = "vm"
-build = ["npm", "run", "build"]
+build = ["bash", "-c", "echo 'Using pre-built dist/'"]
 run = ["bash", "-c", "NODE_ENV=production node dist/index.js"]
 
 [[ports]]

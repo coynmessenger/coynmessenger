@@ -47,7 +47,7 @@ Preferred communication style: Simple, everyday language.
 -   Universal Wallet Transaction System using Thirdweb SDK for routing transactions through the user's connected wallet.
 -   Transaction processing uses the real BNB chain (BSC) for all token transfers.
 -   Production logging: all debug `console.log` calls are dev-only (gated by `process.env.NODE_ENV`/`import.meta.env.DEV`).
--   Deployment target: `vm` (required for WebSocket/Socket.IO persistence). Build: `npm run build`. Run: `NODE_ENV=production node dist/index.js`.
+-   Deployment target: `vm` (required for WebSocket/Socket.IO persistence). Run: `NODE_ENV=production node dist/index.js`. **No build command in deployment** — `dist/` is pre-built locally and included in the snapshot. Always run `npm run build` before publishing. Fast `/healthz` endpoint registered before all other routes for instant health check response.
 -   Dark theme is the default for all new sessions via `ThemeProvider defaultTheme="dark"`.
 
 ## External Dependencies
