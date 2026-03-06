@@ -1,6 +1,7 @@
 {
   "name": "COYN Messenger",
   "short_name": "COYN",
+  "version": "1.4.0",
   "description": "Secure messaging with cryptocurrency wallet integration and encrypted voice/video calls",
   "start_url": "/",
   "display": "standalone",
