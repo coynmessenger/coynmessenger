@@ -180,10 +180,12 @@ export default function HomePage() {
       setConnectedUser(user);
       setIsConnected(true);
       
-      // Client-side navigation — auth context is already updated so ProtectedRoute
-      // will immediately see isConnected=true without any loading flash or bounce
+      // Hard navigation so the page reloads with localStorage already populated.
+      // This avoids the React state race where ProtectedRoute evaluates isConnected
+      // before the signIn() state update has propagated — which causes a redirect
+      // back to "/" on mobile wallets that briefly background the browser tab.
       console.log('🎯 COYN: SUCCESS! Navigating to messenger...');
-      setLocation("/messenger");
+      window.location.href = '/messenger';
     },
   });
 
