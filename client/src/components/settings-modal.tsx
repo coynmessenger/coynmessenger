@@ -651,11 +651,39 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
     updateUserMutation.mutate(updateData);
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const cropImageToSquare = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const size = Math.min(img.width, img.height);
+          const offsetX = (img.width - size) / 2;
+          const offsetY = (img.height - size) / 2;
+          const targetSize = Math.min(size, 600);
+          const canvas = document.createElement("canvas");
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Canvas not supported"));
+          ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, targetSize, targetSize);
+          canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error("Failed to crop image"));
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+          }, "image/jpeg", 0.92);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid file type",
@@ -665,18 +693,27 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please select an image smaller than 5MB.",
+        description: "Please select an image smaller than 10MB.",
         variant: "destructive",
       });
       return;
     }
 
     setUploadingImage(true);
-    uploadImageMutation.mutate(file);
+    try {
+      const cropped = await cropImageToSquare(file);
+      uploadImageMutation.mutate(cropped);
+    } catch {
+      toast({
+        title: "Processing failed",
+        description: "Could not process the image. Please try another file.",
+        variant: "destructive",
+      });
+      setUploadingImage(false);
+    }
   };
 
   const triggerImageUpload = () => {
@@ -736,37 +773,50 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
         <div className="flex-1 overflow-y-auto px-6 pb-5">
           {activeTab === "profile" && (
             <div className="space-y-4">
-              <div className="flex flex-col items-center py-2">
-                <div className="relative mb-3">
-                  <Avatar className="h-20 w-20 ring-4 ring-orange-100 dark:ring-orange-900/50">
-                    <AvatarImage src={profilePicture} />
-                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-bold text-2xl">
-                      {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    onClick={triggerImageUpload}
-                    disabled={uploadingImage}
-                    variant="ghost"
-                    size="sm"
-                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 bg-orange-500 hover:bg-orange-600 border-2 border-white dark:border-gray-900 shadow-md"
-                  >
+              <div className="flex flex-col items-center py-4 gap-3">
+                <button
+                  onClick={triggerImageUpload}
+                  disabled={uploadingImage}
+                  className="group relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-orange-400/40 hover:ring-orange-500/70 transition-all duration-200 focus:outline-none focus:ring-orange-500 disabled:cursor-not-allowed"
+                >
+                  {profilePicture ? (
+                    <img
+                      src={profilePicture}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-4xl">
+                        {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-200 flex flex-col items-center justify-center gap-1">
                     {uploadingImage ? (
-                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     ) : (
-                      <Camera className="h-3.5 w-3.5 text-white" />
+                      <>
+                        <Camera className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                        <span className="text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 tracking-wide uppercase">Change</span>
+                      </>
                     )}
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+                  </div>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <div className="text-center">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{displayName || 'Unknown User'}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
+                  {!uploadingImage && (
+                    <p className="text-[10px] text-orange-500 mt-0.5">Tap photo to change</p>
+                  )}
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{displayName || 'Unknown User'}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
               </div>
 
               <div className="space-y-3">
