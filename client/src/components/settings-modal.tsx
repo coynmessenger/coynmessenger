@@ -780,28 +780,43 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   className="group relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-orange-400/40 hover:ring-orange-500/70 transition-all duration-200 focus:outline-none focus:ring-orange-500 disabled:cursor-not-allowed"
                 >
                   {profilePicture ? (
-                    <img
-                      src={profilePicture}
-                      alt="Profile"
-                      className="h-full w-full object-cover"
-                    />
+                    <>
+                      <img
+                        src={profilePicture}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                        onError={() => setProfilePicture("")}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-200 flex flex-col items-center justify-center gap-1">
+                        {uploadingImage ? (
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        ) : (
+                          <>
+                            <Camera className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                            <span className="text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 tracking-wide uppercase">Change</span>
+                          </>
+                        )}
+                      </div>
+                    </>
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-4xl">
-                        {user ? getEffectiveDisplayName(user).charAt(0).toUpperCase() : 'U'}
-                      </span>
+                    <div className="h-full w-full relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-amber-600">
+                      <div className="absolute -bottom-5 -left-5 w-24 h-24 rounded-full bg-white/10" />
+                      <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-white/10" />
+                      <div className="absolute inset-0 flex items-center justify-center pt-3">
+                        <UserIcon className="h-16 w-16 text-white/75" strokeWidth={1.2} />
+                      </div>
+                      <div className="absolute bottom-0 inset-x-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-200 py-1.5 flex items-center justify-center gap-1">
+                        {uploadingImage ? (
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        ) : (
+                          <>
+                            <Camera className="h-3 w-3 text-white" />
+                            <span className="text-white text-[9px] font-bold tracking-widest uppercase">Add Photo</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-200 flex flex-col items-center justify-center gap-1">
-                    {uploadingImage ? (
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    ) : (
-                      <>
-                        <Camera className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                        <span className="text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 tracking-wide uppercase">Change</span>
-                      </>
-                    )}
-                  </div>
                 </button>
                 <input
                   ref={fileInputRef}
@@ -814,7 +829,9 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{displayName || 'Unknown User'}</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.walletAddress?.replace(/^0x/, '').slice(-6) || user?.username}</p>
                   {!uploadingImage && (
-                    <p className="text-[10px] text-orange-500 mt-0.5">Tap photo to change</p>
+                    <p className="text-[10px] text-orange-500 mt-0.5">
+                      {profilePicture ? "Tap photo to change" : "Tap to add a photo"}
+                    </p>
                   )}
                 </div>
               </div>
