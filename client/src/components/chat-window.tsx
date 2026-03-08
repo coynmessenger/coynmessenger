@@ -907,7 +907,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
 
   const leaveGroupMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/groups/${conversation.id}/leave`);
+      return apiRequest("DELETE", `/api/groups/${conversation.id}/leave`, { userId: connectedUserId });
     },
     onSuccess: () => {
       toast({

@@ -1122,7 +1122,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const result = await sendERC20Internal(senderUser.encryptedPrivateKey!, currency as 'USDT' | 'COYN', recipientAddress, amount);
             transactionHash = result.transactionHash;
           }
-          onChain = true;
           console.log(`✅ On-chain ${currency} tx to external address: ${transactionHash}`);
         } catch (chainErr: any) {
           console.error(`❌ External on-chain send failed: ${chainErr.message}`);
@@ -1450,7 +1449,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/groups/:id/leave", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const userId = 5; // Current user
+      const userId = req.body?.userId || (req as any).session?.userId;
+      if (!userId) return res.status(401).json({ message: "User ID required" });
       
       if (isNaN(conversationId)) {
         return res.status(400).json({ message: "Invalid conversation ID" });
@@ -1779,7 +1779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NFT Rewards API
   app.get("/api/nft-rewards", async (req, res) => {
     try {
-      const userId = (req as any).session?.userId || 5;
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : ((req as any).session?.userId || 5);
       const rewards = await storage.getNFTRewards(userId);
       res.json(rewards);
     } catch (error) {
@@ -1790,7 +1790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/nft-rewards/:id/redeem", async (req, res) => {
     try {
-      const userId = (req as any).session?.userId || 5;
+      const userId = req.body?.userId || (req as any).session?.userId || 5;
       const rewardId = parseInt(req.params.id);
       
       const success = await storage.redeemNFTReward(rewardId, userId);

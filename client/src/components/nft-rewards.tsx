@@ -86,14 +86,25 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("rewards");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const connectedUserId = parseInt(localStorage.getItem('connectedUserId') || '0');
 
   const { data: rewards = [], isLoading: loadingRewards } = useQuery<NFTReward[]>({
-    queryKey: ["/api/nft-rewards"],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    queryKey: ["/api/nft-rewards", connectedUserId],
+    queryFn: async () => {
+      const res = await fetch(`/api/nft-rewards?userId=${connectedUserId}`);
+      if (!res.ok) throw new Error("Failed to fetch NFT rewards");
+      return res.json();
+    },
+    refetchInterval: 30000,
   });
 
   const { data: purchases = [], isLoading: loadingPurchases } = useQuery<Purchase[]>({
-    queryKey: ["/api/purchases"],
+    queryKey: ["/api/purchases", connectedUserId],
+    queryFn: async () => {
+      const res = await fetch(`/api/purchases?userId=${connectedUserId}`);
+      if (!res.ok) throw new Error("Failed to fetch purchases");
+      return res.json();
+    },
     refetchInterval: 30000,
   });
 
@@ -104,6 +115,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ userId: connectedUserId }),
       });
       if (!response.ok) {
         throw new Error("Failed to redeem NFT");
@@ -111,7 +123,7 @@ export function NFTRewardsModal({ trigger }: { trigger: React.ReactNode }) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/nft-rewards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/nft-rewards", connectedUserId] });
       toast({
         title: "NFT Redeemed!",
         description: "Your NFT reward has been successfully redeemed to your wallet.",
