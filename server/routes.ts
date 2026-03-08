@@ -366,24 +366,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const newUser = await storage.createUser(userData);
-      
-      // Fetch real blockchain balances for the wallet address
-      
-      const blockchainBalances = await blockchainService.getWalletBalances(walletAddress);
-      
-      // Create wallet balances with real blockchain data
-      for (const balanceData of blockchainBalances) {
-        await storage.createWalletBalance({
-          userId: newUser.id,
-          currency: balanceData.currency,
-          balance: balanceData.balance,
-          usdValue: balanceData.usdValue,
-          changePercent: balanceData.changePercent || "0.00"
-        });
-      }
 
-      
-      
+      // Seed wallet balances in background — don't block auth response
+      // (wallet sidebar fetches live balances on mount independently)
+      blockchainService.getWalletBalances(walletAddress)
+        .then(async (blockchainBalances) => {
+          for (const balanceData of blockchainBalances) {
+            await storage.createWalletBalance({
+              userId: newUser.id,
+              currency: balanceData.currency,
+              balance: balanceData.balance,
+              usdValue: balanceData.usdValue,
+              changePercent: balanceData.changePercent || "0.00"
+            });
+          }
+        })
+        .catch((err) => console.error('Balance seed failed (non-critical):', err));
+
       // Create self-conversation for messaging yourself
       const selfConversation = await storage.createConversation(newUser.id, newUser.id);
       

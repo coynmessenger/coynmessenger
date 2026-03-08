@@ -132,15 +132,12 @@ export default function ThirdwebWalletConnector({
               address: account?.address 
             });
             
-            // Switch to BSC if not already on it
+            // Switch to BSC in the background — don't block auth, address is chain-independent
             if (chain?.id !== 56) {
-              console.log('⚠️ WALLET: Switching to BSC...');
-              try {
-                await wallet.switchChain(bsc);
-                console.log('✅ WALLET: Switched to BSC');
-              } catch (switchError) {
-                console.log('ℹ️ WALLET: Chain switch handled by wallet app');
-              }
+              console.log('⚠️ WALLET: Switching to BSC (non-blocking)...');
+              wallet.switchChain(bsc)
+                .then(() => console.log('✅ WALLET: Switched to BSC'))
+                .catch(() => console.log('ℹ️ WALLET: Chain switch handled by wallet app'));
             }
             
             if (account?.address && onConnect) {
