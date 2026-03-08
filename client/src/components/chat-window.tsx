@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +53,67 @@ function getEffectiveDisplayName(user: User): string {
   }
   // Ultimate fallback
   return user.displayName || user.username;
+}
+
+function fmtTimestamp(date: Date | null): string {
+  if (!date) return "";
+  const d = new Date(date);
+  const now = new Date();
+  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  const daysDiff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+  const sameYear = d.getFullYear() === now.getFullYear();
+  if (isToday) return time;
+  if (isYesterday) return `Yesterday · ${time}`;
+  if (daysDiff < 7) return `${d.toLocaleDateString([], { weekday: 'short' })} · ${time}`;
+  if (sameYear) return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} · ${time}`;
+  return `${d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} · ${time}`;
+}
+
+function fmtTooltip(date: Date | null): string {
+  if (!date) return "";
+  return new Date(date).toLocaleString([], {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+}
+
+function getDateSeparatorLabelFn(date: Date): string {
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  const daysDiff = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+  const sameYear = date.getFullYear() === now.getFullYear();
+  if (isToday) return "Today";
+  if (isYesterday) return "Yesterday";
+  if (daysDiff < 7) return date.toLocaleDateString([], { weekday: 'long' });
+  if (sameYear) return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function shouldShowSeparator(msg: any, prevMsg: any): boolean {
+  if (!prevMsg) return !!msg.timestamp;
+  if (!msg.timestamp || !prevMsg.timestamp) return false;
+  return new Date(msg.timestamp).toDateString() !== new Date(prevMsg.timestamp).toDateString();
+}
+
+function MsgTimestamp({ ts, className }: { ts: Date | null; className?: string }) {
+  if (!ts) return null;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={`cursor-default select-none ${className ?? ''}`}>{fmtTimestamp(ts)}</span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="text-xs font-normal max-w-[220px] text-center">
+        {fmtTooltip(ts)}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 interface ChatWindowProps {
@@ -1358,10 +1420,6 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
     });
   };
 
-  const formatTimestamp = (date: Date | null) => {
-    if (!date) return "";
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1916,6 +1974,15 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
         
         {messages.map((msg, index) => (
           <div key={msg.id} className={`${index > 0 ? 'mt-1' : 'mt-0.5'} w-full overflow-hidden`}>
+            {shouldShowSeparator(msg, messages[index - 1]) && msg.timestamp && (
+              <div className="flex items-center gap-3 my-3 px-2">
+                <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
+                <span className="text-[11px] font-medium text-gray-400 dark:text-slate-500 whitespace-nowrap px-1">
+                  {getDateSeparatorLabelFn(new Date(msg.timestamp))}
+                </span>
+                <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
+              </div>
+            )}
             {msg.messageType === "text" ? (
               // Check if this is an escrow system message
               (msg.content?.includes('🛡️ Escrow created:') || msg.content?.includes('🔔 Release Request:') || msg.content?.includes('🎉 Blockchain confirmations complete!')) ? (
@@ -1944,9 +2011,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                             searchQuery || ''
                           )}
                         </div>
-                        <div className="text-xs text-blue-100 mt-2 opacity-80">
-                          {formatTimestamp(msg.timestamp)}
-                        </div>
+                        <MsgTimestamp ts={msg.timestamp} className="text-xs text-blue-100 mt-2 opacity-80" />
                       </div>
                     </div>
                   </div>
@@ -2006,9 +2071,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           {msg.content && extractUrls(msg.content).slice(0, 1).map((url) => (
                             <LinkPreview key={url} url={url} className="border-white/20" />
                           ))}
-                          <span className="text-xs text-primary-foreground/80 mt-1 block">
-                            {formatTimestamp(msg.timestamp)}
-                          </span>
+                          <MsgTimestamp ts={msg.timestamp} className="text-xs text-primary-foreground/80 mt-1 block" />
                         </div>
                         
                         {/* WhatsApp-style visual hint for sent messages */}
@@ -2091,9 +2154,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           {msg.content && extractUrls(msg.content).slice(0, 1).map((url) => (
                             <LinkPreview key={url} url={url} />
                           ))}
-                          <span className="text-xs text-muted-foreground mt-1 block">
-                            {formatTimestamp(msg.timestamp)}
-                          </span>
+                          <MsgTimestamp ts={msg.timestamp} className="text-xs text-muted-foreground mt-1 block" />
                         </div>
                         
                         {/* WhatsApp-style visual hint for received messages */}
@@ -2150,9 +2211,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                               }
                             })()}
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            {formatTimestamp(msg.timestamp)}
-                          </div>
+                          <MsgTimestamp ts={msg.timestamp} className="text-xs text-gray-500 dark:text-gray-400 mt-2" />
                           {/* BSCScan transaction link */}
                           {msg.transactionHash && (msg.cryptoCurrency === 'BNB' || msg.cryptoCurrency === 'USDT' || msg.cryptoCurrency === 'COYN') && (
                             <div className="mt-3">
@@ -2239,9 +2298,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                           <div className="text-xs text-muted-foreground mb-2">
                             Shared by {msg.sender?.displayName || msg.sender?.username || 'Unknown User'}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatTimestamp(msg.timestamp)}
-                          </div>
+                          <MsgTimestamp ts={msg.timestamp} className="text-xs text-muted-foreground" />
                         </div>
                       </CardContent>
                     </Card>
@@ -2339,9 +2396,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       )}
                       
                       {/* Timestamp */}
-                      <div className={`text-xs mt-2 ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`}>
-                        {formatTimestamp(msg.timestamp)}
-                      </div>
+                      <MsgTimestamp ts={msg.timestamp} className={`text-xs mt-2 ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`} />
                     </div>
                   </div>
                 </div>
@@ -2374,9 +2429,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       )}
                       
                       {/* Timestamp */}
-                      <div className={`text-xs ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`}>
-                        {formatTimestamp(msg.timestamp)}
-                      </div>
+                      <MsgTimestamp ts={msg.timestamp} className={`text-xs ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`} />
                     </div>
 
                   </div>
@@ -2423,9 +2476,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                       )}
                       
                       {/* Timestamp */}
-                      <div className={`text-xs ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`}>
-                        {formatTimestamp(msg.timestamp)}
-                      </div>
+                      <MsgTimestamp ts={msg.timestamp} className={`text-xs ${msg.senderId === connectedUserId ? 'text-white/70' : 'text-muted-foreground'}`} />
                     </div>
 
                     {/* Hover options */}
