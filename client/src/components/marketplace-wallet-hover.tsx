@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import type { User, WalletBalance } from "@shared/schema";
-import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import coynLogoPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
 
 interface MarketplaceWalletHoverProps {
   isVisible: boolean;

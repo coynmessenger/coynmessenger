@@ -26,7 +26,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
-import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import coynLogoPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
 
@@ -290,7 +290,7 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
         <img 
           src={coynLogoPath} 
           alt="COYN" 
-          className="w-6 h-6" 
+          className="w-6 h-6 rounded-full" 
           loading="eager"
           decoding="async"
           style={{ imageRendering: 'auto' }}

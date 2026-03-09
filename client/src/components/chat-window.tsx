@@ -35,7 +35,7 @@ import { ArrowLeft, Phone, Video, MoreVertical, Plus, Smile, X, Coins, Trash2, H
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import { SiBinance, SiTether } from "react-icons/si";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
-import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import coynLogoPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
 import { formatDistanceToNow } from "date-fns";
 
 // Utility function to get effective display name (mirrors backend logic)
@@ -642,7 +642,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           <img 
             src={coynLogoPath} 
             alt="COYN" 
-            className="w-5 h-5" 
+            className="w-5 h-5 rounded-full" 
             loading="eager"
             decoding="async"
             style={{ imageRendering: 'auto' }}

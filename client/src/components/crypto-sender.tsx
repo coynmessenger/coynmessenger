@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Coins, Plus, X } from "lucide-react";
 import { SiBinance, SiTether } from "react-icons/si";
-import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import coynLogoPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
 import type { WalletBalance } from "@shared/schema";
 
 
@@ -20,9 +20,9 @@ const getCryptoIcon = (crypto: string) => {
     case 'USDT':
       return <SiTether className="w-5 h-5 text-green-500" />;
     case 'COYN':
-      return <img src={coynLogoPath} alt="COYN" className="w-5 h-5" />;
+      return <img src={coynLogoPath} alt="COYN" className="w-5 h-5 rounded-full" />;
     default:
-      return <Coins className="w-5 h-5" />;
+      return <Coins className="w-5 h-5 rounded-full" />;
   }
 };
 

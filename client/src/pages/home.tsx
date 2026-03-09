@@ -12,7 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
 import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
-import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
+import coynSymbolPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
 import TermsModal from "@/components/terms-modal";
 import PrivacyModal from "@/components/privacy-modal";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
