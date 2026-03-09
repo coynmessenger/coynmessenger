@@ -16,7 +16,6 @@ import {
   ArrowUpRight, 
   ArrowDownLeft,
   Copy,
-  Wallet,
   RefreshCw,
   Camera
 } from "lucide-react";
@@ -440,16 +439,10 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           {/* Header */}
           <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 blur-lg opacity-30 animate-pulse rounded-xl"></div>
-                  <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-300 relative z-10">
-                    <Wallet className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent whitespace-nowrap leading-tight">COYN Wallet</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap leading-tight">Portfolio Overview</p>
+              <div className="flex items-center flex-1 min-w-0">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent leading-tight">COYN Wallet</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Portfolio Overview</p>
                 </div>
               </div>
               <div className="flex items-center space-x-1 flex-shrink-0">
