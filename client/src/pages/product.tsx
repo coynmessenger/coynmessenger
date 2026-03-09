@@ -38,7 +38,7 @@ import {
 import { SiBitcoin, SiBinance } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import { ProductShareModal } from "@/components/product-share-modal";
-import coynLogoPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import ShoppingCartComponent from "@/components/shopping-cart";
 

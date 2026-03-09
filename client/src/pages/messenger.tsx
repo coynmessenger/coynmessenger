@@ -21,7 +21,7 @@ import type { User, Conversation, Message } from "@shared/schema";
 import { Home, User as UserIcon, Settings, Users } from "lucide-react";
 import { UserAvatarIcon } from "@/components/ui/user-avatar-icon";
 import { WalletIcon } from "@/components/ui/wallet-icon";
-import coynLogoPath from "@assets/file_00000000e428722fb074736c3586f114_1773026359117.png";
+import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
 import { initializeGlobalWebRTC, getGlobalWebRTC, setGlobalWebRTCHandlers, cleanupGlobalWebRTC } from "@/lib/global-webrtc";
 import { globalNotificationService } from "@/lib/global-notification-service";
 
@@ -577,7 +577,7 @@ export default function MessengerPage() {
               <img 
                 src={coynLogoPath} 
                 alt="COYN Logo" 
-                className="w-8 h-8 rounded-full cursor-pointer"
+                className="w-8 h-8 cursor-pointer"
                 loading="eager"
                 decoding="async"
                 {...({ fetchpriority: "high" } as any)}
@@ -701,7 +701,7 @@ export default function MessengerPage() {
                           <img 
                             src={coynLogoPath} 
                             alt="COYN Logo" 
-                            className="w-8 h-8 rounded-full drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
+                            className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)]"
                             loading="eager"
                             decoding="async"
                             {...({ fetchpriority: "high" } as any)}
@@ -763,7 +763,7 @@ export default function MessengerPage() {
                                 <img 
                                   src={coynLogoPath} 
                                   alt="COYN Logo" 
-                                  className="w-16 h-16 rounded-full mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                                  className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
                                   loading="eager"
                                   decoding="async"
                                   {...({ fetchpriority: "high" } as any)}
@@ -821,7 +821,7 @@ export default function MessengerPage() {
                 <img 
                   src={coynLogoPath} 
                   alt="COYN Logo" 
-                  className="w-8 h-8 rounded-full drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
+                  className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,193,7,0.4)] cursor-pointer"
                   loading="eager"
                   decoding="async"
                   {...({ fetchpriority: "high" } as any)}
@@ -976,7 +976,7 @@ export default function MessengerPage() {
                         <img 
                           src={coynLogoPath} 
                           alt="COYN Logo" 
-                          className="w-16 h-16 rounded-full mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
+                          className="w-16 h-16 mx-auto drop-shadow-[0_0_20px_rgba(255,193,7,0.4)]"
                           loading="eager"
                           decoding="async"
                           {...({ fetchpriority: "high" } as any)}
