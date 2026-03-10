@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Shield, ShoppingBag, Lock, AlertTriangle, Scale, Gavel, Mail, X } from "lucide-react";
+import { FileText, Shield, ShoppingBag, Lock, AlertTriangle, Scale, Mail, X } from "lucide-react";
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -165,27 +165,13 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
               </div>
             </div>
 
-            <div className="group p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-100 dark:border-indigo-800/30 hover:shadow-md transition-all">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg group-hover:scale-110 transition-transform">
-                  <Gavel className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-indigo-700 dark:text-indigo-300 mb-2">9. Governing Law</h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    These terms are governed by the laws of the jurisdiction where our company is incorporated. Any disputes will be resolved through binding arbitration.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <div className="group p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-cyan-950/30 dark:to-teal-950/30 border border-orange-100 dark:border-cyan-800/30 hover:shadow-md transition-all">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-orange-100 dark:bg-cyan-900/50 rounded-lg group-hover:scale-110 transition-transform">
                   <Mail className="h-5 w-5 text-orange-600 dark:text-cyan-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">10. Contact Information</h3>
+                  <h3 className="text-base font-semibold text-orange-700 dark:text-cyan-300 mb-2">9. Contact Information</h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     For questions about these terms, please contact us at <span className="font-medium text-orange-600 dark:text-cyan-400">info@coynful.com</span> or through our in-app support system.
                   </p>
