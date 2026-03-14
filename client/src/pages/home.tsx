@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Check, Users, Lock, Globe, ArrowRight } from "lucide-react";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { apiRequest } from "@/lib/queryClient";
-import coynfulLogoPath from "@assets/Coynful logo fin copy_1759096913804.png";
 import coynCoinPath from "@assets/image_1759095831947.png";
 import backgroundImagePath from "@assets/images(4)_1753827100393-ZmpUJssK_1759098427313.jpg";
 import coynSymbolPath from "@assets/COYN symbol square_1759099649514.png";
@@ -272,7 +271,7 @@ export default function HomePage() {
       <header className="w-full p-4 sm:p-6">
         <div className="flex justify-center">
           <img 
-            src={coynfulLogoPath} 
+            src="/coynful-logo.png" 
             alt="Coynful" 
             className="h-32 w-auto object-contain select-none"
             onContextMenu={(e) => e.preventDefault()}
