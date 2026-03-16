@@ -23,26 +23,14 @@ import { registerImageRoutes } from "./replit_integrations/image/routes";
 import { registerGoogleDriveRoutes } from "./replit_integrations/google-drive";
 import { globalLimiter, authLimiter, messageLimiter, uploadLimiter, walletLimiter, searchLimiter } from "./middleware/rate-limit";
 
-// Configure multer for avatar uploads
+// Configure multer for avatar uploads (memory storage so images persist in DB)
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadPath = path.join(process.cwd(), 'uploads/avatars');
-      if (!fs.existsSync(uploadPath)) {
-        fs.mkdirSync(uploadPath, { recursive: true });
-      }
-      cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
-  }),
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif/;
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     
@@ -1361,10 +1349,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }
-      const profilePicture = `/uploads/avatars/${req.file.filename}`;
-      
-      
-      
+      // Convert buffer to base64 data URL so it persists in the DB across restarts
+      const mimeType = req.file.mimetype || 'image/jpeg';
+      const profilePicture = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
       // Update user's profile picture in database
       const user = await storage.updateUser(userId, { profilePicture });
       
