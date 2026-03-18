@@ -18,8 +18,6 @@ import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import ThirdwebWalletConnector, { clearAllWalletSessions } from "@/components/thirdweb-wallet-connector";
 import type { User } from "@shared/schema";
 
-const isFirefox = typeof navigator !== 'undefined' && /Firefox\//.test(navigator.userAgent);
-
 export default function HomePage() {
   useScrollToTop();
   const [, setLocation] = useLocation();
@@ -306,14 +304,6 @@ export default function HomePage() {
                         Choose your preferred wallet to connect
                       </p>
                     </div>
-
-                    {/* Firefox ETP warning */}
-                    {isFirefox && (
-                      <div className="rounded-lg border border-orange-400/40 bg-orange-500/10 px-4 py-3 text-sm text-orange-300">
-                        <strong className="block mb-1">Firefox detected</strong>
-                        If WalletConnect hangs or times out, Firefox's Enhanced Tracking Protection may be blocking it. Click the shield icon in your address bar and turn off protection for this site, then try again.
-                      </div>
-                    )}
 
                     {/* Thirdweb Wallet Connection - Mobile Optimized */}
                     <div className="flex justify-center mobile-wallet-connector">
