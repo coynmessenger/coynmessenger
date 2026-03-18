@@ -32,9 +32,14 @@ const buildCspHeader = (): string => {
 
     [
       "connect-src 'self'",
-      "wss:",
+      "wss: ws:",
+      "wss://relay.walletconnect.com",
+      "wss://*.walletconnect.com",
+      "wss://*.walletconnect.org",
+      "wss://*.bridge.walletconnect.org",
       "https://api.giphy.com",
       "https://*.thirdweb.com",
+      "https://bundler.thirdweb.com",
       "https://*.walletconnect.com",
       "https://*.walletconnect.org",
       "https://bsc-dataseed.binance.org",
@@ -59,7 +64,6 @@ const buildCspHeader = (): string => {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "upgrade-insecure-requests",
   ];
 
   return directives.join('; ');
