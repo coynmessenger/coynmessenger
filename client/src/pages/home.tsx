@@ -271,7 +271,7 @@ export default function HomePage() {
       <header className="w-full p-4 sm:p-6">
         <div className="flex justify-center">
           <img 
-            src="/coynful-logo.png" 
+            src="/coynful-logo.jpg" 
             alt="Coynful" 
             className="h-32 w-auto object-contain select-none"
             onContextMenu={(e) => e.preventDefault()}
