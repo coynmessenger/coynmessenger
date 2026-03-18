@@ -120,16 +120,38 @@ export default function ThirdwebWalletConnector({
         onConnect={async (wallet) => {
           try {
             console.log('🎯 WALLET: Connection approved, processing...');
-            const account = wallet.getAccount();
             const chain = wallet.getChain();
 
             // Save wallet identity for confirmation screens
             localStorage.setItem('connectedWalletId', wallet.id);
-            
+
+            // --- Resolve the address robustly (handles Firefox MetaMask async timing) ---
+            let address: string | undefined = wallet.getAccount()?.address;
+
+            // Firefox MetaMask: account may not be settled yet — retry up to 5×
+            if (!address) {
+              for (let i = 0; i < 5; i++) {
+                await new Promise(r => setTimeout(r, 300));
+                address = wallet.getAccount()?.address;
+                if (address) break;
+              }
+            }
+
+            // Final fallback: read directly from window.ethereum (works on Firefox)
+            if (!address && typeof window !== 'undefined' && (window as any).ethereum) {
+              try {
+                const accounts: string[] = await (window as any).ethereum.request({ method: 'eth_accounts' });
+                address = accounts?.[0];
+                console.log('🦊 WALLET: Firefox fallback address:', address);
+              } catch {
+                // ignore — will log error below
+              }
+            }
+
             console.log('🔗 WALLET: Connected:', { 
               walletId: wallet.id,
               chainId: chain?.id, 
-              address: account?.address 
+              address 
             });
             
             // Switch to BSC in the background — don't block auth, address is chain-independent
@@ -140,7 +162,7 @@ export default function ThirdwebWalletConnector({
                 .catch(() => console.log('ℹ️ WALLET: Chain switch handled by wallet app'));
             }
             
-            if (account?.address && onConnect) {
+            if (address && onConnect) {
               localStorage.removeItem('userSignedOut');
               window.dispatchEvent(new StorageEvent('storage', {
                 key: 'userSignedOut',
@@ -152,9 +174,9 @@ export default function ThirdwebWalletConnector({
                 newValue: 'pending',
                 oldValue: null
               }));
-              onConnect(account.address);
+              onConnect(address);
             } else {
-              console.error('❌ WALLET: No address found');
+              console.error('❌ WALLET: No address found after all retries (Firefox MetaMask issue?)');
             }
           } catch (error) {
             console.error('❌ WALLET: Connection error:', error);
