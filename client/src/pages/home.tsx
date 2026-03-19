@@ -270,13 +270,24 @@ export default function HomePage() {
       {/* Header with Logo */}
       <header className="w-full p-4 sm:p-6">
         <div className="flex justify-center">
-          <img 
-            src="/coynful-logo.jpg" 
-            alt="Coynful" 
-            className="h-32 w-auto object-contain select-none"
-            onContextMenu={(e) => e.preventDefault()}
-            draggable={false}
-          />
+          <div className="relative inline-block">
+            <img 
+              src="/coynful-logo.jpg" 
+              alt="Coynful" 
+              className="h-32 w-auto object-contain select-none"
+              onContextMenu={(e) => e.preventDefault()}
+              draggable={false}
+            />
+            {/* Crystal bird replaces the original robin in the top-right of the logo */}
+            <img
+              src="/crystal-bird.png"
+              alt=""
+              className="absolute pointer-events-none select-none"
+              style={{ top: '-18%', right: '-2%', height: '52%', width: 'auto' }}
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+            />
+          </div>
         </div>
       </header>
 
