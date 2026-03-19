@@ -270,24 +270,13 @@ export default function HomePage() {
       {/* Header with Logo */}
       <header className="w-full p-4 sm:p-6">
         <div className="flex justify-center">
-          <div className="relative inline-block">
-            <img 
-              src="/coynful-logo.jpg" 
-              alt="Coynful" 
-              className="h-32 w-auto object-contain select-none"
-              onContextMenu={(e) => e.preventDefault()}
-              draggable={false}
-            />
-            {/* Crystal bird accent - same position as original robin */}
-            <img
-              src="/crystal-bird.png"
-              alt=""
-              className="absolute pointer-events-none select-none"
-              style={{ top: '-6%', right: '0%', height: '28%', width: 'auto' }}
-              draggable={false}
-              onContextMenu={(e) => e.preventDefault()}
-            />
-          </div>
+          <img 
+            src="/coynful-logo.jpg" 
+            alt="Coynful" 
+            className="h-32 w-auto object-contain select-none"
+            onContextMenu={(e) => e.preventDefault()}
+            draggable={false}
+          />
         </div>
       </header>
 
