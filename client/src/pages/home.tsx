@@ -278,12 +278,17 @@ export default function HomePage() {
               onContextMenu={(e) => e.preventDefault()}
               draggable={false}
             />
-            {/* Crystal bird replaces the original robin in the top-right of the logo */}
+            {/* Black patch covers the original robin (logo bg is black) */}
+            <div
+              className="absolute bg-black pointer-events-none"
+              style={{ top: 0, right: 0, height: '32%', width: '17%' }}
+            />
+            {/* Crystal bird in the same top-right accent position */}
             <img
               src="/crystal-bird.png"
               alt=""
               className="absolute pointer-events-none select-none"
-              style={{ top: '-18%', right: '-2%', height: '52%', width: 'auto' }}
+              style={{ top: '-8%', right: '-1%', height: '36%', width: 'auto' }}
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
             />
