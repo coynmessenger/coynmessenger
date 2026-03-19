@@ -26,6 +26,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletBalance, User } from "@shared/schema";
 import coynLogoPath from "@assets/COYN symbol square_1759099649514.png";
+import walletBirdPath from "@assets/IMG_20260318_233626_356_1773901175287.jpg";
 import sendIconPath from "@assets/SENDICON_1769058532502.png";
 import QRCode from "qrcode";
 
@@ -439,7 +440,12 @@ export default function WalletSidebar({ isOpen, onClose, user }: WalletSidebarPr
           {/* Header */}
           <div className="px-5 py-4 border-b border-white/20 dark:border-slate-700/50 bg-gradient-to-r from-white/60 to-orange-50/40 dark:from-slate-900/60 dark:to-slate-800/40 backdrop-blur-sm">
             <div className="flex items-center justify-between">
-              <div className="flex items-center flex-1 min-w-0">
+              <div className="flex items-center flex-1 min-w-0 gap-2">
+                <img
+                  src={walletBirdPath}
+                  alt="COYN"
+                  className="h-10 w-10 object-contain flex-shrink-0 drop-shadow-sm"
+                />
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold bg-gradient-to-r from-slate-700 to-orange-600 dark:from-slate-200 dark:to-orange-400 bg-clip-text text-transparent leading-tight">COYN Wallet</h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Portfolio Overview</p>
