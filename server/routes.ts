@@ -961,6 +961,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Updates DB balances and creates the chat message. Does NOT sign anything.
   app.post("/api/wallet/record-transfer", walletLimiter, async (req, res) => {
     try {
+      // Session gate first — reject unauthenticated callers before reading any fields
+      const sessionUserIdRt = (req as any).session?.userId;
+      if (!sessionUserIdRt) {
+        return res.status(403).json({ message: "Forbidden: not authenticated" });
+      }
+
       const {
         fromUserId,
         toUserId,
@@ -971,18 +977,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId,
       } = req.body;
 
+      // Enforce that fromUserId matches the authenticated session identity
+      if (!fromUserId || parseInt(fromUserId) !== sessionUserIdRt) {
+        return res.status(403).json({ message: "Forbidden: fromUserId does not match authenticated session" });
+      }
+
       const currency = sanitizeText(rawCurrency);
-      if (!fromUserId || !currency || !amount || !transactionHash) {
-        return res.status(400).json({ message: "fromUserId, currency, amount, and transactionHash are required" });
+      if (!currency || !amount || !transactionHash) {
+        return res.status(400).json({ message: "currency, amount, and transactionHash are required" });
       }
       if (!toUserId && !toAddress) {
         return res.status(400).json({ message: "toUserId or toAddress required" });
-      }
-
-      // Enforce that fromUserId matches the authenticated session identity
-      const sessionUserIdRt = (req as any).session?.userId;
-      if (!sessionUserIdRt || parseInt(fromUserId) !== sessionUserIdRt) {
-        return res.status(403).json({ message: "Forbidden: fromUserId does not match authenticated session" });
       }
 
       // Verify the sender exists in the database
@@ -1197,11 +1202,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/messages/:id", async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      const userId = req.body.userId || 5; // Use userId from request body (current connected user)
+      const sessionUserId = (req as any).session?.userId;
+      const requestedUserId = req.body.userId ? parseInt(req.body.userId) : null;
 
       if (isNaN(messageId)) {
         return res.status(400).json({ message: "Invalid message ID" });
       }
+
+      // Require an active session; if a userId is also passed it must match
+      if (!sessionUserId) {
+        return res.status(403).json({ message: "Forbidden: not authenticated" });
+      }
+      if (requestedUserId && requestedUserId !== sessionUserId) {
+        return res.status(403).json({ message: "Forbidden: userId does not match session" });
+      }
+      const userId = sessionUserId;
 
       const deleted = await storage.deleteMessage(messageId, userId);
       if (!deleted) {
@@ -1428,16 +1443,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clear all user data
-  app.delete("/api/user/clear-all-data", async (req, res) => {
+  app.delete("/api/user/clear-all-data", authLimiter, async (req, res) => {
     try {
+      // Session gate — must be authenticated and can only clear own data
+      const sessionUserId = (req as any).session?.userId;
+      if (!sessionUserId) {
+        return res.status(403).json({ message: "Forbidden: not authenticated" });
+      }
+
       const userId = req.body.userId;
-      
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }
-      
-      
-      
+      if (parseInt(userId) !== sessionUserId) {
+        return res.status(403).json({ message: "Forbidden: cannot clear another user's data" });
+      }
+
       // Clear all user data from database
       const success = await storage.clearAllUserData(userId);
       

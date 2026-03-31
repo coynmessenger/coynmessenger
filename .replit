@@ -43,3 +43,7 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "google-drive:1.0.0"]
 
 [userenv.shared]
 WALLET_ENCRYPTION_KEY = "ad958d015020f6543203dc2c98a0de76a6afaeab263e26d6faf24b04ec5896e6"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000

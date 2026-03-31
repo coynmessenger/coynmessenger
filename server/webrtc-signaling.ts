@@ -105,9 +105,19 @@ export class EncryptedWebRTCSignaling {
           return;
         }
         const numericUserId = parseInt(userId);
-        const isParticipant =
-          conversation.participant1Id === numericUserId ||
-          conversation.participant2Id === numericUserId;
+
+        let isParticipant = false;
+        if (conversation.isGroup) {
+          // Group conversation — check the group members table
+          const members = await storage.getGroupMembers(parseInt(conversationId));
+          isParticipant = members.some((m) => m.id === numericUserId);
+        } else {
+          // Direct conversation — check participant columns
+          isParticipant =
+            conversation.participant1Id === numericUserId ||
+            conversation.participant2Id === numericUserId;
+        }
+
         if (!isParticipant) {
           return;
         }
