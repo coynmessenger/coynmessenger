@@ -47,6 +47,17 @@ Preferred communication style: Simple, everyday language.
 -   Universal Wallet Transaction System using Thirdweb SDK for routing transactions through the user's connected wallet.
 -   Transaction processing uses the real BNB chain (BSC) for all token transfers.
 
+### Security Architecture
+-   **Session-based API gates**: Wallet send, record-transfer, send-internal, balance refresh, message delete, and clear-all-data routes all require a valid server-side session. Client-supplied `userId`/`fromUserId` is cross-validated against the session; mismatches return 403.
+-   **Socket.IO room authorization**: `join-conversation` verifies the authenticated user is a participant (direct: `participant1Id`/`participant2Id`; group: `getGroupMembers()` lookup) before admitting to the room.
+-   **Profile picture size cap**: Base64 image payloads are capped at 2 MB (413 returned if exceeded) to prevent database bloat.
+-   **Startup key validation**: `PLATFORM_WALLET_KEY` presence and format (32-byte hex) are validated at boot with a [FATAL] log if missing/malformed.
+-   **RPC chainId verification**: Each BSC RPC provider is verified to be on chainId 56 before use; wrong-chain providers are skipped in the rotation.
+-   **CSP headers**: Explicit WebSocket relay origins (`wss://relay.walletconnect.com`, `wss://*.walletconnect.com`) whitelisted; `upgrade-insecure-requests` removed to avoid Firefox WebSocket interference.
+-   **Rate limiting**: All sensitive endpoints are covered by specific rate limiters (authLimiter, walletLimiter, messageLimiter, uploadLimiter, searchLimiter) plus a global 300 req/15 min cap.
+-   **AES-256-GCM**: User internal wallet private keys encrypted at rest.
+-   **Known accepted risk**: Core auth state is localStorage-based for read routes — a full server-side session overhaul of the frontend is a future task.
+
 ## External Dependencies
 -   **@neondatabase/serverless**: PostgreSQL database connection.
 -   **drizzle-orm**: Type-safe database ORM.
