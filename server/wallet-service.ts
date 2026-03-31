@@ -34,7 +34,11 @@ async function getProvider(): Promise<ethers.JsonRpcProvider> {
   for (const rpc of BSC_RPCS) {
     try {
       const provider = new ethers.JsonRpcProvider(rpc);
-      await provider.getBlockNumber();
+      const network = await provider.getNetwork();
+      if (network.chainId !== 56n) {
+        console.warn(`RPC ${rpc} returned wrong chainId ${network.chainId} (expected 56), skipping...`);
+        continue;
+      }
       return provider;
     } catch {
       console.warn(`RPC ${rpc} unavailable, trying next...`);

@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { SignalEncryptionService } from './signal-encryption.js';
+import { storage } from './storage.js';
 
 export interface CallParticipant {
   userId: string;
@@ -51,10 +52,13 @@ export class EncryptedWebRTCSignaling {
       // User authentication and encryption setup
       socket.on('authenticate', async (data: { userId: string | number }) => {
         const userId = String(data.userId); // Ensure consistent string format
-        
-        console.log('🔐 SERVER: User authentication request');
-        console.log('- User ID:', userId);
-        console.log('- Socket ID:', socket.id);
+
+        // Verify the userId maps to a real user in the database before trusting it
+        const dbUser = await storage.getUser(parseInt(userId));
+        if (!dbUser) {
+          socket.emit('auth-error', { message: 'User not found' });
+          return;
+        }
         
         // Store user-socket mapping (OVERWRITE previous connections)
         const previousSocketId = this.userSockets.get(userId);
@@ -87,14 +91,26 @@ export class EncryptedWebRTCSignaling {
       });
 
       // Join conversation room for real-time messages
-      socket.on('join-conversation', (data: { conversationId: string }) => {
+      socket.on('join-conversation', async (data: { conversationId: string }) => {
         const { conversationId } = data;
         const userId = this.socketUsers.get(socket.id);
 
-        console.log('🏠 SERVER: User joining conversation room');
-        console.log('- User ID:', userId);
-        console.log('- Socket ID:', socket.id);
-        console.log('- Conversation ID:', conversationId);
+        if (!userId) {
+          return;
+        }
+
+        // Verify the authenticated user is a participant in this conversation
+        const conversation = await storage.getConversation(parseInt(conversationId));
+        if (!conversation) {
+          return;
+        }
+        const numericUserId = parseInt(userId);
+        const isParticipant =
+          conversation.participant1Id === numericUserId ||
+          conversation.participant2Id === numericUserId;
+        if (!isParticipant) {
+          return;
+        }
         
         socket.join(`conversation-${conversationId}`);
         
@@ -103,8 +119,6 @@ export class EncryptedWebRTCSignaling {
           this.conversationRooms.set(conversationId, new Set());
         }
         this.conversationRooms.get(conversationId)!.add(socket.id);
-        
-        console.log('- Room users count:', this.conversationRooms.get(conversationId)?.size || 0);
       });
 
       // Leave conversation room

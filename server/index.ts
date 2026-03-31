@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, corsOptions } from "./middleware/security";
@@ -13,8 +14,21 @@ app.set('trust proxy', 1);
 app.use(cors(corsOptions));
 app.use(securityHeaders);
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Session middleware — provides server-side identity binding for wallet routes
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'coyn-session-fallback-secret-change-in-prod',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  },
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -71,6 +85,17 @@ app.get('/favicon.ico', (req, res) => {
 });
 
 (async () => {
+  // Validate PLATFORM_WALLET_KEY on startup before accepting any requests
+  const platformKey = process.env.PLATFORM_WALLET_KEY;
+  if (!platformKey) {
+    console.error('[FATAL] PLATFORM_WALLET_KEY is not set — on-chain transactions will fail. Set this to a valid 32-byte hex BSC private key.');
+  } else {
+    const cleanKey = platformKey.startsWith('0x') ? platformKey.slice(2) : platformKey;
+    if (!/^[0-9a-fA-F]{64}$/.test(cleanKey)) {
+      console.error('[FATAL] PLATFORM_WALLET_KEY is not a valid 32-byte hex private key (expected 64 hex characters). On-chain transactions will fail.');
+    }
+  }
+
   try {
     const server = await registerRoutes(app);
 

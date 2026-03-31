@@ -339,6 +339,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...userToUpdate,
           displayName: getEffectiveDisplayName(userToUpdate)
         };
+        // Bind the verified userId to the server-side session
+        (req as any).session.userId = userToUpdate.id;
         return res.json(userWithEffectiveName);
       }
 
@@ -381,6 +383,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         displayName: getEffectiveDisplayName(newUser)
       };
       
+      // Bind the verified userId to the server-side session
+      (req as any).session.userId = newUser.id;
       return res.json(userWithEffectiveName);
     } catch (error) {
       
@@ -708,13 +712,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID is required" });
       }
 
-      console.log(`Refreshing wallet balances for user ${userId}`);
+      // Enforce that the requested userId matches the authenticated session identity
+      const sessionUserId = (req as any).session?.userId;
+      if (!sessionUserId || parseInt(userId) !== sessionUserId) {
+        return res.status(403).json({ message: "Forbidden: userId does not match authenticated session" });
+      }
 
-      // Get user info to check if they have a real wallet address
+      // Verify the userId maps to a real user in the database
       const user = await storage.getUser(parseInt(userId));
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(403).json({ message: "Forbidden: user not found" });
       }
+
+      console.log(`Refreshing wallet balances for user ${userId}`);
 
       // Initialize wallet balances if user doesn't have any
       let currentBalances = await storage.getUserWalletBalances(parseInt(userId));
@@ -784,12 +794,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { toUserId, currency: rawCurrency, amount, conversationId, fromUserId, transactionHash: rawTxHash, isBlockchainTransaction, senderAddress, recipientAddress } = req.body;
       const currency = sanitizeText(rawCurrency);
       const transactionHash = sanitizeText(rawTxHash);
-      // Get actual authenticated user ID
-      const actualFromUserId = fromUserId || (req as any).session?.userId || 5;
 
-      if (!toUserId || !currency || !amount) {
+      if (!fromUserId || !toUserId || !currency || !amount) {
         return res.status(400).json({ message: "Missing required fields" });
       }
+
+      // Enforce that fromUserId matches the authenticated session identity
+      const sessionUserId = (req as any).session?.userId;
+      if (!sessionUserId || parseInt(fromUserId) !== sessionUserId) {
+        return res.status(403).json({ message: "Forbidden: fromUserId does not match authenticated session" });
+      }
+
+      // Verify the sender exists in the database
+      const verifiedSender = await storage.getUser(parseInt(fromUserId));
+      if (!verifiedSender) {
+        return res.status(403).json({ message: "Forbidden: sender user not found" });
+      }
+      const actualFromUserId = verifiedSender.id;
 
       const numAmount = parseFloat(amount);
       if (isNaN(numAmount) || numAmount <= 0) {
@@ -958,6 +979,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "toUserId or toAddress required" });
       }
 
+      // Enforce that fromUserId matches the authenticated session identity
+      const sessionUserIdRt = (req as any).session?.userId;
+      if (!sessionUserIdRt || parseInt(fromUserId) !== sessionUserIdRt) {
+        return res.status(403).json({ message: "Forbidden: fromUserId does not match authenticated session" });
+      }
+
+      // Verify the sender exists in the database
+      const senderVerified = await storage.getUser(parseInt(fromUserId));
+      if (!senderVerified) {
+        return res.status(403).json({ message: "Forbidden: sender user not found" });
+      }
+
       const numAmount = parseFloat(amount);
       if (isNaN(numAmount) || numAmount <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
@@ -1025,8 +1058,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid amount" });
       }
 
+      // Enforce that fromUserId matches the authenticated session identity
+      const sessionUserIdSi = (req as any).session?.userId;
+      if (!sessionUserIdSi || parseInt(fromUserId) !== sessionUserIdSi) {
+        return res.status(403).json({ message: "Forbidden: fromUserId does not match authenticated session" });
+      }
+
       const senderUser = await storage.getUser(fromUserId);
-      if (!senderUser) return res.status(404).json({ message: "Sender not found" });
+      if (!senderUser) return res.status(403).json({ message: "Forbidden: sender user not found" });
 
       // Auto-generate internal wallet for sender if missing
       if (!senderUser.internalWalletAddress || !senderUser.encryptedPrivateKey) {
@@ -1296,12 +1335,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allowedFields = ['displayName', 'fullName', 'email', 'addressLine1', 'addressLine2', 'city', 'state', 'zipCode', 'country', 'profilePicture'];
       const updates: any = {};
       
+      const MAX_PROFILE_PICTURE_BYTES = 2 * 1024 * 1024;
       for (const [key, value] of Object.entries(req.body)) {
         if (allowedFields.includes(key)) {
           if (key === 'email') {
             updates[key] = sanitizeEmail(value as string);
           } else if (key === 'profilePicture') {
-            updates[key] = sanitizeUrl(value as string);
+            const picStr = value as string;
+            if (Buffer.byteLength(picStr, 'utf8') > MAX_PROFILE_PICTURE_BYTES) {
+              return res.status(413).json({ message: "Profile picture exceeds the 2 MB limit" });
+            }
+            updates[key] = sanitizeUrl(picStr);
           } else {
             updates[key] = sanitizeDisplayName(value as string);
           }
@@ -1349,9 +1393,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }
+
+      // Enforce 2 MB limit on the raw file buffer before encoding
+      const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+      if (req.file.size > MAX_AVATAR_BYTES) {
+        return res.status(413).json({ message: "Profile picture exceeds the 2 MB limit" });
+      }
+
       // Convert buffer to base64 data URL so it persists in the DB across restarts
       const mimeType = req.file.mimetype || 'image/jpeg';
       const profilePicture = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
+      // Also verify the base64 string won't exceed the 2 MB limit after encoding
+      if (Buffer.byteLength(profilePicture, 'utf8') > MAX_AVATAR_BYTES) {
+        return res.status(413).json({ message: "Profile picture exceeds the 2 MB limit" });
+      }
 
       // Update user's profile picture in database
       const user = await storage.updateUser(userId, { profilePicture });
