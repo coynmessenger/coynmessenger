@@ -1214,3 +1214,28 @@ mark:hover {
     transform: scale(1.5) translateX(20px);
   }
 }
+
+
+/* ── Opening page animations ──────────────────────────────── */
+@keyframes coyn-logo-in {
+  from { opacity: 0; transform: translateY(-28px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);    }
+}
+@keyframes coyn-card-in {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes coyn-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.anim-logo {
+  animation: coyn-logo-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-card {
+  animation: coyn-card-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+.anim-content {
+  animation: coyn-fade-in 0.5s ease 0.45s both;
+}

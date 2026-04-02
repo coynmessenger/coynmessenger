@@ -268,7 +268,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 flex flex-col">
 
       {/* Header with Logo */}
-      <header className="w-full p-4 sm:p-6">
+      <header className="w-full p-4 sm:p-6 anim-logo">
         <div className="flex justify-center">
           <img 
             src="/coynful-logo.jpg" 
@@ -286,7 +286,7 @@ export default function HomePage() {
         style={{ backgroundImage: `url(${backgroundImagePath})` }}
       >
         {/* Connection Card - Positioned directly under logo */}
-        <div className="w-full max-w-md mx-auto mb-8">
+        <div className="w-full max-w-md mx-auto mb-8 anim-card">
             <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
@@ -367,7 +367,7 @@ export default function HomePage() {
         </div>
         
         {/* Features Section - Moved to bottom */}
-        <div className="w-full max-w-6xl mx-auto mt-8">
+        <div className="w-full max-w-6xl mx-auto mt-8 anim-content">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <div key={index} className="text-center space-y-3 p-4">
