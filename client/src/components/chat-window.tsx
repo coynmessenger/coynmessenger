@@ -2893,9 +2893,9 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             type="submit"
             size="icon"
             className={`${isSendingMessage || sendMessageMutation.isPending 
-              ? 'bg-slate-400 animate-pulse' 
-              : 'bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500'
-            } text-white h-6 w-6 touch-manipulation shadow-md transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
+              ? 'bg-orange-400/40 animate-pulse' 
+              : 'bg-orange-500/20 hover:bg-orange-500/35'
+            } text-orange-500 h-6 w-6 touch-manipulation shadow-sm transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
