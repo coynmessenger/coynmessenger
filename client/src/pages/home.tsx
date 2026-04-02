@@ -287,7 +287,7 @@ export default function HomePage() {
       >
         {/* Connection Card - Positioned directly under logo */}
         <div className="w-full max-w-md mx-auto mb-8 anim-card">
-            <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-2xl bg-gradient-to-b from-white/95 to-blue-50/70 dark:from-slate-800/95 dark:to-blue-900/20 backdrop-blur-sm border border-blue-100/40 dark:border-blue-800/30">
               <CardHeader className="text-center space-y-4 pb-4">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center">

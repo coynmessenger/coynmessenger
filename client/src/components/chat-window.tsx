@@ -1728,7 +1728,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   return (
     <div className="flex flex-col h-full bg-background chat-container">
       {/* Chat Header */}
-      <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
+      <div className="chat-header bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 border-b border-blue-500/30 p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden shadow-md">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
@@ -1736,7 +1736,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground"
+              className="p-2 hover:bg-white/20 text-white/80 hover:text-white"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -1762,18 +1762,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               )}
             </Avatar>
             <div className="text-left min-w-0 flex-1">
-              <h2 className="font-semibold text-foreground truncate">
+              <h2 className="font-semibold text-white truncate">
                 {conversation.isGroup ? conversation.groupName : (
                   <>
                     {conversation.otherUser?.displayName || "Unknown User"}
-                    {isSelfConversation && <span className="text-muted-foreground font-normal"> (You)</span>}
+                    {isSelfConversation && <span className="text-blue-100 font-normal"> (You)</span>}
                   </>
                 )}
               </h2>
               {conversation.isGroup ? (
-                <p className="text-xs text-muted-foreground">Group conversation</p>
+                <p className="text-xs text-blue-100">Group conversation</p>
               ) : (
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="text-xs text-blue-100 truncate">
                   {conversation.otherUser?.walletAddress ? 
                     `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
                     ''
@@ -1802,10 +1802,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }
                 }}
                 disabled={isInitiatingCall}
-                className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${
                   isVoiceCallActive 
-                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-green-300 shadow-lg shadow-green-500/50 bg-green-500/20 hover:bg-green-500/30" 
+                    : "text-white/80 hover:text-white hover:bg-white/20"
                 }`}
                 title={isVoiceCallActive ? "Join active call" : "Voice call"}
                 data-testid="button-voice-call"
@@ -1823,10 +1823,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }
                 }}
                 disabled={isInitiatingCall}
-                className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
+                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${
                   isVideoCallActive 
-                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-green-300 shadow-lg shadow-green-500/50 bg-green-500/20 hover:bg-green-500/30" 
+                    : "text-white/80 hover:text-white hover:bg-white/20"
                 }`}
                 title={isVideoCallActive ? "Join active video call" : "Video call"}
                 data-testid="button-video-call"
@@ -1842,7 +1842,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="p-1.5 sm:p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
+                  className="p-1.5 sm:p-2 hover:bg-white/20 text-white/80 hover:text-white rounded-full"
                   title="Group options"
                 >
                   <MoreVertical className="h-5 w-5" />
@@ -2128,13 +2128,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div 
-                          className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
+                          className="bg-blue-50/90 dark:bg-blue-900/30 rounded-2xl rounded-tl-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-blue-200/50 dark:border-blue-700/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
                           {/* WhatsApp-style reply context for received messages */}
                           {msg.replyToId && (
-                            <div className="bg-gray-100/80 dark:bg-slate-700/50 rounded-lg p-2 mb-2 border-l-4 border-gray-400/60 dark:border-slate-500/60">
-                              <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <div className="bg-blue-100/70 dark:bg-blue-800/30 rounded-lg p-2 mb-2 border-l-4 border-blue-400/70 dark:border-blue-500/60">
+                              <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
                                 {msg.replyToSender}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">

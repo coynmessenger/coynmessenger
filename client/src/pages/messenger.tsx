@@ -548,7 +548,7 @@ export default function MessengerPage() {
       </audio>
       {/* Desktop Header - only visible on large screens */}
       <div className="hidden lg:flex lg:flex-col lg:w-full lg:h-[100dvh]">
-        <div className="bg-card border-b border-border p-3 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 border-b border-blue-500/30 p-3 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => {
@@ -558,12 +558,12 @@ export default function MessengerPage() {
               }}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-primary hover:bg-muted active:bg-muted/80 transition-colors"
+              className="text-white/80 hover:text-white hover:bg-white/15 active:bg-white/20 transition-colors"
             >
               <Home className="h-4 w-4 mr-2" />
               Return to Home
             </Button>
-            <h1 className="text-xl font-normal text-primary" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
+            <h1 className="text-xl font-normal text-white" style={{ fontFamily: 'Product Sans, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', letterSpacing: '-0.025em' }}>
               Messenger
             </h1>
           </div>
@@ -794,7 +794,7 @@ export default function MessengerPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col w-full h-[100dvh] messenger-mobile-layout bg-background overflow-hidden">
         {/* Mobile Navigation */}
-        <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
+        <nav className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 border-b border-blue-500/30 z-50 shadow-md">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Button
@@ -805,12 +805,12 @@ export default function MessengerPage() {
                 }}
                 variant="ghost"
                 size="sm"
-                className="text-slate-700 dark:text-slate-300 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 active:bg-blue-100 transition-colors"
+                className="text-white/80 hover:text-white hover:bg-white/15 p-2 active:bg-white/20 transition-colors"
                 title="Go to Homepage"
               >
                 <Home className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-normal text-black dark:text-white" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
+              <h1 className="text-xl font-normal text-white" style={{ fontFamily: 'Google Product Sans, sans-serif', letterSpacing: '-0.025em' }}>
                 Messenger
               </h1>
             </div>
