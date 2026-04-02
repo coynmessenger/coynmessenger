@@ -306,7 +306,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Thirdweb Wallet Connection - Mobile Optimized */}
-                    <div className="flex justify-center mobile-wallet-connector">
+                    <div className="flex justify-center mobile-wallet-connector anim-btn-glow rounded-lg">
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}
@@ -366,12 +366,16 @@ export default function HomePage() {
             </Card>
         </div>
         
-        {/* Features Section - Moved to bottom */}
-        <div className="w-full max-w-6xl mx-auto mt-8 anim-content">
+        {/* Features Section - Staggered animation per card */}
+        <div className="w-full max-w-6xl mx-auto mt-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="text-center space-y-3 p-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
+              <div
+                key={index}
+                className="anim-feature text-center space-y-3 p-4 rounded-xl hover:bg-white/20 dark:hover:bg-white/5 transition-colors"
+                style={{ animationDelay: `${0.55 + index * 0.12}s` }}
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30">
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">

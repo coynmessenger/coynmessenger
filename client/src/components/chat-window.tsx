@@ -2018,7 +2018,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.senderId === connectedUserId ? (
                   // Sent message (current user) - with swipe-to-reply
-                  <div className={`flex justify-end items-start space-x-2 mb-0 ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
+                  <div className={`flex justify-end items-start space-x-2 mb-0 anim-msg-right ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
                     <div className="relative group max-w-xs lg:max-w-md">
                       
                       {/* Swipeable message */}
@@ -2097,7 +2097,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   </div>
                 ) : (
                   // Received message - with swipe-to-reply
-                  <div className={`flex items-start space-x-2 mb-0 ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
+                  <div className={`flex items-start space-x-2 mb-0 anim-msg-left ${deletingMessageId === msg.id ? 'message-dust' : ''}`} data-message-id={msg.id}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={msg.sender?.profilePicture || ""} />
                       <AvatarFallback>{msg.sender?.displayName?.charAt(0) || msg.sender?.username?.charAt(0) || "U"}</AvatarFallback>
@@ -2306,7 +2306,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "attachment" ? (
                 // File attachment message
-                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-1`} data-message-id={msg.id}>
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end anim-msg-right' : 'justify-start anim-msg-left'} group mb-1`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
 
                     {/* Attachment bubble */}
@@ -2402,7 +2402,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "gif" ? (
                 // GIF message
-                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-0`} data-message-id={msg.id}>
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end anim-msg-right' : 'justify-start anim-msg-left'} group mb-0`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
                     {/* GIF bubble */}
                     <div 
@@ -2436,7 +2436,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 </div>
               ) : msg.messageType === "ai_image" ? (
                 // AI-generated image message
-                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end' : 'justify-start'} group mb-0`} data-message-id={msg.id}>
+                <div className={`flex ${msg.senderId === connectedUserId ? 'justify-end anim-msg-right' : 'justify-start anim-msg-left'} group mb-0`} data-message-id={msg.id}>
                   <div className="relative max-w-xs lg:max-w-md">
                     {/* AI Image bubble */}
                     <div 

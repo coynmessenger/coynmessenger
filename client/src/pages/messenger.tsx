@@ -620,6 +620,7 @@ export default function MessengerPage() {
                           // Check if this conversation has unread messages (highlighted until opened)
                           const hasUnreadMessages = activeToasts.has(conversation.id.toString());
                           
+                          const convIdx = filteredConversations.indexOf(conversation);
                           return (
                             <div
                               key={conversation.id}
@@ -633,9 +634,10 @@ export default function MessengerPage() {
                                 // Clear notifications for this conversation when opened
                                 clearNotificationsForConversation(conversation.id.toString());
                               }}
-                              className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-blue-500 ${
+                              className={`anim-conv-item p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-blue-500 ${
                                 hasUnreadMessages ? 'bg-blue-50 dark:bg-blue-900/20 border-l-blue-500' : ''
                               }`}
+                              style={{ animationDelay: `${convIdx * 0.07}s` }}
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="relative">
@@ -900,6 +902,7 @@ export default function MessengerPage() {
                         // Check if this conversation has unread messages (show notification only if there's an active toast)
                         const hasUnreadMessages = activeToasts.has(conversation.id.toString());
                         
+                        const convIndex = filteredConversations.indexOf(conversation);
                         return (
                           <div
                             key={conversation.id}
@@ -908,9 +911,10 @@ export default function MessengerPage() {
                               // Clear notifications for this conversation when opened
                               clearNotificationsForConversation(conversation.id.toString());
                             }}
-                            className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
+                            className={`anim-conv-item p-4 hover:bg-accent/50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-orange-500 ${
                               hasUnreadMessages ? 'bg-orange-50 dark:bg-orange-900/20 border-l-orange-500' : ''
                             }`}
+                            style={{ animationDelay: `${convIndex * 0.07}s` }}
                           >
                             <div className="flex items-center space-x-3">
                               <div className="relative">
