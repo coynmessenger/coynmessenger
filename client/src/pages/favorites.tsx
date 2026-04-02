@@ -127,9 +127,7 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="min-h-screen watercolor-bg bg-background">
-      {/* Watercolor Background Overlay */}
-      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark z-0"></div>
+    <div className="min-h-screen bg-background">
       <div className="relative z-10">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">

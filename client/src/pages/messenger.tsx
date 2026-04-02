@@ -548,9 +548,7 @@ export default function MessengerPage() {
   }, [socket, conversations]); // Trigger when socket is connected AND conversations are loaded
 
   return (
-    <div className="flex h-[100dvh] watercolor-bg bg-background text-foreground relative messenger-root overflow-hidden">
-      {/* Watercolor Background Overlay */}
-      <div className="absolute inset-0 watercolor-overlay dark:watercolor-overlay-dark -z-10"></div>
+    <div className="flex h-[100dvh] bg-background text-foreground relative messenger-root overflow-hidden">
       
       {/* Hidden audio element for incoming call ringtone */}
       <audio 
