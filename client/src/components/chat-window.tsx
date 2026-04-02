@@ -1728,7 +1728,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
   return (
     <div className="flex flex-col h-full bg-background chat-container">
       {/* Chat Header */}
-      <div className="chat-header bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 border-b border-blue-500/30 p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden shadow-md">
+      <div className="chat-header bg-white dark:bg-card border-b border-border p-3 sm:p-4 flex items-center justify-between relative z-50 shrink-0 w-full overflow-hidden">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
           {/* Back Button - Mobile and Desktop */}
           {onBack && (
@@ -1736,7 +1736,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="p-2 hover:bg-white/20 text-white/80 hover:text-white"
+              className="p-2 hover:bg-accent text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -1762,18 +1762,18 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               )}
             </Avatar>
             <div className="text-left min-w-0 flex-1">
-              <h2 className="font-semibold text-white truncate">
+              <h2 className="font-semibold text-foreground truncate">
                 {conversation.isGroup ? conversation.groupName : (
                   <>
                     {conversation.otherUser?.displayName || "Unknown User"}
-                    {isSelfConversation && <span className="text-blue-100 font-normal"> (You)</span>}
+                    {isSelfConversation && <span className="text-muted-foreground font-normal"> (You)</span>}
                   </>
                 )}
               </h2>
               {conversation.isGroup ? (
-                <p className="text-xs text-blue-100">Group conversation</p>
+                <p className="text-xs text-muted-foreground">Group conversation</p>
               ) : (
-                <p className="text-xs text-blue-100 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {conversation.otherUser?.walletAddress ? 
                     `${conversation.otherUser.walletAddress.slice(0, 6)}...${conversation.otherUser.walletAddress.slice(-4)}` : 
                     ''
@@ -1802,10 +1802,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }
                 }}
                 disabled={isInitiatingCall}
-                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${
+                className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVoiceCallActive 
-                    ? "text-green-300 shadow-lg shadow-green-500/50 bg-green-500/20 hover:bg-green-500/30" 
-                    : "text-white/80 hover:text-white hover:bg-white/20"
+                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 title={isVoiceCallActive ? "Join active call" : "Voice call"}
                 data-testid="button-voice-call"
@@ -1823,10 +1823,10 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   }
                 }}
                 disabled={isInitiatingCall}
-                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${
+                className={`p-1.5 sm:p-2 hover:bg-accent rounded-full transition-all duration-300 ${
                   isVideoCallActive 
-                    ? "text-green-300 shadow-lg shadow-green-500/50 bg-green-500/20 hover:bg-green-500/30" 
-                    : "text-white/80 hover:text-white hover:bg-white/20"
+                    ? "text-green-500 shadow-lg shadow-green-500/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30" 
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 title={isVideoCallActive ? "Join active video call" : "Video call"}
                 data-testid="button-video-call"
@@ -1842,7 +1842,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="p-1.5 sm:p-2 hover:bg-white/20 text-white/80 hover:text-white rounded-full"
+                  className="p-1.5 sm:p-2 hover:bg-accent text-muted-foreground hover:text-foreground rounded-full"
                   title="Group options"
                 >
                   <MoreVertical className="h-5 w-5" />
@@ -2128,13 +2128,13 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                         }}
                       >
                         <div 
-                          className="bg-blue-50/90 dark:bg-blue-900/30 rounded-2xl rounded-tl-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-blue-200/50 dark:border-blue-700/50"
+                          className="bg-white/80 dark:bg-slate-800/80 rounded-2xl rounded-tl-md px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300 backdrop-blur-xl border border-gray-200/50 dark:border-slate-600/50"
                           onContextMenu={(e) => handleContextMenu(e, msg)}
                         >
                           {/* WhatsApp-style reply context for received messages */}
                           {msg.replyToId && (
-                            <div className="bg-blue-100/70 dark:bg-blue-800/30 rounded-lg p-2 mb-2 border-l-4 border-blue-400/70 dark:border-blue-500/60">
-                              <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
+                            <div className="bg-gray-100/80 dark:bg-slate-700/50 rounded-lg p-2 mb-2 border-l-4 border-gray-400/60 dark:border-slate-500/60">
+                              <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 {msg.replyToSender}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
@@ -2656,7 +2656,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 sm:px-4 shrink-0 mt-auto">
+      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2686,7 +2686,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 px-2 py-0.5">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
@@ -2695,7 +2695,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-gray-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-100/60 dark:hover:bg-blue-500/10 transition-all duration-200 rounded-xl h-6 w-6 shrink-0"
+                  className="text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-500/10 transition-all duration-200 rounded-xl h-6 w-6 shrink-0"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -2893,8 +2893,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             type="submit"
             size="icon"
             className={`${isSendingMessage || sendMessageMutation.isPending 
-              ? 'bg-gradient-to-br from-blue-400 to-blue-600 animate-pulse' 
-              : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500'
+              ? 'bg-gradient-to-br from-orange-400 to-orange-600 animate-pulse' 
+              : 'bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500'
             } text-white h-6 w-6 touch-manipulation shadow-md transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
