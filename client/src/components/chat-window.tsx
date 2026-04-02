@@ -2656,7 +2656,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-blue-200/30 dark:border-blue-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-lg shrink-0 mt-auto">
+      <div className="border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 sm:px-4 shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2686,7 +2686,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-0.5 shadow-inner backdrop-blur-sm">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 px-2 py-0.5">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
