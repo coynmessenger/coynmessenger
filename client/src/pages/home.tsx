@@ -306,7 +306,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Thirdweb Wallet Connection - Mobile Optimized */}
-                    <div className="flex justify-center mobile-wallet-connector anim-btn-glow rounded-lg">
+                    <div className="flex justify-center mobile-wallet-connector">
                       <ThirdwebWalletConnector
                         onConnect={handleThirdwebConnect}
                         onDisconnect={handleThirdwebDisconnect}

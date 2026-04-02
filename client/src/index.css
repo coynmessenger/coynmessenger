@@ -1225,11 +1225,6 @@ mark:hover {
   80%  { transform: translateY(-5px) scale(0.98); }
   100% { transform: translateY(0)    scale(1);    }
 }
-/* Logo glow pulse after landing */
-@keyframes coyn-logo-glow {
-  0%, 100% { filter: drop-shadow(0 0 0px rgba(249,115,22,0)); }
-  50%       { filter: drop-shadow(0 0 18px rgba(249,115,22,0.65)); }
-}
 /* Card: big rise + scale */
 @keyframes coyn-card-in {
   0%   { opacity: 0; transform: translateY(80px) scale(0.88); }
@@ -1240,11 +1235,6 @@ mark:hover {
 @keyframes coyn-feature-in {
   from { opacity: 0; transform: translateY(40px) scale(0.9); }
   to   { opacity: 1; transform: translateY(0)    scale(1);   }
-}
-/* CTA button pulse glow */
-@keyframes coyn-btn-glow {
-  0%, 100% { box-shadow: 0 0 0px rgba(249,115,22,0); }
-  50%       { box-shadow: 0 0 22px rgba(249,115,22,0.55), 0 0 6px rgba(249,115,22,0.3); }
 }
 /* Chat messages from right (own) */
 @keyframes coyn-msg-right {
@@ -1276,9 +1266,6 @@ mark:hover {
 .anim-logo {
   animation: coyn-logo-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.anim-logo img {
-  animation: coyn-logo-glow 2.5s ease-in-out 0.9s infinite;
-}
 .anim-card {
   animation: coyn-card-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
 }
@@ -1287,9 +1274,6 @@ mark:hover {
 }
 .anim-content {
   animation: coyn-fade-up 0.5s ease 0.5s both;
-}
-.anim-btn-glow {
-  animation: coyn-btn-glow 2s ease-in-out 1.2s infinite;
 }
 .anim-msg-right {
   animation: coyn-msg-right 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
