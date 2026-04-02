@@ -486,7 +486,7 @@ img[alt="COYN Logo"] {
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(24.6, 95%, 53.1%);
+  --ring: hsl(217, 91%, 60%);
   --radius: 0.5rem;
   
   /* Orange messaging palette */
@@ -522,7 +522,7 @@ img[alt="COYN Logo"] {
   --accent-foreground: hsl(213, 31%, 91%);
   --destructive: hsl(0, 63%, 31%);
   --destructive-foreground: hsl(213, 31%, 91%);
-  --ring: hsl(181, 100%, 41%);
+  --ring: hsl(217, 91%, 60%);
 }
 
 @layer base {
