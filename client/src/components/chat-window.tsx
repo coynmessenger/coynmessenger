@@ -2841,7 +2841,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
 
           {/* Emoji + GIF buttons grouped together */}
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             <EmojiPicker
               onEmojiSelect={(emoji) => {
                 setMessage(prev => prev + emoji);
@@ -2895,7 +2895,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             className={`${isSendingMessage || sendMessageMutation.isPending 
               ? 'bg-orange-400/40 animate-pulse' 
               : 'bg-orange-500/20 hover:bg-orange-500/35'
-            } text-orange-500 h-6 w-6 touch-manipulation shadow-sm transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
+            } text-orange-500 h-6 w-6 ml-1.5 touch-manipulation shadow-sm transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
             <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
