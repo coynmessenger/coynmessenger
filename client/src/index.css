@@ -151,6 +151,15 @@ button[data-connect-wallet]:active {
     padding: 12px 16px;
   }
   
+  /* Chat input toolbar buttons — override the global 48px minimum
+     so compact icon buttons stay compact when keyboard is open       */
+  .chat-input-form button,
+  .chat-input-form [role="button"] {
+    min-height: unset;
+    min-width: unset;
+    padding: 0;
+  }
+
   /* Larger touch targets for critical actions */
   .btn-primary, .btn-call, .btn-connect {
     min-height: 56px;

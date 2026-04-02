@@ -2686,7 +2686,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
+        <form onSubmit={handleSendMessage} className="chat-input-form flex items-center gap-0.5 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-600/40 px-1 py-1 shadow-inner backdrop-blur-sm">
           {/* Plus Button with Dropdown - Hide for self-conversations */}
           {!isSelfConversation && (
             <DropdownMenu>
