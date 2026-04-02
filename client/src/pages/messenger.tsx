@@ -67,6 +67,23 @@ export default function MessengerPage() {
     sessionStorage.removeItem('userOnHomepage');
     localStorage.removeItem('userClickedHome');
   }, []);
+  // Track the true visible viewport height so the mobile layout shrinks
+  // correctly when the software keyboard opens (100dvh does NOT do this on Android).
+  const [mobileVH, setMobileVH] = useState<number>(
+    () => window.visualViewport?.height ?? window.innerHeight
+  );
+  useEffect(() => {
+    const update = () => {
+      setMobileVH(window.visualViewport?.height ?? window.innerHeight);
+    };
+    window.visualViewport?.addEventListener('resize', update);
+    window.addEventListener('resize', update);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   
   const [isWalletOpen, setIsWalletOpen] = useState(false);
@@ -791,8 +808,12 @@ export default function MessengerPage() {
         </div>
       </div>
 
-      {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col w-full h-[100dvh] messenger-mobile-layout bg-background overflow-hidden">
+      {/* Mobile Layout — height is set via JS so the container shrinks when the
+          software keyboard opens (100dvh does not do this on Android Chrome) */}
+      <div
+        className="lg:hidden flex flex-col w-full messenger-mobile-layout bg-background overflow-hidden"
+        style={{ height: `${mobileVH}px` }}
+      >
         {/* Mobile Navigation */}
         <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
           <div className="flex items-center justify-between p-4">
