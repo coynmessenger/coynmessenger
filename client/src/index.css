@@ -486,7 +486,7 @@ img[alt="COYN Logo"] {
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(24.6, 95%, 53.1%);
+  --ring: hsl(215, 16%, 65%);
   --radius: 0.5rem;
   
   /* Orange messaging palette */
@@ -738,7 +738,7 @@ img[alt="COYN Logo"] {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(251, 146, 60, 0.5);
+  background: rgba(148, 163, 184, 0.45);
   border-radius: 3px;
 }
 

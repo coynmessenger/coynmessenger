@@ -2656,7 +2656,7 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
       )}
 
       {/* Message Input */}
-      <div className="border-t border-orange-200/30 dark:border-orange-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
+      <div className="border-t border-gray-200/60 dark:border-slate-700/40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg shrink-0 mt-auto">
         {/* WhatsApp-style Reply indicator */}
         {replyToMessage && (
           <div className="mb-3 p-3 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border-l-4 border-blue-500 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
@@ -2893,8 +2893,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             type="submit"
             size="icon"
             className={`${isSendingMessage || sendMessageMutation.isPending 
-              ? 'bg-gradient-to-br from-orange-400 to-orange-600 animate-pulse' 
-              : 'bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500'
+              ? 'bg-slate-400 animate-pulse' 
+              : 'bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500'
             } text-white h-6 w-6 touch-manipulation shadow-md transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
