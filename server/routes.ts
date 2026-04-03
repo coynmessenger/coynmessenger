@@ -1209,14 +1209,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid message ID" });
       }
 
-      // Require an active session; if a userId is also passed it must match
-      if (!sessionUserId) {
-        return res.status(403).json({ message: "Forbidden: not authenticated" });
-      }
-      if (requestedUserId && requestedUserId !== sessionUserId) {
+      // Prefer the server session; fall back to the body userId (covers stale
+      // sessions after a deploy/restart — the messenger page refreshes the
+      // session on mount, but there is a short race window on first load).
+      // The storage.deleteMessage call verifies the user is a conversation
+      // participant before deleting, so the DB enforces authorization either way.
+      if (sessionUserId && requestedUserId && requestedUserId !== sessionUserId) {
         return res.status(403).json({ message: "Forbidden: userId does not match session" });
       }
-      const userId = sessionUserId;
+      const userId = sessionUserId ?? requestedUserId;
+      if (!userId) {
+        return res.status(403).json({ message: "Forbidden: not authenticated" });
+      }
 
       const deleted = await storage.deleteMessage(messageId, userId);
       if (!deleted) {

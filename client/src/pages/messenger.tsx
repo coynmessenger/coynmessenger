@@ -67,6 +67,27 @@ export default function MessengerPage() {
     sessionStorage.removeItem('userOnHomepage');
     localStorage.removeItem('userClickedHome');
   }, []);
+
+  // Silently re-establish the server-side session on every messenger load.
+  // Sessions can expire or be lost after a server deploy/restart. The
+  // frontend stays "logged in" via localStorage, but write routes (delete,
+  // send, wallet) all require req.session.userId — so we refresh it here
+  // before the user does anything that needs it.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('connectedUser');
+      if (stored) {
+        const user = JSON.parse(stored);
+        if (user?.walletAddress) {
+          apiRequest("POST", "/api/users/find-or-create", {
+            walletAddress: user.walletAddress,
+          }).catch(() => {}); // best-effort; failures are non-blocking
+        }
+      }
+    } catch {
+      // ignore malformed localStorage data
+    }
+  }, []);
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   
   const [isWalletOpen, setIsWalletOpen] = useState(false);
