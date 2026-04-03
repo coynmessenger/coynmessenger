@@ -806,11 +806,13 @@ export default function MessengerPage() {
         </div>
       </div>
 
-      {/* Mobile Layout — height is set via JS so the container shrinks when the
-          software keyboard opens (100dvh does not do this on Android Chrome) */}
+      {/* Mobile Layout — fixed positioning anchors the container to the visual
+          viewport so browser panning (which Android does when the keyboard opens)
+          cannot push it off-screen. Height is driven by visualViewport.height so
+          the container shrinks to exactly the area above the keyboard. */}
       <div
-        className="lg:hidden flex flex-col w-full messenger-mobile-layout bg-background overflow-hidden"
-        style={{ height: `${mobileVH}px` }}
+        className="lg:hidden flex flex-col messenger-mobile-layout bg-background overflow-hidden"
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, height: `${mobileVH}px` }}
       >
         {/* Mobile Navigation */}
         <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
