@@ -2840,8 +2840,8 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
             />
           </div>
 
-          {/* Emoji · GIF · Send — grouped with consistent spacing */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          {/* Emoji + GIF buttons grouped together */}
+          <div className="flex items-center gap-1 shrink-0">
             <EmojiPicker
               onEmojiSelect={(emoji) => {
                 setMessage(prev => prev + emoji);
@@ -2850,44 +2850,56 @@ export default function ChatWindow({ conversation, onToggleSidebar, onBack, sear
               isOpen={showEmojiPicker}
               onOpenChange={setShowEmojiPicker}
             />
-
-            <GifPicker
-              onGifSelect={(gif) => {
-                apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
-                  senderId: connectedUserId,
-                  content: gif.title,
-                  messageType: "gif",
-                  gifUrl: gif.images.original.url,
-                  gifTitle: gif.title,
-                  gifId: gif.id
-                }).then(() => {
-                  queryClient.invalidateQueries({ 
-                    queryKey: ["/api/conversations", conversation.id, "messages"] 
-                  });
-                }).catch(() => {
-                  toast({
-                    title: "Error",
-                    description: "Failed to send GIF. Please try again.",
-                    variant: "destructive",
-                  });
-                });
-              }}
-              isOpen={showGifPicker}
-              onOpenChange={setShowGifPicker}
-            />
-
-            <Button 
-              type="submit"
-              size="icon"
-              className={`${isSendingMessage || sendMessageMutation.isPending 
-                ? 'bg-orange-400/40 animate-pulse' 
-                : 'bg-orange-500/20 hover:bg-orange-500/35'
-              } text-orange-500 h-6 w-6 touch-manipulation shadow-sm transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
-              disabled={sendMessageMutation.isPending || !message.trim()}
-            >
-              <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
-            </Button>
           </div>
+
+          {/* GIF Picker */}
+          <GifPicker
+            onGifSelect={(gif) => {
+              // Send GIF as a message
+              const gifMessage = {
+                messageType: "gif" as const,
+                gifUrl: gif.images.original.url,
+                gifTitle: gif.title,
+                gifId: gif.id
+              };
+              
+              // Use API request directly since mutation expects different format
+              apiRequest("POST", `/api/conversations/${conversation.id}/messages`, {
+                senderId: connectedUserId,
+                content: gif.title,
+                messageType: "gif",
+                gifUrl: gif.images.original.url,
+                gifTitle: gif.title,
+                gifId: gif.id
+              }).then(() => {
+                // Refresh messages after sending
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/conversations", conversation.id, "messages"] 
+                });
+              }).catch((error) => {
+
+                toast({
+                  title: "Error",
+                  description: "Failed to send GIF. Please try again.",
+                  variant: "destructive",
+                });
+              });
+            }}
+            isOpen={showGifPicker}
+            onOpenChange={setShowGifPicker}
+          />
+
+          <Button 
+            type="submit"
+            size="icon"
+            className={`${isSendingMessage || sendMessageMutation.isPending 
+              ? 'bg-orange-400/40 animate-pulse' 
+              : 'bg-orange-500/20 hover:bg-orange-500/35'
+            } text-orange-500 h-6 w-6 ml-1.5 touch-manipulation shadow-sm transition-all duration-200 rounded-xl shrink-0 disabled:opacity-40 disabled:cursor-not-allowed`}
+            disabled={sendMessageMutation.isPending || !message.trim()}
+          >
+            <img src={sendIconPath} alt="Send" className={`h-3 w-3 ${isSendingMessage || sendMessageMutation.isPending ? 'animate-bounce' : ''}`} />
+          </Button>
         </form>
       </div>
 
