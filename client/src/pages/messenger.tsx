@@ -67,23 +67,6 @@ export default function MessengerPage() {
     sessionStorage.removeItem('userOnHomepage');
     localStorage.removeItem('userClickedHome');
   }, []);
-  // Track the true visible viewport height so the mobile layout shrinks
-  // correctly when the software keyboard opens (100dvh does NOT do this on Android).
-  const [mobileVH, setMobileVH] = useState<number>(
-    () => window.visualViewport?.height ?? window.innerHeight
-  );
-  useEffect(() => {
-    const update = () => {
-      setMobileVH(window.visualViewport?.height ?? window.innerHeight);
-    };
-    window.visualViewport?.addEventListener('resize', update);
-    window.addEventListener('resize', update);
-    return () => {
-      window.visualViewport?.removeEventListener('resize', update);
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   
   const [isWalletOpen, setIsWalletOpen] = useState(false);
@@ -806,13 +789,15 @@ export default function MessengerPage() {
         </div>
       </div>
 
-      {/* Mobile Layout — fixed positioning anchors the container to the visual
-          viewport so browser panning (which Android does when the keyboard opens)
-          cannot push it off-screen. Height is driven by visualViewport.height so
-          the container shrinks to exactly the area above the keyboard. */}
+      {/* Mobile Layout — position:fixed anchors to the visual viewport so the
+          browser cannot pan/scroll the container when the keyboard opens.
+          top:0 + bottom:0 fills exactly the visible area; with
+          interactive-widget=resizes-content in the <meta viewport> tag the
+          browser shrinks the layout viewport when the keyboard appears, so
+          bottom:0 lands precisely at the keyboard top on Android Chrome. */}
       <div
         className="lg:hidden flex flex-col messenger-mobile-layout bg-background overflow-hidden"
-        style={{ position: 'fixed', top: 0, left: 0, right: 0, height: `${mobileVH}px` }}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       >
         {/* Mobile Navigation */}
         <nav className="bg-white dark:bg-gray-900 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
