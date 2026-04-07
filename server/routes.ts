@@ -961,12 +961,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Updates DB balances and creates the chat message. Does NOT sign anything.
   app.post("/api/wallet/record-transfer", walletLimiter, async (req, res) => {
     try {
-      // Session gate first — reject unauthenticated callers before reading any fields
-      const sessionUserIdRt = (req as any).session?.userId;
-      if (!sessionUserIdRt) {
-        return res.status(403).json({ message: "Forbidden: not authenticated" });
-      }
-
       const {
         fromUserId,
         toUserId,
@@ -977,9 +971,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId,
       } = req.body;
 
-      // Enforce that fromUserId matches the authenticated session identity
-      if (!fromUserId || parseInt(fromUserId) !== sessionUserIdRt) {
-        return res.status(403).json({ message: "Forbidden: fromUserId does not match authenticated session" });
+      // Session-preferred, body-fallback — same pattern as delete-message
+      const sessionUserIdRt = (req as any).session?.userId;
+      const requestedIdRt = fromUserId ? parseInt(fromUserId) : NaN;
+      if (sessionUserIdRt && !isNaN(requestedIdRt) && requestedIdRt !== sessionUserIdRt) {
+        return res.status(403).json({ message: "Forbidden: fromUserId does not match session" });
+      }
+      const resolvedUserId = sessionUserIdRt ?? requestedIdRt;
+      if (!resolvedUserId || isNaN(resolvedUserId)) {
+        return res.status(403).json({ message: "Forbidden: not authenticated" });
       }
 
       const currency = sanitizeText(rawCurrency);

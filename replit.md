@@ -24,12 +24,13 @@ Preferred communication style: Simple, everyday language.
 -   **Session Management**: Express sessions with PostgreSQL store
 
 ### Authentication & Transaction Architecture
--   **Universal Wallet Support**: Thirdweb SDK v5 provides seamless support for all major Web3 wallets for sign-in.
--   **Server-Side Internal Wallets**: Each user has an auto-generated BSC wallet with AES-256-GCM encrypted private keys stored server-side, enabling transactions without external wallet popups.
--   **Dual Transfer Model**: Supports instant user-to-user (internal DB transfer) and external on-chain sends, with pre-flight checks for token and gas balances.
--   **RPC Fallback**: Rotates through 5 BSC RPC endpoints with automatic failover.
+-   **Universal Wallet Support**: Thirdweb SDK v5 provides seamless support for all major Web3 wallets for both sign-in and on-chain transactions.
+-   **Client-Side Signing**: Crypto transfers (BNB/USDT/COYN) are signed directly by the user's connected wallet using Thirdweb SDK v5 (`sendAndConfirmTransaction`). No server-side private key or PLATFORM_WALLET_KEY required for sends.
+-   **Server-Side Internal Wallets**: Each user has an auto-generated BSC wallet address stored server-side (used as the recipient address for incoming transfers).
+-   **Transaction Recording**: After a client-side on-chain tx is confirmed, `POST /api/wallet/record-transfer` records the DB balances and creates the chat message with the BSCScan hash.
+-   **RPC Fallback**: Rotates through 5 BSC RPC endpoints with automatic failover (server-side); Thirdweb uses publicnode.com RPC on the client.
 -   **Supported Wallets**: WalletConnect (mobile), MetaMask, Coinbase Wallet, Bitget Wallet, Trust Wallet, Rabby, Zerion.
--   **Supported Tokens**: BNB (native), USDT (ERC-20), COYN (ERC-20).
+-   **Supported Tokens**: BNB (native), USDT (BEP-20, 18 decimals), COYN (BEP-20, 0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1).
 
 ### Core Features
 -   Real-time text messaging with file attachments, emojis, and GIFs.

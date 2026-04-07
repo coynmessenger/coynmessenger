@@ -3,7 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Copy, CheckCircle2, AlertCircle, Loader2, ExternalLink, Shield } from "lucide-react";
+import { Copy, CheckCircle2, AlertCircle, Loader2, ExternalLink, Shield, Wallet } from "lucide-react";
+import { useActiveAccount } from "thirdweb/react";
+import { sendAndConfirmTransaction, prepareTransaction, toWei, getContract } from "thirdweb";
+import { transfer } from "thirdweb/extensions/erc20";
+import { thirdwebClient } from "@/lib/thirdweb-client";
+import { bsc } from "@/lib/bsc-chain";
+
+const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+const COYN_ADDRESS = "0x22c89a156cb6f05bc54fae2ed8d690a1bc4fe8e1";
 
 function getCurrencyIcon(currency: string) {
   if (currency === "BNB") return "🟡";
@@ -12,7 +20,7 @@ function getCurrencyIcon(currency: string) {
   return "💰";
 }
 
-type TxStatus = "fetching" | "ready" | "processing" | "confirmed" | "error";
+type TxStatus = "fetching" | "ready" | "awaiting_wallet" | "processing" | "confirmed" | "error";
 
 interface CryptoConfirmModalProps {
   open: boolean;
@@ -38,16 +46,17 @@ export default function CryptoConfirmModal({
   onSuccess,
 }: CryptoConfirmModalProps) {
   const { toast } = useToast();
+  const activeAccount = useActiveAccount();
 
   const [txStatus, setTxStatus] = useState<TxStatus>("fetching");
-  const [internalAddress, setInternalAddress] = useState<string>("");
+  const [recipientAddress, setRecipientAddress] = useState<string>("");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
   useEffect(() => {
     if (!open || !toUserId) return;
     setTxStatus("fetching");
-    setInternalAddress("");
+    setRecipientAddress("");
     setTxHash(null);
     setErrorMsg("");
 
@@ -57,7 +66,7 @@ export default function CryptoConfirmModal({
         return r.json();
       })
       .then((data) => {
-        setInternalAddress(data.walletAddress);
+        setRecipientAddress(data.walletAddress);
         setTxStatus("ready");
       })
       .catch((err) => {
@@ -67,48 +76,84 @@ export default function CryptoConfirmModal({
   }, [open, toUserId]);
 
   const copyAddress = () => {
-    if (!internalAddress) return;
-    navigator.clipboard.writeText(internalAddress);
+    if (!recipientAddress) return;
+    navigator.clipboard.writeText(recipientAddress);
     toast({ title: "Address Copied", description: "Wallet address copied to clipboard" });
   };
 
   const handleApprove = async () => {
-    setTxStatus("processing");
+    if (!activeAccount) {
+      setErrorMsg("No wallet connected. Please connect a wallet first.");
+      setTxStatus("error");
+      return;
+    }
+    if (!recipientAddress) {
+      setErrorMsg("Recipient address not loaded. Please try again.");
+      setTxStatus("error");
+      return;
+    }
+
+    setTxStatus("awaiting_wallet");
     setErrorMsg("");
 
     try {
-      const result: any = await apiRequest("POST", "/api/wallet/send-internal", {
+      let transaction;
+
+      if (currency === "BNB") {
+        transaction = prepareTransaction({
+          to: recipientAddress as `0x${string}`,
+          value: toWei(amount),
+          chain: bsc,
+          client: thirdwebClient,
+        });
+      } else {
+        const tokenAddress = currency === "USDT" ? USDT_ADDRESS : COYN_ADDRESS;
+        const contract = getContract({
+          client: thirdwebClient,
+          chain: bsc,
+          address: tokenAddress as `0x${string}`,
+        });
+        transaction = transfer({ contract, to: recipientAddress as `0x${string}`, amount });
+      }
+
+      setTxStatus("processing");
+
+      const receipt = await sendAndConfirmTransaction({
+        account: activeAccount,
+        transaction,
+      });
+
+      const hash = receipt.transactionHash;
+      setTxHash(hash);
+
+      await apiRequest("POST", "/api/wallet/record-transfer", {
         fromUserId: senderId,
         toUserId,
         currency,
         amount,
+        transactionHash: hash,
         conversationId,
       });
 
-      const hash = result?.transactionHash ?? null;
-      setTxHash(hash);
       setTxStatus("confirmed");
       onSuccess?.(hash);
     } catch (err: any) {
-      console.error("❌ CryptoConfirmModal server send error:", err);
+      console.error("❌ Wallet transfer error:", err);
       let msg = err?.message || "Transaction failed. Please try again.";
-      try {
-        const raw = err?.message || "";
-        const start = raw.indexOf("{");
-        if (start !== -1) {
-          const parsed = JSON.parse(raw.slice(start));
-          if (parsed.message) msg = parsed.message;
-        }
-      } catch {}
+      if (msg.includes("rejected") || msg.includes("denied") || msg.includes("cancel")) {
+        msg = "Transaction was rejected in your wallet.";
+      } else if (msg.includes("insufficient funds") || msg.includes("insufficient balance")) {
+        msg = `Insufficient ${currency} balance in your wallet.`;
+      }
       setErrorMsg(msg);
       setTxStatus("error");
     }
   };
 
   const handleClose = () => {
-    if (txStatus === "processing") return;
+    if (txStatus === "awaiting_wallet" || txStatus === "processing") return;
     setTxStatus("fetching");
-    setInternalAddress("");
+    setRecipientAddress("");
     setTxHash(null);
     setErrorMsg("");
     onClose();
@@ -164,9 +209,9 @@ export default function CryptoConfirmModal({
                 <div className="pt-1">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
-                      Wallet Address:
+                      To Address:
                     </span>
-                    {internalAddress && (
+                    {recipientAddress && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -186,18 +231,36 @@ export default function CryptoConfirmModal({
                       </span>
                     ) : (
                       <code className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all leading-relaxed">
-                        {internalAddress}
+                        {recipientAddress}
                       </code>
                     )}
                   </div>
                 </div>
+
+                {!activeAccount && txStatus === "ready" && (
+                  <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/60 rounded-lg p-3">
+                    <Wallet className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <p className="text-xs text-amber-800 dark:text-amber-300">
+                      No wallet connected. Connect a wallet to send.
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {txStatus === "awaiting_wallet" && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 flex items-center gap-3">
+                  <Wallet className="h-4 w-4 text-blue-500 shrink-0 animate-pulse" />
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Please approve the transaction in your wallet…
+                  </p>
+                </div>
+              )}
 
               {txStatus === "processing" && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 flex items-center gap-3">
                   <Loader2 className="h-4 w-4 animate-spin text-blue-500 shrink-0" />
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Processing transfer on BSC…
+                    Broadcasting on BSC — waiting for confirmation…
                   </p>
                 </div>
               )}
@@ -211,13 +274,24 @@ export default function CryptoConfirmModal({
               <div className="flex gap-3 pt-2">
                 <Button
                   onClick={handleApprove}
-                  disabled={txStatus === "processing" || txStatus === "fetching" || !internalAddress}
+                  disabled={
+                    txStatus === "awaiting_wallet" ||
+                    txStatus === "processing" ||
+                    txStatus === "fetching" ||
+                    !recipientAddress ||
+                    !activeAccount
+                  }
                   className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {txStatus === "processing" ? (
+                  {txStatus === "awaiting_wallet" ? (
+                    <span className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 animate-pulse" />
+                      Waiting for wallet…
+                    </span>
+                  ) : txStatus === "processing" ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing…
+                      Confirming on BSC…
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
@@ -229,7 +303,7 @@ export default function CryptoConfirmModal({
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  disabled={txStatus === "processing"}
+                  disabled={txStatus === "awaiting_wallet" || txStatus === "processing"}
                   className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-black dark:text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Back
@@ -269,7 +343,7 @@ function ConfirmedView({
       <div>
         <p className="text-lg font-bold text-black dark:text-white">Transfer Confirmed!</p>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-          {amount} {currency} sent successfully
+          {amount} {currency} sent on BSC
         </p>
       </div>
 
