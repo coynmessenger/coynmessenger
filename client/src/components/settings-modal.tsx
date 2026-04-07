@@ -1053,7 +1053,7 @@ export default function SettingsModal({ isOpen, onClose, showShipping = false }:
                 </div>
                 <div className="flex justify-between text-sm py-1">
                   <span className="text-gray-500 dark:text-gray-400">Version</span>
-                  <span className="text-gray-900 dark:text-gray-100 font-medium">1.4.0</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">1.4.1</span>
                 </div>
                 <div className="flex justify-between text-sm py-1">
                   <span className="text-gray-500 dark:text-gray-400">Network</span>
